@@ -1838,14 +1838,23 @@ footer {
   opacity: 0.5;
 }
 
-.drink-icon {
+.drink-media {
   display: grid;
-  width: 40px;
-  height: 40px;
+  width: 58px;
+  height: 58px;
   place-items: center;
-  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 13px;
   background: rgba(196, 126, 58, 0.13);
   color: #d69a58;
+}
+
+.drink-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .drink-card > div {

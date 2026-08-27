@@ -185,6 +185,8 @@ const PRODUCTS: Product[] = [
     kind: "drink",
     category: "Refrigerantes",
     name: "Coca-Cola",
+    image: "/coca-cola-220.jpeg",
+    imageAlt: "Lata gelada de Coca-Cola 220 ml",
     available: true,
     variants: [{ id: "220ml", label: "220 ml", whatsappLabel: "220 ml", price: 5, available: true }],
     options: [],
@@ -194,6 +196,8 @@ const PRODUCTS: Product[] = [
     kind: "drink",
     category: "Refrigerantes",
     name: "Coca-Cola",
+    image: "/coca-cola-350.jpeg",
+    imageAlt: "Lata gelada de Coca-Cola 350 ml",
     available: true,
     variants: [{ id: "350ml", label: "350 ml", whatsappLabel: "350 ml", price: 6, available: true }],
     options: [],
@@ -203,6 +207,8 @@ const PRODUCTS: Product[] = [
     kind: "drink",
     category: "Refrigerantes",
     name: "Fanta Laranja",
+    image: "/fanta-laranja-350.jpeg",
+    imageAlt: "Lata gelada de Fanta Laranja 350 ml",
     available: true,
     variants: [{ id: "350ml", label: "350 ml", whatsappLabel: "350 ml", price: 5, available: true }],
     options: [],
@@ -448,7 +454,7 @@ export default function Home() {
 
   function addOrUpdateSlice() {
     if (!sliceSauceId) {
-      setSelectionMessage("Escolha o sabor da calda: Chocolate ou Ninho.");
+      setSelectionMessage("Escolha sua calda inclusa: Chocolate ou Ninho.");
       scrollToSection("caldas");
       return;
     }
@@ -585,7 +591,7 @@ export default function Home() {
           ? "Escolha a forma de pagamento."
           : !paymentReady
             ? "Informe o valor para o troco."
-            : "Tudo certo para enviar seu pedido.";
+            : "Ao continuar, seu pedido será enviado no WhatsApp para confirmação.";
 
   return (
     <main>
@@ -725,7 +731,7 @@ export default function Home() {
               </section>
 
               <section className="step-block" id="caldas" aria-labelledby="step-sauce">
-                <div className="step-heading"><span className="step-number">2</span><div><h3 id="step-sauce">Escolha o sabor da calda</h3><p>Ela já está incluída e vai separada em um potinho.</p></div></div>
+                <div className="step-heading"><span className="step-number">2</span><div><h3 id="step-sauce">Escolha sua calda inclusa</h3><p>Sua fatia já acompanha 1 potinho de calda. Escolha o sabor:</p></div></div>
                 <RadioGroup className="sauce-grid" value={sliceSauceId} onValueChange={(value) => { setSliceSauceId(value); setSelectionMessage(""); }} aria-label="Calda da fatia">
                   {SAUCES.map((sauce) => (
                     <label className={`sauce-card ${sliceSauceId === sauce.id ? "is-selected" : ""}`} htmlFor={`sauce-${sauce.id}`} key={sauce.id}>
@@ -767,7 +773,11 @@ export default function Home() {
               const variant = drink.variants[0];
               return (
                 <article className={`drink-card ${!drink.available ? "is-unavailable" : ""}`} key={drink.id}>
-                  <span className="drink-icon"><CupSoda size={23} strokeWidth={1.6} /></span>
+                  <span className="drink-media">
+                    {drink.image
+                      ? <img src={drink.image} alt={drink.imageAlt} width="720" height="720" loading="lazy" />
+                      : <CupSoda size={23} strokeWidth={1.6} />}
+                  </span>
                   <div><strong>{drink.name}</strong><small>{variant.label}</small></div>
                   <b>{currency.format(variant.price)}</b>
                   <Button type="button" variant="outline" size="icon" onClick={() => addDrink(drink)} disabled={!drink.available || !variant.available} aria-label={`Adicionar ${drink.name} ${variant.label}`}><Plus size={17} /></Button>
