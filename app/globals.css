@@ -1675,6 +1675,16 @@ footer {
   line-height: 1.18;
 }
 
+.slice-card-copy em {
+  margin-top: 4px;
+  color: #cbb9a7;
+  font-size: 0.6rem;
+  font-style: normal;
+  font-weight: 750;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
 .slice-card-copy b {
   margin-top: auto;
   padding-top: 8px;

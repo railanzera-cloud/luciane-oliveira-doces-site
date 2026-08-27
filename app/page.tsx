@@ -49,6 +49,7 @@ type Product = {
   kind: ProductKind;
   category: string;
   name: string;
+  subtitle?: string;
   image?: string;
   imageAlt?: string;
   optionLabel?: string;
@@ -127,6 +128,7 @@ const PRODUCTS: Product[] = [
     kind: "slice",
     category: "Fatias Artesanais",
     name: "Ninho com Morango",
+    subtitle: "Massa branca",
     image: "/fatia-ninho-morango.jpeg",
     imageAlt: "Fatia artesanal de Ninho com morango em massa branca",
     optionLabel: "Calda",
@@ -213,6 +215,12 @@ function makeCartId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function productLabel(product: Product) {
+  return product.subtitle
+    ? `${product.name} (${product.subtitle.toLowerCase()})`
+    : product.name;
+}
+
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState<CategoryId>("pipocas");
   const [popcornVariantId, setPopcornVariantId] = useState("500ml");
@@ -278,10 +286,10 @@ export default function Home() {
         eyebrow: "Fatias Artesanais",
         titleLead: "Escolha sua",
         titleAccent: "Fatia Artesanal",
-        copy: "Escolha o sabor, a calda incluída e monte seu pedido sem precisar perguntar no WhatsApp.",
-        image: "/fatia-chocolatudo.jpeg",
-        alt: "Fatia artesanal Chocolatudo da Luciane Oliveira Doces",
-        facts: ["A partir de R$20", "Calda incluída"],
+        copy: "Escolha a fatia e o sabor da calda incluída, enviada separadamente em um potinho.",
+        image: "/fatia-chocolate-morango.jpeg",
+        alt: "Fatia artesanal de chocolate com morango da Luciane Oliveira Doces",
+        facts: ["A partir de R$20", "Calda grátis e separada"],
         cta: "Escolher minha fatia",
       };
 
@@ -357,7 +365,7 @@ export default function Home() {
 
   function addOrUpdateSlice() {
     if (!sliceSauceId) {
-      setSelectionMessage("Escolha a calda de Chocolate ou Ninho para continuar.");
+      setSelectionMessage("Escolha o sabor da calda: Chocolate ou Ninho.");
       scrollToSection("caldas");
       return;
     }
@@ -436,7 +444,7 @@ export default function Home() {
         .join(" + ");
       const prefix = cart.length > 1 ? `${index + 1}. ` : "";
       const optionLine = optionNames && product.optionLabel ? `\n${product.optionLabel}: ${optionNames}` : "";
-      return `${prefix}${item.quantity}x ${product.name} ${variant.whatsappLabel}${optionLine}\nValor: ${currency.format(variant.price * item.quantity)}`;
+      return `${prefix}${item.quantity}x ${productLabel(product)} ${variant.whatsappLabel}${optionLine}\nValor: ${currency.format(variant.price * item.quantity)}`;
     }).join("\n\n");
 
     const receivingLines = fulfillment === "entrega"
@@ -609,7 +617,11 @@ export default function Home() {
                         <span className="slice-media">
                           {slice.image ? <img src={slice.image} alt={slice.imageAlt} width="900" height="900" loading="lazy" /> : <span className="slice-placeholder"><CakeSlice size={30} strokeWidth={1.4} /><small>Fatia artesanal</small></span>}
                         </span>
-                        <span className="slice-card-copy"><strong>{slice.name}</strong><b>{currency.format(variant.price)}</b></span>
+                        <span className="slice-card-copy">
+                          <strong>{slice.name}</strong>
+                          {slice.subtitle && <em>{slice.subtitle}</em>}
+                          <b>{currency.format(variant.price)}</b>
+                        </span>
                         {selected && slice.available && <span className="slice-selected"><Check size={14} strokeWidth={3} /></span>}
                         {!slice.available && <span className="slice-status">Esgotado hoje</span>}
                       </label>
@@ -619,7 +631,7 @@ export default function Home() {
               </section>
 
               <section className="step-block" id="caldas" aria-labelledby="step-sauce">
-                <div className="step-heading"><span className="step-number">2</span><div><h3 id="step-sauce">Escolha a calda</h3><p>Chocolate ou Ninho, já incluída sem custo adicional.</p></div></div>
+                <div className="step-heading"><span className="step-number">2</span><div><h3 id="step-sauce">Escolha o sabor da calda</h3><p>Ela já está incluída e vai separada em um potinho.</p></div></div>
                 <RadioGroup className="sauce-grid" value={sliceSauceId} onValueChange={(value) => { setSliceSauceId(value); setSelectionMessage(""); }} aria-label="Calda da fatia">
                   {SAUCES.map((sauce) => (
                     <label className={`sauce-card ${sliceSauceId === sauce.id ? "is-selected" : ""}`} htmlFor={`sauce-${sauce.id}`} key={sauce.id}>
@@ -630,7 +642,7 @@ export default function Home() {
                     </label>
                   ))}
                 </RadioGroup>
-                <div className={`selection-helper ${selectionMessage ? "has-message" : ""}`} aria-live="polite">{selectionMessage || "Escolha uma das duas opções de calda."}</div>
+                <div className={`selection-helper ${selectionMessage ? "has-message" : ""}`} aria-live="polite">{selectionMessage || "Escolha Chocolate ou Ninho."}</div>
               </section>
 
               <section className="step-block" aria-labelledby="step-slice-quantity">
@@ -698,7 +710,7 @@ export default function Home() {
                         <div className="cart-item-top">
                           <div>
                             <span className="product-category">{product.category}</span>
-                            <h3>{product.name} · {variant.label}</h3>
+                            <h3>{productLabel(product)} · {variant.label}</h3>
                             {optionNames && product.optionLabel && <p>{product.optionLabel}: {optionNames}</p>}
                           </div>
                           <strong>{currency.format(variant.price * item.quantity)}</strong>
@@ -772,7 +784,7 @@ export default function Home() {
                 const names = item.optionIds.map((id) => product.options.find((option) => option.id === id)?.name).filter(Boolean).join(", ");
                 return (
                   <div className="summary-item" key={item.id}>
-                    <div><strong>{item.quantity}x {product.name} {variant.label}</strong>{names && product.optionLabel && <p>{product.optionLabel}: {names}</p>}</div>
+                    <div><strong>{item.quantity}x {productLabel(product)} {variant.label}</strong>{names && product.optionLabel && <p>{product.optionLabel}: {names}</p>}</div>
                     {product.kind !== "drink" && <Button type="button" variant="ghost" size="sm" onClick={() => editItem(item)} aria-label={`Editar item ${index + 1}`}>Editar</Button>}
                   </div>
                 );
