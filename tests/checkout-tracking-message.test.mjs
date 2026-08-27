@@ -41,6 +41,19 @@ test("uses only the Tintim Site Link with an encoded dynamic text parameter", ()
   assert.doesNotMatch(page, /wa\.me|api\.whatsapp\.com/i);
 });
 
+test("routes both checkout CTAs through the same tracked finalization function", () => {
+  const finish = functionBody(page, "finishOnWhatsApp", "stickyBuilderAction");
+  const builderAction = functionBody(page, "stickyBuilderAction", "startAnother");
+
+  assert.equal((page.match(/window\.location\.assign\(/g) ?? []).length, 1);
+  assert.match(finish, /window\.location\.assign\(tintimWhatsAppUrl\(buildWhatsAppMessage\(\)\)\)/);
+  assert.match(page, /className="whatsapp-button" onClick=\{finishOnWhatsApp\}/);
+  assert.match(page, /onClick=\{stickyUsesCheckoutAction \? finishOnWhatsApp : stickyBuilderAction\}/);
+  assert.doesNotMatch(builderAction, /finishOnWhatsApp|tintimWhatsAppUrl|window\.location/);
+  assert.equal((page.match(/tintimWhatsAppUrl\(/g) ?? []).length, 2);
+  assert.doesNotMatch(page, /<a[^>]+href=\{tintimWhatsAppUrl/);
+});
+
 test("keeps one Meta Pixel base and the Tintim tracker", () => {
   assert.equal((layout.match(/fbq\('init', '1491655855979140'\)/g) ?? []).length, 1);
   assert.equal((layout.match(/fbq\('track', 'PageView'\)/g) ?? []).length, 1);

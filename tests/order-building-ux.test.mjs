@@ -35,7 +35,10 @@ test("keeps a second product easy to add after the first one", () => {
 });
 
 test("lets the sticky action add a ready second item instead of skipping to checkout", () => {
-  assert.match(page, /if \(editingId \|\| builderEngaged \|\| draftReady \|\| !cart\.length\)/);
+  assert.match(page, /const builderFlowActive = Boolean\(editingId \|\| builderEngaged \|\| draftReady \|\| !cart\.length\)/);
+  assert.match(page, /const stickyUsesCheckoutAction = !builderFlowActive/);
+  assert.match(page, /function stickyBuilderAction\(\)/);
+  assert.match(page, /onClick=\{stickyUsesCheckoutAction \? finishOnWhatsApp : stickyBuilderAction\}/);
   assert.match(page, /setBuilderEngaged\(true\)/);
   assert.match(page, /setBuilderEngaged\(false\)/);
   assert.match(page, /stickyButtonLabel/);

@@ -333,6 +333,7 @@ export default function Home() {
     && addressReady
     && paymentReady;
   const builderFlowActive = Boolean(editingId || builderEngaged || draftReady || !cart.length);
+  const stickyUsesCheckoutAction = !builderFlowActive;
   const stickyPriceLabel = cart.length > 0 && !builderFlowActive
     ? currency.format(hasEstimatedTotal ? orderTotal : cartSubtotal)
     : draftSubtotal === null
@@ -719,13 +720,9 @@ export default function Home() {
     window.location.assign(tintimWhatsAppUrl(buildWhatsAppMessage()));
   }
 
-  function stickyAction() {
-    if (editingId || builderEngaged || draftReady || !cart.length) {
-      if (activeCategory === "pipocas") addOrUpdatePopcorn();
-      else addOrUpdateSlice();
-      return;
-    }
-    finishOnWhatsApp();
+  function stickyBuilderAction() {
+    if (activeCategory === "pipocas") addOrUpdatePopcorn();
+    else addOrUpdateSlice();
   }
 
   function startAnother(category: CategoryId) {
@@ -1184,11 +1181,11 @@ export default function Home() {
 
       <section className="trust-section"><div className="page-shell trust-content"><Crown size={30} strokeWidth={1.4} aria-hidden="true" /><div><p className="eyebrow">Luciane Oliveira Doces</p><h2>Feito em Paragominas com muito recheio e cuidado em cada pedido.</h2></div></div></section>
 
-      <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details">{STORE_CONFIG.acceptingOrders ? <a href={tintimWhatsAppUrl("Olá! Quero fazer um pedido pelo cardápio online.")}><MessageCircle size={16} /> (91) 99362-3669</a> : <span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span>}<span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
+      <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
       <div className="mobile-sticky-bar">
         <div><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></div>
-        <Button type="button" onClick={stickyAction} disabled={!STORE_CONFIG.acceptingOrders}>
+        <Button type="button" onClick={stickyUsesCheckoutAction ? finishOnWhatsApp : stickyBuilderAction} disabled={!STORE_CONFIG.acceptingOrders}>
           {stickyButtonLabel}
           <ChevronRight size={17} />
         </Button>
