@@ -1074,31 +1074,70 @@ label:has(button:focus-visible) {
   line-height: 1.5;
 }
 
-.restored-order-note {
+.session-order-strip {
+  border-bottom: 1px solid rgba(117, 70, 34, 0.13);
+  background: #f6ead9;
+}
+
+.session-order-content {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
-  margin-top: 15px;
-  padding: 10px 11px;
-  border-radius: 11px;
-  background: #e9f3eb;
-  color: #3d6e4c;
+  gap: 10px 11px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.session-order-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e7cfb1;
+  color: #855326;
+}
+
+.session-order-copy {
+  min-width: 0;
+}
+
+.session-order-copy strong {
+  display: block;
+  color: #4a2d19;
+  font-size: 0.76rem;
+}
+
+.session-order-copy p {
+  overflow: hidden;
+  margin: 3px 0 0;
+  color: #765b45;
   font-size: 0.67rem;
   line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.restored-order-note > svg {
-  color: #2d7a4d;
+.session-order-actions {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
 
-.restored-order-note button {
-  padding: 4px;
-  border: 0;
-  background: transparent;
-  color: #55765f;
-  font-size: 0.61rem;
-  font-weight: 750;
+.session-order-actions button {
+  min-height: 39px;
+  border-color: rgba(117, 70, 34, 0.2) !important;
+  color: #654329 !important;
+  font-size: 0.68rem;
+}
+
+.session-order-actions button:first-child {
+  background: #fffaf1 !important;
+}
+
+.session-order-actions button:last-child {
+  color: #914d43 !important;
 }
 
 .pickup-note {
@@ -1506,6 +1545,19 @@ footer {
   .page-shell,
   .brand-bar {
     width: min(100% - 48px, 1180px);
+  }
+
+  .session-order-content {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .session-order-actions {
+    grid-column: auto;
+    grid-template-columns: auto auto;
+  }
+
+  .session-order-actions button {
+    min-width: 96px;
   }
 
   .hero-content {

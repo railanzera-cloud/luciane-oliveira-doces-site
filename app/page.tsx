@@ -59,8 +59,7 @@ type Payment = "pix" | "dinheiro" | "cartao" | "";
 type MetaEventName = "ViewContent" | "AddToCart" | "InitiateCheckout";
 
 type SavedOrder = {
-  version: 1;
-  savedAt: number;
+  version: 2;
   activeCategory: CategoryId;
   cart: CartItem[];
   fulfillment: Fulfillment;
@@ -81,8 +80,8 @@ declare global {
 }
 
 const TINTIM_SITE_LINK = "https://tintim.link/whatsapp/2c956a42-229f-4d21-ade6-4442f8c048ed/7522df92-bbe1-4bff-83ca-2629bba182eb";
-const ORDER_STORAGE_KEY = "luciane-order-v1";
-const ORDER_STORAGE_TTL = 2 * 60 * 60 * 1000;
+const ORDER_STORAGE_KEY = "luciane-order-session-v2";
+const LEGACY_ORDER_STORAGE_KEY = "luciane-order-v1";
 const DEFAULT_POPCORN_VARIANT_ID = POPCORN.variants.find((variant) => variant.id === "500ml" && variant.available)?.id
   ?? POPCORN.variants.find((variant) => variant.available)?.id
   ?? POPCORN.variants[0].id;
@@ -195,43 +194,52 @@ export default function Home() {
 
   useEffect(() => {
     const requestedCategory = new URLSearchParams(window.location.search).get("categoria");
+    let savedOrder: Partial<SavedOrder> | null = null;
+    let savedCart: CartItem[] = [];
     try {
-      const rawOrder = window.localStorage.getItem(ORDER_STORAGE_KEY);
+      // Remove o pedido antigo que permanecia no aparelho por até duas horas.
+      window.localStorage.removeItem(LEGACY_ORDER_STORAGE_KEY);
+      const rawOrder = window.sessionStorage.getItem(ORDER_STORAGE_KEY);
       if (rawOrder) {
         const saved = JSON.parse(rawOrder) as Partial<SavedOrder>;
-        const stillFresh = saved.version === 1
-          && typeof saved.savedAt === "number"
-          && Date.now() - saved.savedAt <= ORDER_STORAGE_TTL;
-        if (stillFresh) {
-          const savedCart = sanitizeSavedCart(saved.cart);
-          setCart(savedCart);
-          if (saved.fulfillment === "entrega" || saved.fulfillment === "retirada") setFulfillment(saved.fulfillment);
-          if (typeof saved.deliveryZoneId === "string" && DELIVERY_ZONES.some((zone) => zone.id === saved.deliveryZoneId)) {
-            setDeliveryZoneId(saved.deliveryZoneId);
-          }
-          if (typeof saved.neighborhood === "string") setNeighborhood(saved.neighborhood);
-          if (typeof saved.address === "string") setAddress(saved.address);
-          if (typeof saved.reference === "string") setReference(saved.reference);
-          if (saved.payment === "pix" || saved.payment === "dinheiro" || saved.payment === "cartao") setPayment(saved.payment);
-          if (typeof saved.needsChange === "boolean") setNeedsChange(saved.needsChange);
-          if (typeof saved.changeFor === "string") setChangeFor(saved.changeFor);
-          if (requestedCategory !== "fatias" && (saved.activeCategory === "pipocas" || saved.activeCategory === "fatias")) {
-            setActiveCategory(saved.activeCategory);
-          }
-          setRestoredOrderNotice(savedCart.length > 0);
+        if (saved.version === 2) {
+          savedOrder = saved;
+          savedCart = sanitizeSavedCart(saved.cart);
         } else {
-          window.localStorage.removeItem(ORDER_STORAGE_KEY);
+          window.sessionStorage.removeItem(ORDER_STORAGE_KEY);
         }
       }
     } catch {
       try {
-        window.localStorage.removeItem(ORDER_STORAGE_KEY);
+        window.sessionStorage.removeItem(ORDER_STORAGE_KEY);
       } catch {
-        // O cardápio continua funcionando mesmo quando o navegador bloqueia o armazenamento local.
+        // O cardápio continua funcionando mesmo quando o navegador bloqueia o armazenamento da aba.
       }
     }
-    if (requestedCategory === "fatias") setActiveCategory("fatias");
-    setStorageReady(true);
+
+    const restoreTimer = window.setTimeout(() => {
+      if (savedOrder) {
+        setCart(savedCart);
+        if (savedOrder.fulfillment === "entrega" || savedOrder.fulfillment === "retirada") setFulfillment(savedOrder.fulfillment);
+        if (typeof savedOrder.deliveryZoneId === "string" && DELIVERY_ZONES.some((zone) => zone.id === savedOrder?.deliveryZoneId)) {
+          setDeliveryZoneId(savedOrder.deliveryZoneId);
+        }
+        if (typeof savedOrder.neighborhood === "string") setNeighborhood(savedOrder.neighborhood);
+        if (typeof savedOrder.address === "string") setAddress(savedOrder.address);
+        if (typeof savedOrder.reference === "string") setReference(savedOrder.reference);
+        if (savedOrder.payment === "pix" || savedOrder.payment === "dinheiro" || savedOrder.payment === "cartao") setPayment(savedOrder.payment);
+        if (typeof savedOrder.needsChange === "boolean") setNeedsChange(savedOrder.needsChange);
+        if (typeof savedOrder.changeFor === "string") setChangeFor(savedOrder.changeFor);
+        if (requestedCategory !== "fatias" && (savedOrder.activeCategory === "pipocas" || savedOrder.activeCategory === "fatias")) {
+          setActiveCategory(savedOrder.activeCategory);
+        }
+        setRestoredOrderNotice(savedCart.length > 0);
+      }
+      if (requestedCategory === "fatias") setActiveCategory("fatias");
+      setStorageReady(true);
+    }, 0);
+
+    return () => window.clearTimeout(restoreTimer);
   }, []);
 
   useEffect(() => {
@@ -240,12 +248,11 @@ export default function Home() {
       || Boolean(fulfillment || deliveryZoneId || neighborhood || address || reference || payment || changeFor);
     try {
       if (!hasSavedData) {
-        window.localStorage.removeItem(ORDER_STORAGE_KEY);
+        window.sessionStorage.removeItem(ORDER_STORAGE_KEY);
         return;
       }
       const savedOrder: SavedOrder = {
-        version: 1,
-        savedAt: Date.now(),
+        version: 2,
         activeCategory,
         cart,
         fulfillment,
@@ -257,9 +264,9 @@ export default function Home() {
         needsChange,
         changeFor,
       };
-      window.localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(savedOrder));
+      window.sessionStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(savedOrder));
     } catch {
-      // A persistência é uma conveniência; o fluxo do pedido não depende dela.
+      // O armazenamento da aba é uma conveniência; o fluxo do pedido não depende dele.
     }
   }, [activeCategory, address, cart, changeFor, deliveryZoneId, fulfillment, needsChange, neighborhood, payment, reference, storageReady]);
 
@@ -283,6 +290,11 @@ export default function Home() {
   );
 
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
+  const inProgressSummary = cart.slice(0, 2).map((item) => {
+    const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
+    const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
+    return `${item.quantity}x ${productLabel(product)} ${variant.label}`;
+  }).join(" · ") + (cart.length > 2 ? ` · +${cart.length - 2} ${cart.length - 2 === 1 ? "item" : "itens"}` : "");
   const deliveryFee = fulfillment === "entrega" ? selectedDeliveryZone?.price ?? 0 : 0;
   const orderTotal = cartSubtotal + deliveryFee;
   const hasEstimatedTotal = fulfillment === "retirada" || (fulfillment === "entrega" && Boolean(selectedDeliveryZone));
@@ -374,6 +386,27 @@ export default function Home() {
     setSliceQuantity(1);
     setEditingId(null);
     setSelectionMessage("");
+  }
+
+  function clearOrder() {
+    setCart([]);
+    setFulfillment("");
+    setDeliveryZoneId("");
+    setNeighborhood("");
+    setAddress("");
+    setReference("");
+    setPayment("");
+    setNeedsChange(false);
+    setChangeFor("");
+    setDrinkMessage("");
+    setRestoredOrderNotice(false);
+    checkoutStartedRef.current = false;
+    clearDraft();
+    try {
+      window.sessionStorage.removeItem(ORDER_STORAGE_KEY);
+    } catch {
+      // O estado em memória já foi limpo.
+    }
   }
 
   function trackCheckoutStart() {
@@ -565,7 +598,7 @@ export default function Home() {
       else enterCheckout("pagamento");
       return;
     }
-    window.location.href = tintimWhatsAppUrl(buildWhatsAppMessage());
+    window.location.assign(tintimWhatsAppUrl(buildWhatsAppMessage()));
   }
 
   function stickyAction() {
@@ -604,6 +637,22 @@ export default function Home() {
         </a>
         <span className="location-chip"><MapPin size={14} /> Paragominas</span>
       </header>
+
+      {restoredOrderNotice && cart.length > 0 && (
+        <section className="session-order-strip" aria-label="Pedido em andamento">
+          <div className="page-shell session-order-content" role="status">
+            <span className="session-order-icon" aria-hidden="true"><ShoppingBag size={18} /></span>
+            <div className="session-order-copy">
+              <strong>Pedido em andamento</strong>
+              <p>{inProgressSummary}</p>
+            </div>
+            <div className="session-order-actions">
+              <Button type="button" variant="outline" onClick={() => { setRestoredOrderNotice(false); scrollToSection("carrinho"); }}>Ver pedido</Button>
+              <Button type="button" variant="ghost" onClick={clearOrder}>Limpar</Button>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className={`hero ${activeCategory === "fatias" ? "hero-slices" : ""}`} id="inicio">
         <img className="hero-image" src={hero.image} alt={hero.alt} width="900" height="1600" fetchPriority="high" />
@@ -814,13 +863,6 @@ export default function Home() {
                 <div><p className="eyebrow">Carrinho</p><h2 id="cart-title">Seu pedido</h2></div>
                 {cart.length > 0 && <span className="cart-count">{cartItemCount} {cartItemCount === 1 ? "item" : "itens"}</span>}
               </div>
-              {restoredOrderNotice && cart.length > 0 && (
-                <div className="restored-order-note" role="status">
-                  <Check size={16} />
-                  <span><strong>Pedido recuperado.</strong> Sua seleção anterior foi salva neste aparelho.</span>
-                  <button type="button" onClick={() => setRestoredOrderNotice(false)} aria-label="Fechar aviso">Fechar</button>
-                </div>
-              )}
               {cart.length === 0 ? (
                 <div className="empty-cart">
                   <ShoppingBag size={26} strokeWidth={1.5} /><strong>Seu pedido está vazio</strong><p>Escolha uma pipoca, uma fatia ou um refrigerante para começar.</p>
@@ -855,7 +897,7 @@ export default function Home() {
                     );
                   })}
                   <div className="cart-subtotal"><span>Subtotal dos produtos</span><strong>{currency.format(cartSubtotal)}</strong></div>
-                  <p className="cart-save-note"><Check size={14} /> Este pedido fica salvo neste aparelho por até 2 horas.</p>
+                  <p className="cart-save-note"><Check size={14} /> Pedido mantido somente nesta aba. Ao fechá-la, ele é limpo.</p>
                   <Button type="button" variant="outline" className="add-another" onClick={() => scrollToSection("configurador")}><Plus size={16} /> Adicionar outro produto</Button>
                 </div>
               )}
