@@ -1604,7 +1604,7 @@ footer {
 
 .mobile-sticky-bar > div {
   display: flex;
-  min-width: 74px;
+  min-width: 102px;
   flex-direction: column;
 }
 
@@ -1617,6 +1617,7 @@ footer {
   margin-top: 2px;
   color: #f0c184;
   font-size: 0.86rem;
+  white-space: nowrap;
 }
 
 .mobile-sticky-bar button {
