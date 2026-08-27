@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDown,
   CakeSlice,
@@ -68,6 +68,14 @@ type CartItem = {
 
 type Fulfillment = "entrega" | "retirada" | "";
 type Payment = "pix" | "dinheiro" | "cartao" | "";
+type MetaEventName = "ViewContent" | "AddToCart" | "InitiateCheckout";
+
+declare global {
+  interface Window {
+    fbq?: (...args: unknown[]) => void;
+    __lucianeViewContentTracked?: boolean;
+  }
+}
 
 const SAUCES: ProductOption[] = [
   {
@@ -221,6 +229,27 @@ function productLabel(product: Product) {
     : product.name;
 }
 
+function trackMetaEvent(eventName: MetaEventName, payload?: Record<string, unknown>) {
+  if (typeof window === "undefined" || typeof window.fbq !== "function") return false;
+  if (payload) window.fbq("track", eventName, payload);
+  else window.fbq("track", eventName);
+  return true;
+}
+
+function metaProductPayload(product: Product, variant: Variant, quantity: number) {
+  const contentId = `${product.id}:${variant.id}`;
+  return {
+    content_name: productLabel(product),
+    content_category: product.category,
+    content_ids: [contentId],
+    content_type: "product",
+    contents: [{ id: contentId, quantity, item_price: variant.price }],
+    currency: "BRL",
+    value: variant.price * quantity,
+    num_items: quantity,
+  };
+}
+
 function tintimWhatsAppUrl(message: string) {
   return `${TINTIM_SITE_LINK}?text=${encodeURIComponent(message)}`;
 }
@@ -244,6 +273,14 @@ export default function Home() {
   const [payment, setPayment] = useState<Payment>("");
   const [needsChange, setNeedsChange] = useState(false);
   const [changeFor, setChangeFor] = useState("");
+  const checkoutStartedRef = useRef(false);
+
+  useEffect(() => {
+    if (window.__lucianeViewContentTracked) return;
+    if (trackMetaEvent("ViewContent")) {
+      window.__lucianeViewContentTracked = true;
+    }
+  }, []);
 
   useEffect(() => {
     const category = new URLSearchParams(window.location.search).get("categoria");
@@ -274,6 +311,10 @@ export default function Home() {
   const addressReady = fulfillment !== "entrega" || Boolean(neighborhood.trim() && address.trim() && reference.trim());
   const paymentReady = Boolean(payment) && (payment !== "dinheiro" || !needsChange || Boolean(changeFor.trim()));
   const checkoutReady = cart.length > 0 && Boolean(fulfillment) && addressReady && paymentReady;
+
+  useEffect(() => {
+    if (cart.length === 0) checkoutStartedRef.current = false;
+  }, [cart.length]);
 
   const hero = activeCategory === "pipocas"
     ? {
@@ -345,6 +386,43 @@ export default function Home() {
     setSelectionMessage("");
   }
 
+  function trackCheckoutStart() {
+    if (checkoutStartedRef.current || cart.length === 0) return;
+    const contents = cart.map((item) => {
+      const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
+      const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
+      return {
+        id: `${product.id}:${variant.id}`,
+        quantity: item.quantity,
+        item_price: variant.price,
+      };
+    });
+    const didTrack = trackMetaEvent("InitiateCheckout", {
+      content_ids: contents.map((item) => item.id),
+      content_type: "product",
+      contents,
+      currency: "BRL",
+      value: cartSubtotal,
+      num_items: cart.reduce((total, item) => total + item.quantity, 0),
+    });
+    if (didTrack) checkoutStartedRef.current = true;
+  }
+
+  function enterCheckout(sectionId: "recebimento" | "pagamento") {
+    trackCheckoutStart();
+    scrollToSection(sectionId);
+  }
+
+  function chooseFulfillment(value: string) {
+    trackCheckoutStart();
+    setFulfillment(value as Fulfillment);
+  }
+
+  function choosePayment(value: string) {
+    trackCheckoutStart();
+    setPayment(value as Payment);
+  }
+
   function addOrUpdatePopcorn() {
     if (!popcornReady) {
       setSelectionMessage("Escolha pelo menos 1 sabor para continuar.");
@@ -361,6 +439,7 @@ export default function Home() {
       setCart((current) => current.map((item) => item.id === editingId ? { ...item, ...nextItem } : item));
     } else {
       setCart((current) => [...current, { id: makeCartId(), ...nextItem }]);
+      trackMetaEvent("AddToCart", metaProductPayload(POPCORN, popcornVariant, popcornQuantity));
     }
     const destination = editingId ? "carrinho" : "acompanhamentos";
     clearDraft();
@@ -384,6 +463,7 @@ export default function Home() {
       setCart((current) => current.map((item) => item.id === editingId ? { ...item, ...nextItem } : item));
     } else {
       setCart((current) => [...current, { id: makeCartId(), ...nextItem }]);
+      trackMetaEvent("AddToCart", metaProductPayload(selectedSlice, selectedSliceVariant, sliceQuantity));
     }
     const destination = editingId ? "carrinho" : "acompanhamentos";
     clearDraft();
@@ -405,6 +485,7 @@ export default function Home() {
         quantity: 1,
       }];
     });
+    trackMetaEvent("AddToCart", metaProductPayload(product, product.variants[0], 1));
     setDrinkMessage(`${product.name} ${product.variants[0].label} adicionado ao pedido.`);
   }
 
@@ -433,6 +514,14 @@ export default function Home() {
   }
 
   function changeCartQuantity(id: string, delta: number) {
+    if (delta > 0) {
+      const item = cart.find((candidate) => candidate.id === id);
+      const product = PRODUCTS.find((candidate) => candidate.id === item?.productId);
+      const variant = product?.variants.find((candidate) => candidate.id === item?.variantId);
+      if (product && variant) {
+        trackMetaEvent("AddToCart", metaProductPayload(product, variant, 1));
+      }
+    }
     setCart((current) => current.map((item) => item.id === id
       ? { ...item, quantity: Math.max(1, item.quantity + delta) }
       : item));
@@ -467,10 +556,11 @@ export default function Home() {
   }
 
   function finishOnWhatsApp() {
+    if (cart.length > 0) trackCheckoutStart();
     if (!checkoutReady) {
       if (!cart.length) scrollToSection("configurador");
-      else if (!fulfillment || !addressReady) scrollToSection("recebimento");
-      else scrollToSection("pagamento");
+      else if (!fulfillment || !addressReady) enterCheckout("recebimento");
+      else enterCheckout("pagamento");
       return;
     }
     window.location.href = tintimWhatsAppUrl(buildWhatsAppMessage());
@@ -739,7 +829,7 @@ export default function Home() {
 
             <section className="order-card" id="recebimento" aria-labelledby="receiving-title">
               <div className="step-heading checkout-step-heading"><span className="step-number">4</span><div><h2 id="receiving-title">Como deseja receber?</h2><p>Escolha a opção mais conveniente.</p></div></div>
-              <RadioGroup className="choice-grid" value={fulfillment} onValueChange={(value) => setFulfillment(value as Fulfillment)} aria-label="Forma de recebimento">
+              <RadioGroup className="choice-grid" value={fulfillment} onValueChange={chooseFulfillment} aria-label="Forma de recebimento">
                 <label className={`choice-card ${fulfillment === "entrega" ? "is-selected" : ""}`} htmlFor="receive-delivery">
                   <RadioGroupItem id="receive-delivery" value="entrega" /><Truck size={21} /><span><strong>Entrega</strong><small>A partir de R$8</small></span>
                 </label>
@@ -760,7 +850,7 @@ export default function Home() {
 
             <section className="order-card" id="pagamento" aria-labelledby="payment-title">
               <div className="order-card-heading payment-heading"><div><p className="eyebrow">Pagamento</p><h2 id="payment-title">Como prefere pagar?</h2></div></div>
-              <RadioGroup className="payment-list" value={payment} onValueChange={(value) => setPayment(value as Payment)} aria-label="Forma de pagamento">
+              <RadioGroup className="payment-list" value={payment} onValueChange={choosePayment} aria-label="Forma de pagamento">
                 {[["pix", "Pix"], ["dinheiro", "Dinheiro"], ["cartao", "Cartão na entrega"]].map(([value, label]) => (
                   <label className={`payment-option ${payment === value ? "is-selected" : ""}`} htmlFor={`payment-${value}`} key={value}>
                     <RadioGroupItem id={`payment-${value}`} value={value} /><span>{label}</span>{payment === value && <Check size={17} />}
@@ -794,8 +884,8 @@ export default function Home() {
                 );
               })}
               <div className="summary-row"><span>Subtotal</span><strong>{currency.format(cartSubtotal)}</strong></div>
-              <button type="button" className="summary-link" onClick={() => scrollToSection("recebimento")}><span><small>Recebimento</small><strong>{fulfillment === "entrega" ? "Entrega — taxa a confirmar" : fulfillment === "retirada" ? "Retirada em Paragominas" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
-              <button type="button" className="summary-link" onClick={() => scrollToSection("pagamento")}><span><small>Pagamento</small><strong>{payment === "pix" ? "Pix" : payment === "dinheiro" ? "Dinheiro" : payment === "cartao" ? "Cartão na entrega" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
+              <button type="button" className="summary-link" onClick={() => enterCheckout("recebimento")}><span><small>Recebimento</small><strong>{fulfillment === "entrega" ? "Entrega — taxa a confirmar" : fulfillment === "retirada" ? "Retirada em Paragominas" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
+              <button type="button" className="summary-link" onClick={() => enterCheckout("pagamento")}><span><small>Pagamento</small><strong>{payment === "pix" ? "Pix" : payment === "dinheiro" ? "Dinheiro" : payment === "cartao" ? "Cartão na entrega" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
             </div>
             <Button type="button" className="whatsapp-button" onClick={finishOnWhatsApp} aria-describedby="checkout-status" data-event="whatsapp_checkout"><MessageCircle size={20} /> Finalizar pedido no WhatsApp</Button>
             <p id="checkout-status" className={checkoutReady ? "ready-status" : "checkout-status"} aria-live="polite">{checkoutReady && <Check size={14} />}{checkoutHint}</p>
