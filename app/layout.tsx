@@ -20,7 +20,26 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(window, document, script) {
+  if (!window.tt) {
+    window.tt = window.tt || {};
+
+    var head = document.getElementsByTagName('head')[0];
+    var tracker = document.createElement('script');
+    tracker.async = true;
+    tracker.src = script;
+    head.appendChild(tracker);
+  }
+
+  window.tt.accountCode = '2c956a42-229f-4d21-ade6-4442f8c048ed';
+})(window, document, 'https://s.tintim.app/static/core/tintim-1.0.js');`,
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }

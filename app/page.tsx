@@ -204,7 +204,7 @@ const PRODUCTS: Product[] = [
 const POPCORN = PRODUCTS.find((product) => product.kind === "popcorn")!;
 const SLICES = PRODUCTS.filter((product) => product.kind === "slice");
 const DRINKS = PRODUCTS.filter((product) => product.kind === "drink");
-const WHATSAPP_NUMBER = "5591993623669";
+const TINTIM_SITE_LINK = "https://tintim.link/whatsapp/2c956a42-229f-4d21-ade6-4442f8c048ed/7522df92-bbe1-4bff-83ca-2629bba182eb";
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 function scrollToSection(id: string) {
@@ -219,6 +219,10 @@ function productLabel(product: Product) {
   return product.subtitle
     ? `${product.name} (${product.subtitle.toLowerCase()})`
     : product.name;
+}
+
+function tintimWhatsAppUrl(message: string) {
+  return `${TINTIM_SITE_LINK}?text=${encodeURIComponent(message)}`;
 }
 
 export default function Home() {
@@ -469,7 +473,7 @@ export default function Home() {
       else scrollToSection("pagamento");
       return;
     }
-    window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildWhatsAppMessage())}`;
+    window.location.href = tintimWhatsAppUrl(buildWhatsAppMessage());
   }
 
   function stickyAction() {
@@ -801,7 +805,7 @@ export default function Home() {
 
       <section className="trust-section"><div className="page-shell trust-content"><Crown size={30} strokeWidth={1.4} aria-hidden="true" /><div><p className="eyebrow">Luciane Oliveira Doces</p><h2>Feito em Paragominas com muito recheio e cuidado em cada pedido.</h2></div></div></section>
 
-      <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><a href="https://wa.me/5591993623669"><MessageCircle size={16} /> (91) 99362-3669</a><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
+      <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><a href={tintimWhatsAppUrl("Olá! Quero fazer um pedido pelo cardápio online.")}><MessageCircle size={16} /> (91) 99362-3669</a><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
       <div className="mobile-sticky-bar">
         <div><small>{cart.length ? "Subtotal" : activeCategory === "pipocas" ? "Sua pipoca" : "Sua fatia"}</small><strong>{currency.format(cart.length ? cartSubtotal : draftSubtotal)}</strong></div>
