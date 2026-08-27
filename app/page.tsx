@@ -1,11 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDown,
+  CakeSlice,
   Check,
   ChevronRight,
   Crown,
+  CupSoda,
   MapPin,
   MessageCircle,
   Minus,
@@ -22,12 +24,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
+type CategoryId = "pipocas" | "fatias";
+type ProductKind = "popcorn" | "slice" | "drink";
+
 type Variant = {
   id: string;
   label: string;
   whatsappLabel: string;
   price: number;
-  maxOptions: number;
+  maxOptions?: number;
   available: boolean;
 };
 
@@ -41,9 +46,12 @@ type ProductOption = {
 
 type Product = {
   id: string;
+  kind: ProductKind;
   category: string;
   name: string;
-  image: string;
+  image?: string;
+  imageAlt?: string;
+  optionLabel?: string;
   available: boolean;
   variants: Variant[];
   options: ProductOption[];
@@ -60,12 +68,32 @@ type CartItem = {
 type Fulfillment = "entrega" | "retirada" | "";
 type Payment = "pix" | "dinheiro" | "cartao" | "";
 
+const SAUCES: ProductOption[] = [
+  {
+    id: "calda-chocolate",
+    name: "Chocolate",
+    description: "Calda de chocolate.",
+    tone: "#74412a",
+    available: true,
+  },
+  {
+    id: "calda-ninho",
+    name: "Ninho",
+    description: "Calda de Ninho.",
+    tone: "#ead9ba",
+    available: true,
+  },
+];
+
 const PRODUCTS: Product[] = [
   {
     id: "pipoca-gourmet",
+    kind: "popcorn",
     category: "Pipocas Gourmet",
     name: "Pipoca Gourmet",
     image: "/pipoca-gourmet.jpeg",
+    imageAlt: "Pote real de Pipoca Gourmet com três sabores",
+    optionLabel: "Sabores",
     available: true,
     variants: [
       { id: "350ml", label: "350 ml", whatsappLabel: "350 ml", price: 20, maxOptions: 2, available: true },
@@ -82,8 +110,102 @@ const PRODUCTS: Product[] = [
       { id: "pistache", name: "Pistache", description: "Creme sabor pistache.", tone: "#9f9b61", available: true },
     ],
   },
+  {
+    id: "fatia-chocolate-morango",
+    kind: "slice",
+    category: "Fatias Artesanais",
+    name: "Chocolate com Morango",
+    image: "/fatia-chocolate-morango.jpeg",
+    imageAlt: "Fatia artesanal de chocolate com morango",
+    optionLabel: "Calda",
+    available: true,
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
+    options: SAUCES,
+  },
+  {
+    id: "fatia-ninho-morango",
+    kind: "slice",
+    category: "Fatias Artesanais",
+    name: "Ninho com Morango",
+    optionLabel: "Calda",
+    available: true,
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
+    options: SAUCES,
+  },
+  {
+    id: "fatia-chocolate-maracuja",
+    kind: "slice",
+    category: "Fatias Artesanais",
+    name: "Chocolate com Maracujá",
+    image: "/fatia-chocolate-maracuja.jpeg",
+    imageAlt: "Fatia artesanal de chocolate com maracujá",
+    optionLabel: "Calda",
+    available: true,
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
+    options: SAUCES,
+  },
+  {
+    id: "fatia-chocolatudo",
+    kind: "slice",
+    category: "Fatias Artesanais",
+    name: "Chocolatudo",
+    optionLabel: "Calda",
+    available: true,
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
+    options: SAUCES,
+  },
+  {
+    id: "fatia-chocolate-cenoura",
+    kind: "slice",
+    category: "Fatias Artesanais",
+    name: "Chocolate com Cenoura",
+    optionLabel: "Calda",
+    available: true,
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
+    options: SAUCES,
+  },
+  {
+    id: "fatia-bolo-pudim",
+    kind: "slice",
+    category: "Fatias Artesanais",
+    name: "Bolo Pudim",
+    optionLabel: "Calda",
+    available: true,
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 25, available: true }],
+    options: SAUCES,
+  },
+  {
+    id: "coca-cola-220",
+    kind: "drink",
+    category: "Refrigerantes",
+    name: "Coca-Cola",
+    available: true,
+    variants: [{ id: "220ml", label: "220 ml", whatsappLabel: "220 ml", price: 5, available: true }],
+    options: [],
+  },
+  {
+    id: "coca-cola-350",
+    kind: "drink",
+    category: "Refrigerantes",
+    name: "Coca-Cola",
+    available: true,
+    variants: [{ id: "350ml", label: "350 ml", whatsappLabel: "350 ml", price: 6, available: true }],
+    options: [],
+  },
+  {
+    id: "fanta-laranja-350",
+    kind: "drink",
+    category: "Refrigerantes",
+    name: "Fanta Laranja",
+    available: true,
+    variants: [{ id: "350ml", label: "350 ml", whatsappLabel: "350 ml", price: 5, available: true }],
+    options: [],
+  },
 ];
 
+const POPCORN = PRODUCTS.find((product) => product.kind === "popcorn")!;
+const SLICES = PRODUCTS.filter((product) => product.kind === "slice");
+const DRINKS = PRODUCTS.filter((product) => product.kind === "drink");
 const WHATSAPP_NUMBER = "5591993623669";
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -91,14 +213,22 @@ function scrollToSection(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+function makeCartId() {
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 export default function Home() {
-  const product = PRODUCTS[0];
-  const [variantId, setVariantId] = useState("500ml");
-  const [optionIds, setOptionIds] = useState<string[]>([]);
-  const [quantity, setQuantity] = useState(1);
+  const [activeCategory, setActiveCategory] = useState<CategoryId>("pipocas");
+  const [popcornVariantId, setPopcornVariantId] = useState("500ml");
+  const [popcornOptionIds, setPopcornOptionIds] = useState<string[]>([]);
+  const [popcornQuantity, setPopcornQuantity] = useState(1);
+  const [sliceProductId, setSliceProductId] = useState(SLICES[0].id);
+  const [sliceSauceId, setSliceSauceId] = useState("");
+  const [sliceQuantity, setSliceQuantity] = useState(1);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectionMessage, setSelectionMessage] = useState("");
+  const [drinkMessage, setDrinkMessage] = useState("");
   const [fulfillment, setFulfillment] = useState<Fulfillment>("");
   const [neighborhood, setNeighborhood] = useState("");
   const [address, setAddress] = useState("");
@@ -107,43 +237,90 @@ export default function Home() {
   const [needsChange, setNeedsChange] = useState(false);
   const [changeFor, setChangeFor] = useState("");
 
-  const selectedVariant = product.variants.find((variant) => variant.id === variantId)!;
-  const maxOptionsReached = optionIds.length >= selectedVariant.maxOptions;
+  useEffect(() => {
+    const category = new URLSearchParams(window.location.search).get("categoria");
+    if (category === "fatias") setActiveCategory("fatias");
+  }, []);
+
+  const popcornVariant = POPCORN.variants.find((variant) => variant.id === popcornVariantId)!;
+  const popcornMaxOptions = popcornVariant.maxOptions ?? 0;
+  const popcornLimitReached = popcornOptionIds.length >= popcornMaxOptions;
+  const selectedSlice = SLICES.find((product) => product.id === sliceProductId)!;
+  const selectedSliceVariant = selectedSlice.variants[0];
+
   const cartSubtotal = useMemo(
     () => cart.reduce((total, item) => {
-      const itemProduct = PRODUCTS.find((candidate) => candidate.id === item.productId);
-      const variant = itemProduct?.variants.find((candidate) => candidate.id === item.variantId);
+      const product = PRODUCTS.find((candidate) => candidate.id === item.productId);
+      const variant = product?.variants.find((candidate) => candidate.id === item.variantId);
       return total + (variant?.price ?? 0) * item.quantity;
     }, 0),
     [cart],
   );
 
-  const draftSubtotal = selectedVariant.price * quantity;
-  const itemReady = product.available && selectedVariant.available && optionIds.length > 0;
+  const popcornReady = POPCORN.available && popcornVariant.available && popcornOptionIds.length > 0;
+  const sliceReady = selectedSlice.available && selectedSliceVariant.available && Boolean(sliceSauceId);
+  const draftReady = activeCategory === "pipocas" ? popcornReady : sliceReady;
+  const draftSubtotal = activeCategory === "pipocas"
+    ? popcornVariant.price * popcornQuantity
+    : selectedSliceVariant.price * sliceQuantity;
   const addressReady = fulfillment !== "entrega" || Boolean(neighborhood.trim() && address.trim() && reference.trim());
   const paymentReady = Boolean(payment) && (payment !== "dinheiro" || !needsChange || Boolean(changeFor.trim()));
   const checkoutReady = cart.length > 0 && Boolean(fulfillment) && addressReady && paymentReady;
 
-  function chooseVariant(nextId: string) {
-    const nextVariant = product.variants.find((variant) => variant.id === nextId);
+  const hero = activeCategory === "pipocas"
+    ? {
+        eyebrow: "Pipocas Gourmet",
+        titleLead: "Monte sua",
+        titleAccent: "Pipoca Gourmet",
+        copy: "Escolha o tamanho, combine seus sabores favoritos e faça seu pedido em poucos passos.",
+        image: POPCORN.image!,
+        alt: POPCORN.imageAlt!,
+        facts: ["A partir de R$20", "Até 3 sabores"],
+        cta: "Montar minha pipoca",
+      }
+    : {
+        eyebrow: "Fatias Artesanais",
+        titleLead: "Escolha sua",
+        titleAccent: "Fatia Artesanal",
+        copy: "Escolha o sabor, a calda incluída e monte seu pedido sem precisar perguntar no WhatsApp.",
+        image: "/fatia-chocolate-morango.jpeg",
+        alt: "Fatia artesanal de chocolate com morango da Luciane Oliveira Doces",
+        facts: ["A partir de R$20", "Calda incluída"],
+        cta: "Escolher minha fatia",
+      };
+
+  function selectCategory(category: CategoryId, shouldScroll = false) {
+    setActiveCategory(category);
+    setEditingId(null);
+    setSelectionMessage("");
+    const url = new URL(window.location.href);
+    if (category === "fatias") url.searchParams.set("categoria", "fatias");
+    else url.searchParams.delete("categoria");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    if (shouldScroll) window.setTimeout(() => scrollToSection("configurador"), 30);
+  }
+
+  function choosePopcornVariant(nextId: string) {
+    const nextVariant = POPCORN.variants.find((variant) => variant.id === nextId);
     if (!nextVariant?.available) return;
-    setVariantId(nextId);
-    setOptionIds((current) => {
-      if (current.length <= nextVariant.maxOptions) return current;
-      setSelectionMessage(`Ajustamos sua seleção para o limite de ${nextVariant.maxOptions} sabores deste tamanho.`);
-      return current.slice(0, nextVariant.maxOptions);
+    setPopcornVariantId(nextId);
+    setPopcornOptionIds((current) => {
+      const max = nextVariant.maxOptions ?? 0;
+      if (current.length <= max) return current;
+      setSelectionMessage(`Ajustamos sua seleção para o limite de ${max} sabores deste tamanho.`);
+      return current.slice(0, max);
     });
   }
 
-  function toggleOption(option: ProductOption) {
+  function togglePopcornOption(option: ProductOption) {
     if (!option.available) return;
-    setOptionIds((current) => {
+    setPopcornOptionIds((current) => {
       if (current.includes(option.id)) {
         setSelectionMessage("");
         return current.filter((id) => id !== option.id);
       }
-      if (current.length >= selectedVariant.maxOptions) {
-        setSelectionMessage(`Você já escolheu ${selectedVariant.maxOptions} sabores. Desmarque um para trocar.`);
+      if (current.length >= popcornMaxOptions) {
+        setSelectionMessage(`Você já escolheu ${popcornMaxOptions} sabores. Desmarque um para trocar.`);
         return current;
       }
       setSelectionMessage("");
@@ -151,61 +328,121 @@ export default function Home() {
     });
   }
 
-  function resetDraft() {
-    setOptionIds([]);
-    setQuantity(1);
+  function clearDraft() {
+    setPopcornOptionIds([]);
+    setPopcornQuantity(1);
+    setSliceSauceId("");
+    setSliceQuantity(1);
     setEditingId(null);
     setSelectionMessage("");
   }
 
-  function addOrUpdateItem() {
-    if (!itemReady) {
+  function addOrUpdatePopcorn() {
+    if (!popcornReady) {
       setSelectionMessage("Escolha pelo menos 1 sabor para continuar.");
       scrollToSection("sabores");
       return;
     }
+    const nextItem: Omit<CartItem, "id"> = {
+      productId: POPCORN.id,
+      variantId: popcornVariantId,
+      optionIds: [...popcornOptionIds],
+      quantity: popcornQuantity,
+    };
     if (editingId) {
-      setCart((current) => current.map((item) => item.id === editingId ? { ...item, variantId, optionIds: [...optionIds], quantity } : item));
+      setCart((current) => current.map((item) => item.id === editingId ? { ...item, ...nextItem } : item));
     } else {
-      setCart((current) => [...current, {
-        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-        productId: product.id,
-        variantId,
-        optionIds: [...optionIds],
-        quantity,
-      }]);
+      setCart((current) => [...current, { id: makeCartId(), ...nextItem }]);
     }
-    const destination = editingId ? "carrinho" : "recebimento";
-    resetDraft();
+    const destination = editingId ? "carrinho" : "acompanhamentos";
+    clearDraft();
     window.setTimeout(() => scrollToSection(destination), 50);
   }
 
+  function addOrUpdateSlice() {
+    if (!sliceSauceId) {
+      setSelectionMessage("Escolha a calda de Chocolate ou Ninho para continuar.");
+      scrollToSection("caldas");
+      return;
+    }
+    if (!sliceReady) return;
+    const nextItem: Omit<CartItem, "id"> = {
+      productId: selectedSlice.id,
+      variantId: selectedSliceVariant.id,
+      optionIds: [sliceSauceId],
+      quantity: sliceQuantity,
+    };
+    if (editingId) {
+      setCart((current) => current.map((item) => item.id === editingId ? { ...item, ...nextItem } : item));
+    } else {
+      setCart((current) => [...current, { id: makeCartId(), ...nextItem }]);
+    }
+    const destination = editingId ? "carrinho" : "acompanhamentos";
+    clearDraft();
+    window.setTimeout(() => scrollToSection(destination), 50);
+  }
+
+  function addDrink(product: Product) {
+    if (!product.available || !product.variants[0].available) return;
+    setCart((current) => {
+      const existing = current.find((item) => item.productId === product.id);
+      if (existing) {
+        return current.map((item) => item.id === existing.id ? { ...item, quantity: item.quantity + 1 } : item);
+      }
+      return [...current, {
+        id: makeCartId(),
+        productId: product.id,
+        variantId: product.variants[0].id,
+        optionIds: [],
+        quantity: 1,
+      }];
+    });
+    setDrinkMessage(`${product.name} ${product.variants[0].label} adicionado ao pedido.`);
+  }
+
   function editItem(item: CartItem) {
-    setVariantId(item.variantId);
-    setOptionIds([...item.optionIds]);
-    setQuantity(item.quantity);
+    const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
+    if (product.kind === "drink") return;
     setEditingId(item.id);
     setSelectionMessage("");
-    scrollToSection("configurador");
+    if (product.kind === "popcorn") {
+      setActiveCategory("pipocas");
+      setPopcornVariantId(item.variantId);
+      setPopcornOptionIds([...item.optionIds]);
+      setPopcornQuantity(item.quantity);
+    } else {
+      setActiveCategory("fatias");
+      setSliceProductId(product.id);
+      setSliceSauceId(item.optionIds[0] ?? "");
+      setSliceQuantity(item.quantity);
+    }
+    window.setTimeout(() => scrollToSection("configurador"), 30);
   }
 
   function removeItem(id: string) {
     setCart((current) => current.filter((item) => item.id !== id));
-    if (editingId === id) resetDraft();
+    if (editingId === id) clearDraft();
   }
 
   function changeCartQuantity(id: string, delta: number) {
-    setCart((current) => current.map((item) => item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item));
+    setCart((current) => current.map((item) => item.id === id
+      ? { ...item, quantity: Math.max(1, item.quantity + delta) }
+      : item));
   }
 
   function buildWhatsAppMessage() {
     const orderLines = cart.map((item, index) => {
-      const itemProduct = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
-      const variant = itemProduct.variants.find((candidate) => candidate.id === item.variantId)!;
-      const options = item.optionIds.map((id) => itemProduct.options.find((option) => option.id === id)?.name).filter(Boolean).join(" + ");
+      const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
+      const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
+      const optionNames = item.optionIds
+        .map((id) => product.options.find((option) => option.id === id)?.name)
+        .filter(Boolean)
+        .join(" + ");
       const prefix = cart.length > 1 ? `${index + 1}. ` : "";
-      return `${prefix}${item.quantity}x ${itemProduct.name} ${variant.whatsappLabel}\nSabores: ${options}\nValor: ${currency.format(variant.price * item.quantity)}`;
+      const optionLine = optionNames && product.optionLabel ? `\n${product.optionLabel}: ${optionNames}` : "";
+      return `${prefix}${item.quantity}x ${product.name} ${variant.whatsappLabel}${optionLine}\nValor: ${currency.format(variant.price * item.quantity)}`;
     }).join("\n\n");
+
     const receivingLines = fulfillment === "entrega"
       ? `Entrega\nBairro: ${neighborhood.trim()}\nEndereço: ${address.trim()}\nReferência: ${reference.trim()}`
       : "Retirada em Paragominas";
@@ -217,7 +454,8 @@ export default function Home() {
     const deliveryLine = fulfillment === "entrega"
       ? "Taxa de entrega: a confirmar (a partir de R$8)."
       : "Taxa de entrega: não se aplica.";
-    return `Olá! Quero finalizar meu pedido de Pipoca Gourmet.\n\n*Pedido*\n${orderLines}\n\n*Recebimento*\n${receivingLines}\n\n*Pagamento*\n${paymentLabel}\n\nSubtotal dos produtos: ${currency.format(cartSubtotal)}\n${deliveryLine}`;
+
+    return `Olá! Quero finalizar meu pedido na Luciane Oliveira Doces.\n\n*Pedido*\n${orderLines}\n\n*Recebimento*\n${receivingLines}\n\n*Pagamento*\n${paymentLabel}\n\nSubtotal dos produtos: ${currency.format(cartSubtotal)}\n${deliveryLine}`;
   }
 
   function finishOnWhatsApp() {
@@ -227,21 +465,20 @@ export default function Home() {
       else scrollToSection("pagamento");
       return;
     }
-    const message = encodeURIComponent(buildWhatsAppMessage());
-    window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
+    window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildWhatsAppMessage())}`;
   }
 
   function stickyAction() {
-    if (!cart.length) {
-      if (itemReady) addOrUpdateItem();
-      else scrollToSection("configurador");
+    if (editingId || !cart.length) {
+      if (activeCategory === "pipocas") addOrUpdatePopcorn();
+      else addOrUpdateSlice();
       return;
     }
     finishOnWhatsApp();
   }
 
   const checkoutHint = !cart.length
-    ? "Adicione sua pipoca ao pedido."
+    ? "Adicione pelo menos um produto ao pedido."
     : !fulfillment
       ? "Escolha entrega ou retirada."
       : !addressReady
@@ -262,98 +499,182 @@ export default function Home() {
         <span className="location-chip"><MapPin size={14} /> Paragominas</span>
       </header>
 
-      <section className="hero" id="inicio">
-        <img className="hero-image" src={product.image} alt="Pote real de Pipoca Gourmet Luciane Oliveira Doces com três sabores" width="900" height="1600" fetchPriority="high" />
+      <section className={`hero ${activeCategory === "fatias" ? "hero-slices" : ""}`} id="inicio">
+        <img className="hero-image" src={hero.image} alt={hero.alt} width="900" height="1600" fetchPriority="high" />
         <div className="hero-overlay" />
         <div className="hero-content page-shell">
-          <p className="eyebrow">Pipocas Gourmet</p>
-          <h1>Monte sua<span>Pipoca Gourmet</span></h1>
-          <p className="hero-copy">Escolha o tamanho, combine seus sabores favoritos e faça seu pedido em poucos passos.</p>
-          <div className="hero-facts" aria-label="Informações principais"><span>A partir de R$20</span><span>Até 3 sabores</span></div>
-          <Button type="button" className="primary-cta hero-cta" onClick={() => scrollToSection("configurador")}>Montar meu pedido <ArrowDown size={18} /></Button>
+          <div className="category-switch" aria-label="Categorias disponíveis">
+            <button type="button" className={activeCategory === "pipocas" ? "is-active" : ""} onClick={() => selectCategory("pipocas")}>
+              Pipocas Gourmet
+            </button>
+            <button type="button" className={activeCategory === "fatias" ? "is-active" : ""} onClick={() => selectCategory("fatias")}>
+              Fatias Artesanais
+            </button>
+          </div>
+          <p className="eyebrow">{hero.eyebrow}</p>
+          <h1>{hero.titleLead}<span>{hero.titleAccent}</span></h1>
+          <p className="hero-copy">{hero.copy}</p>
+          <div className="hero-facts" aria-label="Informações principais">
+            {hero.facts.map((fact) => <span key={fact}>{fact}</span>)}
+          </div>
+          <Button type="button" className="primary-cta hero-cta" onClick={() => scrollToSection("configurador")}>
+            {hero.cta} <ArrowDown size={18} />
+          </Button>
           <p className="delivery-note"><Truck size={16} /> Entrega a partir de R$8 ou retirada em Paragominas</p>
         </div>
       </section>
-
-      {!product.available && (
-        <section className="unavailable-banner" role="status"><strong>Esgotado hoje</strong><span>As Pipocas Gourmet estão temporariamente indisponíveis.</span></section>
-      )}
 
       <section className="builder-section" id="configurador">
         <div className="page-shell builder-shell">
           <div className="section-intro">
             <p className="eyebrow">Seu pedido, do seu jeito</p>
-            <h2>Monte em poucos passos</h2>
-            <p>As regras de combinação são aplicadas automaticamente.</p>
+            <h2>{activeCategory === "pipocas" ? "Monte em poucos passos" : "Escolha sua fatia"}</h2>
+            <p>{activeCategory === "pipocas"
+              ? "As regras de combinação são aplicadas automaticamente."
+              : "Escolha o sabor, a calda incluída e a quantidade."}</p>
+            <button type="button" className="category-text-link" onClick={() => selectCategory(activeCategory === "pipocas" ? "fatias" : "pipocas", true)}>
+              Ver {activeCategory === "pipocas" ? "Fatias Artesanais" : "Pipocas Gourmet"} <ChevronRight size={15} />
+            </button>
           </div>
 
-          <div className="builder-card">
-            <section className="step-block" aria-labelledby="step-size">
-              <div className="step-heading">
-                <span className="step-number">1</span>
-                <div><h3 id="step-size">Escolha o tamanho</h3><p>O preço e o limite de sabores mudam conforme o pote.</p></div>
-              </div>
-              <RadioGroup className="size-grid" value={variantId} onValueChange={chooseVariant} aria-label="Tamanho da Pipoca Gourmet">
-                {product.variants.map((variant) => (
-                  <label className={`size-card ${variant.id === variantId ? "is-selected" : ""} ${!variant.available ? "is-unavailable" : ""}`} htmlFor={`size-${variant.id}`} key={variant.id}>
-                    <RadioGroupItem id={`size-${variant.id}`} value={variant.id} disabled={!variant.available} />
-                    <span className="size-copy"><strong>{variant.label}</strong><b>{currency.format(variant.price)}</b><small>Até {variant.maxOptions} sabores</small></span>
-                    {variant.id === variantId && variant.available && <span className="selected-check" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>}
-                    {!variant.available && <span className="unavailable-label">Indisponível</span>}
-                  </label>
-                ))}
-              </RadioGroup>
-            </section>
-
-            <section className="step-block" id="sabores" aria-labelledby="step-flavors">
-              <div className="step-heading flavor-heading">
-                <span className="step-number">2</span>
-                <div><h3 id="step-flavors">Escolha os sabores</h3><p>Você pode escolher até {selectedVariant.maxOptions} sabores neste tamanho.</p></div>
-                <span className="selection-count" aria-live="polite">{optionIds.length}/{selectedVariant.maxOptions}</span>
-              </div>
-              <div className="flavor-grid">
-                {product.options.map((option) => {
-                  const selected = optionIds.includes(option.id);
-                  const limitDisabled = maxOptionsReached && !selected;
-                  const disabled = !option.available || limitDisabled;
-                  return (
-                    <label className={`flavor-card ${selected ? "is-selected" : ""} ${disabled ? "is-disabled" : ""}`} htmlFor={`flavor-${option.id}`} key={option.id}>
-                      <Checkbox id={`flavor-${option.id}`} checked={selected} disabled={disabled} onCheckedChange={() => toggleOption(option)} aria-label={`Selecionar sabor ${option.name}`} />
-                      <span className="flavor-tone" style={{ backgroundColor: option.tone }} aria-hidden="true" />
-                      <span className="flavor-copy"><strong>{option.name}</strong><small>{option.description}</small></span>
-                      {selected && <span className="flavor-selected">Selecionado</span>}
-                      {!option.available && <span className="flavor-status">Esgotado hoje</span>}
-                      {limitDisabled && option.available && <span className="flavor-status">Limite atingido</span>}
+          {activeCategory === "pipocas" ? (
+            <div className="builder-card">
+              <section className="step-block" aria-labelledby="step-size">
+                <div className="step-heading"><span className="step-number">1</span><div><h3 id="step-size">Escolha o tamanho</h3><p>O preço e o limite de sabores mudam conforme o pote.</p></div></div>
+                <RadioGroup className="size-grid" value={popcornVariantId} onValueChange={choosePopcornVariant} aria-label="Tamanho da Pipoca Gourmet">
+                  {POPCORN.variants.map((variant) => (
+                    <label className={`size-card ${variant.id === popcornVariantId ? "is-selected" : ""} ${!variant.available ? "is-unavailable" : ""}`} htmlFor={`size-${variant.id}`} key={variant.id}>
+                      <RadioGroupItem id={`size-${variant.id}`} value={variant.id} disabled={!variant.available} />
+                      <span className="size-copy"><strong>{variant.label}</strong><b>{currency.format(variant.price)}</b><small>Até {variant.maxOptions} sabores</small></span>
+                      {variant.id === popcornVariantId && variant.available && <span className="selected-check" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>}
+                      {!variant.available && <span className="unavailable-label">Indisponível</span>}
                     </label>
-                  );
-                })}
-              </div>
-              <div className={`selection-helper ${selectionMessage ? "has-message" : ""}`} aria-live="polite">
-                {selectionMessage || (maxOptionsReached
-                  ? "Limite preenchido. Desmarque um sabor para trocar."
-                  : `Escolha mais ${selectedVariant.maxOptions - optionIds.length} ${selectedVariant.maxOptions - optionIds.length === 1 ? "sabor" : "sabores"}, se quiser.`)}
-              </div>
-            </section>
+                  ))}
+                </RadioGroup>
+              </section>
 
-            <section className="step-block" aria-labelledby="step-quantity">
-              <div className="step-heading compact-heading">
-                <span className="step-number">3</span>
-                <div><h3 id="step-quantity">Escolha a quantidade</h3><p>Você poderá ajustar novamente no resumo.</p></div>
-              </div>
-              <div className="quantity-row">
-                <div className="quantity-control" aria-label="Quantidade">
-                  <Button type="button" variant="ghost" size="icon" onClick={() => setQuantity((current) => Math.max(1, current - 1))} disabled={quantity === 1} aria-label="Diminuir quantidade"><Minus size={18} /></Button>
-                  <strong aria-live="polite">{quantity}</strong>
-                  <Button type="button" variant="ghost" size="icon" onClick={() => setQuantity((current) => current + 1)} aria-label="Aumentar quantidade"><Plus size={18} /></Button>
+              <section className="step-block" id="sabores" aria-labelledby="step-flavors">
+                <div className="step-heading flavor-heading">
+                  <span className="step-number">2</span>
+                  <div><h3 id="step-flavors">Escolha os sabores</h3><p>Você pode escolher até {popcornMaxOptions} sabores neste tamanho.</p></div>
+                  <span className="selection-count" aria-live="polite">{popcornOptionIds.length}/{popcornMaxOptions}</span>
                 </div>
-                <div className="draft-total"><small>Subtotal</small><strong>{currency.format(draftSubtotal)}</strong></div>
-              </div>
-              <Button type="button" className="primary-cta add-button" onClick={addOrUpdateItem} disabled={!product.available || !selectedVariant.available}>
-                <ShoppingBag size={18} />{editingId ? "Salvar alterações" : "Adicionar ao pedido"}
-              </Button>
-              {editingId && <Button type="button" variant="ghost" className="cancel-edit" onClick={resetDraft}>Cancelar edição</Button>}
-            </section>
+                <div className="flavor-grid">
+                  {POPCORN.options.map((option) => {
+                    const selected = popcornOptionIds.includes(option.id);
+                    const limitDisabled = popcornLimitReached && !selected;
+                    const disabled = !option.available || limitDisabled;
+                    return (
+                      <label className={`flavor-card ${selected ? "is-selected" : ""} ${disabled ? "is-disabled" : ""}`} htmlFor={`flavor-${option.id}`} key={option.id}>
+                        <Checkbox id={`flavor-${option.id}`} checked={selected} disabled={disabled} onCheckedChange={() => togglePopcornOption(option)} aria-label={`Selecionar sabor ${option.name}`} />
+                        <span className="flavor-tone" style={{ backgroundColor: option.tone }} aria-hidden="true" />
+                        <span className="flavor-copy"><strong>{option.name}</strong><small>{option.description}</small></span>
+                        {selected && <span className="flavor-selected">Selecionado</span>}
+                        {!option.available && <span className="flavor-status">Esgotado hoje</span>}
+                        {limitDisabled && option.available && <span className="flavor-status">Limite atingido</span>}
+                      </label>
+                    );
+                  })}
+                </div>
+                <div className={`selection-helper ${selectionMessage ? "has-message" : ""}`} aria-live="polite">
+                  {selectionMessage || (popcornLimitReached
+                    ? "Limite preenchido. Desmarque um sabor para trocar."
+                    : `Escolha mais ${popcornMaxOptions - popcornOptionIds.length} ${popcornMaxOptions - popcornOptionIds.length === 1 ? "sabor" : "sabores"}, se quiser.`)}
+                </div>
+              </section>
+
+              <section className="step-block" aria-labelledby="step-quantity">
+                <div className="step-heading compact-heading"><span className="step-number">3</span><div><h3 id="step-quantity">Escolha a quantidade</h3><p>Você poderá ajustar novamente no carrinho.</p></div></div>
+                <div className="quantity-row">
+                  <div className="quantity-control" aria-label="Quantidade">
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setPopcornQuantity((current) => Math.max(1, current - 1))} disabled={popcornQuantity === 1} aria-label="Diminuir quantidade"><Minus size={18} /></Button>
+                    <strong aria-live="polite">{popcornQuantity}</strong>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setPopcornQuantity((current) => current + 1)} aria-label="Aumentar quantidade"><Plus size={18} /></Button>
+                  </div>
+                  <div className="draft-total"><small>Subtotal</small><strong>{currency.format(popcornVariant.price * popcornQuantity)}</strong></div>
+                </div>
+                <Button type="button" className="primary-cta add-button" onClick={addOrUpdatePopcorn} disabled={!POPCORN.available || !popcornVariant.available}>
+                  <ShoppingBag size={18} />{editingId ? "Salvar alterações" : "Adicionar ao pedido"}
+                </Button>
+                {editingId && <Button type="button" variant="ghost" className="cancel-edit" onClick={clearDraft}>Cancelar edição</Button>}
+              </section>
+            </div>
+          ) : (
+            <div className="builder-card slice-builder">
+              <section className="step-block" aria-labelledby="step-slice">
+                <div className="step-heading"><span className="step-number">1</span><div><h3 id="step-slice">Escolha o sabor</h3><p>Selecione uma fatia para montar seu pedido.</p></div></div>
+                <RadioGroup className="slice-grid" value={sliceProductId} onValueChange={(value) => { setSliceProductId(value); setSelectionMessage(""); }} aria-label="Sabor da fatia artesanal">
+                  {SLICES.map((slice) => {
+                    const selected = slice.id === sliceProductId;
+                    const variant = slice.variants[0];
+                    return (
+                      <label className={`slice-card ${selected ? "is-selected" : ""} ${!slice.available ? "is-unavailable" : ""}`} htmlFor={`slice-${slice.id}`} key={slice.id}>
+                        <RadioGroupItem id={`slice-${slice.id}`} value={slice.id} disabled={!slice.available} />
+                        <span className="slice-media">
+                          {slice.image ? <img src={slice.image} alt={slice.imageAlt} width="900" height="900" loading="lazy" /> : <span className="slice-placeholder"><CakeSlice size={30} strokeWidth={1.4} /><small>Fatia artesanal</small></span>}
+                        </span>
+                        <span className="slice-card-copy"><strong>{slice.name}</strong><b>{currency.format(variant.price)}</b></span>
+                        {selected && slice.available && <span className="slice-selected"><Check size={14} strokeWidth={3} /></span>}
+                        {!slice.available && <span className="slice-status">Esgotado hoje</span>}
+                      </label>
+                    );
+                  })}
+                </RadioGroup>
+              </section>
+
+              <section className="step-block" id="caldas" aria-labelledby="step-sauce">
+                <div className="step-heading"><span className="step-number">2</span><div><h3 id="step-sauce">Escolha a calda</h3><p>Chocolate ou Ninho, já incluída sem custo adicional.</p></div></div>
+                <RadioGroup className="sauce-grid" value={sliceSauceId} onValueChange={(value) => { setSliceSauceId(value); setSelectionMessage(""); }} aria-label="Calda da fatia">
+                  {SAUCES.map((sauce) => (
+                    <label className={`sauce-card ${sliceSauceId === sauce.id ? "is-selected" : ""}`} htmlFor={`sauce-${sauce.id}`} key={sauce.id}>
+                      <RadioGroupItem id={`sauce-${sauce.id}`} value={sauce.id} disabled={!sauce.available} />
+                      <span className="sauce-tone" style={{ backgroundColor: sauce.tone }} aria-hidden="true" />
+                      <span><strong>{sauce.name}</strong><small>Já inclusa</small></span>
+                      {sliceSauceId === sauce.id && <Check size={16} />}
+                    </label>
+                  ))}
+                </RadioGroup>
+                <div className={`selection-helper ${selectionMessage ? "has-message" : ""}`} aria-live="polite">{selectionMessage || "Escolha uma das duas opções de calda."}</div>
+              </section>
+
+              <section className="step-block" aria-labelledby="step-slice-quantity">
+                <div className="step-heading compact-heading"><span className="step-number">3</span><div><h3 id="step-slice-quantity">Escolha a quantidade</h3><p>Você poderá ajustar novamente no carrinho.</p></div></div>
+                <div className="quantity-row">
+                  <div className="quantity-control" aria-label="Quantidade">
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setSliceQuantity((current) => Math.max(1, current - 1))} disabled={sliceQuantity === 1} aria-label="Diminuir quantidade"><Minus size={18} /></Button>
+                    <strong aria-live="polite">{sliceQuantity}</strong>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setSliceQuantity((current) => current + 1)} aria-label="Aumentar quantidade"><Plus size={18} /></Button>
+                  </div>
+                  <div className="draft-total"><small>Subtotal</small><strong>{currency.format(selectedSliceVariant.price * sliceQuantity)}</strong></div>
+                </div>
+                <Button type="button" className="primary-cta add-button" onClick={addOrUpdateSlice} disabled={!selectedSlice.available || !selectedSliceVariant.available}>
+                  <ShoppingBag size={18} />{editingId ? "Salvar alterações" : "Adicionar ao pedido"}
+                </Button>
+                {editingId && <Button type="button" variant="ghost" className="cancel-edit" onClick={clearDraft}>Cancelar edição</Button>}
+              </section>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="extras-section" id="acompanhamentos">
+        <div className="page-shell extras-shell">
+          <div className="extras-heading"><div><p className="eyebrow">Complete seu pedido</p><h2>Refrigerantes</h2></div><p>Adicione com um toque. A quantidade pode ser ajustada no carrinho.</p></div>
+          <div className="drink-grid">
+            {DRINKS.map((drink) => {
+              const variant = drink.variants[0];
+              return (
+                <article className={`drink-card ${!drink.available ? "is-unavailable" : ""}`} key={drink.id}>
+                  <span className="drink-icon"><CupSoda size={23} strokeWidth={1.6} /></span>
+                  <div><strong>{drink.name}</strong><small>{variant.label}</small></div>
+                  <b>{currency.format(variant.price)}</b>
+                  <Button type="button" variant="outline" size="icon" onClick={() => addDrink(drink)} disabled={!drink.available || !variant.available} aria-label={`Adicionar ${drink.name} ${variant.label}`}><Plus size={17} /></Button>
+                  {!drink.available && <span className="drink-status">Indisponível</span>}
+                </article>
+              );
+            })}
           </div>
+          <p className="drink-message" aria-live="polite">{drinkMessage}</p>
         </div>
       </section>
 
@@ -367,19 +688,23 @@ export default function Home() {
               </div>
               {cart.length === 0 ? (
                 <div className="empty-cart">
-                  <ShoppingBag size={26} strokeWidth={1.5} /><strong>Seu pedido está vazio</strong><p>Escolha o tamanho e os sabores para adicionar sua pipoca.</p>
-                  <Button type="button" variant="outline" onClick={() => scrollToSection("configurador")}>Montar minha pipoca</Button>
+                  <ShoppingBag size={26} strokeWidth={1.5} /><strong>Seu pedido está vazio</strong><p>Escolha uma pipoca, uma fatia ou um refrigerante para começar.</p>
+                  <Button type="button" variant="outline" onClick={() => scrollToSection("configurador")}>Escolher produtos</Button>
                 </div>
               ) : (
                 <div className="cart-list">
                   {cart.map((item) => {
-                    const itemProduct = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
-                    const variant = itemProduct.variants.find((candidate) => candidate.id === item.variantId)!;
-                    const optionNames = item.optionIds.map((id) => itemProduct.options.find((option) => option.id === id)?.name).filter(Boolean).join(", ");
+                    const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
+                    const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
+                    const optionNames = item.optionIds.map((id) => product.options.find((option) => option.id === id)?.name).filter(Boolean).join(", ");
                     return (
                       <article className="cart-item" key={item.id}>
                         <div className="cart-item-top">
-                          <div><span className="product-category">{itemProduct.category}</span><h3>{itemProduct.name} · {variant.label}</h3><p>Sabores: {optionNames}</p></div>
+                          <div>
+                            <span className="product-category">{product.category}</span>
+                            <h3>{product.name} · {variant.label}</h3>
+                            {optionNames && product.optionLabel && <p>{product.optionLabel}: {optionNames}</p>}
+                          </div>
                           <strong>{currency.format(variant.price * item.quantity)}</strong>
                         </div>
                         <div className="cart-item-actions">
@@ -388,23 +713,20 @@ export default function Home() {
                             <span>{item.quantity}</span>
                             <Button type="button" variant="ghost" size="icon" onClick={() => changeCartQuantity(item.id, 1)} aria-label="Aumentar quantidade deste item"><Plus size={15} /></Button>
                           </div>
-                          <Button type="button" variant="ghost" className="text-action" onClick={() => editItem(item)}><Pencil size={15} /> Editar</Button>
+                          {product.kind !== "drink" && <Button type="button" variant="ghost" className="text-action" onClick={() => editItem(item)}><Pencil size={15} /> Editar</Button>}
                           <Button type="button" variant="ghost" className="text-action destructive-action" onClick={() => removeItem(item.id)}><Trash2 size={15} /> Remover</Button>
                         </div>
                       </article>
                     );
                   })}
                   <div className="cart-subtotal"><span>Subtotal dos produtos</span><strong>{currency.format(cartSubtotal)}</strong></div>
-                  <Button type="button" variant="outline" className="add-another" onClick={() => scrollToSection("configurador")}><Plus size={16} /> Adicionar outra combinação</Button>
+                  <Button type="button" variant="outline" className="add-another" onClick={() => scrollToSection("configurador")}><Plus size={16} /> Adicionar outro produto</Button>
                 </div>
               )}
             </section>
 
             <section className="order-card" id="recebimento" aria-labelledby="receiving-title">
-              <div className="step-heading checkout-step-heading">
-                <span className="step-number">4</span>
-                <div><h2 id="receiving-title">Como deseja receber?</h2><p>Escolha a opção mais conveniente.</p></div>
-              </div>
+              <div className="step-heading checkout-step-heading"><span className="step-number">4</span><div><h2 id="receiving-title">Como deseja receber?</h2><p>Escolha a opção mais conveniente.</p></div></div>
               <RadioGroup className="choice-grid" value={fulfillment} onValueChange={(value) => setFulfillment(value as Fulfillment)} aria-label="Forma de recebimento">
                 <label className={`choice-card ${fulfillment === "entrega" ? "is-selected" : ""}`} htmlFor="receive-delivery">
                   <RadioGroupItem id="receive-delivery" value="entrega" /><Truck size={21} /><span><strong>Entrega</strong><small>A partir de R$8</small></span>
@@ -421,9 +743,7 @@ export default function Home() {
                   <p className="field-note">A taxa final de entrega será confirmada no WhatsApp de acordo com o endereço.</p>
                 </div>
               )}
-              {fulfillment === "retirada" && (
-                <div className="pickup-note"><MapPin size={18} /><span><strong>Retirada disponível em Paragominas.</strong>O horário e o local serão confirmados no WhatsApp.</span></div>
-              )}
+              {fulfillment === "retirada" && <div className="pickup-note"><MapPin size={18} /><span><strong>Retirada disponível em Paragominas.</strong>O horário e o local serão confirmados no WhatsApp.</span></div>}
             </section>
 
             <section className="order-card" id="pagamento" aria-labelledby="payment-title">
@@ -437,13 +757,10 @@ export default function Home() {
               </RadioGroup>
               {payment === "dinheiro" && (
                 <div className="change-box">
-                  <div className="change-question">
-                    <span><strong>Precisa de troco?</strong><small>Opcional</small></span>
-                    <div className="segmented-control">
-                      <Button type="button" variant={!needsChange ? "default" : "ghost"} onClick={() => setNeedsChange(false)}>Não</Button>
-                      <Button type="button" variant={needsChange ? "default" : "ghost"} onClick={() => setNeedsChange(true)}>Sim</Button>
-                    </div>
-                  </div>
+                  <div className="change-question"><span><strong>Precisa de troco?</strong><small>Opcional</small></span><div className="segmented-control">
+                    <Button type="button" variant={!needsChange ? "default" : "ghost"} onClick={() => setNeedsChange(false)}>Não</Button>
+                    <Button type="button" variant={needsChange ? "default" : "ghost"} onClick={() => setNeedsChange(true)}>Sim</Button>
+                  </div></div>
                   {needsChange && <div className="field-group"><label htmlFor="change-for">Troco para quanto?</label><Input id="change-for" value={changeFor} onChange={(event) => setChangeFor(event.target.value)} placeholder="Ex.: R$ 100" inputMode="decimal" /></div>}
                 </div>
               )}
@@ -453,24 +770,20 @@ export default function Home() {
           <aside className="summary-card" aria-labelledby="summary-title">
             <p className="eyebrow">Confira antes de enviar</p><h2 id="summary-title">Resumo do pedido</h2>
             <div className="summary-content">
-              {cart.length === 0 ? <p className="summary-empty">Sua Pipoca Gourmet aparecerá aqui depois de ser adicionada.</p> : cart.map((item, index) => {
-                const itemProduct = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
-                const variant = itemProduct.variants.find((candidate) => candidate.id === item.variantId)!;
-                const names = item.optionIds.map((id) => itemProduct.options.find((option) => option.id === id)?.name).filter(Boolean).join(", ");
+              {cart.length === 0 ? <p className="summary-empty">Os produtos adicionados aparecerão aqui.</p> : cart.map((item, index) => {
+                const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
+                const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
+                const names = item.optionIds.map((id) => product.options.find((option) => option.id === id)?.name).filter(Boolean).join(", ");
                 return (
                   <div className="summary-item" key={item.id}>
-                    <div><strong>{item.quantity}x {itemProduct.name} {variant.label}</strong><p>Sabores: {names}</p></div>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => editItem(item)} aria-label={`Editar item ${index + 1}`}>Editar</Button>
+                    <div><strong>{item.quantity}x {product.name} {variant.label}</strong>{names && product.optionLabel && <p>{product.optionLabel}: {names}</p>}</div>
+                    {product.kind !== "drink" && <Button type="button" variant="ghost" size="sm" onClick={() => editItem(item)} aria-label={`Editar item ${index + 1}`}>Editar</Button>}
                   </div>
                 );
               })}
               <div className="summary-row"><span>Subtotal</span><strong>{currency.format(cartSubtotal)}</strong></div>
-              <button type="button" className="summary-link" onClick={() => scrollToSection("recebimento")}>
-                <span><small>Recebimento</small><strong>{fulfillment === "entrega" ? "Entrega — taxa a confirmar" : fulfillment === "retirada" ? "Retirada em Paragominas" : "Escolher opção"}</strong></span><ChevronRight size={18} />
-              </button>
-              <button type="button" className="summary-link" onClick={() => scrollToSection("pagamento")}>
-                <span><small>Pagamento</small><strong>{payment === "pix" ? "Pix" : payment === "dinheiro" ? "Dinheiro" : payment === "cartao" ? "Cartão na entrega" : "Escolher opção"}</strong></span><ChevronRight size={18} />
-              </button>
+              <button type="button" className="summary-link" onClick={() => scrollToSection("recebimento")}><span><small>Recebimento</small><strong>{fulfillment === "entrega" ? "Entrega — taxa a confirmar" : fulfillment === "retirada" ? "Retirada em Paragominas" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
+              <button type="button" className="summary-link" onClick={() => scrollToSection("pagamento")}><span><small>Pagamento</small><strong>{payment === "pix" ? "Pix" : payment === "dinheiro" ? "Dinheiro" : payment === "cartao" ? "Cartão na entrega" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
             </div>
             <Button type="button" className="whatsapp-button" onClick={finishOnWhatsApp} aria-describedby="checkout-status" data-event="whatsapp_checkout"><MessageCircle size={20} /> Finalizar pedido no WhatsApp</Button>
             <p id="checkout-status" className={checkoutReady ? "ready-status" : "checkout-status"} aria-live="polite">{checkoutReady && <Check size={14} />}{checkoutHint}</p>
@@ -478,21 +791,19 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="trust-section">
-        <div className="page-shell trust-content"><Crown size={30} strokeWidth={1.4} aria-hidden="true" /><div><p className="eyebrow">Luciane Oliveira Doces</p><h2>Feito em Paragominas com muito recheio e cuidado em cada pedido.</h2></div></div>
-      </section>
+      <section className="trust-section"><div className="page-shell trust-content"><Crown size={30} strokeWidth={1.4} aria-hidden="true" /><div><p className="eyebrow">Luciane Oliveira Doces</p><h2>Feito em Paragominas com muito recheio e cuidado em cada pedido.</h2></div></div></section>
 
-      <footer>
-        <div className="page-shell footer-content">
-          <div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div>
-          <div className="footer-details"><a href="https://wa.me/5591993623669"><MessageCircle size={16} /> (91) 99362-3669</a><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div>
-        </div>
-      </footer>
+      <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><a href="https://wa.me/5591993623669"><MessageCircle size={16} /> (91) 99362-3669</a><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
       <div className="mobile-sticky-bar">
-        <div><small>{cart.length ? "Subtotal" : "Sua pipoca"}</small><strong>{currency.format(cart.length ? cartSubtotal : draftSubtotal)}</strong></div>
+        <div><small>{cart.length ? "Subtotal" : activeCategory === "pipocas" ? "Sua pipoca" : "Sua fatia"}</small><strong>{currency.format(cart.length ? cartSubtotal : draftSubtotal)}</strong></div>
         <Button type="button" onClick={stickyAction}>
-          {cart.length ? checkoutReady ? "Finalizar no WhatsApp" : "Continuar pedido" : itemReady ? editingId ? "Salvar alterações" : "Adicionar ao pedido" : "Escolher sabores"}<ChevronRight size={17} />
+          {editingId
+            ? "Salvar alterações"
+            : cart.length
+              ? checkoutReady ? "Finalizar no WhatsApp" : "Continuar pedido"
+              : draftReady ? "Adicionar ao pedido" : activeCategory === "pipocas" ? "Escolher sabores" : "Escolher calda"}
+          <ChevronRight size={17} />
         </Button>
       </div>
     </main>
