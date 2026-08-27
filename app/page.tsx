@@ -57,6 +57,10 @@ type CartItem = {
 type Fulfillment = "entrega" | "retirada" | "";
 type Payment = "pix" | "dinheiro" | "cartao" | "";
 type MetaEventName = "ViewContent" | "AddToCart" | "InitiateCheckout";
+type AddedNotice = {
+  category: CategoryId;
+  description: string;
+};
 
 type SavedOrder = {
   version: 2;
@@ -183,6 +187,7 @@ export default function Home() {
   const [changeFor, setChangeFor] = useState("");
   const [storageReady, setStorageReady] = useState(false);
   const [restoredOrderNotice, setRestoredOrderNotice] = useState(false);
+  const [addedNotice, setAddedNotice] = useState<AddedNotice | null>(null);
   const checkoutStartedRef = useRef(false);
 
   useEffect(() => {
@@ -344,6 +349,7 @@ export default function Home() {
     setActiveCategory(category);
     setEditingId(null);
     setSelectionMessage("");
+    setAddedNotice(null);
     const url = new URL(window.location.href);
     if (category === "fatias") url.searchParams.set("categoria", "fatias");
     else url.searchParams.delete("categoria");
@@ -400,6 +406,7 @@ export default function Home() {
     setChangeFor("");
     setDrinkMessage("");
     setRestoredOrderNotice(false);
+    setAddedNotice(null);
     checkoutStartedRef.current = false;
     clearDraft();
     try {
@@ -462,13 +469,22 @@ export default function Home() {
       optionIds: [...popcornOptionIds],
       quantity: popcornQuantity,
     };
-    if (editingId) {
+    const wasEditing = Boolean(editingId);
+    if (wasEditing) {
       setCart((current) => current.map((item) => item.id === editingId ? { ...item, ...nextItem } : item));
     } else {
       setCart((current) => [...current, { id: makeCartId(), ...nextItem }]);
       trackMetaEvent("AddToCart", metaProductPayload(POPCORN, popcornVariant, popcornQuantity));
+      const flavorNames = popcornOptionIds
+        .map((id) => POPCORN.options.find((option) => option.id === id)?.name)
+        .filter(Boolean)
+        .join(" + ");
+      setAddedNotice({
+        category: "pipocas",
+        description: `${popcornQuantity}x Pipoca Gourmet ${popcornVariant.label} · ${flavorNames}`,
+      });
     }
-    const destination = editingId ? "carrinho" : "acompanhamentos";
+    const destination = wasEditing ? "carrinho" : "item-adicionado";
     clearDraft();
     window.setTimeout(() => scrollToSection(destination), 50);
   }
@@ -490,13 +506,19 @@ export default function Home() {
       optionIds: [sliceSauceId],
       quantity: sliceQuantity,
     };
-    if (editingId) {
+    const wasEditing = Boolean(editingId);
+    if (wasEditing) {
       setCart((current) => current.map((item) => item.id === editingId ? { ...item, ...nextItem } : item));
     } else {
       setCart((current) => [...current, { id: makeCartId(), ...nextItem }]);
       trackMetaEvent("AddToCart", metaProductPayload(selectedSlice, selectedSliceVariant, sliceQuantity));
+      const sauceName = SAUCES.find((sauce) => sauce.id === sliceSauceId)?.name ?? "Calda inclusa";
+      setAddedNotice({
+        category: "fatias",
+        description: `${sliceQuantity}x ${productLabel(selectedSlice)} · Calda ${sauceName}`,
+      });
     }
-    const destination = editingId ? "carrinho" : "acompanhamentos";
+    const destination = wasEditing ? "carrinho" : "item-adicionado";
     clearDraft();
     window.setTimeout(() => scrollToSection(destination), 50);
   }
@@ -525,6 +547,7 @@ export default function Home() {
     if (product.kind === "drink") return;
     setEditingId(item.id);
     setSelectionMessage("");
+    setAddedNotice(null);
     if (product.kind === "popcorn") {
       setActiveCategory("pipocas");
       setPopcornVariantId(item.variantId);
@@ -602,12 +625,17 @@ export default function Home() {
   }
 
   function stickyAction() {
-    if (editingId || !cart.length) {
+    if (editingId || draftReady || !cart.length) {
       if (activeCategory === "pipocas") addOrUpdatePopcorn();
       else addOrUpdateSlice();
       return;
     }
     finishOnWhatsApp();
+  }
+
+  function startAnother(category: CategoryId) {
+    clearDraft();
+    selectCategory(category, true);
   }
 
   const checkoutHint = !STORE_CONFIG.acceptingOrders
@@ -691,8 +719,8 @@ export default function Home() {
             <p className="eyebrow">Seu pedido, do seu jeito</p>
             <h2>{activeCategory === "pipocas" ? "Monte em poucos passos" : "Escolha sua fatia"}</h2>
             <p>{activeCategory === "pipocas"
-              ? "As regras de combinação são aplicadas automaticamente."
-              : "Escolha o sabor, a calda incluída e a quantidade."}</p>
+              ? "Escolha o tamanho, os sabores da sua pipoca e a quantidade."
+              : "Monte uma combinação por vez. Depois, você pode adicionar outra fatia com um sabor diferente."}</p>
             <button type="button" className="category-text-link" onClick={() => selectCategory(activeCategory === "pipocas" ? "fatias" : "pipocas", true)}>
               Ver {activeCategory === "pipocas" ? "Fatias Artesanais" : "Pipocas Gourmet"} <ChevronRight size={15} />
             </button>
@@ -725,7 +753,7 @@ export default function Home() {
               <section className="step-block" id="sabores" aria-labelledby="step-flavors">
                 <div className="step-heading flavor-heading">
                   <span className="step-number">2</span>
-                  <div><h3 id="step-flavors">Escolha os sabores</h3><p>Você pode escolher até {popcornMaxOptions} sabores neste tamanho.</p></div>
+                  <div><h3 id="step-flavors">Escolha os sabores da sua pipoca</h3><p>Combine até {popcornMaxOptions} sabores neste pote.</p></div>
                   <span className="selection-count" aria-live="polite">{popcornOptionIds.length}/{popcornMaxOptions}</span>
                 </div>
                 <div className="flavor-grid">
@@ -746,14 +774,16 @@ export default function Home() {
                   })}
                 </div>
                 <div className={`selection-helper ${selectionMessage ? "has-message" : ""}`} aria-live="polite">
-                  {selectionMessage || (popcornLimitReached
-                    ? "Limite preenchido. Desmarque um sabor para trocar."
-                    : `Escolha mais ${popcornMaxOptions - popcornOptionIds.length} ${popcornMaxOptions - popcornOptionIds.length === 1 ? "sabor" : "sabores"}, se quiser.`)}
+                  {selectionMessage || (popcornOptionIds.length === 0
+                    ? "Escolha pelo menos 1 sabor para adicionar ao pedido."
+                    : popcornLimitReached
+                      ? "Limite preenchido. Desmarque um sabor para trocar."
+                      : `Você pode escolher mais ${popcornMaxOptions - popcornOptionIds.length} ${popcornMaxOptions - popcornOptionIds.length === 1 ? "sabor" : "sabores"}, se quiser.`)}
                 </div>
               </section>
 
               <section className="step-block" aria-labelledby="step-quantity">
-                <div className="step-heading compact-heading"><span className="step-number">3</span><div><h3 id="step-quantity">Escolha a quantidade</h3><p>Você poderá ajustar novamente no carrinho.</p></div></div>
+                <div className="step-heading compact-heading"><span className="step-number">3</span><div><h3 id="step-quantity">Quantos potes desta combinação?</h3><p>Para outros sabores ou tamanhos, adicione este item e monte o próximo.</p></div></div>
                 <div className="quantity-row">
                   <div className="quantity-control" aria-label="Quantidade">
                     <Button type="button" variant="ghost" size="icon" onClick={() => setPopcornQuantity((current) => Math.max(1, current - 1))} disabled={popcornQuantity === 1} aria-label="Diminuir quantidade"><Minus size={18} /></Button>
@@ -763,7 +793,7 @@ export default function Home() {
                   <div className="draft-total"><small>Subtotal</small><strong>{currency.format(popcornVariant.price * popcornQuantity)}</strong></div>
                 </div>
                 <Button type="button" className="primary-cta add-button" onClick={addOrUpdatePopcorn} disabled={!STORE_CONFIG.acceptingOrders || !POPCORN.available || !popcornVariant.available}>
-                  <ShoppingBag size={18} />{editingId ? "Salvar alterações" : "Adicionar ao pedido"}
+                  <ShoppingBag size={18} />{editingId ? "Salvar alterações" : `Adicionar ${popcornQuantity} ${popcornQuantity === 1 ? "pipoca" : "pipocas"} ao pedido`}
                 </Button>
                 {editingId && <Button type="button" variant="ghost" className="cancel-edit" onClick={clearDraft}>Cancelar edição</Button>}
               </section>
@@ -771,7 +801,7 @@ export default function Home() {
           ) : (
             <div className="builder-card slice-builder">
               <section className="step-block" aria-labelledby="step-slice">
-                <div className="step-heading"><span className="step-number">1</span><div><h3 id="step-slice">Escolha o sabor</h3><p>Selecione uma fatia para montar seu pedido.</p></div></div>
+                <div className="step-heading"><span className="step-number">1</span><div><h3 id="step-slice">Escolha sua fatia</h3><p>Selecione um sabor por vez. Depois de adicionar, você poderá escolher outro.</p></div></div>
                 <RadioGroup className="slice-grid" value={sliceProductId} onValueChange={(value) => { setSliceProductId(value); setSelectionMessage(""); }} aria-label="Sabor da fatia artesanal">
                   {SLICES.map((slice) => {
                     const selected = slice.id === sliceProductId;
@@ -811,7 +841,7 @@ export default function Home() {
               </section>
 
               <section className="step-block" aria-labelledby="step-slice-quantity">
-                <div className="step-heading compact-heading"><span className="step-number">3</span><div><h3 id="step-slice-quantity">Escolha a quantidade</h3><p>Você poderá ajustar novamente no carrinho.</p></div></div>
+                <div className="step-heading compact-heading"><span className="step-number">3</span><div><h3 id="step-slice-quantity">Quantas fatias deste sabor?</h3><p>Para outro sabor, adicione este item e escolha a próxima fatia.</p></div></div>
                 <div className="quantity-row">
                   <div className="quantity-control" aria-label="Quantidade">
                     <Button type="button" variant="ghost" size="icon" onClick={() => setSliceQuantity((current) => Math.max(1, current - 1))} disabled={sliceQuantity === 1} aria-label="Diminuir quantidade"><Minus size={18} /></Button>
@@ -821,10 +851,26 @@ export default function Home() {
                   <div className="draft-total"><small>Subtotal</small><strong>{currency.format(selectedSliceVariant.price * sliceQuantity)}</strong></div>
                 </div>
                 <Button type="button" className="primary-cta add-button" onClick={addOrUpdateSlice} disabled={!STORE_CONFIG.acceptingOrders || !selectedSlice.available || !selectedSliceVariant.available}>
-                  <ShoppingBag size={18} />{editingId ? "Salvar alterações" : "Adicionar ao pedido"}
+                  <ShoppingBag size={18} />{editingId ? "Salvar alterações" : `Adicionar ${sliceQuantity} ${sliceQuantity === 1 ? "fatia" : "fatias"} ao pedido`}
                 </Button>
                 {editingId && <Button type="button" variant="ghost" className="cancel-edit" onClick={clearDraft}>Cancelar edição</Button>}
               </section>
+            </div>
+          )}
+
+          {addedNotice && (
+            <div className="added-panel" id="item-adicionado" role="status" aria-live="polite">
+              <span className="added-panel-icon" aria-hidden="true"><Check size={18} strokeWidth={3} /></span>
+              <div className="added-panel-copy">
+                <strong>Adicionado ao pedido</strong>
+                <p>{addedNotice.description}</p>
+              </div>
+              <div className="added-panel-actions">
+                <Button type="button" variant="outline" onClick={() => startAnother(addedNotice.category)}>
+                  <Plus size={16} /> {addedNotice.category === "fatias" ? "Adicionar outra fatia" : "Adicionar outra pipoca"}
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => scrollToSection("carrinho")}>Ver pedido</Button>
+              </div>
             </div>
           )}
         </div>
@@ -898,7 +944,14 @@ export default function Home() {
                   })}
                   <div className="cart-subtotal"><span>Subtotal dos produtos</span><strong>{currency.format(cartSubtotal)}</strong></div>
                   <p className="cart-save-note"><Check size={14} /> Pedido mantido somente nesta aba. Ao fechá-la, ele é limpo.</p>
-                  <Button type="button" variant="outline" className="add-another" onClick={() => scrollToSection("configurador")}><Plus size={16} /> Adicionar outro produto</Button>
+                  <div className="cart-add-more">
+                    <strong>Adicionar mais itens</strong>
+                    <div className="cart-add-options">
+                      <Button type="button" variant="outline" onClick={() => startAnother("fatias")}><CakeSlice size={16} /> Outra fatia</Button>
+                      <Button type="button" variant="outline" onClick={() => startAnother("pipocas")}><Plus size={16} /> Outra pipoca</Button>
+                      <Button type="button" variant="outline" onClick={() => scrollToSection("acompanhamentos")}><CupSoda size={16} /> Refrigerante</Button>
+                    </div>
+                  </div>
                 </div>
               )}
             </section>
@@ -1011,9 +1064,13 @@ export default function Home() {
         <Button type="button" onClick={stickyAction} disabled={!STORE_CONFIG.acceptingOrders}>
           {editingId
             ? "Salvar alterações"
-            : cart.length
-              ? checkoutReady ? "Finalizar no WhatsApp" : "Continuar pedido"
-              : draftReady ? "Adicionar ao pedido" : activeCategory === "pipocas" ? "Escolher sabores" : "Escolher calda"}
+            : draftReady
+              ? activeCategory === "pipocas"
+                ? `Adicionar ${popcornQuantity} ${popcornQuantity === 1 ? "pipoca" : "pipocas"}`
+                : `Adicionar ${sliceQuantity} ${sliceQuantity === 1 ? "fatia" : "fatias"}`
+              : cart.length
+                ? checkoutReady ? "Finalizar no WhatsApp" : "Continuar pedido"
+                : activeCategory === "pipocas" ? "Escolher meus sabores" : "Escolher calda"}
           <ChevronRight size={17} />
         </Button>
       </div>

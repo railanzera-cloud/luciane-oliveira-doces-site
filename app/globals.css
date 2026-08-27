@@ -702,6 +702,64 @@ label:has(button:focus-visible) {
   color: #bbaa99 !important;
 }
 
+.added-panel {
+  display: grid;
+  scroll-margin-top: 16px;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px 12px;
+  align-items: center;
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid rgba(216, 158, 91, 0.42);
+  border-radius: 18px;
+  background: rgba(190, 119, 50, 0.13);
+}
+
+.added-panel-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  background: #d49a57;
+  color: #211208;
+}
+
+.added-panel-copy {
+  min-width: 0;
+}
+
+.added-panel-copy strong {
+  color: #fff7eb;
+  font-size: 0.83rem;
+}
+
+.added-panel-copy p {
+  margin: 3px 0 0;
+  color: #c9b7a4;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.added-panel-actions {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.added-panel-actions button {
+  min-height: 42px;
+  gap: 6px;
+  border-color: rgba(216, 158, 91, 0.42) !important;
+  color: #f0c184 !important;
+  font-size: 0.68rem;
+}
+
+.added-panel-actions button:first-child {
+  background: rgba(190, 119, 50, 0.12) !important;
+}
+
 .checkout-section {
   padding: 58px 0 66px;
   background: #f3ecdf;
@@ -910,6 +968,38 @@ label:has(button:focus-visible) {
 .cart-save-note svg {
   flex: 0 0 auto;
   color: #347751;
+}
+
+.cart-add-more {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(78, 47, 26, 0.12);
+}
+
+.cart-add-more > strong {
+  display: block;
+  margin-bottom: 9px;
+  color: #553824;
+  font-size: 0.72rem;
+}
+
+.cart-add-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cart-add-options button {
+  width: 100%;
+  min-height: 42px;
+  gap: 6px;
+  border-color: rgba(105, 65, 36, 0.2) !important;
+  color: #6b472e !important;
+  font-size: 0.66rem;
+}
+
+.cart-add-options button:last-child {
+  grid-column: 1 / -1;
 }
 
 .add-another {
@@ -1558,6 +1648,22 @@ footer {
 
   .session-order-actions button {
     min-width: 96px;
+  }
+
+  .added-panel {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .added-panel-actions {
+    grid-column: auto;
+  }
+
+  .cart-add-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .cart-add-options button:last-child {
+    grid-column: auto;
   }
 
   .hero-content {
