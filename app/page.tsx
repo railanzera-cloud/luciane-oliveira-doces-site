@@ -23,40 +23,28 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-
-type CategoryId = "pipocas" | "fatias";
-type ProductKind = "popcorn" | "slice" | "drink";
-
-type Variant = {
-  id: string;
-  label: string;
-  whatsappLabel: string;
-  price: number;
-  maxOptions?: number;
-  available: boolean;
-};
-
-type ProductOption = {
-  id: string;
-  name: string;
-  description: string;
-  tone: string;
-  available: boolean;
-};
-
-type Product = {
-  id: string;
-  kind: ProductKind;
-  category: string;
-  name: string;
-  subtitle?: string;
-  image?: string;
-  imageAlt?: string;
-  optionLabel?: string;
-  available: boolean;
-  variants: Variant[];
-  options: ProductOption[];
-};
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DELIVERY_ZONES,
+  DRINKS,
+  POPCORN,
+  PRODUCTS,
+  SAUCES,
+  SLICES,
+  STORE_CONFIG,
+  type CategoryId,
+  type Product,
+  type ProductOption,
+  type Variant,
+} from "@/app/catalog";
 
 type CartItem = {
   id: string;
@@ -70,6 +58,21 @@ type Fulfillment = "entrega" | "retirada" | "";
 type Payment = "pix" | "dinheiro" | "cartao" | "";
 type MetaEventName = "ViewContent" | "AddToCart" | "InitiateCheckout";
 
+type SavedOrder = {
+  version: 1;
+  savedAt: number;
+  activeCategory: CategoryId;
+  cart: CartItem[];
+  fulfillment: Fulfillment;
+  deliveryZoneId: string;
+  neighborhood: string;
+  address: string;
+  reference: string;
+  payment: Payment;
+  needsChange: boolean;
+  changeFor: string;
+};
+
 declare global {
   interface Window {
     fbq?: (...args: unknown[]) => void;
@@ -77,148 +80,13 @@ declare global {
   }
 }
 
-const SAUCES: ProductOption[] = [
-  {
-    id: "calda-chocolate",
-    name: "Chocolate",
-    description: "Calda de chocolate.",
-    tone: "#74412a",
-    available: true,
-  },
-  {
-    id: "calda-ninho",
-    name: "Ninho",
-    description: "Calda de Ninho.",
-    tone: "#ead9ba",
-    available: true,
-  },
-];
-
-const PRODUCTS: Product[] = [
-  {
-    id: "pipoca-gourmet",
-    kind: "popcorn",
-    category: "Pipocas Gourmet",
-    name: "Pipoca Gourmet",
-    image: "/pipoca-gourmet.jpeg",
-    imageAlt: "Pote real de Pipoca Gourmet com três sabores",
-    optionLabel: "Sabores",
-    available: true,
-    variants: [
-      { id: "350ml", label: "350 ml", whatsappLabel: "350 ml", price: 20, maxOptions: 2, available: true },
-      { id: "500ml", label: "500 ml", whatsappLabel: "500 ml", price: 25, maxOptions: 2, available: true },
-      { id: "750ml", label: "750 ml", whatsappLabel: "750 ml", price: 39, maxOptions: 2, available: true },
-      { id: "1l", label: "1 litro", whatsappLabel: "1 litro", price: 49, maxOptions: 3, available: true },
-    ],
-    options: [
-      { id: "leitinho", name: "Leitinho", description: "Creme branco com leite em pó.", tone: "#f3d9a7", available: true },
-      { id: "nutella", name: "Nutella", description: "Creme de avelã com cacau.", tone: "#7b4025", available: true },
-      { id: "kinder-bueno", name: "Kinder Bueno", description: "Creme de avelã com leite.", tone: "#d69a66", available: true },
-      { id: "choco-cookies-branco", name: "Choco Cookies Branco", description: "Creme branco com cookies.", tone: "#ead8bc", available: true },
-      { id: "choco-cookies-leite", name: "Choco Cookies ao Leite", description: "Chocolate ao leite com cookies.", tone: "#9b6040", available: true },
-      { id: "pistache", name: "Pistache", description: "Creme sabor pistache.", tone: "#9f9b61", available: true },
-    ],
-  },
-  {
-    id: "fatia-chocolate-morango",
-    kind: "slice",
-    category: "Fatias Artesanais",
-    name: "Chocolate com Morango",
-    image: "/fatia-chocolate-morango.jpeg",
-    imageAlt: "Fatia artesanal de chocolate com morango",
-    optionLabel: "Calda",
-    available: true,
-    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
-    options: SAUCES,
-  },
-  {
-    id: "fatia-ninho-morango",
-    kind: "slice",
-    category: "Fatias Artesanais",
-    name: "Ninho com Morango",
-    subtitle: "Massa branca",
-    image: "/fatia-ninho-morango.jpeg",
-    imageAlt: "Fatia artesanal de Ninho com morango em massa branca",
-    optionLabel: "Calda",
-    available: true,
-    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
-    options: SAUCES,
-  },
-  {
-    id: "fatia-chocolate-maracuja",
-    kind: "slice",
-    category: "Fatias Artesanais",
-    name: "Chocolate com Maracujá",
-    image: "/fatia-chocolate-maracuja.jpeg",
-    imageAlt: "Fatia artesanal de chocolate com maracujá",
-    optionLabel: "Calda",
-    available: true,
-    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
-    options: SAUCES,
-  },
-  {
-    id: "fatia-chocolatudo",
-    kind: "slice",
-    category: "Fatias Artesanais",
-    name: "Chocolatudo",
-    image: "/fatia-chocolatudo.jpeg",
-    imageAlt: "Fatia artesanal de chocolate com recheio de chocolate",
-    optionLabel: "Calda",
-    available: true,
-    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
-    options: SAUCES,
-  },
-  {
-    id: "fatia-chocolate-cenoura",
-    kind: "slice",
-    category: "Fatias Artesanais",
-    name: "Chocolate com Cenoura",
-    image: "/fatia-chocolate-cenoura.jpeg",
-    imageAlt: "Fatia artesanal de bolo de cenoura com chocolate",
-    optionLabel: "Calda",
-    available: true,
-    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
-    options: SAUCES,
-  },
-  {
-    id: "coca-cola-220",
-    kind: "drink",
-    category: "Refrigerantes",
-    name: "Coca-Cola",
-    image: "/coca-cola-220.jpeg",
-    imageAlt: "Lata gelada de Coca-Cola 220 ml",
-    available: true,
-    variants: [{ id: "220ml", label: "220 ml", whatsappLabel: "220 ml", price: 5, available: true }],
-    options: [],
-  },
-  {
-    id: "coca-cola-350",
-    kind: "drink",
-    category: "Refrigerantes",
-    name: "Coca-Cola",
-    image: "/coca-cola-350.jpeg",
-    imageAlt: "Lata gelada de Coca-Cola 350 ml",
-    available: true,
-    variants: [{ id: "350ml", label: "350 ml", whatsappLabel: "350 ml", price: 6, available: true }],
-    options: [],
-  },
-  {
-    id: "fanta-laranja-350",
-    kind: "drink",
-    category: "Refrigerantes",
-    name: "Fanta Laranja",
-    image: "/fanta-laranja-350.jpeg",
-    imageAlt: "Lata gelada de Fanta Laranja 350 ml",
-    available: true,
-    variants: [{ id: "350ml", label: "350 ml", whatsappLabel: "350 ml", price: 5, available: true }],
-    options: [],
-  },
-];
-
-const POPCORN = PRODUCTS.find((product) => product.kind === "popcorn")!;
-const SLICES = PRODUCTS.filter((product) => product.kind === "slice");
-const DRINKS = PRODUCTS.filter((product) => product.kind === "drink");
 const TINTIM_SITE_LINK = "https://tintim.link/whatsapp/2c956a42-229f-4d21-ade6-4442f8c048ed/7522df92-bbe1-4bff-83ca-2629bba182eb";
+const ORDER_STORAGE_KEY = "luciane-order-v1";
+const ORDER_STORAGE_TTL = 2 * 60 * 60 * 1000;
+const DEFAULT_POPCORN_VARIANT_ID = POPCORN.variants.find((variant) => variant.id === "500ml" && variant.available)?.id
+  ?? POPCORN.variants.find((variant) => variant.available)?.id
+  ?? POPCORN.variants[0].id;
+const DEFAULT_SLICE_PRODUCT_ID = SLICES.find((product) => product.available && product.variants[0]?.available)?.id ?? SLICES[0].id;
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 function scrollToSection(id: string) {
@@ -260,12 +128,46 @@ function tintimWhatsAppUrl(message: string) {
   return `${TINTIM_SITE_LINK}?text=${encodeURIComponent(message)}`;
 }
 
+function sanitizeSavedCart(value: unknown): CartItem[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((candidate) => {
+    if (!candidate || typeof candidate !== "object") return [];
+    const item = candidate as Partial<CartItem>;
+    const product = PRODUCTS.find((current) => current.id === item.productId);
+    const variant = product?.variants.find((current) => current.id === item.variantId);
+    if (!product?.available || !variant?.available) return [];
+
+    const optionIds = Array.isArray(item.optionIds)
+      ? item.optionIds.filter((id): id is string => typeof id === "string")
+      : [];
+    const optionsAreAvailable = optionIds.every((id) => product.options.some((option) => option.id === id && option.available));
+    const optionsAreValid = product.kind === "popcorn"
+      ? optionIds.length > 0 && optionIds.length <= (variant.maxOptions ?? 0)
+      : product.kind === "slice"
+        ? optionIds.length === 1
+        : optionIds.length === 0;
+    if (!optionsAreAvailable || !optionsAreValid) return [];
+
+    const quantity = typeof item.quantity === "number" && Number.isInteger(item.quantity)
+      ? Math.min(99, Math.max(1, item.quantity))
+      : 1;
+    return [{
+      id: typeof item.id === "string" ? item.id : makeCartId(),
+      productId: product.id,
+      variantId: variant.id,
+      optionIds,
+      quantity,
+    }];
+  });
+}
+
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState<CategoryId>("pipocas");
-  const [popcornVariantId, setPopcornVariantId] = useState("500ml");
+  const [popcornVariantId, setPopcornVariantId] = useState(DEFAULT_POPCORN_VARIANT_ID);
   const [popcornOptionIds, setPopcornOptionIds] = useState<string[]>([]);
   const [popcornQuantity, setPopcornQuantity] = useState(1);
-  const [sliceProductId, setSliceProductId] = useState(SLICES[0].id);
+  const [sliceProductId, setSliceProductId] = useState(DEFAULT_SLICE_PRODUCT_ID);
   const [sliceSauceId, setSliceSauceId] = useState("");
   const [sliceQuantity, setSliceQuantity] = useState(1);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -273,12 +175,15 @@ export default function Home() {
   const [selectionMessage, setSelectionMessage] = useState("");
   const [drinkMessage, setDrinkMessage] = useState("");
   const [fulfillment, setFulfillment] = useState<Fulfillment>("");
+  const [deliveryZoneId, setDeliveryZoneId] = useState("");
   const [neighborhood, setNeighborhood] = useState("");
   const [address, setAddress] = useState("");
   const [reference, setReference] = useState("");
   const [payment, setPayment] = useState<Payment>("");
   const [needsChange, setNeedsChange] = useState(false);
   const [changeFor, setChangeFor] = useState("");
+  const [storageReady, setStorageReady] = useState(false);
+  const [restoredOrderNotice, setRestoredOrderNotice] = useState(false);
   const checkoutStartedRef = useRef(false);
 
   useEffect(() => {
@@ -289,15 +194,84 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const category = new URLSearchParams(window.location.search).get("categoria");
-    if (category === "fatias") setActiveCategory("fatias");
+    const requestedCategory = new URLSearchParams(window.location.search).get("categoria");
+    try {
+      const rawOrder = window.localStorage.getItem(ORDER_STORAGE_KEY);
+      if (rawOrder) {
+        const saved = JSON.parse(rawOrder) as Partial<SavedOrder>;
+        const stillFresh = saved.version === 1
+          && typeof saved.savedAt === "number"
+          && Date.now() - saved.savedAt <= ORDER_STORAGE_TTL;
+        if (stillFresh) {
+          const savedCart = sanitizeSavedCart(saved.cart);
+          setCart(savedCart);
+          if (saved.fulfillment === "entrega" || saved.fulfillment === "retirada") setFulfillment(saved.fulfillment);
+          if (typeof saved.deliveryZoneId === "string" && DELIVERY_ZONES.some((zone) => zone.id === saved.deliveryZoneId)) {
+            setDeliveryZoneId(saved.deliveryZoneId);
+          }
+          if (typeof saved.neighborhood === "string") setNeighborhood(saved.neighborhood);
+          if (typeof saved.address === "string") setAddress(saved.address);
+          if (typeof saved.reference === "string") setReference(saved.reference);
+          if (saved.payment === "pix" || saved.payment === "dinheiro" || saved.payment === "cartao") setPayment(saved.payment);
+          if (typeof saved.needsChange === "boolean") setNeedsChange(saved.needsChange);
+          if (typeof saved.changeFor === "string") setChangeFor(saved.changeFor);
+          if (requestedCategory !== "fatias" && (saved.activeCategory === "pipocas" || saved.activeCategory === "fatias")) {
+            setActiveCategory(saved.activeCategory);
+          }
+          setRestoredOrderNotice(savedCart.length > 0);
+        } else {
+          window.localStorage.removeItem(ORDER_STORAGE_KEY);
+        }
+      }
+    } catch {
+      try {
+        window.localStorage.removeItem(ORDER_STORAGE_KEY);
+      } catch {
+        // O cardápio continua funcionando mesmo quando o navegador bloqueia o armazenamento local.
+      }
+    }
+    if (requestedCategory === "fatias") setActiveCategory("fatias");
+    setStorageReady(true);
   }, []);
+
+  useEffect(() => {
+    if (!storageReady) return;
+    const hasSavedData = cart.length > 0
+      || Boolean(fulfillment || deliveryZoneId || neighborhood || address || reference || payment || changeFor);
+    try {
+      if (!hasSavedData) {
+        window.localStorage.removeItem(ORDER_STORAGE_KEY);
+        return;
+      }
+      const savedOrder: SavedOrder = {
+        version: 1,
+        savedAt: Date.now(),
+        activeCategory,
+        cart,
+        fulfillment,
+        deliveryZoneId,
+        neighborhood,
+        address,
+        reference,
+        payment,
+        needsChange,
+        changeFor,
+      };
+      window.localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(savedOrder));
+    } catch {
+      // A persistência é uma conveniência; o fluxo do pedido não depende dela.
+    }
+  }, [activeCategory, address, cart, changeFor, deliveryZoneId, fulfillment, needsChange, neighborhood, payment, reference, storageReady]);
 
   const popcornVariant = POPCORN.variants.find((variant) => variant.id === popcornVariantId)!;
   const popcornMaxOptions = popcornVariant.maxOptions ?? 0;
   const popcornLimitReached = popcornOptionIds.length >= popcornMaxOptions;
   const selectedSlice = SLICES.find((product) => product.id === sliceProductId)!;
   const selectedSliceVariant = selectedSlice.variants[0];
+  const selectedDeliveryZone = DELIVERY_ZONES.find((zone) => zone.id === deliveryZoneId);
+  const deliveryNeighborhood = selectedDeliveryZone?.asksNeighborhood
+    ? neighborhood.trim()
+    : selectedDeliveryZone?.label ?? "";
 
   const cartSubtotal = useMemo(
     () => cart.reduce((total, item) => {
@@ -308,15 +282,25 @@ export default function Home() {
     [cart],
   );
 
+  const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
+  const deliveryFee = fulfillment === "entrega" ? selectedDeliveryZone?.price ?? 0 : 0;
+  const orderTotal = cartSubtotal + deliveryFee;
+  const hasEstimatedTotal = fulfillment === "retirada" || (fulfillment === "entrega" && Boolean(selectedDeliveryZone));
+
   const popcornReady = POPCORN.available && popcornVariant.available && popcornOptionIds.length > 0;
   const sliceReady = selectedSlice.available && selectedSliceVariant.available && Boolean(sliceSauceId);
   const draftReady = activeCategory === "pipocas" ? popcornReady : sliceReady;
   const draftSubtotal = activeCategory === "pipocas"
     ? popcornVariant.price * popcornQuantity
     : selectedSliceVariant.price * sliceQuantity;
-  const addressReady = fulfillment !== "entrega" || Boolean(neighborhood.trim() && address.trim() && reference.trim());
+  const addressReady = fulfillment !== "entrega"
+    || Boolean(selectedDeliveryZone && deliveryNeighborhood && address.trim() && reference.trim());
   const paymentReady = Boolean(payment) && (payment !== "dinheiro" || !needsChange || Boolean(changeFor.trim()));
-  const checkoutReady = cart.length > 0 && Boolean(fulfillment) && addressReady && paymentReady;
+  const checkoutReady = STORE_CONFIG.acceptingOrders
+    && cart.length > 0
+    && Boolean(fulfillment)
+    && addressReady
+    && paymentReady;
 
   useEffect(() => {
     if (cart.length === 0) checkoutStartedRef.current = false;
@@ -393,7 +377,7 @@ export default function Home() {
   }
 
   function trackCheckoutStart() {
-    if (checkoutStartedRef.current || cart.length === 0) return;
+    if (!STORE_CONFIG.acceptingOrders || checkoutStartedRef.current || cart.length === 0) return;
     const contents = cart.map((item) => {
       const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
       const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
@@ -430,6 +414,10 @@ export default function Home() {
   }
 
   function addOrUpdatePopcorn() {
+    if (!STORE_CONFIG.acceptingOrders) {
+      setSelectionMessage(STORE_CONFIG.closedMessage);
+      return;
+    }
     if (!popcornReady) {
       setSelectionMessage("Escolha pelo menos 1 sabor para continuar.");
       scrollToSection("sabores");
@@ -453,6 +441,10 @@ export default function Home() {
   }
 
   function addOrUpdateSlice() {
+    if (!STORE_CONFIG.acceptingOrders) {
+      setSelectionMessage(STORE_CONFIG.closedMessage);
+      return;
+    }
     if (!sliceSauceId) {
       setSelectionMessage("Escolha sua calda inclusa: Chocolate ou Ninho.");
       scrollToSection("caldas");
@@ -477,7 +469,7 @@ export default function Home() {
   }
 
   function addDrink(product: Product) {
-    if (!product.available || !product.variants[0].available) return;
+    if (!STORE_CONFIG.acceptingOrders || !product.available || !product.variants[0].available) return;
     setCart((current) => {
       const existing = current.find((item) => item.productId === product.id);
       if (existing) {
@@ -520,7 +512,7 @@ export default function Home() {
   }
 
   function changeCartQuantity(id: string, delta: number) {
-    if (delta > 0) {
+    if (delta > 0 && STORE_CONFIG.acceptingOrders) {
       const item = cart.find((candidate) => candidate.id === id);
       const product = PRODUCTS.find((candidate) => candidate.id === item?.productId);
       const variant = product?.variants.find((candidate) => candidate.id === item?.variantId);
@@ -547,7 +539,7 @@ export default function Home() {
     }).join("\n\n");
 
     const receivingLines = fulfillment === "entrega"
-      ? `Entrega\nBairro: ${neighborhood.trim()}\nEndereço: ${address.trim()}\nReferência: ${reference.trim()}`
+      ? `Entrega\nRegião: ${selectedDeliveryZone?.label ?? "Não informada"}\nBairro: ${deliveryNeighborhood}\nEndereço: ${address.trim()}\nReferência: ${reference.trim()}`
       : "Retirada em Paragominas";
     const paymentLabel = payment === "pix"
       ? "Pix"
@@ -555,13 +547,17 @@ export default function Home() {
         ? `Dinheiro${needsChange ? ` — troco para ${changeFor.trim()}` : " — sem troco"}`
         : "Cartão na entrega";
     const deliveryLine = fulfillment === "entrega"
-      ? "Taxa de entrega: a confirmar (a partir de R$8)."
+      ? `Taxa estimada de entrega: ${currency.format(deliveryFee)} (a confirmar no WhatsApp).`
       : "Taxa de entrega: não se aplica.";
 
-    return `Olá! Quero finalizar meu pedido na Luciane Oliveira Doces.\n\n*Pedido*\n${orderLines}\n\n*Recebimento*\n${receivingLines}\n\n*Pagamento*\n${paymentLabel}\n\nSubtotal dos produtos: ${currency.format(cartSubtotal)}\n${deliveryLine}`;
+    return `Olá! Quero finalizar meu pedido na Luciane Oliveira Doces.\n\n*Pedido*\n${orderLines}\n\n*Recebimento*\n${receivingLines}\n\n*Pagamento*\n${paymentLabel}\n\nSubtotal dos produtos: ${currency.format(cartSubtotal)}\n${deliveryLine}\nTotal estimado: ${currency.format(orderTotal)}`;
   }
 
   function finishOnWhatsApp() {
+    if (!STORE_CONFIG.acceptingOrders) {
+      scrollToSection("inicio");
+      return;
+    }
     if (cart.length > 0) trackCheckoutStart();
     if (!checkoutReady) {
       if (!cart.length) scrollToSection("configurador");
@@ -581,17 +577,23 @@ export default function Home() {
     finishOnWhatsApp();
   }
 
-  const checkoutHint = !cart.length
-    ? "Adicione pelo menos um produto ao pedido."
-    : !fulfillment
-      ? "Escolha entrega ou retirada."
-      : !addressReady
-        ? "Preencha os dados da entrega."
-        : !payment
-          ? "Escolha a forma de pagamento."
-          : !paymentReady
-            ? "Informe o valor para o troco."
-            : "Ao continuar, seu pedido será enviado no WhatsApp para confirmação.";
+  const checkoutHint = !STORE_CONFIG.acceptingOrders
+    ? STORE_CONFIG.closedMessage
+    : !cart.length
+      ? "Adicione pelo menos um produto ao pedido."
+      : !fulfillment
+        ? "Escolha entrega ou retirada."
+        : fulfillment === "entrega" && !selectedDeliveryZone
+          ? "Escolha sua região de entrega."
+          : fulfillment === "entrega" && selectedDeliveryZone?.asksNeighborhood && !neighborhood.trim()
+            ? "Informe seu bairro."
+            : !addressReady
+              ? "Preencha os dados da entrega."
+              : !payment
+                ? "Escolha a forma de pagamento."
+                : !paymentReady
+                  ? "Informe o valor para o troco."
+                  : "Ao continuar, seu pedido será enviado no WhatsApp para confirmação.";
 
   return (
     <main>
@@ -607,6 +609,12 @@ export default function Home() {
         <img className="hero-image" src={hero.image} alt={hero.alt} width="900" height="1600" fetchPriority="high" />
         <div className="hero-overlay" />
         <div className="hero-content page-shell">
+          {!STORE_CONFIG.acceptingOrders && (
+            <div className="store-status-banner" role="status">
+              <strong>{STORE_CONFIG.closedMessage}</strong>
+              <span>Você ainda pode consultar o cardápio.</span>
+            </div>
+          )}
           <div className="category-switch" aria-label="Categorias disponíveis">
             <button type="button" className={activeCategory === "pipocas" ? "is-active" : ""} onClick={() => selectCategory("pipocas")}>
               Pipocas Gourmet
@@ -641,17 +649,25 @@ export default function Home() {
             </button>
           </div>
 
+          {((activeCategory === "pipocas" && !POPCORN.available)
+            || (activeCategory === "fatias" && !SLICES.some((slice) => slice.available && slice.variants[0]?.available))) && (
+            <div className="availability-alert" role="status">
+              <strong>Esgotado hoje</strong>
+              <span>Esta categoria está temporariamente indisponível.</span>
+            </div>
+          )}
+
           {activeCategory === "pipocas" ? (
             <div className="builder-card">
               <section className="step-block" aria-labelledby="step-size">
                 <div className="step-heading"><span className="step-number">1</span><div><h3 id="step-size">Escolha o tamanho</h3><p>O preço e o limite de sabores mudam conforme o pote.</p></div></div>
                 <RadioGroup className="size-grid" value={popcornVariantId} onValueChange={choosePopcornVariant} aria-label="Tamanho da Pipoca Gourmet">
                   {POPCORN.variants.map((variant) => (
-                    <label className={`size-card ${variant.id === popcornVariantId ? "is-selected" : ""} ${!variant.available ? "is-unavailable" : ""}`} htmlFor={`size-${variant.id}`} key={variant.id}>
-                      <RadioGroupItem id={`size-${variant.id}`} value={variant.id} disabled={!variant.available} />
+                    <label className={`size-card ${variant.id === popcornVariantId ? "is-selected" : ""} ${!POPCORN.available || !variant.available ? "is-unavailable" : ""}`} htmlFor={`size-${variant.id}`} key={variant.id}>
+                      <RadioGroupItem id={`size-${variant.id}`} value={variant.id} disabled={!POPCORN.available || !variant.available} />
                       <span className="size-copy"><strong>{variant.label}</strong><b>{currency.format(variant.price)}</b><small>Até {variant.maxOptions} sabores</small></span>
-                      {variant.id === popcornVariantId && variant.available && <span className="selected-check" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>}
-                      {!variant.available && <span className="unavailable-label">Indisponível</span>}
+                      {variant.id === popcornVariantId && POPCORN.available && variant.available && <span className="selected-check" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>}
+                      {(!POPCORN.available || !variant.available) && <span className="unavailable-label">{!POPCORN.available ? "Esgotado hoje" : "Indisponível"}</span>}
                     </label>
                   ))}
                 </RadioGroup>
@@ -697,7 +713,7 @@ export default function Home() {
                   </div>
                   <div className="draft-total"><small>Subtotal</small><strong>{currency.format(popcornVariant.price * popcornQuantity)}</strong></div>
                 </div>
-                <Button type="button" className="primary-cta add-button" onClick={addOrUpdatePopcorn} disabled={!POPCORN.available || !popcornVariant.available}>
+                <Button type="button" className="primary-cta add-button" onClick={addOrUpdatePopcorn} disabled={!STORE_CONFIG.acceptingOrders || !POPCORN.available || !popcornVariant.available}>
                   <ShoppingBag size={18} />{editingId ? "Salvar alterações" : "Adicionar ao pedido"}
                 </Button>
                 {editingId && <Button type="button" variant="ghost" className="cancel-edit" onClick={clearDraft}>Cancelar edição</Button>}
@@ -712,8 +728,8 @@ export default function Home() {
                     const selected = slice.id === sliceProductId;
                     const variant = slice.variants[0];
                     return (
-                      <label className={`slice-card ${selected ? "is-selected" : ""} ${!slice.available ? "is-unavailable" : ""}`} htmlFor={`slice-${slice.id}`} key={slice.id}>
-                        <RadioGroupItem id={`slice-${slice.id}`} value={slice.id} disabled={!slice.available} />
+                      <label className={`slice-card ${selected ? "is-selected" : ""} ${!slice.available || !variant.available ? "is-unavailable" : ""}`} htmlFor={`slice-${slice.id}`} key={slice.id}>
+                        <RadioGroupItem id={`slice-${slice.id}`} value={slice.id} disabled={!slice.available || !variant.available} />
                         <span className="slice-media">
                           {slice.image ? <img src={slice.image} alt={slice.imageAlt} width="900" height="900" loading="lazy" /> : <span className="slice-placeholder"><CakeSlice size={30} strokeWidth={1.4} /><small>Fatia artesanal</small></span>}
                         </span>
@@ -722,8 +738,8 @@ export default function Home() {
                           {slice.subtitle && <em>{slice.subtitle}</em>}
                           <b>{currency.format(variant.price)}</b>
                         </span>
-                        {selected && slice.available && <span className="slice-selected"><Check size={14} strokeWidth={3} /></span>}
-                        {!slice.available && <span className="slice-status">Esgotado hoje</span>}
+                        {selected && slice.available && variant.available && <span className="slice-selected"><Check size={14} strokeWidth={3} /></span>}
+                        {(!slice.available || !variant.available) && <span className="slice-status">Esgotado hoje</span>}
                       </label>
                     );
                   })}
@@ -734,10 +750,10 @@ export default function Home() {
                 <div className="step-heading"><span className="step-number">2</span><div><h3 id="step-sauce">Escolha sua calda inclusa</h3><p>Sua fatia já acompanha 1 potinho de calda. Escolha o sabor:</p></div></div>
                 <RadioGroup className="sauce-grid" value={sliceSauceId} onValueChange={(value) => { setSliceSauceId(value); setSelectionMessage(""); }} aria-label="Calda da fatia">
                   {SAUCES.map((sauce) => (
-                    <label className={`sauce-card ${sliceSauceId === sauce.id ? "is-selected" : ""}`} htmlFor={`sauce-${sauce.id}`} key={sauce.id}>
+                    <label className={`sauce-card ${sliceSauceId === sauce.id ? "is-selected" : ""} ${!sauce.available ? "is-unavailable" : ""}`} htmlFor={`sauce-${sauce.id}`} key={sauce.id}>
                       <RadioGroupItem id={`sauce-${sauce.id}`} value={sauce.id} disabled={!sauce.available} />
                       <span className="sauce-tone" style={{ backgroundColor: sauce.tone }} aria-hidden="true" />
-                      <span><strong>{sauce.name}</strong><small>Já inclusa</small></span>
+                      <span><strong>{sauce.name}</strong><small>{sauce.available ? "Já inclusa" : "Indisponível hoje"}</small></span>
                       {sliceSauceId === sauce.id && <Check size={16} />}
                     </label>
                   ))}
@@ -755,7 +771,7 @@ export default function Home() {
                   </div>
                   <div className="draft-total"><small>Subtotal</small><strong>{currency.format(selectedSliceVariant.price * sliceQuantity)}</strong></div>
                 </div>
-                <Button type="button" className="primary-cta add-button" onClick={addOrUpdateSlice} disabled={!selectedSlice.available || !selectedSliceVariant.available}>
+                <Button type="button" className="primary-cta add-button" onClick={addOrUpdateSlice} disabled={!STORE_CONFIG.acceptingOrders || !selectedSlice.available || !selectedSliceVariant.available}>
                   <ShoppingBag size={18} />{editingId ? "Salvar alterações" : "Adicionar ao pedido"}
                 </Button>
                 {editingId && <Button type="button" variant="ghost" className="cancel-edit" onClick={clearDraft}>Cancelar edição</Button>}
@@ -772,7 +788,7 @@ export default function Home() {
             {DRINKS.map((drink) => {
               const variant = drink.variants[0];
               return (
-                <article className={`drink-card ${!drink.available ? "is-unavailable" : ""}`} key={drink.id}>
+                <article className={`drink-card ${!drink.available || !variant.available ? "is-unavailable" : ""}`} key={drink.id}>
                   <span className="drink-media">
                     {drink.image
                       ? <img src={drink.image} alt={drink.imageAlt} width="720" height="720" loading="lazy" />
@@ -780,8 +796,8 @@ export default function Home() {
                   </span>
                   <div><strong>{drink.name}</strong><small>{variant.label}</small></div>
                   <b>{currency.format(variant.price)}</b>
-                  <Button type="button" variant="outline" size="icon" onClick={() => addDrink(drink)} disabled={!drink.available || !variant.available} aria-label={`Adicionar ${drink.name} ${variant.label}`}><Plus size={17} /></Button>
-                  {!drink.available && <span className="drink-status">Indisponível</span>}
+                  <Button type="button" variant="outline" size="icon" onClick={() => addDrink(drink)} disabled={!STORE_CONFIG.acceptingOrders || !drink.available || !variant.available} aria-label={`Adicionar ${drink.name} ${variant.label}`}><Plus size={17} /></Button>
+                  {(!drink.available || !variant.available) && <span className="drink-status">Indisponível</span>}
                 </article>
               );
             })}
@@ -796,8 +812,15 @@ export default function Home() {
             <section className="order-card" aria-labelledby="cart-title">
               <div className="order-card-heading">
                 <div><p className="eyebrow">Carrinho</p><h2 id="cart-title">Seu pedido</h2></div>
-                {cart.length > 0 && <span className="cart-count">{cart.reduce((total, item) => total + item.quantity, 0)} {cart.reduce((total, item) => total + item.quantity, 0) === 1 ? "item" : "itens"}</span>}
+                {cart.length > 0 && <span className="cart-count">{cartItemCount} {cartItemCount === 1 ? "item" : "itens"}</span>}
               </div>
+              {restoredOrderNotice && cart.length > 0 && (
+                <div className="restored-order-note" role="status">
+                  <Check size={16} />
+                  <span><strong>Pedido recuperado.</strong> Sua seleção anterior foi salva neste aparelho.</span>
+                  <button type="button" onClick={() => setRestoredOrderNotice(false)} aria-label="Fechar aviso">Fechar</button>
+                </div>
+              )}
               {cart.length === 0 ? (
                 <div className="empty-cart">
                   <ShoppingBag size={26} strokeWidth={1.5} /><strong>Seu pedido está vazio</strong><p>Escolha uma pipoca, uma fatia ou um refrigerante para começar.</p>
@@ -823,7 +846,7 @@ export default function Home() {
                           <div className="mini-quantity">
                             <Button type="button" variant="ghost" size="icon" onClick={() => changeCartQuantity(item.id, -1)} disabled={item.quantity === 1} aria-label="Diminuir quantidade deste item"><Minus size={15} /></Button>
                             <span>{item.quantity}</span>
-                            <Button type="button" variant="ghost" size="icon" onClick={() => changeCartQuantity(item.id, 1)} aria-label="Aumentar quantidade deste item"><Plus size={15} /></Button>
+                            <Button type="button" variant="ghost" size="icon" onClick={() => changeCartQuantity(item.id, 1)} disabled={!STORE_CONFIG.acceptingOrders} aria-label="Aumentar quantidade deste item"><Plus size={15} /></Button>
                           </div>
                           {product.kind !== "drink" && <Button type="button" variant="ghost" className="text-action" onClick={() => editItem(item)}><Pencil size={15} /> Editar</Button>}
                           <Button type="button" variant="ghost" className="text-action destructive-action" onClick={() => removeItem(item.id)}><Trash2 size={15} /> Remover</Button>
@@ -832,6 +855,7 @@ export default function Home() {
                     );
                   })}
                   <div className="cart-subtotal"><span>Subtotal dos produtos</span><strong>{currency.format(cartSubtotal)}</strong></div>
+                  <p className="cart-save-note"><Check size={14} /> Este pedido fica salvo neste aparelho por até 2 horas.</p>
                   <Button type="button" variant="outline" className="add-another" onClick={() => scrollToSection("configurador")}><Plus size={16} /> Adicionar outro produto</Button>
                 </div>
               )}
@@ -849,10 +873,37 @@ export default function Home() {
               </RadioGroup>
               {fulfillment === "entrega" && (
                 <div className="delivery-fields">
-                  <div className="field-group"><label htmlFor="neighborhood">Bairro</label><Input id="neighborhood" value={neighborhood} onChange={(event) => setNeighborhood(event.target.value)} placeholder="Informe seu bairro" autoComplete="address-level3" /></div>
+                  <div className="field-group delivery-zone-field">
+                    <label id="delivery-zone-label">Região de entrega</label>
+                    <Select value={deliveryZoneId} onValueChange={setDeliveryZoneId}>
+                      <SelectTrigger className="delivery-select-trigger" aria-labelledby="delivery-zone-label">
+                        <SelectValue placeholder="Selecione seu bairro ou região" />
+                      </SelectTrigger>
+                      <SelectContent className="delivery-select-content" align="start">
+                        <SelectGroup>
+                          <SelectLabel>Mais pedidas</SelectLabel>
+                          {DELIVERY_ZONES.filter((zone) => zone.group === "mais-pedidas").map((zone) => (
+                            <SelectItem key={zone.id} value={zone.id}>{zone.label} — {currency.format(zone.price)}</SelectItem>
+                          ))}
+                        </SelectGroup>
+                        <SelectGroup>
+                          <SelectLabel>Outras regiões</SelectLabel>
+                          {DELIVERY_ZONES.filter((zone) => zone.group === "outras-regioes").map((zone) => (
+                            <SelectItem key={zone.id} value={zone.id}>{zone.label} — {currency.format(zone.price)}</SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    {selectedDeliveryZone && (
+                      <span className="delivery-price-preview">Taxa estimada: <strong>{currency.format(selectedDeliveryZone.price)}</strong></span>
+                    )}
+                  </div>
+                  {selectedDeliveryZone?.asksNeighborhood && (
+                    <div className="field-group"><label htmlFor="neighborhood">Bairro</label><Input id="neighborhood" value={neighborhood} onChange={(event) => setNeighborhood(event.target.value)} placeholder="Informe seu bairro" autoComplete="address-level3" /></div>
+                  )}
                   <div className="field-group"><label htmlFor="address">Endereço</label><Input id="address" value={address} onChange={(event) => setAddress(event.target.value)} placeholder="Rua, número e complemento" autoComplete="street-address" /></div>
                   <div className="field-group"><label htmlFor="reference">Ponto de referência</label><Input id="reference" value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Ex.: próximo à praça" /></div>
-                  <p className="field-note">A taxa final de entrega será confirmada no WhatsApp de acordo com o endereço.</p>
+                  <p className="field-note">A taxa é calculada automaticamente pela região e será confirmada no WhatsApp junto com o endereço.</p>
                 </div>
               )}
               {fulfillment === "retirada" && <div className="pickup-note"><MapPin size={18} /><span><strong>Retirada disponível em Paragominas.</strong>O horário e o local serão confirmados no WhatsApp.</span></div>}
@@ -894,10 +945,16 @@ export default function Home() {
                 );
               })}
               <div className="summary-row"><span>Subtotal</span><strong>{currency.format(cartSubtotal)}</strong></div>
-              <button type="button" className="summary-link" onClick={() => enterCheckout("recebimento")}><span><small>Recebimento</small><strong>{fulfillment === "entrega" ? "Entrega — taxa a confirmar" : fulfillment === "retirada" ? "Retirada em Paragominas" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
+              {fulfillment === "entrega" && selectedDeliveryZone && (
+                <div className="summary-row summary-delivery"><span>Taxa estimada de entrega</span><strong>{currency.format(deliveryFee)}</strong></div>
+              )}
+              {cart.length > 0 && (fulfillment === "retirada" || (fulfillment === "entrega" && selectedDeliveryZone)) && (
+                <div className="summary-row summary-total"><span>Total estimado</span><strong>{currency.format(orderTotal)}</strong></div>
+              )}
+              <button type="button" className="summary-link" onClick={() => enterCheckout("recebimento")}><span><small>Recebimento</small><strong>{fulfillment === "entrega" ? selectedDeliveryZone ? `Entrega — ${selectedDeliveryZone.label} · ${currency.format(deliveryFee)}` : "Entrega — escolher região" : fulfillment === "retirada" ? "Retirada em Paragominas" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
               <button type="button" className="summary-link" onClick={() => enterCheckout("pagamento")}><span><small>Pagamento</small><strong>{payment === "pix" ? "Pix" : payment === "dinheiro" ? "Dinheiro" : payment === "cartao" ? "Cartão na entrega" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
             </div>
-            <Button type="button" className="whatsapp-button" onClick={finishOnWhatsApp} aria-describedby="checkout-status" data-event="whatsapp_checkout"><MessageCircle size={20} /> Finalizar pedido no WhatsApp</Button>
+            <Button type="button" className="whatsapp-button" onClick={finishOnWhatsApp} disabled={!STORE_CONFIG.acceptingOrders} aria-describedby="checkout-status" data-event="whatsapp_checkout"><MessageCircle size={20} /> Finalizar pedido no WhatsApp</Button>
             <p id="checkout-status" className={checkoutReady ? "ready-status" : "checkout-status"} aria-live="polite">{checkoutReady && <Check size={14} />}{checkoutHint}</p>
           </aside>
         </div>
@@ -905,11 +962,11 @@ export default function Home() {
 
       <section className="trust-section"><div className="page-shell trust-content"><Crown size={30} strokeWidth={1.4} aria-hidden="true" /><div><p className="eyebrow">Luciane Oliveira Doces</p><h2>Feito em Paragominas com muito recheio e cuidado em cada pedido.</h2></div></div></section>
 
-      <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><a href={tintimWhatsAppUrl("Olá! Quero fazer um pedido pelo cardápio online.")}><MessageCircle size={16} /> (91) 99362-3669</a><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
+      <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details">{STORE_CONFIG.acceptingOrders ? <a href={tintimWhatsAppUrl("Olá! Quero fazer um pedido pelo cardápio online.")}><MessageCircle size={16} /> (91) 99362-3669</a> : <span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span>}<span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
       <div className="mobile-sticky-bar">
-        <div><small>{cart.length ? "Subtotal" : activeCategory === "pipocas" ? "Sua pipoca" : "Sua fatia"}</small><strong>{currency.format(cart.length ? cartSubtotal : draftSubtotal)}</strong></div>
-        <Button type="button" onClick={stickyAction}>
+        <div><small>{cart.length ? hasEstimatedTotal ? "Total estimado" : "Subtotal" : activeCategory === "pipocas" ? "Sua pipoca" : "Sua fatia"}</small><strong>{currency.format(cart.length ? hasEstimatedTotal ? orderTotal : cartSubtotal : draftSubtotal)}</strong></div>
+        <Button type="button" onClick={stickyAction} disabled={!STORE_CONFIG.acceptingOrders}>
           {editingId
             ? "Salvar alterações"
             : cart.length

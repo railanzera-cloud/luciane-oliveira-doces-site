@@ -282,6 +282,29 @@ label:has(button:focus-visible) {
   color: #d59a56;
 }
 
+.store-status-banner {
+  display: flex;
+  width: min(100%, 520px);
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 215, 183, 0.28);
+  border-radius: 13px;
+  background: rgba(125, 39, 34, 0.9);
+  color: #fff8f0;
+  backdrop-filter: blur(10px);
+}
+
+.store-status-banner strong {
+  font-size: 0.82rem;
+}
+
+.store-status-banner span {
+  color: #f0d8cf;
+  font-size: 0.7rem;
+}
+
 .unavailable-banner {
   display: flex;
   align-items: center;
@@ -328,6 +351,23 @@ label:has(button:focus-visible) {
   color: #b7aa99;
   font-size: 0.9rem;
   line-height: 1.55;
+}
+
+.availability-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border: 1px solid rgba(199, 80, 69, 0.34);
+  border-radius: 13px;
+  background: rgba(135, 43, 38, 0.22);
+  color: #f8dcd6;
+  font-size: 0.72rem;
+}
+
+.availability-alert strong {
+  color: #fff2ee;
 }
 
 .builder-card {
@@ -858,6 +898,20 @@ label:has(button:focus-visible) {
   font-size: 1.05rem;
 }
 
+.cart-save-note {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 9px 0 0;
+  color: #6f7e69;
+  font-size: 0.65rem;
+}
+
+.cart-save-note svg {
+  flex: 0 0 auto;
+  color: #347751;
+}
+
 .add-another {
   width: 100%;
   margin-top: 14px;
@@ -945,6 +999,41 @@ label:has(button:focus-visible) {
   border-top: 1px solid rgba(78, 48, 27, 0.11);
 }
 
+.delivery-select-trigger {
+  width: 100% !important;
+  height: 48px !important;
+  border-color: rgba(79, 48, 27, 0.16) !important;
+  border-radius: 12px !important;
+  background: #fffdf8 !important;
+  color: #342116 !important;
+  box-shadow: none !important;
+}
+
+.delivery-select-trigger[data-placeholder] {
+  color: #9f8b7b !important;
+}
+
+.delivery-select-content {
+  width: var(--radix-select-trigger-width);
+  max-height: min(420px, 70vh);
+  border-color: rgba(214, 158, 91, 0.28) !important;
+  background: #18100c !important;
+  color: #fff6e9 !important;
+}
+
+.delivery-price-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  color: #765a43;
+  font-size: 0.68rem;
+}
+
+.delivery-price-preview strong {
+  color: #2d6f4b;
+}
+
 .field-group {
   display: grid;
   gap: 6px;
@@ -983,6 +1072,33 @@ label:has(button:focus-visible) {
   color: #795f49;
   font-size: 0.69rem;
   line-height: 1.5;
+}
+
+.restored-order-note {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin-top: 15px;
+  padding: 10px 11px;
+  border-radius: 11px;
+  background: #e9f3eb;
+  color: #3d6e4c;
+  font-size: 0.67rem;
+  line-height: 1.4;
+}
+
+.restored-order-note > svg {
+  color: #2d7a4d;
+}
+
+.restored-order-note button {
+  padding: 4px;
+  border: 0;
+  background: transparent;
+  color: #55765f;
+  font-size: 0.61rem;
+  font-weight: 750;
 }
 
 .pickup-note {
@@ -1172,6 +1288,29 @@ label:has(button:focus-visible) {
   font-size: 1.1rem;
 }
 
+.summary-delivery {
+  padding-block: 12px;
+}
+
+.summary-delivery strong {
+  color: #72553d;
+  font-size: 0.86rem;
+}
+
+.summary-total {
+  padding-block: 17px;
+}
+
+.summary-total span {
+  color: #463024;
+  font-weight: 800;
+}
+
+.summary-total strong {
+  color: #237b4b;
+  font-size: 1.25rem;
+}
+
 .summary-link {
   display: flex;
   width: 100%;
@@ -1303,7 +1442,8 @@ footer {
   gap: 3px;
 }
 
-.footer-details a {
+.footer-details a,
+.footer-details .footer-phone {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1391,7 +1531,8 @@ footer {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .delivery-fields .field-group:nth-child(2) {
+  .delivery-fields .delivery-zone-field,
+  .delivery-fields .field-note {
     grid-column: 1 / -1;
   }
 
@@ -1743,6 +1884,11 @@ footer {
 .sauce-card.is-selected {
   border-color: #c88643;
   background: rgba(188, 116, 48, 0.13);
+}
+
+.sauce-card.is-unavailable {
+  cursor: not-allowed;
+  opacity: 0.48;
 }
 
 .sauce-card button[role="radio"] {
