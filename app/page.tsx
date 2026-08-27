@@ -56,7 +56,7 @@ type CartItem = {
 
 type Fulfillment = "entrega" | "retirada" | "";
 type Payment = "pix" | "dinheiro" | "cartao" | "";
-type MetaEventName = "ViewContent" | "AddToCart" | "InitiateCheckout";
+type MetaEventName = "ViewContent" | "AddToCart" | "InitiateCheckout" | "AddPaymentInfo";
 type AddedNotice = {
   category: CategoryId;
   description: string;
@@ -74,6 +74,8 @@ type SavedOrder = {
   payment: Payment;
   needsChange: boolean;
   changeFor: string;
+  initiateCheckoutTracked?: boolean;
+  paymentInfoTracked?: boolean;
 };
 
 declare global {
@@ -125,6 +127,15 @@ function metaProductPayload(product: Product, variant: Variant, quantity: number
 
 function tintimWhatsAppUrl(message: string) {
   return `${TINTIM_SITE_LINK}?text=${encodeURIComponent(message)}`;
+}
+
+function cleanWhatsAppField(value: string) {
+  return value
+    .normalize("NFC")
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, "")
+    .replace(/[\r\n\t]+/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 
 function sanitizeSavedCart(value: unknown): CartItem[] {
@@ -186,6 +197,7 @@ export default function Home() {
   const [addedNotice, setAddedNotice] = useState<AddedNotice | null>(null);
   const [builderEngaged, setBuilderEngaged] = useState(true);
   const checkoutStartedRef = useRef(false);
+  const paymentInfoTrackedRef = useRef(false);
 
   useEffect(() => {
     if (window.__lucianeViewContentTracked) return;
@@ -233,6 +245,8 @@ export default function Home() {
         if (savedOrder.payment === "pix" || savedOrder.payment === "dinheiro" || savedOrder.payment === "cartao") setPayment(savedOrder.payment);
         if (typeof savedOrder.needsChange === "boolean") setNeedsChange(savedOrder.needsChange);
         if (typeof savedOrder.changeFor === "string") setChangeFor(savedOrder.changeFor);
+        checkoutStartedRef.current = savedOrder.initiateCheckoutTracked === true;
+        paymentInfoTrackedRef.current = savedOrder.paymentInfoTracked === true;
         if (requestedCategory !== "fatias" && (savedOrder.activeCategory === "pipocas" || savedOrder.activeCategory === "fatias")) {
           setActiveCategory(savedOrder.activeCategory);
         }
@@ -266,6 +280,8 @@ export default function Home() {
         payment,
         needsChange,
         changeFor,
+        initiateCheckoutTracked: checkoutStartedRef.current,
+        paymentInfoTracked: paymentInfoTrackedRef.current,
       };
       window.sessionStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(savedOrder));
     } catch {
@@ -338,7 +354,10 @@ export default function Home() {
         : checkoutReady ? "Finalizar no WhatsApp" : "Continuar pedido";
 
   useEffect(() => {
-    if (cart.length === 0) checkoutStartedRef.current = false;
+    if (cart.length === 0) {
+      checkoutStartedRef.current = false;
+      paymentInfoTrackedRef.current = false;
+    }
   }, [cart.length]);
 
   const hero = activeCategory === "pipocas"
@@ -433,6 +452,7 @@ export default function Home() {
     setRestoredOrderNotice(false);
     setAddedNotice(null);
     checkoutStartedRef.current = false;
+    paymentInfoTrackedRef.current = false;
     clearDraft();
     setBuilderEngaged(true);
     try {
@@ -442,8 +462,7 @@ export default function Home() {
     }
   }
 
-  function trackCheckoutStart() {
-    if (!STORE_CONFIG.acceptingOrders || checkoutStartedRef.current || cart.length === 0) return;
+  function cartMetaPayload(value: number) {
     const contents = cart.map((item) => {
       const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
       const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
@@ -453,20 +472,34 @@ export default function Home() {
         item_price: variant.price,
       };
     });
-    const didTrack = trackMetaEvent("InitiateCheckout", {
+
+    return {
       content_ids: contents.map((item) => item.id),
       content_type: "product",
       contents,
       currency: "BRL",
-      value: cartSubtotal,
+      value,
       num_items: cart.reduce((total, item) => total + item.quantity, 0),
-    });
+    };
+  }
+
+  function trackCheckoutStart() {
+    if (!STORE_CONFIG.acceptingOrders || checkoutStartedRef.current || cart.length === 0) return;
+    const didTrack = trackMetaEvent("InitiateCheckout", cartMetaPayload(cartSubtotal));
     if (didTrack) checkoutStartedRef.current = true;
+  }
+
+  function trackPaymentInfo(paymentMethod: Payment) {
+    if (!STORE_CONFIG.acceptingOrders || paymentInfoTrackedRef.current || cart.length === 0) return;
+    const didTrack = trackMetaEvent("AddPaymentInfo", {
+      ...cartMetaPayload(hasEstimatedTotal ? orderTotal : cartSubtotal),
+      payment_method: paymentMethod,
+    });
+    if (didTrack) paymentInfoTrackedRef.current = true;
   }
 
   function enterCheckout(sectionId: "recebimento" | "pagamento") {
     setBuilderEngaged(false);
-    trackCheckoutStart();
     scrollToSection(sectionId);
   }
 
@@ -476,8 +509,9 @@ export default function Home() {
   }
 
   function choosePayment(value: string) {
-    trackCheckoutStart();
-    setPayment(value as Payment);
+    const paymentMethod = value as Payment;
+    trackPaymentInfo(paymentMethod);
+    setPayment(paymentMethod);
   }
 
   function addOrUpdatePopcorn() {
@@ -633,24 +667,39 @@ export default function Home() {
         .map((id) => product.options.find((option) => option.id === id)?.name)
         .filter(Boolean)
         .join(" + ");
-      const prefix = cart.length > 1 ? `${index + 1}. ` : "";
-      const optionLine = optionNames && product.optionLabel ? `\n${product.optionLabel}: ${optionNames}` : "";
-      return `${prefix}${item.quantity}x ${productLabel(product)} ${variant.whatsappLabel}${optionLine}\nValor: ${currency.format(variant.price * item.quantity)}`;
+      const itemQuantity = product.kind === "slice"
+        ? `${item.quantity} ${item.quantity === 1 ? "fatia" : "fatias"}`
+        : `${item.quantity} un.`;
+      const itemTitle = product.kind === "slice"
+        ? `${productLabel(product)} — ${itemQuantity}`
+        : `${productLabel(product)} ${variant.whatsappLabel} — ${itemQuantity}`;
+      const optionLabel = product.kind === "slice" ? "Calda" : product.optionLabel;
+      const optionLine = optionNames && optionLabel ? `\n    ${optionLabel}: ${optionNames}` : "";
+      return `*${index + 1}. ${itemTitle}*${optionLine}\n    ${currency.format(variant.price * item.quantity)}`;
     }).join("\n\n");
 
+    const neighborhoodLine = selectedDeliveryZone?.asksNeighborhood
+      ? `\nBairro: ${cleanWhatsAppField(deliveryNeighborhood)}`
+      : "";
     const receivingLines = fulfillment === "entrega"
-      ? `Entrega\nRegião: ${selectedDeliveryZone?.label ?? "Não informada"}\nBairro: ${deliveryNeighborhood}\nEndereço: ${address.trim()}\nReferência: ${reference.trim()}`
-      : "Retirada em Paragominas";
+      ? `Entrega\nRegião: ${selectedDeliveryZone?.label ?? "Não informada"}${neighborhoodLine}\nEndereço: ${cleanWhatsAppField(address)}\nReferência: ${cleanWhatsAppField(reference)}`
+      : "Retirada\nCidade: Paragominas";
     const paymentLabel = payment === "pix"
       ? "Pix"
       : payment === "dinheiro"
-        ? `Dinheiro${needsChange ? ` — troco para ${changeFor.trim()}` : " — sem troco"}`
+        ? `Dinheiro\nTroco: ${needsChange ? `para ${cleanWhatsAppField(changeFor)}` : "não precisa"}`
         : "Cartão na entrega";
     const deliveryLine = fulfillment === "entrega"
-      ? `Taxa estimada de entrega: ${currency.format(deliveryFee)} (a confirmar no WhatsApp).`
-      : "Taxa de entrega: não se aplica.";
+      ? `Taxa estimada de entrega: ${currency.format(deliveryFee)}`
+      : "Taxa de entrega: não se aplica";
+    const totalLine = fulfillment === "entrega"
+      ? `*Total estimado: ${currency.format(orderTotal)}*`
+      : `*Total: ${currency.format(orderTotal)}*`;
+    const confirmationLine = fulfillment === "entrega"
+      ? "Entrega e valor final sujeitos à confirmação no WhatsApp."
+      : "Pedido e retirada sujeitos à confirmação no WhatsApp.";
 
-    return `Olá! Quero finalizar meu pedido na Luciane Oliveira Doces.\n\n*Pedido*\n${orderLines}\n\n*Recebimento*\n${receivingLines}\n\n*Pagamento*\n${paymentLabel}\n\nSubtotal dos produtos: ${currency.format(cartSubtotal)}\n${deliveryLine}\nTotal estimado: ${currency.format(orderTotal)}`;
+    return `Olá! Finalizei meu pedido pelo cardápio da *Luciane Oliveira Doces*. Segue para confirmação:\n\n*PEDIDO*\n${orderLines}\n\n*RECEBIMENTO*\n${receivingLines}\n\n*PAGAMENTO*\n${paymentLabel}\n\n*RESUMO*\nProdutos: ${currency.format(cartSubtotal)}\n${deliveryLine}\n${totalLine}\n\n${confirmationLine}`;
   }
 
   function finishOnWhatsApp() {
@@ -658,7 +707,6 @@ export default function Home() {
       scrollToSection("inicio");
       return;
     }
-    if (cart.length > 0) trackCheckoutStart();
     if (!checkoutReady) {
       if (!cart.length) {
         setBuilderEngaged(true);
