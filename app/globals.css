@@ -610,6 +610,20 @@ label:has(button:focus-visible) {
   line-height: 1.4;
 }
 
+.flavor-surcharge {
+  width: fit-content;
+  margin-top: 7px;
+  padding: 3px 7px;
+  border: 1px solid rgba(218, 158, 89, 0.28);
+  border-radius: 999px;
+  color: #e4b378;
+  font-size: 0.58rem;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
 .flavor-selected,
 .flavor-status {
   position: absolute;
@@ -638,6 +652,21 @@ label:has(button:focus-visible) {
 }
 
 .selection-helper.has-message {
+  color: #e3b77e;
+}
+
+.premium-flavor-notice {
+  margin-top: 10px;
+  padding: 11px 12px;
+  border: 1px solid rgba(214, 154, 87, 0.25);
+  border-radius: 12px;
+  background: rgba(188, 116, 48, 0.08);
+  color: #b9a38d;
+  font-size: 0.67rem;
+  line-height: 1.5;
+}
+
+.premium-flavor-notice strong {
   color: #e3b77e;
 }
 
@@ -894,6 +923,14 @@ label:has(button:focus-visible) {
   color: #7f6958;
   font-size: 0.73rem;
   line-height: 1.45;
+}
+
+.cart-price-note {
+  display: block;
+  margin-top: 5px;
+  color: #9a6b40;
+  font-size: 0.64rem;
+  line-height: 1.4;
 }
 
 .cart-item-top > strong {

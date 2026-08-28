@@ -15,6 +15,7 @@ export type ProductOption = {
   name: string;
   description: string;
   tone: string;
+  priceAdjustment?: number;
   available: boolean;
 };
 
@@ -84,9 +85,10 @@ export const PRODUCTS: Product[] = [
       { id: "leitinho", name: "Leitinho", description: "Creme branco com leite em pó.", tone: "#f3d9a7", available: true },
       { id: "nutella", name: "Nutella", description: "Creme de avelã com cacau.", tone: "#7b4025", available: true },
       { id: "kinder-bueno", name: "Kinder Bueno", description: "Creme de avelã com leite.", tone: "#d69a66", available: true },
+      { id: "kinder-bueno-crisp", name: "Kinder Bueno Crisp", description: "Creme de avelã com leite e pedaços crocantes.", tone: "#c88445", priceAdjustment: 5, available: true },
       { id: "choco-cookies-branco", name: "Choco Cookies Branco", description: "Creme branco com cookies.", tone: "#ead8bc", available: true },
       { id: "choco-cookies-leite", name: "Choco Cookies ao Leite", description: "Chocolate ao leite com cookies.", tone: "#9b6040", available: true },
-      { id: "pistache", name: "Pistache", description: "Creme sabor pistache.", tone: "#9f9b61", available: true },
+      { id: "ovomaltine", name: "Ovomaltine", description: "Creme de avelã com malte, cacau e crocância.", tone: "#8b4f2c", available: true },
     ],
   },
   {

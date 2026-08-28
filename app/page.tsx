@@ -111,16 +111,28 @@ function trackMetaEvent(eventName: MetaEventName, payload?: Record<string, unkno
   return true;
 }
 
-function metaProductPayload(product: Product, variant: Variant, quantity: number) {
+function optionPriceAdjustment(product: Product, optionIds: string[]) {
+  return optionIds.reduce((total, optionId) => {
+    const option = product.options.find((candidate) => candidate.id === optionId);
+    return total + (option?.priceAdjustment ?? 0);
+  }, 0);
+}
+
+function itemUnitPrice(product: Product, variant: Variant, optionIds: string[] = []) {
+  return variant.price + optionPriceAdjustment(product, optionIds);
+}
+
+function metaProductPayload(product: Product, variant: Variant, quantity: number, optionIds: string[] = []) {
   const contentId = `${product.id}:${variant.id}`;
+  const unitPrice = itemUnitPrice(product, variant, optionIds);
   return {
     content_name: productLabel(product),
     content_category: product.category,
     content_ids: [contentId],
     content_type: "product",
-    contents: [{ id: contentId, quantity, item_price: variant.price }],
+    contents: [{ id: contentId, quantity, item_price: unitPrice }],
     currency: "BRL",
-    value: variant.price * quantity,
+    value: unitPrice * quantity,
     num_items: quantity,
   };
 }
@@ -303,7 +315,7 @@ export default function Home() {
     () => cart.reduce((total, item) => {
       const product = PRODUCTS.find((candidate) => candidate.id === item.productId);
       const variant = product?.variants.find((candidate) => candidate.id === item.variantId);
-      return total + (variant?.price ?? 0) * item.quantity;
+      return total + (product && variant ? itemUnitPrice(product, variant, item.optionIds) : 0) * item.quantity;
     }, 0),
     [cart],
   );
@@ -321,8 +333,10 @@ export default function Home() {
   const popcornReady = Boolean(POPCORN.available && popcornVariant?.available && popcornOptionIds.length > 0);
   const sliceReady = Boolean(selectedSlice?.available && selectedSliceVariant?.available && sliceSauceId);
   const draftReady = activeCategory === "pipocas" ? popcornReady : sliceReady;
+  const popcornPriceAdjustment = optionPriceAdjustment(POPCORN, popcornOptionIds);
+  const popcornUnitPrice = popcornVariant ? itemUnitPrice(POPCORN, popcornVariant, popcornOptionIds) : null;
   const draftSubtotal = activeCategory === "pipocas"
-    ? popcornVariant ? popcornVariant.price * popcornQuantity : null
+    ? popcornUnitPrice === null ? null : popcornUnitPrice * popcornQuantity
     : selectedSliceVariant ? selectedSliceVariant.price * sliceQuantity : null;
   const addressReady = fulfillment !== "entrega"
     || Boolean(selectedDeliveryZone && deliveryNeighborhood && address.trim() && reference.trim());
@@ -467,10 +481,11 @@ export default function Home() {
     const contents = cart.map((item) => {
       const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
       const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
+      const unitPrice = itemUnitPrice(product, variant, item.optionIds);
       return {
         id: `${product.id}:${variant.id}`,
         quantity: item.quantity,
-        item_price: variant.price,
+        item_price: unitPrice,
       };
     });
 
@@ -543,7 +558,7 @@ export default function Home() {
       setCart((current) => current.map((item) => item.id === editingId ? { ...item, ...nextItem } : item));
     } else {
       setCart((current) => [...current, { id: makeCartId(), ...nextItem }]);
-      trackMetaEvent("AddToCart", metaProductPayload(POPCORN, popcornVariant, popcornQuantity));
+      trackMetaEvent("AddToCart", metaProductPayload(POPCORN, popcornVariant, popcornQuantity, popcornOptionIds));
       const flavorNames = popcornOptionIds
         .map((id) => POPCORN.options.find((option) => option.id === id)?.name)
         .filter(Boolean)
@@ -652,7 +667,7 @@ export default function Home() {
       const product = PRODUCTS.find((candidate) => candidate.id === item?.productId);
       const variant = product?.variants.find((candidate) => candidate.id === item?.variantId);
       if (product && variant) {
-        trackMetaEvent("AddToCart", metaProductPayload(product, variant, 1));
+        trackMetaEvent("AddToCart", metaProductPayload(product, variant, 1, item?.optionIds ?? []));
       }
     }
     setCart((current) => current.map((item) => item.id === id
@@ -676,7 +691,7 @@ export default function Home() {
         : `${productLabel(product)} ${variant.whatsappLabel} — ${itemQuantity}`;
       const optionLabel = product.kind === "slice" ? "Calda" : product.optionLabel;
       const optionLine = optionNames && optionLabel ? `\n    ${optionLabel}: ${optionNames}` : "";
-      return `*${index + 1}. ${itemTitle}*${optionLine}\n    ${currency.format(variant.price * item.quantity)}`;
+      return `*${index + 1}. ${itemTitle}*${optionLine}\n    ${currency.format(itemUnitPrice(product, variant, item.optionIds) * item.quantity)}`;
     }).join("\n\n");
 
     const neighborhoodLine = selectedDeliveryZone?.asksNeighborhood
@@ -840,7 +855,7 @@ export default function Home() {
                   {POPCORN.variants.map((variant) => (
                     <label className={`size-card ${variant.id === popcornVariantId ? "is-selected" : ""} ${!POPCORN.available || !variant.available ? "is-unavailable" : ""}`} htmlFor={`size-${variant.id}`} key={variant.id}>
                       <RadioGroupItem id={`size-${variant.id}`} value={variant.id} disabled={!POPCORN.available || !variant.available} />
-                      <span className="size-copy"><strong>{variant.label}</strong><b>{currency.format(variant.price)}</b><small>Até {variant.maxOptions} sabores</small></span>
+                      <span className="size-copy"><strong>{variant.label}</strong><b>{currency.format(itemUnitPrice(POPCORN, variant, popcornOptionIds))}</b><small>Até {variant.maxOptions} sabores</small></span>
                       {variant.id === popcornVariantId && POPCORN.available && variant.available && <span className="selected-check" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>}
                       {(!POPCORN.available || !variant.available) && <span className="unavailable-label">{!POPCORN.available ? "Esgotado hoje" : "Indisponível"}</span>}
                     </label>
@@ -869,7 +884,11 @@ export default function Home() {
                       <label className={`flavor-card ${selected ? "is-selected" : ""} ${disabled ? "is-disabled" : ""}`} htmlFor={`flavor-${option.id}`} key={option.id}>
                         <Checkbox id={`flavor-${option.id}`} checked={selected} disabled={disabled} onCheckedChange={() => togglePopcornOption(option)} aria-label={`Selecionar sabor ${option.name}`} />
                         <span className="flavor-tone" style={{ backgroundColor: option.tone }} aria-hidden="true" />
-                        <span className="flavor-copy"><strong>{option.name}</strong><small>{option.description}</small></span>
+                        <span className="flavor-copy">
+                          <strong>{option.name}</strong>
+                          <small>{option.description}</small>
+                          {option.priceAdjustment && <em className="flavor-surcharge">+ {currency.format(option.priceAdjustment)} por pote</em>}
+                        </span>
                         {selected && <span className="flavor-selected">Selecionado</span>}
                         {waitingForSize && <span className="flavor-status">Escolha o tamanho</span>}
                         {!waitingForSize && !option.available && <span className="flavor-status">Esgotado hoje</span>}
@@ -887,6 +906,11 @@ export default function Home() {
                       ? "Limite preenchido. Desmarque um sabor para trocar."
                       : `Você pode escolher mais ${popcornMaxOptions - popcornOptionIds.length} ${popcornMaxOptions - popcornOptionIds.length === 1 ? "sabor" : "sabores"}, se quiser.`)}
                 </div>
+                {popcornPriceAdjustment > 0 && (
+                  <p className="premium-flavor-notice" role="status">
+                    <strong>Valor especial aplicado:</strong> Kinder Bueno Crisp acrescenta {currency.format(popcornPriceAdjustment)} por pote, uma única vez, mesmo em combinações.
+                  </p>
+                )}
               </section>
 
               <section className="step-block" aria-labelledby="step-quantity">
@@ -897,7 +921,7 @@ export default function Home() {
                     <strong aria-live="polite">{popcornQuantity}</strong>
                     <Button type="button" variant="ghost" size="icon" onClick={() => setPopcornQuantity((current) => current + 1)} disabled={!popcornReady} aria-label="Aumentar quantidade"><Plus size={18} /></Button>
                   </div>
-                  <div className="draft-total"><small>Subtotal</small><strong>{popcornVariant ? currency.format(popcornVariant.price * popcornQuantity) : "Escolha o tamanho"}</strong></div>
+                  <div className="draft-total"><small>Subtotal</small><strong>{popcornUnitPrice === null ? "Escolha o tamanho" : currency.format(popcornUnitPrice * popcornQuantity)}</strong></div>
                 </div>
                 <Button type="button" className="primary-cta add-button" onClick={addOrUpdatePopcorn} disabled={!STORE_CONFIG.acceptingOrders || !popcornReady}>
                   <ShoppingBag size={18} />{editingId
@@ -1044,6 +1068,8 @@ export default function Home() {
                     const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
                     const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
                     const optionNames = item.optionIds.map((id) => product.options.find((option) => option.id === id)?.name).filter(Boolean).join(", ");
+                    const unitPrice = itemUnitPrice(product, variant, item.optionIds);
+                    const itemPriceAdjustment = optionPriceAdjustment(product, item.optionIds);
                     return (
                       <article className="cart-item" key={item.id}>
                         <div className="cart-item-top">
@@ -1051,8 +1077,9 @@ export default function Home() {
                             <span className="product-category">{product.category}</span>
                             <h3>{productLabel(product)} · {variant.label}</h3>
                             {optionNames && product.optionLabel && <p>{product.optionLabel}: {optionNames}</p>}
+                            {itemPriceAdjustment > 0 && <small className="cart-price-note">Inclui {currency.format(itemPriceAdjustment)} por pote do Kinder Bueno Crisp.</small>}
                           </div>
-                          <strong>{currency.format(variant.price * item.quantity)}</strong>
+                          <strong>{currency.format(unitPrice * item.quantity)}</strong>
                         </div>
                         <div className="cart-item-actions">
                           <div className="mini-quantity">
