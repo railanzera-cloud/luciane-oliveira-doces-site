@@ -41,9 +41,14 @@ export type DeliveryZone = {
   asksNeighborhood?: boolean;
 };
 
-// Controle geral do atendimento. Mude para false para encerrar novos pedidos.
+// Controle geral do atendimento e das categorias exibidas no cardápio.
+// Para reativar as pipocas, altere somente `pipocas` para true.
 export const STORE_CONFIG = {
   acceptingOrders: true,
+  enabledCategories: {
+    pipocas: false,
+    fatias: true,
+  } satisfies Record<CategoryId, boolean>,
   closedMessage: "Pedidos encerrados por hoje.",
 };
 

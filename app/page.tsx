@@ -89,6 +89,17 @@ const TINTIM_SITE_LINK = "https://tintim.link/whatsapp/2c956a42-229f-4d21-ade6-4
 const ORDER_STORAGE_KEY = "luciane-order-session-v2";
 const LEGACY_ORDER_STORAGE_KEY = "luciane-order-v1";
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const DEFAULT_CATEGORY: CategoryId = STORE_CONFIG.enabledCategories.pipocas ? "pipocas" : "fatias";
+
+function isCategoryEnabled(category: CategoryId) {
+  return STORE_CONFIG.enabledCategories[category];
+}
+
+function isProductEnabled(product: Product) {
+  if (product.kind === "popcorn") return isCategoryEnabled("pipocas");
+  if (product.kind === "slice") return isCategoryEnabled("fatias");
+  return true;
+}
 
 function scrollToSection(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -158,7 +169,7 @@ function sanitizeSavedCart(value: unknown): CartItem[] {
     const item = candidate as Partial<CartItem>;
     const product = PRODUCTS.find((current) => current.id === item.productId);
     const variant = product?.variants.find((current) => current.id === item.variantId);
-    if (!product?.available || !variant?.available) return [];
+    if (!product?.available || !variant?.available || !isProductEnabled(product)) return [];
 
     const optionIds = Array.isArray(item.optionIds)
       ? item.optionIds.filter((id): id is string => typeof id === "string")
@@ -185,7 +196,7 @@ function sanitizeSavedCart(value: unknown): CartItem[] {
 }
 
 export default function Home() {
-  const [activeCategory, setActiveCategory] = useState<CategoryId>("pipocas");
+  const [activeCategory, setActiveCategory] = useState<CategoryId>(DEFAULT_CATEGORY);
   const [popcornVariantId, setPopcornVariantId] = useState("");
   const [popcornOptionIds, setPopcornOptionIds] = useState<string[]>([]);
   const [popcornQuantity, setPopcornQuantity] = useState(1);
@@ -219,7 +230,11 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const requestedCategory = new URLSearchParams(window.location.search).get("categoria");
+    const requestedCategoryValue = new URLSearchParams(window.location.search).get("categoria");
+    const requestedCategory = (requestedCategoryValue === "pipocas" || requestedCategoryValue === "fatias")
+      && isCategoryEnabled(requestedCategoryValue)
+      ? requestedCategoryValue
+      : null;
     let savedOrder: Partial<SavedOrder> | null = null;
     let savedCart: CartItem[] = [];
     try {
@@ -259,12 +274,14 @@ export default function Home() {
         if (typeof savedOrder.changeFor === "string") setChangeFor(savedOrder.changeFor);
         checkoutStartedRef.current = savedOrder.initiateCheckoutTracked === true;
         paymentInfoTrackedRef.current = savedOrder.paymentInfoTracked === true;
-        if (requestedCategory !== "fatias" && (savedOrder.activeCategory === "pipocas" || savedOrder.activeCategory === "fatias")) {
+        if (!requestedCategory
+          && (savedOrder.activeCategory === "pipocas" || savedOrder.activeCategory === "fatias")
+          && isCategoryEnabled(savedOrder.activeCategory)) {
           setActiveCategory(savedOrder.activeCategory);
         }
         setRestoredOrderNotice(savedCart.length > 0);
       }
-      if (requestedCategory === "fatias") setActiveCategory("fatias");
+      if (requestedCategory) setActiveCategory(requestedCategory);
       setStorageReady(true);
     }, 0);
 
@@ -398,6 +415,7 @@ export default function Home() {
       };
 
   function selectCategory(category: CategoryId, shouldScroll = false) {
+    if (!isCategoryEnabled(category)) return;
     setActiveCategory(category);
     setEditingId(null);
     setSelectionMessage("");
@@ -411,6 +429,7 @@ export default function Home() {
   }
 
   function choosePopcornVariant(nextId: string) {
+    if (!isCategoryEnabled("pipocas")) return;
     const nextVariant = POPCORN.variants.find((variant) => variant.id === nextId);
     if (!nextVariant?.available) return;
     setBuilderEngaged(true);
@@ -425,7 +444,7 @@ export default function Home() {
   }
 
   function togglePopcornOption(option: ProductOption) {
-    if (!option.available || !popcornVariant) return;
+    if (!isCategoryEnabled("pipocas") || !option.available || !popcornVariant) return;
     setBuilderEngaged(true);
     setPopcornOptionIds((current) => {
       if (current.includes(option.id)) {
@@ -531,6 +550,7 @@ export default function Home() {
   }
 
   function addOrUpdatePopcorn() {
+    if (!isCategoryEnabled("pipocas")) return;
     if (!STORE_CONFIG.acceptingOrders) {
       setSelectionMessage(STORE_CONFIG.closedMessage);
       return;
@@ -635,7 +655,7 @@ export default function Home() {
 
   function editItem(item: CartItem) {
     const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
-    if (product.kind === "drink") return;
+    if (product.kind === "drink" || !isProductEnabled(product)) return;
     setEditingId(item.id);
     setBuilderEngaged(true);
     setSelectionMessage("");
@@ -736,11 +756,12 @@ export default function Home() {
   }
 
   function stickyBuilderAction() {
-    if (activeCategory === "pipocas") addOrUpdatePopcorn();
+    if (activeCategory === "pipocas" && isCategoryEnabled("pipocas")) addOrUpdatePopcorn();
     else addOrUpdateSlice();
   }
 
   function startAnother(category: CategoryId) {
+    if (!isCategoryEnabled(category)) return;
     clearDraft();
     setBuilderEngaged(true);
     selectCategory(category, true);
@@ -805,14 +826,16 @@ export default function Home() {
               <span>Você ainda pode consultar o cardápio.</span>
             </div>
           )}
-          <div className="category-switch" aria-label="Categorias disponíveis">
-            <button type="button" className={activeCategory === "pipocas" ? "is-active" : ""} onClick={() => selectCategory("pipocas")}>
-              Pipocas Gourmet
-            </button>
-            <button type="button" className={activeCategory === "fatias" ? "is-active" : ""} onClick={() => selectCategory("fatias")}>
-              Fatias Artesanais
-            </button>
-          </div>
+          {STORE_CONFIG.enabledCategories.pipocas && STORE_CONFIG.enabledCategories.fatias && (
+            <div className="category-switch" aria-label="Categorias disponíveis">
+              <button type="button" className={activeCategory === "pipocas" ? "is-active" : ""} onClick={() => selectCategory("pipocas")}>
+                Pipocas Gourmet
+              </button>
+              <button type="button" className={activeCategory === "fatias" ? "is-active" : ""} onClick={() => selectCategory("fatias")}>
+                Fatias Artesanais
+              </button>
+            </div>
+          )}
           <p className="eyebrow">{hero.eyebrow}</p>
           <h1>{hero.titleLead}<span>{hero.titleAccent}</span></h1>
           <p className="hero-copy">{hero.copy}</p>
@@ -834,9 +857,16 @@ export default function Home() {
             <p>{activeCategory === "pipocas"
               ? "Escolha o tamanho, os sabores da sua pipoca e a quantidade."
               : "Monte uma combinação por vez. Depois, você pode adicionar outra fatia com um sabor diferente."}</p>
-            <button type="button" className="category-text-link" onClick={() => selectCategory(activeCategory === "pipocas" ? "fatias" : "pipocas", true)}>
-              Ver {activeCategory === "pipocas" ? "Fatias Artesanais" : "Pipocas Gourmet"} <ChevronRight size={15} />
-            </button>
+            {activeCategory === "pipocas" && STORE_CONFIG.enabledCategories.fatias && (
+              <button type="button" className="category-text-link" onClick={() => selectCategory("fatias", true)}>
+                Ver Fatias Artesanais <ChevronRight size={15} />
+              </button>
+            )}
+            {activeCategory === "fatias" && STORE_CONFIG.enabledCategories.pipocas && (
+              <button type="button" className="category-text-link" onClick={() => selectCategory("pipocas", true)}>
+                Ver Pipocas Gourmet <ChevronRight size={15} />
+              </button>
+            )}
           </div>
 
           {((activeCategory === "pipocas" && !POPCORN.available)
@@ -847,7 +877,7 @@ export default function Home() {
             </div>
           )}
 
-          {activeCategory === "pipocas" ? (
+          {activeCategory === "pipocas" && STORE_CONFIG.enabledCategories.pipocas ? (
             <div className="builder-card">
               <section className="step-block" id="tamanhos" aria-labelledby="step-size">
                 <div className="step-heading"><span className="step-number">1</span><div><h3 id="step-size">Escolha o tamanho</h3><p>O preço e o limite de sabores mudam conforme o pote.</p></div></div>
@@ -1014,9 +1044,11 @@ export default function Home() {
                 <p>{addedNotice.description}</p>
               </div>
               <div className="added-panel-actions">
-                <Button type="button" variant="outline" onClick={() => startAnother(addedNotice.category)}>
-                  <Plus size={16} /> {addedNotice.category === "fatias" ? "Adicionar outra fatia" : "Adicionar outra pipoca"}
-                </Button>
+                {isCategoryEnabled(addedNotice.category) && (
+                  <Button type="button" variant="outline" onClick={() => startAnother(addedNotice.category)}>
+                    <Plus size={16} /> {addedNotice.category === "fatias" ? "Adicionar outra fatia" : "Adicionar outra pipoca"}
+                  </Button>
+                )}
                 <Button type="button" variant="ghost" onClick={() => scrollToSection("carrinho")}>Ver pedido</Button>
               </div>
             </div>
@@ -1059,7 +1091,7 @@ export default function Home() {
               </div>
               {cart.length === 0 ? (
                 <div className="empty-cart">
-                  <ShoppingBag size={26} strokeWidth={1.5} /><strong>Seu pedido está vazio</strong><p>Escolha uma pipoca, uma fatia ou um refrigerante para começar.</p>
+                  <ShoppingBag size={26} strokeWidth={1.5} /><strong>Seu pedido está vazio</strong><p>{STORE_CONFIG.enabledCategories.pipocas ? "Escolha uma pipoca, uma fatia ou um refrigerante para começar." : "Escolha uma fatia ou um refrigerante para começar."}</p>
                   <Button type="button" variant="outline" onClick={beginBuilding}>Escolher produtos</Button>
                 </div>
               ) : (
@@ -1098,8 +1130,8 @@ export default function Home() {
                   <div className="cart-add-more">
                     <strong>Adicionar mais itens</strong>
                     <div className="cart-add-options">
-                      <Button type="button" variant="outline" onClick={() => startAnother("fatias")}><CakeSlice size={16} /> Outra fatia</Button>
-                      <Button type="button" variant="outline" onClick={() => startAnother("pipocas")}><Plus size={16} /> Outra pipoca</Button>
+                      {STORE_CONFIG.enabledCategories.fatias && <Button type="button" variant="outline" onClick={() => startAnother("fatias")}><CakeSlice size={16} /> Outra fatia</Button>}
+                      {STORE_CONFIG.enabledCategories.pipocas && <Button type="button" variant="outline" onClick={() => startAnother("pipocas")}><Plus size={16} /> Outra pipoca</Button>}
                       <Button type="button" variant="outline" onClick={() => scrollToSection("acompanhamentos")}><CupSoda size={16} /> Refrigerante</Button>
                     </div>
                   </div>

@@ -1,10 +1,14 @@
 import type { Metadata, Viewport } from "next";
+import { STORE_CONFIG } from "@/app/catalog";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Luciane Oliveira Doces | Pipocas e Fatias Artesanais",
-  description:
-    "Escolha Pipocas Gourmet, Fatias Artesanais e refrigerantes e finalize seu pedido pelo WhatsApp em Paragominas.",
+  title: STORE_CONFIG.enabledCategories.pipocas
+    ? "Luciane Oliveira Doces | Pipocas e Fatias Artesanais"
+    : "Luciane Oliveira Doces | Fatias Artesanais",
+  description: STORE_CONFIG.enabledCategories.pipocas
+    ? "Escolha Pipocas Gourmet, Fatias Artesanais e refrigerantes e finalize seu pedido pelo WhatsApp em Paragominas."
+    : "Escolha Fatias Artesanais, calda inclusa e refrigerantes e finalize seu pedido pelo WhatsApp em Paragominas.",
 };
 
 export const viewport: Viewport = {
