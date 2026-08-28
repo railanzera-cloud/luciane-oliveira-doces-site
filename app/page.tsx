@@ -57,6 +57,7 @@ type CartItem = {
 type Fulfillment = "entrega" | "retirada" | "";
 type Payment = "pix" | "dinheiro" | "cartao" | "";
 type MetaEventName = "ViewContent" | "AddToCart" | "InitiateCheckout" | "AddPaymentInfo";
+type StepState = "active" | "complete" | "locked";
 type AddedNotice = {
   category: CategoryId;
   description: string;
@@ -90,6 +91,18 @@ const ORDER_STORAGE_KEY = "luciane-order-session-v2";
 const LEGACY_ORDER_STORAGE_KEY = "luciane-order-v1";
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const DEFAULT_CATEGORY: CategoryId = STORE_CONFIG.enabledCategories.pipocas ? "pipocas" : "fatias";
+
+function StepMarker({ number, state }: { number: number; state: StepState }) {
+  return (
+    <span
+      className="step-number"
+      data-state={state}
+      aria-label={state === "complete" ? `Etapa ${number} concluída` : `Etapa ${number}`}
+    >
+      {state === "complete" ? <Check size={15} strokeWidth={3} aria-hidden="true" /> : number}
+    </span>
+  );
+}
 
 function isCategoryEnabled(category: CategoryId) {
   return STORE_CONFIG.enabledCategories[category];
@@ -363,8 +376,33 @@ export default function Home() {
     && Boolean(fulfillment)
     && addressReady
     && paymentReady;
+  const popcornSizeStepState: StepState = popcornVariant ? "complete" : "active";
+  const popcornFlavorStepState: StepState = !popcornVariant
+    ? "locked"
+    : popcornOptionIds.length > 0
+      ? "complete"
+      : "active";
+  const popcornQuantityStepState: StepState = popcornReady ? "active" : "locked";
+  const sliceProductStepState: StepState = selectedSlice ? "complete" : "active";
+  const sliceSauceStepState: StepState = !selectedSlice
+    ? "locked"
+    : sliceSauceId
+      ? "complete"
+      : "active";
+  const sliceQuantityStepState: StepState = sliceReady ? "active" : "locked";
+  const receivingStepState: StepState = cart.length === 0
+    ? "locked"
+    : fulfillment && addressReady
+      ? "complete"
+      : "active";
+  const paymentStepState: StepState = cart.length === 0
+    ? "locked"
+    : paymentReady
+      ? "complete"
+      : "active";
   const builderFlowActive = Boolean(editingId || builderEngaged || draftReady || !cart.length);
   const stickyUsesCheckoutAction = !builderFlowActive;
+  const stickyIsWhatsAppReady = stickyUsesCheckoutAction && checkoutReady;
   const stickyPriceLabel = cart.length > 0 && !builderFlowActive
     ? currency.format(hasEstimatedTotal ? orderTotal : cartSubtotal)
     : draftSubtotal === null
@@ -760,6 +798,11 @@ export default function Home() {
     else addOrUpdateSlice();
   }
 
+  function handleStickyAction() {
+    if (stickyUsesCheckoutAction) finishOnWhatsApp();
+    else stickyBuilderAction();
+  }
+
   function startAnother(category: CategoryId) {
     if (!isCategoryEnabled(category)) return;
     clearDraft();
@@ -817,7 +860,7 @@ export default function Home() {
       )}
 
       <section className={`hero ${activeCategory === "fatias" ? "hero-slices" : ""}`} id="inicio">
-        <img className="hero-image" src={hero.image} alt={hero.alt} width="900" height="1600" fetchPriority="high" />
+        <img className="hero-image" src={hero.image} alt={hero.alt} width="900" height="1600" loading="eager" decoding="async" fetchPriority="high" />
         <div className="hero-overlay" />
         <div className="hero-content page-shell">
           {!STORE_CONFIG.acceptingOrders && (
@@ -879,8 +922,8 @@ export default function Home() {
 
           {activeCategory === "pipocas" && STORE_CONFIG.enabledCategories.pipocas ? (
             <div className="builder-card">
-              <section className="step-block" id="tamanhos" aria-labelledby="step-size">
-                <div className="step-heading"><span className="step-number">1</span><div><h3 id="step-size">Escolha o tamanho</h3><p>O preço e o limite de sabores mudam conforme o pote.</p></div></div>
+              <section className={`step-block step-state-${popcornSizeStepState}`} id="tamanhos" aria-labelledby="step-size" aria-current={popcornSizeStepState === "active" ? "step" : undefined}>
+                <div className="step-heading"><StepMarker number={1} state={popcornSizeStepState} /><div><h3 id="step-size">Escolha o tamanho</h3><p>O preço e o limite de sabores mudam conforme o pote.</p></div></div>
                 <RadioGroup className="size-grid" value={popcornVariantId} onValueChange={choosePopcornVariant} aria-label="Tamanho da Pipoca Gourmet">
                   {POPCORN.variants.map((variant) => (
                     <label className={`size-card ${variant.id === popcornVariantId ? "is-selected" : ""} ${!POPCORN.available || !variant.available ? "is-unavailable" : ""}`} htmlFor={`size-${variant.id}`} key={variant.id}>
@@ -898,9 +941,9 @@ export default function Home() {
                 </div>
               </section>
 
-              <section className="step-block" id="sabores" aria-labelledby="step-flavors">
+              <section className={`step-block step-state-${popcornFlavorStepState}`} id="sabores" aria-labelledby="step-flavors" aria-current={popcornFlavorStepState === "active" ? "step" : undefined}>
                 <div className="step-heading flavor-heading">
-                  <span className="step-number">2</span>
+                  <StepMarker number={2} state={popcornFlavorStepState} />
                   <div><h3 id="step-flavors">Escolha os sabores da sua pipoca</h3><p>{popcornVariant ? `Combine até ${popcornMaxOptions} sabores neste pote.` : "Primeiro, escolha o tamanho acima."}</p></div>
                   <span className="selection-count" aria-live="polite">{popcornVariant ? `${popcornOptionIds.length}/${popcornMaxOptions}` : "—"}</span>
                 </div>
@@ -943,8 +986,8 @@ export default function Home() {
                 )}
               </section>
 
-              <section className="step-block" aria-labelledby="step-quantity">
-                <div className="step-heading compact-heading"><span className="step-number">3</span><div><h3 id="step-quantity">Quantos potes desta combinação?</h3><p>Para outros sabores ou tamanhos, adicione este item e monte o próximo.</p></div></div>
+              <section className={`step-block step-state-${popcornQuantityStepState}`} aria-labelledby="step-quantity" aria-current={popcornQuantityStepState === "active" ? "step" : undefined}>
+                <div className="step-heading compact-heading"><StepMarker number={3} state={popcornQuantityStepState} /><div><h3 id="step-quantity">Quantos potes desta combinação?</h3><p>Para outros sabores ou tamanhos, adicione este item e monte o próximo.</p></div></div>
                 <div className="quantity-row">
                   <div className="quantity-control" aria-label="Quantidade">
                     <Button type="button" variant="ghost" size="icon" onClick={() => setPopcornQuantity((current) => Math.max(1, current - 1))} disabled={!popcornReady || popcornQuantity === 1} aria-label="Diminuir quantidade"><Minus size={18} /></Button>
@@ -967,8 +1010,8 @@ export default function Home() {
             </div>
           ) : (
             <div className="builder-card slice-builder">
-              <section className="step-block" id="fatias" aria-labelledby="step-slice">
-                <div className="step-heading"><span className="step-number">1</span><div><h3 id="step-slice">Escolha sua fatia</h3><p>Selecione um sabor por vez. Depois de adicionar, você poderá escolher outro.</p></div></div>
+              <section className={`step-block step-state-${sliceProductStepState}`} id="fatias" aria-labelledby="step-slice" aria-current={sliceProductStepState === "active" ? "step" : undefined}>
+                <div className="step-heading"><StepMarker number={1} state={sliceProductStepState} /><div><h3 id="step-slice">Escolha sua fatia</h3><p>Selecione um sabor por vez. Depois de adicionar, você poderá escolher outro.</p></div></div>
                 <RadioGroup className="slice-grid" value={sliceProductId} onValueChange={(value) => { setBuilderEngaged(true); setSliceProductId(value); setSelectionMessage(""); }} aria-label="Sabor da fatia artesanal">
                   {SLICES.map((slice) => {
                     const selected = slice.id === sliceProductId;
@@ -977,7 +1020,7 @@ export default function Home() {
                       <label className={`slice-card ${selected ? "is-selected" : ""} ${!slice.available || !variant.available ? "is-unavailable" : ""}`} htmlFor={`slice-${slice.id}`} key={slice.id}>
                         <RadioGroupItem id={`slice-${slice.id}`} value={slice.id} disabled={!slice.available || !variant.available} />
                         <span className="slice-media">
-                          {slice.image ? <img src={slice.image} alt={slice.imageAlt} width="900" height="900" loading="lazy" /> : <span className="slice-placeholder"><CakeSlice size={30} strokeWidth={1.4} /><small>Fatia artesanal</small></span>}
+                          {slice.image ? <img src={slice.cardImage ?? slice.image} alt={slice.imageAlt} width="640" height="480" loading="lazy" decoding="async" fetchPriority="low" sizes="(max-width: 599px) calc(50vw - 27px), (max-width: 899px) calc(50vw - 36px), 240px" /> : <span className="slice-placeholder"><CakeSlice size={30} strokeWidth={1.4} /><small>Fatia artesanal</small></span>}
                         </span>
                         <span className="slice-card-copy">
                           <strong>{slice.name}</strong>
@@ -997,8 +1040,8 @@ export default function Home() {
                 </div>
               </section>
 
-              <section className="step-block" id="caldas" aria-labelledby="step-sauce">
-                <div className="step-heading"><span className="step-number">2</span><div><h3 id="step-sauce">Escolha sua calda inclusa</h3><p>Sua fatia já acompanha 1 potinho de calda. Escolha o sabor:</p></div></div>
+              <section className={`step-block step-state-${sliceSauceStepState}`} id="caldas" aria-labelledby="step-sauce" aria-current={sliceSauceStepState === "active" ? "step" : undefined}>
+                <div className="step-heading"><StepMarker number={2} state={sliceSauceStepState} /><div><h3 id="step-sauce">Escolha sua calda inclusa</h3><p>Sua fatia já acompanha 1 potinho de calda. Escolha o sabor:</p></div></div>
                 <RadioGroup className="sauce-grid" value={sliceSauceId} onValueChange={(value) => { setBuilderEngaged(true); setSliceSauceId(value); setSelectionMessage(""); }} aria-label="Calda da fatia">
                   {SAUCES.map((sauce) => (
                     <label className={`sauce-card ${sliceSauceId === sauce.id ? "is-selected" : ""} ${!selectedSlice || !sauce.available ? "is-unavailable" : ""}`} htmlFor={`sauce-${sauce.id}`} key={sauce.id}>
@@ -1012,8 +1055,8 @@ export default function Home() {
                 <div className={`selection-helper ${selectionMessage ? "has-message" : ""}`} aria-live="polite">{selectionMessage || (selectedSlice ? "Escolha Chocolate ou Ninho." : "Primeiro escolha sua fatia acima.")}</div>
               </section>
 
-              <section className="step-block" aria-labelledby="step-slice-quantity">
-                <div className="step-heading compact-heading"><span className="step-number">3</span><div><h3 id="step-slice-quantity">Quantas fatias deste sabor?</h3><p>Para outro sabor, adicione este item e escolha a próxima fatia.</p></div></div>
+              <section className={`step-block step-state-${sliceQuantityStepState}`} aria-labelledby="step-slice-quantity" aria-current={sliceQuantityStepState === "active" ? "step" : undefined}>
+                <div className="step-heading compact-heading"><StepMarker number={3} state={sliceQuantityStepState} /><div><h3 id="step-slice-quantity">Quantas fatias deste sabor?</h3><p>Para outro sabor, adicione este item e escolha a próxima fatia.</p></div></div>
                 <div className="quantity-row">
                   <div className="quantity-control" aria-label="Quantidade">
                     <Button type="button" variant="ghost" size="icon" onClick={() => setSliceQuantity((current) => Math.max(1, current - 1))} disabled={!sliceReady || sliceQuantity === 1} aria-label="Diminuir quantidade"><Minus size={18} /></Button>
@@ -1066,7 +1109,7 @@ export default function Home() {
                 <article className={`drink-card ${!drink.available || !variant.available ? "is-unavailable" : ""}`} key={drink.id}>
                   <span className="drink-media">
                     {drink.image
-                      ? <img src={drink.image} alt={drink.imageAlt} width="720" height="720" loading="lazy" />
+                      ? <img src={drink.cardImage ?? drink.image} alt={drink.imageAlt} width="256" height="256" loading="lazy" decoding="async" fetchPriority="low" sizes="58px" />
                       : <CupSoda size={23} strokeWidth={1.6} />}
                   </span>
                   <div><strong>{drink.name}</strong><small>{variant.label}</small></div>
@@ -1105,13 +1148,17 @@ export default function Home() {
                     return (
                       <article className="cart-item" key={item.id}>
                         <div className="cart-item-top">
-                          <div>
+                          <div className="cart-item-info">
                             <span className="product-category">{product.category}</span>
-                            <h3>{productLabel(product)} · {variant.label}</h3>
-                            {optionNames && product.optionLabel && <p>{product.optionLabel}: {optionNames}</p>}
+                            <h3>{productLabel(product)}</h3>
+                            <div className="cart-item-specs">
+                              <span>{variant.label}</span>
+                              {optionNames && product.optionLabel && <span>{product.optionLabel}: {optionNames}</span>}
+                              <span>Quantidade: {item.quantity}</span>
+                            </div>
                             {itemPriceAdjustment > 0 && <small className="cart-price-note">Inclui {currency.format(itemPriceAdjustment)} por pote do Kinder Bueno Crisp.</small>}
                           </div>
-                          <strong>{currency.format(unitPrice * item.quantity)}</strong>
+                          <div className="cart-item-value"><small>Valor</small><strong>{currency.format(unitPrice * item.quantity)}</strong></div>
                         </div>
                         <div className="cart-item-actions">
                           <div className="mini-quantity">
@@ -1139,14 +1186,16 @@ export default function Home() {
               )}
             </section>
 
-            <section className="order-card" id="recebimento" aria-labelledby="receiving-title">
-              <div className="step-heading checkout-step-heading"><span className="step-number">4</span><div><h2 id="receiving-title">Como deseja receber?</h2><p>Escolha a opção mais conveniente.</p></div></div>
+            <section className={`order-card checkout-flow-card step-state-${receivingStepState}`} id="recebimento" aria-labelledby="receiving-title" aria-current={receivingStepState === "active" ? "step" : undefined}>
+              <div className="step-heading checkout-step-heading"><StepMarker number={4} state={receivingStepState} /><div><h2 id="receiving-title">Como deseja receber?</h2><p>Escolha a opção mais conveniente.</p></div></div>
               <RadioGroup className="choice-grid" value={fulfillment} onValueChange={chooseFulfillment} aria-label="Forma de recebimento">
                 <label className={`choice-card ${fulfillment === "entrega" ? "is-selected" : ""}`} htmlFor="receive-delivery">
-                  <RadioGroupItem id="receive-delivery" value="entrega" /><Truck size={21} /><span><strong>Entrega</strong><small>A partir de R$8</small></span>
+                  <RadioGroupItem id="receive-delivery" value="entrega" /><Truck size={21} /><span className="choice-copy"><strong>Entrega</strong><small>A partir de R$8</small></span>
+                  {fulfillment === "entrega" && <span className="choice-check" aria-hidden="true"><Check size={13} strokeWidth={3} /></span>}
                 </label>
                 <label className={`choice-card ${fulfillment === "retirada" ? "is-selected" : ""}`} htmlFor="receive-pickup">
-                  <RadioGroupItem id="receive-pickup" value="retirada" /><Store size={21} /><span><strong>Retirada</strong><small>Em Paragominas</small></span>
+                  <RadioGroupItem id="receive-pickup" value="retirada" /><Store size={21} /><span className="choice-copy"><strong>Retirada</strong><small>Em Paragominas</small></span>
+                  {fulfillment === "retirada" && <span className="choice-check" aria-hidden="true"><Check size={13} strokeWidth={3} /></span>}
                 </label>
               </RadioGroup>
               {fulfillment === "entrega" && (
@@ -1187,7 +1236,7 @@ export default function Home() {
               {fulfillment === "retirada" && <div className="pickup-note"><MapPin size={18} /><span><strong>Retirada disponível em Paragominas.</strong>O horário e o local serão confirmados no WhatsApp.</span></div>}
             </section>
 
-            <section className="order-card" id="pagamento" aria-labelledby="payment-title">
+            <section className={`order-card payment-card step-state-${paymentStepState}`} id="pagamento" aria-labelledby="payment-title">
               <div className="order-card-heading payment-heading"><div><p className="eyebrow">Pagamento</p><h2 id="payment-title">Como prefere pagar?</h2></div></div>
               <RadioGroup className="payment-list" value={payment} onValueChange={choosePayment} aria-label="Forma de pagamento">
                 {[["pix", "Pix"], ["dinheiro", "Dinheiro"], ["cartao", "Cartão na entrega"]].map(([value, label]) => (
@@ -1215,10 +1264,22 @@ export default function Home() {
                 const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
                 const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
                 const names = item.optionIds.map((id) => product.options.find((option) => option.id === id)?.name).filter(Boolean).join(", ");
+                const lineTotal = itemUnitPrice(product, variant, item.optionIds) * item.quantity;
                 return (
                   <div className="summary-item" key={item.id}>
-                    <div><strong>{item.quantity}x {productLabel(product)} {variant.label}</strong>{names && product.optionLabel && <p>{product.optionLabel}: {names}</p>}</div>
-                    {product.kind !== "drink" && <Button type="button" variant="ghost" size="sm" onClick={() => editItem(item)} aria-label={`Editar item ${index + 1}`}>Editar</Button>}
+                    <div className="summary-item-main">
+                      <span className="summary-item-index" aria-hidden="true">{index + 1}</span>
+                      <div>
+                        <strong>{productLabel(product)}</strong>
+                        <span className="summary-variant">{variant.label}</span>
+                        {names && product.optionLabel && <p>{product.optionLabel}: {names}</p>}
+                        <small>Quantidade: {item.quantity}</small>
+                      </div>
+                    </div>
+                    <div className="summary-item-side">
+                      <strong>{currency.format(lineTotal)}</strong>
+                      {product.kind !== "drink" && <Button type="button" variant="ghost" size="sm" onClick={() => editItem(item)} aria-label={`Editar item ${index + 1}`}>Editar</Button>}
+                    </div>
                   </div>
                 );
               })}
@@ -1242,11 +1303,11 @@ export default function Home() {
 
       <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
-      <div className="mobile-sticky-bar">
+      <div className={`mobile-sticky-bar ${stickyIsWhatsAppReady ? "is-ready" : "is-building"}`} data-state={stickyIsWhatsAppReady ? "ready" : "building"}>
         <div><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></div>
-        <Button type="button" onClick={stickyUsesCheckoutAction ? finishOnWhatsApp : stickyBuilderAction} disabled={!STORE_CONFIG.acceptingOrders}>
+        <Button type="button" onClick={handleStickyAction} disabled={!STORE_CONFIG.acceptingOrders}>
           {stickyButtonLabel}
-          <ChevronRight size={17} />
+          {stickyIsWhatsAppReady ? <MessageCircle size={17} /> : <ChevronRight size={17} />}
         </Button>
       </div>
     </main>

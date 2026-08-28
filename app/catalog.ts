@@ -26,6 +26,7 @@ export type Product = {
   name: string;
   subtitle?: string;
   image?: string;
+  cardImage?: string;
   imageAlt?: string;
   optionLabel?: string;
   available: boolean;
@@ -102,6 +103,7 @@ export const PRODUCTS: Product[] = [
     category: "Fatias Artesanais",
     name: "Chocolate com Morango",
     image: "/fatia-chocolate-morango.jpeg",
+    cardImage: "/fatia-chocolate-morango-card.webp",
     imageAlt: "Fatia artesanal de chocolate com morango",
     optionLabel: "Calda",
     available: true,
@@ -115,6 +117,7 @@ export const PRODUCTS: Product[] = [
     name: "Ninho com Morango",
     subtitle: "Massa branca",
     image: "/fatia-ninho-morango.jpeg",
+    cardImage: "/fatia-ninho-morango-card.webp",
     imageAlt: "Fatia artesanal de Ninho com morango em massa branca",
     optionLabel: "Calda",
     available: true,
@@ -127,6 +130,7 @@ export const PRODUCTS: Product[] = [
     category: "Fatias Artesanais",
     name: "Chocolate com Maracujá",
     image: "/fatia-chocolate-maracuja.jpeg",
+    cardImage: "/fatia-chocolate-maracuja-card.webp",
     imageAlt: "Fatia artesanal de chocolate com maracujá",
     optionLabel: "Calda",
     available: true,
@@ -139,6 +143,7 @@ export const PRODUCTS: Product[] = [
     category: "Fatias Artesanais",
     name: "Chocolatudo",
     image: "/fatia-chocolatudo.jpeg",
+    cardImage: "/fatia-chocolatudo-card.webp",
     imageAlt: "Fatia artesanal de chocolate com recheio de chocolate",
     optionLabel: "Calda",
     available: true,
@@ -151,6 +156,7 @@ export const PRODUCTS: Product[] = [
     category: "Fatias Artesanais",
     name: "Chocolate com Cenoura",
     image: "/fatia-chocolate-cenoura.jpeg",
+    cardImage: "/fatia-chocolate-cenoura-card.webp",
     imageAlt: "Fatia artesanal de bolo de cenoura com chocolate",
     optionLabel: "Calda",
     available: true,
@@ -163,6 +169,7 @@ export const PRODUCTS: Product[] = [
     category: "Refrigerantes",
     name: "Coca-Cola",
     image: "/coca-cola-220.jpeg",
+    cardImage: "/coca-cola-220-card.webp",
     imageAlt: "Lata gelada de Coca-Cola 220 ml",
     available: true,
     variants: [{ id: "220ml", label: "220 ml", whatsappLabel: "220 ml", price: 5, available: true }],
@@ -174,6 +181,7 @@ export const PRODUCTS: Product[] = [
     category: "Refrigerantes",
     name: "Coca-Cola",
     image: "/coca-cola-350.jpeg",
+    cardImage: "/coca-cola-350-card.webp",
     imageAlt: "Lata gelada de Coca-Cola 350 ml",
     available: true,
     variants: [{ id: "350ml", label: "350 ml", whatsappLabel: "350 ml", price: 6, available: true }],
@@ -185,6 +193,7 @@ export const PRODUCTS: Product[] = [
     category: "Refrigerantes",
     name: "Fanta Laranja",
     image: "/fanta-laranja-350.jpeg",
+    cardImage: "/fanta-laranja-350-card.webp",
     imageAlt: "Lata gelada de Fanta Laranja 350 ml",
     available: true,
     variants: [{ id: "350ml", label: "350 ml", whatsappLabel: "350 ml", price: 5, available: true }],

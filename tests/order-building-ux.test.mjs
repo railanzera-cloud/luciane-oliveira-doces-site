@@ -38,12 +38,29 @@ test("lets the sticky action add a ready second item instead of skipping to chec
   assert.match(page, /const builderFlowActive = Boolean\(editingId \|\| builderEngaged \|\| draftReady \|\| !cart\.length\)/);
   assert.match(page, /const stickyUsesCheckoutAction = !builderFlowActive/);
   assert.match(page, /function stickyBuilderAction\(\)/);
-  assert.match(page, /onClick=\{stickyUsesCheckoutAction \? finishOnWhatsApp : stickyBuilderAction\}/);
+  assert.match(page, /function handleStickyAction\(\)/);
+  assert.match(page, /onClick=\{handleStickyAction\}/);
+  assert.match(page, /const stickyIsWhatsAppReady = stickyUsesCheckoutAction && checkoutReady/);
   assert.match(page, /setBuilderEngaged\(true\)/);
   assert.match(page, /setBuilderEngaged\(false\)/);
   assert.match(page, /stickyButtonLabel/);
   assert.match(page, /Escolher tamanho/);
   assert.match(page, /Escolher minha fatia/);
+});
+
+test("exposes clear active, complete, and locked step states", () => {
+  assert.match(page, /type StepState = "active" \| "complete" \| "locked"/);
+  assert.match(page, /step-state-\$\{sliceProductStepState\}/);
+  assert.match(page, /step-state-\$\{sliceSauceStepState\}/);
+  assert.match(page, /step-state-\$\{sliceQuantityStepState\}/);
+  assert.match(page, /Etapa \$\{number\} concluída/);
+});
+
+test("keeps below-fold product images lazy and responsive", () => {
+  assert.match(page, /src=\{slice\.cardImage \?\? slice\.image\}/);
+  assert.match(page, /loading="lazy" decoding="async" fetchPriority="low"/);
+  assert.match(page, /sizes="\(max-width: 599px\)/);
+  assert.match(page, /src=\{drink\.cardImage \?\? drink\.image\}/);
 });
 
 test("explains quantities for repeated and different combinations", () => {

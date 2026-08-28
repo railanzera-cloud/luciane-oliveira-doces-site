@@ -43,12 +43,15 @@ test("uses only the Tintim Site Link with an encoded dynamic text parameter", ()
 
 test("routes both checkout CTAs through the same tracked finalization function", () => {
   const finish = functionBody(page, "finishOnWhatsApp", "stickyBuilderAction");
-  const builderAction = functionBody(page, "stickyBuilderAction", "startAnother");
+  const builderAction = functionBody(page, "stickyBuilderAction", "handleStickyAction");
+  const stickyAction = functionBody(page, "handleStickyAction", "startAnother");
 
   assert.equal((page.match(/window\.location\.assign\(/g) ?? []).length, 1);
   assert.match(finish, /window\.location\.assign\(tintimWhatsAppUrl\(buildWhatsAppMessage\(\)\)\)/);
   assert.match(page, /className="whatsapp-button" onClick=\{finishOnWhatsApp\}/);
-  assert.match(page, /onClick=\{stickyUsesCheckoutAction \? finishOnWhatsApp : stickyBuilderAction\}/);
+  assert.match(page, /onClick=\{handleStickyAction\}/);
+  assert.match(stickyAction, /if \(stickyUsesCheckoutAction\) finishOnWhatsApp\(\)/);
+  assert.match(stickyAction, /else stickyBuilderAction\(\)/);
   assert.doesNotMatch(builderAction, /finishOnWhatsApp|tintimWhatsAppUrl|window\.location/);
   assert.equal((page.match(/tintimWhatsAppUrl\(/g) ?? []).length, 2);
   assert.doesNotMatch(page, /<a[^>]+href=\{tintimWhatsAppUrl/);
