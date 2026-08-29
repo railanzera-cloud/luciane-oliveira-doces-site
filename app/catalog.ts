@@ -44,12 +44,16 @@ export type DeliveryZone = {
 
 // Controle geral do atendimento e das categorias exibidas no cardápio.
 // Para reativar as pipocas, altere somente `pipocas` para true.
+// Para reativar os refrigerantes, altere somente `drinks` para true.
 export const STORE_CONFIG = {
   acceptingOrders: true,
   enabledCategories: {
     pipocas: false,
     fatias: true,
   } satisfies Record<CategoryId, boolean>,
+  enabledExtras: {
+    drinks: false,
+  },
   closedMessage: "Pedidos encerrados por hoje.",
 };
 

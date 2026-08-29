@@ -111,7 +111,7 @@ function isCategoryEnabled(category: CategoryId) {
 function isProductEnabled(product: Product) {
   if (product.kind === "popcorn") return isCategoryEnabled("pipocas");
   if (product.kind === "slice") return isCategoryEnabled("fatias");
-  return true;
+  return STORE_CONFIG.enabledExtras.drinks;
 }
 
 function scrollToSection(id: string) {
@@ -673,7 +673,7 @@ export default function Home() {
   }
 
   function addDrink(product: Product) {
-    if (!STORE_CONFIG.acceptingOrders || !product.available || !product.variants[0].available) return;
+    if (!STORE_CONFIG.acceptingOrders || !isProductEnabled(product) || !product.available || !product.variants[0].available) return;
     setCart((current) => {
       const existing = current.find((item) => item.productId === product.id);
       if (existing) {
@@ -1099,30 +1099,32 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="extras-section" id="acompanhamentos">
-        <div className="page-shell extras-shell">
-          <div className="extras-heading"><div><p className="eyebrow">Complete seu pedido</p><h2>Refrigerantes</h2></div><p>Adicione com um toque. A quantidade pode ser ajustada no carrinho.</p></div>
-          <div className="drink-grid">
-            {DRINKS.map((drink) => {
-              const variant = drink.variants[0];
-              return (
-                <article className={`drink-card ${!drink.available || !variant.available ? "is-unavailable" : ""}`} key={drink.id}>
-                  <span className="drink-media">
-                    {drink.image
-                      ? <img src={drink.cardImage ?? drink.image} alt={drink.imageAlt} width="256" height="256" loading="lazy" decoding="async" fetchPriority="low" sizes="58px" />
-                      : <CupSoda size={23} strokeWidth={1.6} />}
-                  </span>
-                  <div><strong>{drink.name}</strong><small>{variant.label}</small></div>
-                  <b>{currency.format(variant.price)}</b>
-                  <Button type="button" variant="outline" size="icon" onClick={() => addDrink(drink)} disabled={!STORE_CONFIG.acceptingOrders || !drink.available || !variant.available} aria-label={`Adicionar ${drink.name} ${variant.label}`}><Plus size={17} /></Button>
-                  {(!drink.available || !variant.available) && <span className="drink-status">Indisponível</span>}
-                </article>
-              );
-            })}
+      {STORE_CONFIG.enabledExtras.drinks && (
+        <section className="extras-section" id="acompanhamentos">
+          <div className="page-shell extras-shell">
+            <div className="extras-heading"><div><p className="eyebrow">Complete seu pedido</p><h2>Refrigerantes</h2></div><p>Adicione com um toque. A quantidade pode ser ajustada no carrinho.</p></div>
+            <div className="drink-grid">
+              {DRINKS.map((drink) => {
+                const variant = drink.variants[0];
+                return (
+                  <article className={`drink-card ${!drink.available || !variant.available ? "is-unavailable" : ""}`} key={drink.id}>
+                    <span className="drink-media">
+                      {drink.image
+                        ? <img src={drink.cardImage ?? drink.image} alt={drink.imageAlt} width="256" height="256" loading="lazy" decoding="async" fetchPriority="low" sizes="58px" />
+                        : <CupSoda size={23} strokeWidth={1.6} />}
+                    </span>
+                    <div><strong>{drink.name}</strong><small>{variant.label}</small></div>
+                    <b>{currency.format(variant.price)}</b>
+                    <Button type="button" variant="outline" size="icon" onClick={() => addDrink(drink)} disabled={!STORE_CONFIG.acceptingOrders || !drink.available || !variant.available} aria-label={`Adicionar ${drink.name} ${variant.label}`}><Plus size={17} /></Button>
+                    {(!drink.available || !variant.available) && <span className="drink-status">Indisponível</span>}
+                  </article>
+                );
+              })}
+            </div>
+            <p className="drink-message" aria-live="polite">{drinkMessage}</p>
           </div>
-          <p className="drink-message" aria-live="polite">{drinkMessage}</p>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="checkout-section" id="carrinho">
         <div className="page-shell checkout-grid">
@@ -1134,7 +1136,7 @@ export default function Home() {
               </div>
               {cart.length === 0 ? (
                 <div className="empty-cart">
-                  <ShoppingBag size={26} strokeWidth={1.5} /><strong>Seu pedido está vazio</strong><p>{STORE_CONFIG.enabledCategories.pipocas ? "Escolha uma pipoca, uma fatia ou um refrigerante para começar." : "Escolha uma fatia ou um refrigerante para começar."}</p>
+                  <ShoppingBag size={26} strokeWidth={1.5} /><strong>Seu pedido está vazio</strong><p>{STORE_CONFIG.enabledCategories.pipocas ? "Escolha uma pipoca ou uma fatia para começar." : "Escolha uma fatia para começar."}</p>
                   <Button type="button" variant="outline" onClick={beginBuilding}>Escolher produtos</Button>
                 </div>
               ) : (
@@ -1176,10 +1178,10 @@ export default function Home() {
                   <p className="cart-save-note"><Check size={14} /> Pedido mantido somente nesta aba. Ao fechá-la, ele é limpo.</p>
                   <div className="cart-add-more">
                     <strong>Adicionar mais itens</strong>
-                    <div className="cart-add-options">
+                    <div className={`cart-add-options ${STORE_CONFIG.enabledExtras.drinks ? "" : "without-drinks"}`}>
                       {STORE_CONFIG.enabledCategories.fatias && <Button type="button" variant="outline" onClick={() => startAnother("fatias")}><CakeSlice size={16} /> Outra fatia</Button>}
                       {STORE_CONFIG.enabledCategories.pipocas && <Button type="button" variant="outline" onClick={() => startAnother("pipocas")}><Plus size={16} /> Outra pipoca</Button>}
-                      <Button type="button" variant="outline" onClick={() => scrollToSection("acompanhamentos")}><CupSoda size={16} /> Refrigerante</Button>
+                      {STORE_CONFIG.enabledExtras.drinks && <Button type="button" variant="outline" onClick={() => scrollToSection("acompanhamentos")}><CupSoda size={16} /> Refrigerante</Button>}
                     </div>
                   </div>
                 </div>

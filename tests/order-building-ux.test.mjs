@@ -31,7 +31,7 @@ test("keeps a second product easy to add after the first one", () => {
   assert.match(page, /Adicionar outra pipoca/);
   assert.match(page, /Outra fatia/);
   assert.match(page, /Outra pipoca/);
-  assert.match(page, /Refrigerante/);
+  assert.match(page, /cart-add-options \$\{STORE_CONFIG\.enabledExtras\.drinks \? "" : "without-drinks"\}/);
 });
 
 test("lets the sticky action add a ready second item instead of skipping to checkout", () => {

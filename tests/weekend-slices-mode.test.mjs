@@ -12,6 +12,16 @@ test("keeps popcorn data while temporarily disabling its category", () => {
   assert.match(catalog, /export const POPCORN = PRODUCTS\.find/);
 });
 
+test("keeps drinks ready to reactivate while hiding them from the current menu", () => {
+  assert.match(catalog, /enabledExtras:\s*\{\s*drinks: false,/s);
+  assert.match(catalog, /id: "coca-cola-220"/);
+  assert.match(catalog, /export const DRINKS = PRODUCTS\.filter/);
+  assert.match(page, /if \(product\.kind === "slice"\) return isCategoryEnabled\("fatias"\);\s*return STORE_CONFIG\.enabledExtras\.drinks;/s);
+  assert.match(page, /STORE_CONFIG\.enabledExtras\.drinks && \(\s*<section className="extras-section"/s);
+  assert.match(page, /STORE_CONFIG\.enabledExtras\.drinks && <Button/);
+  assert.match(page, /scrollToSection\("acompanhamentos"\)/);
+});
+
 test("opens the only enabled category and blocks disabled category navigation", () => {
   assert.match(page, /const DEFAULT_CATEGORY: CategoryId = STORE_CONFIG\.enabledCategories\.pipocas \? "pipocas" : "fatias"/);
   assert.match(page, /useState<CategoryId>\(DEFAULT_CATEGORY\)/);
@@ -21,9 +31,9 @@ test("opens the only enabled category and blocks disabled category navigation", 
   assert.match(layout, /Luciane Oliveira Doces \| Fatias Artesanais/);
 });
 
-test("removes disabled popcorn from restored carts and hides popcorn add-more actions", () => {
+test("removes disabled products from restored carts and hides unavailable add-more actions", () => {
   assert.match(page, /!isProductEnabled\(product\)/);
   assert.match(page, /STORE_CONFIG\.enabledCategories\.pipocas && <Button/);
   assert.match(page, /onClick=\{\(\) => startAnother\("pipocas"\)\}/);
-  assert.match(page, /Escolha uma fatia ou um refrigerante para começar/);
+  assert.match(page, /Escolha uma fatia para começar/);
 });

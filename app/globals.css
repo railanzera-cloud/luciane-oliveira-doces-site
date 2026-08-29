@@ -1144,6 +1144,10 @@ label:has(button:focus-visible) {
   gap: 8px;
 }
 
+.cart-add-options.without-drinks {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
 .cart-add-options button {
   width: 100%;
   min-height: 44px;
@@ -1923,6 +1927,10 @@ footer {
 
   .cart-add-options {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .cart-add-options.without-drinks {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   }
 
   .cart-add-options button:last-child {

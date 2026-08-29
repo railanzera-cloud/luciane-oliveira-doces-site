@@ -7,8 +7,10 @@ export const metadata: Metadata = {
     ? "Luciane Oliveira Doces | Pipocas e Fatias Artesanais"
     : "Luciane Oliveira Doces | Fatias Artesanais",
   description: STORE_CONFIG.enabledCategories.pipocas
-    ? "Escolha Pipocas Gourmet, Fatias Artesanais e refrigerantes e finalize seu pedido pelo WhatsApp em Paragominas."
-    : "Escolha Fatias Artesanais, calda inclusa e refrigerantes e finalize seu pedido pelo WhatsApp em Paragominas.",
+    ? STORE_CONFIG.enabledExtras.drinks
+      ? "Escolha Pipocas Gourmet, Fatias Artesanais e refrigerantes e finalize seu pedido pelo WhatsApp em Paragominas."
+      : "Escolha Pipocas Gourmet e Fatias Artesanais e finalize seu pedido pelo WhatsApp em Paragominas."
+    : `Escolha Fatias Artesanais, calda inclusa${STORE_CONFIG.enabledExtras.drinks ? " e refrigerantes" : ""} e finalize seu pedido pelo WhatsApp em Paragominas.`,
 };
 
 export const viewport: Viewport = {
