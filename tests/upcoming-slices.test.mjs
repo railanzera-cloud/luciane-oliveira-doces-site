@@ -6,22 +6,22 @@ const catalog = await readFile(new URL("../app/catalog.ts", import.meta.url), "u
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 
 test("keeps Prestígio available at the requested price without a promotional badge", () => {
-  assert.match(catalog, /id: "fatia-prestigio"[\s\S]*?name: "Prestígio"[\s\S]*?available: true[\s\S]*?price: 18/);
+  assert.match(catalog, /id: "fatia-prestigio"[\s\S]*?name: "Prestígio"[\s\S]*?available: true[\s\S]*?price: 20/);
   assert.doesNotMatch(page, />\s*Novo\s*</i);
 });
 
-test("prices the four requested slices at R$ 18", () => {
+test("prices the four requested slices at R$ 20", () => {
   for (const productId of ["fatia-chocolate-cenoura", "fatia-prestigio", "fatia-chocolatudo", "fatia-chocolate-maracuja"]) {
     const productStart = catalog.indexOf(`id: "${productId}"`);
     const nextProduct = catalog.indexOf("\n  {", productStart + 1);
     const productSource = catalog.slice(productStart, nextProduct === -1 ? undefined : nextProduct);
-    assert.match(productSource, /price: 18/, `${productId} deve custar R$ 18`);
+    assert.match(productSource, /price: 20/, `${productId} deve custar R$ 20`);
   }
 });
 
-test("shows fatias from R$ 18 while preserving the popcorn starting price", () => {
-  assert.match(page, /activeCategory === "pipocas" \? "A partir de R\$20" : "A partir de R\$18"/);
-  assert.match(page, /facts: \["A partir de R\$18", "Calda grátis e separada"\]/);
+test("shows both enabled menus from R$ 20", () => {
+  assert.match(page, /draftSubtotal === null\s*\? "A partir de R\$20"/);
+  assert.match(page, /facts: \["A partir de R\$20", "Calda grátis e separada"\]/);
   assert.match(page, /facts: \["A partir de R\$20", "Até 3 sabores"\]/);
 });
 
