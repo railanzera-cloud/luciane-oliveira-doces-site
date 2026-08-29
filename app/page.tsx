@@ -411,7 +411,7 @@ export default function Home() {
   const stickyPriceLabel = cart.length > 0 && !builderFlowActive
     ? currency.format(hasEstimatedTotal ? orderTotal : cartSubtotal)
     : draftSubtotal === null
-      ? "A partir de R$20"
+      ? activeCategory === "pipocas" ? "A partir de R$20" : "A partir de R$18"
       : currency.format(draftSubtotal);
   const stickyPriceCaption = cart.length > 0 && !builderFlowActive
     ? hasEstimatedTotal ? "Total estimado" : "Subtotal"
@@ -453,7 +453,7 @@ export default function Home() {
         copy: "Escolha a fatia e o sabor da calda incluída, enviada separadamente em um potinho.",
         image: "/fatia-chocolate-morango.jpeg",
         alt: "Fatia artesanal de chocolate com morango da Luciane Oliveira Doces",
-        facts: ["A partir de R$20", "Calda grátis e separada"],
+        facts: ["A partir de R$18", "Calda grátis e separada"],
         cta: "Escolher minha fatia",
       };
 

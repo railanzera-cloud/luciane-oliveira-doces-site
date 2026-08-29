@@ -19,6 +19,12 @@ test("prices the four requested slices at R$ 18", () => {
   }
 });
 
+test("shows fatias from R$ 18 while preserving the popcorn starting price", () => {
+  assert.match(page, /activeCategory === "pipocas" \? "A partir de R\$20" : "A partir de R\$18"/);
+  assert.match(page, /facts: \["A partir de R\$18", "Calda grátis e separada"\]/);
+  assert.match(page, /facts: \["A partir de R\$20", "Até 3 sabores"\]/);
+});
+
 test("keeps only Ninho com Morango unavailable until 30/08", () => {
   assert.match(catalog, /id: "fatia-ninho-morango"[\s\S]*?availabilityLabel: "Disponível em 30\/08"[\s\S]*?available: false/);
   assert.doesNotMatch(catalog, /id: "fatia-prestigio"[\s\S]*?availabilityLabel:/);
