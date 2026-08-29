@@ -29,6 +29,7 @@ export type Product = {
   cardImage?: string;
   imageAlt?: string;
   optionLabel?: string;
+  availabilityLabel?: string;
   available: boolean;
   variants: Variant[];
   options: ProductOption[];
@@ -124,8 +125,20 @@ export const PRODUCTS: Product[] = [
     cardImage: "/fatia-ninho-morango-card.webp",
     imageAlt: "Fatia artesanal de Ninho com morango em massa branca",
     optionLabel: "Calda",
-    available: true,
+    availabilityLabel: "Disponível em 30/08",
+    available: false,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
+    options: SAUCES,
+  },
+  {
+    id: "fatia-prestigio",
+    kind: "slice",
+    category: "Fatias Artesanais",
+    name: "Prestígio",
+    optionLabel: "Calda",
+    availabilityLabel: "Disponível em 30/08",
+    available: false,
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
     options: SAUCES,
   },
   {

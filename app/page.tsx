@@ -1017,10 +1017,10 @@ export default function Home() {
                     const selected = slice.id === sliceProductId;
                     const variant = slice.variants[0];
                     return (
-                      <label className={`slice-card ${selected ? "is-selected" : ""} ${!slice.available || !variant.available ? "is-unavailable" : ""}`} htmlFor={`slice-${slice.id}`} key={slice.id}>
+                      <label className={`slice-card ${selected ? "is-selected" : ""} ${!slice.available || !variant.available ? "is-unavailable" : ""} ${slice.availabilityLabel ? "is-upcoming" : ""}`} htmlFor={`slice-${slice.id}`} key={slice.id}>
                         <RadioGroupItem id={`slice-${slice.id}`} value={slice.id} disabled={!slice.available || !variant.available} />
                         <span className="slice-media">
-                          {slice.image ? <img src={slice.cardImage ?? slice.image} alt={slice.imageAlt} width="640" height="480" loading="lazy" decoding="async" fetchPriority="low" sizes="(max-width: 599px) calc(50vw - 27px), (max-width: 899px) calc(50vw - 36px), 240px" /> : <span className="slice-placeholder"><CakeSlice size={30} strokeWidth={1.4} /><small>Fatia artesanal</small></span>}
+                          {slice.image ? <img src={slice.cardImage ?? slice.image} alt={slice.imageAlt} width="640" height="480" loading="lazy" decoding="async" fetchPriority="low" sizes="(max-width: 599px) calc(50vw - 27px), (max-width: 899px) calc(50vw - 36px), 240px" /> : <span className="slice-placeholder"><CakeSlice size={30} strokeWidth={1.4} /><small>Foto em breve</small></span>}
                         </span>
                         <span className="slice-card-copy">
                           <strong>{slice.name}</strong>
@@ -1028,7 +1028,7 @@ export default function Home() {
                           <b>{currency.format(variant.price)}</b>
                         </span>
                         {selected && slice.available && variant.available && <span className="slice-selected"><Check size={14} strokeWidth={3} /></span>}
-                        {(!slice.available || !variant.available) && <span className="slice-status">Esgotado hoje</span>}
+                        {(!slice.available || !variant.available) && <span className={`slice-status ${slice.availabilityLabel ? "is-upcoming" : ""}`}>{slice.availabilityLabel ?? "Esgotado hoje"}</span>}
                       </label>
                     );
                   })}
