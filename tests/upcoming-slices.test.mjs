@@ -5,9 +5,18 @@ import test from "node:test";
 const catalog = await readFile(new URL("../app/catalog.ts", import.meta.url), "utf8");
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 
-test("adds Prestígio at the recovered current price without a promotional badge", () => {
-  assert.match(catalog, /id: "fatia-prestigio"[\s\S]*?name: "Prestígio"[\s\S]*?available: true[\s\S]*?price: 20/);
+test("keeps Prestígio available at the requested price without a promotional badge", () => {
+  assert.match(catalog, /id: "fatia-prestigio"[\s\S]*?name: "Prestígio"[\s\S]*?available: true[\s\S]*?price: 18/);
   assert.doesNotMatch(page, />\s*Novo\s*</i);
+});
+
+test("prices the four requested slices at R$ 18", () => {
+  for (const productId of ["fatia-chocolate-cenoura", "fatia-prestigio", "fatia-chocolatudo", "fatia-chocolate-maracuja"]) {
+    const productStart = catalog.indexOf(`id: "${productId}"`);
+    const nextProduct = catalog.indexOf("\n  {", productStart + 1);
+    const productSource = catalog.slice(productStart, nextProduct === -1 ? undefined : nextProduct);
+    assert.match(productSource, /price: 18/, `${productId} deve custar R$ 18`);
+  }
 });
 
 test("keeps only Ninho com Morango unavailable until 30/08", () => {
@@ -17,8 +26,9 @@ test("keeps only Ninho com Morango unavailable until 30/08", () => {
   assert.match(page, /slice\.availabilityLabel \? "is-upcoming" : ""}`\}>\{slice\.availabilityLabel \?\? "Esgotado hoje"\}/);
 });
 
-test("uses a neutral photo placeholder while Prestígio remains selectable", () => {
-  assert.match(catalog, /id: "fatia-prestigio"[\s\S]*?available: true/);
-  assert.match(page, /<small>Foto em breve<\/small>/);
+test("uses the real optimized Prestígio photo while keeping it selectable", () => {
+  assert.match(catalog, /id: "fatia-prestigio"[\s\S]*?image: "\/fatia-prestigio\.jpeg"[\s\S]*?cardImage: "\/fatia-prestigio-card\.webp"[\s\S]*?available: true/);
+  assert.match(catalog, /imageAlt: "Fatia artesanal de Prestígio com recheio cremoso"/);
+  assert.match(page, /src=\{slice\.cardImage \?\? slice\.image\}/);
   assert.match(page, /disabled=\{!slice\.available \|\| !variant\.available\}/);
 });

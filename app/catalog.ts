@@ -135,9 +135,12 @@ export const PRODUCTS: Product[] = [
     kind: "slice",
     category: "Fatias Artesanais",
     name: "Prestígio",
+    image: "/fatia-prestigio.jpeg",
+    cardImage: "/fatia-prestigio-card.webp",
+    imageAlt: "Fatia artesanal de Prestígio com recheio cremoso",
     optionLabel: "Calda",
     available: true,
-    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 18, available: true }],
     options: SAUCES,
   },
   {
@@ -150,7 +153,7 @@ export const PRODUCTS: Product[] = [
     imageAlt: "Fatia artesanal de chocolate com maracujá",
     optionLabel: "Calda",
     available: true,
-    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 18, available: true }],
     options: SAUCES,
   },
   {
@@ -163,7 +166,7 @@ export const PRODUCTS: Product[] = [
     imageAlt: "Fatia artesanal de chocolate com recheio de chocolate",
     optionLabel: "Calda",
     available: true,
-    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 18, available: true }],
     options: SAUCES,
   },
   {
@@ -176,7 +179,7 @@ export const PRODUCTS: Product[] = [
     imageAlt: "Fatia artesanal de bolo de cenoura com chocolate",
     optionLabel: "Calda",
     available: true,
-    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 18, available: true }],
     options: SAUCES,
   },
   {
