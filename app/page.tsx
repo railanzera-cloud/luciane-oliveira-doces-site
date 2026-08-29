@@ -87,6 +87,11 @@ declare global {
 }
 
 const TINTIM_SITE_LINK = "https://tintim.link/whatsapp/2c956a42-229f-4d21-ade6-4442f8c048ed/7522df92-bbe1-4bff-83ca-2629bba182eb";
+const PIX_DETAILS = {
+  holder: "Luciane Galvão de Oliveira",
+  key: "03611974200",
+  keyType: "CPF",
+} as const;
 const ORDER_STORAGE_KEY = "luciane-order-session-v2";
 const LEGACY_ORDER_STORAGE_KEY = "luciane-order-v1";
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -772,8 +777,11 @@ export default function Home() {
     const confirmationLine = fulfillment === "entrega"
       ? "Entrega e valor final sujeitos à confirmação no WhatsApp."
       : "Pedido e retirada sujeitos à confirmação no WhatsApp.";
+    const pixInstructions = payment === "pix"
+      ? `\n\n*PIX — USE APÓS A CONFIRMAÇÃO*\nTitular: ${PIX_DETAILS.holder}\nChave Pix (${PIX_DETAILS.keyType}): ${PIX_DETAILS.key}\n\n*Aguarde a confirmação da Luciane antes de pagar.*\nApós o pagamento, envie o comprovante por esta conversa.`
+      : "";
 
-    return `Olá! Finalizei meu pedido pelo cardápio da *Luciane Oliveira Doces*. Segue para confirmação:\n\n*PEDIDO*\n${orderLines}\n\n*RECEBIMENTO*\n${receivingLines}\n\n*PAGAMENTO*\n${paymentLabel}\n\n*RESUMO*\nProdutos: ${currency.format(cartSubtotal)}\n${deliveryLine}\n${totalLine}\n\n${confirmationLine}`;
+    return `Olá! Finalizei meu pedido pelo cardápio da *Luciane Oliveira Doces*. Segue para confirmação:\n\n*PEDIDO*\n${orderLines}\n\n*RECEBIMENTO*\n${receivingLines}\n\n*PAGAMENTO*\n${paymentLabel}\n\n*RESUMO*\nProdutos: ${currency.format(cartSubtotal)}\n${deliveryLine}\n${totalLine}\n\n${confirmationLine}${pixInstructions}`;
   }
 
   function finishOnWhatsApp() {

@@ -32,6 +32,18 @@ test("builds a clean and dynamic WhatsApp confirmation message", () => {
   assert.match(page, /Troco:/);
 });
 
+test("includes organized Pix details only when Pix is selected", () => {
+  assert.match(page, /const PIX_DETAILS = \{/);
+  assert.match(page, /holder: "Luciane Galvão de Oliveira"/);
+  assert.match(page, /key: "03611974200"/);
+  assert.match(page, /keyType: "CPF"/);
+  assert.match(page, /const pixInstructions = payment === "pix"/);
+  assert.match(page, /\*PIX — USE APÓS A CONFIRMAÇÃO\*/);
+  assert.match(page, /Aguarde a confirmação da Luciane antes de pagar/);
+  assert.match(page, /Após o pagamento, envie o comprovante por esta conversa/);
+  assert.match(page, /\$\{confirmationLine\}\$\{pixInstructions\}/);
+});
+
 test("uses only the Tintim Site Link with an encoded dynamic text parameter", () => {
   assert.match(
     page,
