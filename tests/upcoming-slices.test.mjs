@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const catalog = await readFile(new URL("../app/catalog.ts", import.meta.url), "utf8");
@@ -38,4 +38,14 @@ test("uses the real optimized Prestígio photo while keeping it selectable", () 
   assert.match(catalog, /imageAlt: "Fatia artesanal de Prestígio com recheio cremoso"/);
   assert.match(page, /src=\{slice\.cardImage \?\? slice\.image\}/);
   assert.match(page, /disabled=\{!slice\.available \|\| !variant\.available\}/);
+});
+
+test("keeps every catalog card image present in source and production output", async () => {
+  const cardImages = [...catalog.matchAll(/cardImage: "([^"]+)"/g)].map((match) => match[1]);
+
+  assert.ok(cardImages.length > 0);
+  for (const cardImage of cardImages) {
+    await access(new URL(`../public${cardImage}`, import.meta.url));
+    await access(new URL(`../dist/client${cardImage}`, import.meta.url));
+  }
 });
