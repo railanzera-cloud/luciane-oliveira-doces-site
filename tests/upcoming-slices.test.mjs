@@ -25,8 +25,9 @@ test("shows both enabled menus from R$ 20", () => {
   assert.match(page, /facts: \["A partir de R\$20", "Até 3 sabores"\]/);
 });
 
-test("keeps only Ninho com Morango unavailable until 30/08", () => {
-  assert.match(catalog, /id: "fatia-ninho-morango"[\s\S]*?availabilityLabel: "Disponível em 30\/08"[\s\S]*?available: false/);
+test("makes Ninho com Morango in white batter available without a date notice", () => {
+  assert.match(catalog, /id: "fatia-ninho-morango"[\s\S]*?subtitle: "Massa branca"[\s\S]*?available: true/);
+  assert.doesNotMatch(catalog, /id: "fatia-ninho-morango"[\s\S]*?availabilityLabel:/);
   assert.doesNotMatch(catalog, /id: "fatia-prestigio"[\s\S]*?availabilityLabel:/);
   assert.match(page, /slice\.availabilityLabel \? "is-upcoming"/);
   assert.match(page, /slice\.availabilityLabel \? "is-upcoming" : ""}`\}>\{slice\.availabilityLabel \?\? "Esgotado hoje"\}/);
