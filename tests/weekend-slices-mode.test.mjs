@@ -6,8 +6,8 @@ const catalog = await readFile(new URL("../app/catalog.ts", import.meta.url), "u
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
 
-test("keeps popcorn data while temporarily disabling its category", () => {
-  assert.match(catalog, /enabledCategories:\s*\{\s*pipocas: false,\s*fatias: true,/s);
+test("reactivates the popcorn category while keeping its catalog data", () => {
+  assert.match(catalog, /enabledCategories:\s*\{\s*pipocas: true,\s*fatias: true,/s);
   assert.match(catalog, /id: "pipoca-gourmet"/);
   assert.match(catalog, /export const POPCORN = PRODUCTS\.find/);
 });

@@ -49,7 +49,7 @@ export type DeliveryZone = {
 export const STORE_CONFIG = {
   acceptingOrders: true,
   enabledCategories: {
-    pipocas: false,
+    pipocas: true,
     fatias: true,
   } satisfies Record<CategoryId, boolean>,
   enabledExtras: {
