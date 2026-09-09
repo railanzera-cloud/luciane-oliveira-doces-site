@@ -22,18 +22,21 @@ test("keeps drinks ready to reactivate while hiding them from the current menu",
   assert.match(page, /scrollToSection\("acompanhamentos"\)/);
 });
 
-test("opens the only enabled category and blocks disabled category navigation", () => {
+test("opens the configured category and blocks categories hidden remotely", () => {
   assert.match(page, /const DEFAULT_CATEGORY: CategoryId = STORE_CONFIG\.enabledCategories\.pipocas \? "pipocas" : "fatias"/);
   assert.match(page, /useState<CategoryId>\(DEFAULT_CATEGORY\)/);
-  assert.match(page, /if \(!isCategoryEnabled\(category\)\) return/);
-  assert.match(page, /STORE_CONFIG\.enabledCategories\.pipocas && STORE_CONFIG\.enabledCategories\.fatias/);
+  assert.match(page, /if \(!categoryIsVisible\(category\)\) return/);
+  assert.match(page, /isItemVisible\(availability, CATEGORY_ITEM_KEYS\.pipocas\)/);
+  assert.match(page, /\{pipocasVisible && \(/);
+  assert.match(page, /\{fatiasVisible && \(/);
   assert.match(layout, /STORE_CONFIG\.enabledCategories\.pipocas/);
   assert.match(layout, /Luciane Oliveira Doces \| Fatias Artesanais/);
 });
 
-test("removes disabled products from restored carts and hides unavailable add-more actions", () => {
+test("removes statically disabled products from restored carts and hides unavailable add-more actions", () => {
   assert.match(page, /!isProductEnabled\(product\)/);
-  assert.match(page, /STORE_CONFIG\.enabledCategories\.pipocas && <Button/);
+  assert.match(page, /pipocasAvailable && <Button/);
+  assert.match(page, /fatiasAvailable && <Button/);
   assert.match(page, /onClick=\{\(\) => startAnother\("pipocas"\)\}/);
   assert.match(page, /Escolha uma fatia para começar/);
 });

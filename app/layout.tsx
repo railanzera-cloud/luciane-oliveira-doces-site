@@ -30,6 +30,7 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(window, document) {
+  if (window.location.pathname === '/admin' || window.location.pathname.indexOf('/admin/') === 0) return;
   if (window.__lucianeMetaPixelInitialized) return;
   window.__lucianeMetaPixelInitialized = true;
 
@@ -67,6 +68,7 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(window, document, script) {
+  if (window.location.pathname === '/admin' || window.location.pathname.indexOf('/admin/') === 0) return;
   if (!window.tt) {
     window.tt = window.tt || {};
 

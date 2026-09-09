@@ -17,7 +17,7 @@ test("keeps the requested slice sauce and checkout guidance copy", () => {
   assert.match(page, /Escolha sua calda inclusa/);
   assert.match(page, /Sua fatia já acompanha 1 potinho de calda\. Escolha o sabor:/);
   assert.match(page, /Ao continuar, seu pedido será enviado no WhatsApp para confirmação\./);
-  assert.match(page, /> Finalizar pedido no WhatsApp</);
+  assert.match(page, /Finalizar pedido no WhatsApp/);
 });
 
 test("builds a clean and dynamic WhatsApp confirmation message", () => {
@@ -74,6 +74,7 @@ test("keeps one Meta Pixel base and the Tintim tracker", () => {
   assert.equal((layout.match(/fbq\('track', 'PageView'\)/g) ?? []).length, 1);
   assert.match(layout, /https:\/\/s\.tintim\.app\/static\/core\/tintim-1\.0\.js/);
   assert.match(layout, /window\.tt\.accountCode = '2c956a42-229f-4d21-ade6-4442f8c048ed'/);
+  assert.equal((layout.match(/window\.location\.pathname === '\/admin'/g) ?? []).length, 2);
 });
 
 test("fires checkout and payment events only at their first real choices", () => {

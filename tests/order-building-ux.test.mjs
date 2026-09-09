@@ -20,9 +20,9 @@ test("starts popcorn and slice choices empty", () => {
 
 test("guides dependent steps only after a conscious first choice", () => {
   assert.match(page, /Primeiro escolha o tamanho\. Depois, os sabores serão liberados/);
-  assert.match(page, /const disabled = waitingForSize \|\| !option\.available \|\| limitDisabled/);
+  assert.match(page, /const disabled = waitingForSize \|\| \(!available && !selected\) \|\| limitDisabled/);
   assert.match(page, /Primeiro escolha sua fatia acima/);
-  assert.match(page, /disabled=\{!selectedSlice \|\| !sauce\.available\}/);
+  assert.match(page, /disabled=\{!selectedSlice \|\| !fatiasAvailable \|\| !sliceIsAvailable\(selectedSlice\.id\) \|\| !sauce\.available\}/);
 });
 
 test("keeps a second product easy to add after the first one", () => {

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  AlertTriangle,
   ArrowDown,
   CakeSlice,
   Check,
@@ -45,6 +46,17 @@ import {
   type ProductOption,
   type Variant,
 } from "@/app/catalog";
+import {
+  CATEGORY_ITEM_KEYS,
+  POPCORN_FLAVOR_ITEM_KEYS,
+  POPCORN_SIZE_ITEM_KEYS,
+  SLICE_ITEM_KEYS,
+  isItemAvailable,
+  isItemVisible,
+  statusFor,
+  type AvailabilitySnapshot,
+} from "@/app/menu-availability";
+import { useMenuAvailability } from "@/hooks/use-menu-availability";
 
 type CartItem = {
   id: string;
@@ -61,6 +73,12 @@ type StepState = "active" | "complete" | "locked";
 type AddedNotice = {
   category: CategoryId;
   description: string;
+};
+
+type CartAvailabilityIssue = {
+  cartItemId: string;
+  itemLabel: string;
+  reasons: string[];
 };
 
 type SavedOrder = {
@@ -151,6 +169,67 @@ function itemUnitPrice(product: Product, variant: Variant, optionIds: string[] =
   return variant.price + optionPriceAdjustment(product, optionIds);
 }
 
+function unavailableReason(snapshot: AvailabilitySnapshot, itemKey: string, label: string) {
+  return statusFor(snapshot, itemKey) === "sold_out"
+    ? `${label} esgotou.`
+    : `${label} não está mais disponível no cardápio.`;
+}
+
+function cartAvailabilityIssues(
+  cart: CartItem[],
+  snapshot: AvailabilitySnapshot,
+): CartAvailabilityIssue[] {
+  return cart.flatMap((item) => {
+    const product = PRODUCTS.find((candidate) => candidate.id === item.productId);
+    const variant = product?.variants.find((candidate) => candidate.id === item.variantId);
+    if (!product || !variant) {
+      return [{ cartItemId: item.id, itemLabel: "Item do pedido", reasons: ["O item não existe mais no catálogo."] }];
+    }
+
+    const category = product.kind === "popcorn" ? "pipocas" : product.kind === "slice" ? "fatias" : null;
+    const reasons: string[] = [];
+
+    if (!product.available || !variant.available || !isProductEnabled(product)) {
+      reasons.push(`${productLabel(product)} está indisponível no momento.`);
+    }
+
+    if (category) {
+      const categoryKey = CATEGORY_ITEM_KEYS[category];
+      if (!isItemAvailable(snapshot, categoryKey)) {
+        reasons.push(unavailableReason(snapshot, categoryKey, product.category));
+      }
+    }
+
+    if (product.kind === "popcorn") {
+      const sizeKey = POPCORN_SIZE_ITEM_KEYS[variant.id];
+      if (sizeKey && !isItemAvailable(snapshot, sizeKey)) {
+        reasons.push(unavailableReason(snapshot, sizeKey, `O tamanho ${variant.label}`));
+      }
+      for (const optionId of item.optionIds) {
+        const option = product.options.find((candidate) => candidate.id === optionId);
+        const flavorKey = POPCORN_FLAVOR_ITEM_KEYS[optionId];
+        if (!option?.available || (flavorKey && !isItemAvailable(snapshot, flavorKey))) {
+          reasons.push(flavorKey
+            ? unavailableReason(snapshot, flavorKey, `O sabor ${option?.name ?? optionId}`)
+            : `O sabor ${option?.name ?? optionId} está indisponível.`);
+        }
+      }
+    }
+
+    if (product.kind === "slice") {
+      const sliceKey = SLICE_ITEM_KEYS[product.id];
+      if (sliceKey && !isItemAvailable(snapshot, sliceKey)) {
+        reasons.push(unavailableReason(snapshot, sliceKey, productLabel(product)));
+      }
+    }
+
+    const uniqueReasons = [...new Set(reasons)];
+    return uniqueReasons.length > 0
+      ? [{ cartItemId: item.id, itemLabel: productLabel(product), reasons: uniqueReasons }]
+      : [];
+  });
+}
+
 function metaProductPayload(product: Product, variant: Variant, quantity: number, optionIds: string[] = []) {
   const contentId = `${product.id}:${variant.id}`;
   const unitPrice = itemUnitPrice(product, variant, optionIds);
@@ -237,8 +316,58 @@ export default function Home() {
   const [restoredOrderNotice, setRestoredOrderNotice] = useState(false);
   const [addedNotice, setAddedNotice] = useState<AddedNotice | null>(null);
   const [builderEngaged, setBuilderEngaged] = useState(true);
+  const [checkoutAvailabilityMessage, setCheckoutAvailabilityMessage] = useState("");
+  const [isFinalizing, setIsFinalizing] = useState(false);
+  const { availability, refreshAvailability } = useMenuAvailability();
   const checkoutStartedRef = useRef(false);
   const paymentInfoTrackedRef = useRef(false);
+
+  const pipocasVisible = STORE_CONFIG.enabledCategories.pipocas
+    && isItemVisible(availability, CATEGORY_ITEM_KEYS.pipocas);
+  const fatiasVisible = STORE_CONFIG.enabledCategories.fatias
+    && isItemVisible(availability, CATEGORY_ITEM_KEYS.fatias);
+  const pipocasAvailable = pipocasVisible
+    && isItemAvailable(availability, CATEGORY_ITEM_KEYS.pipocas);
+  const fatiasAvailable = fatiasVisible
+    && isItemAvailable(availability, CATEGORY_ITEM_KEYS.fatias);
+
+  function categoryIsVisible(category: CategoryId) {
+    return category === "pipocas" ? pipocasVisible : fatiasVisible;
+  }
+
+  function categoryIsAvailable(category: CategoryId) {
+    return category === "pipocas" ? pipocasAvailable : fatiasAvailable;
+  }
+
+  function popcornSizeIsVisible(variantId: string) {
+    const itemKey = POPCORN_SIZE_ITEM_KEYS[variantId];
+    return Boolean(itemKey && isItemVisible(availability, itemKey));
+  }
+
+  function popcornSizeIsAvailable(variantId: string) {
+    const itemKey = POPCORN_SIZE_ITEM_KEYS[variantId];
+    return Boolean(itemKey && isItemAvailable(availability, itemKey));
+  }
+
+  function popcornFlavorIsVisible(optionId: string) {
+    const itemKey = POPCORN_FLAVOR_ITEM_KEYS[optionId];
+    return Boolean(itemKey && isItemVisible(availability, itemKey));
+  }
+
+  function popcornFlavorIsAvailable(optionId: string) {
+    const itemKey = POPCORN_FLAVOR_ITEM_KEYS[optionId];
+    return Boolean(itemKey && isItemAvailable(availability, itemKey));
+  }
+
+  function sliceIsVisible(productId: string) {
+    const itemKey = SLICE_ITEM_KEYS[productId];
+    return Boolean(itemKey && isItemVisible(availability, itemKey));
+  }
+
+  function sliceIsAvailable(productId: string) {
+    const itemKey = SLICE_ITEM_KEYS[productId];
+    return Boolean(itemKey && isItemAvailable(availability, itemKey));
+  }
 
   useEffect(() => {
     if (window.__lucianeViewContentTracked) return;
@@ -246,6 +375,15 @@ export default function Home() {
       window.__lucianeViewContentTracked = true;
     }
   }, []);
+
+  useEffect(() => {
+    const activeCategoryIsVisible = activeCategory === "pipocas" ? pipocasVisible : fatiasVisible;
+    if (activeCategoryIsVisible) return;
+    const fallbackCategory = pipocasVisible ? "pipocas" : fatiasVisible ? "fatias" : null;
+    if (!fallbackCategory) return;
+    const categoryTimer = window.setTimeout(() => setActiveCategory(fallbackCategory), 0);
+    return () => window.clearTimeout(categoryTimer);
+  }, [activeCategory, fatiasVisible, pipocasVisible]);
 
   useEffect(() => {
     const requestedCategoryValue = new URLSearchParams(window.location.search).get("categoria");
@@ -356,6 +494,15 @@ export default function Home() {
   );
 
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
+  const cartIssues = useMemo(
+    () => cartAvailabilityIssues(cart, availability),
+    [availability, cart],
+  );
+  useEffect(() => {
+    if (cartIssues.length > 0 || isFinalizing) return;
+    const clearMessageTimer = window.setTimeout(() => setCheckoutAvailabilityMessage(""), 0);
+    return () => window.clearTimeout(clearMessageTimer);
+  }, [cartIssues.length, isFinalizing]);
   const inProgressSummary = cart.slice(0, 2).map((item) => {
     const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
     const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
@@ -365,8 +512,24 @@ export default function Home() {
   const orderTotal = cartSubtotal + deliveryFee;
   const hasEstimatedTotal = fulfillment === "retirada" || (fulfillment === "entrega" && Boolean(selectedDeliveryZone));
 
-  const popcornReady = Boolean(POPCORN.available && popcornVariant?.available && popcornOptionIds.length > 0);
-  const sliceReady = Boolean(selectedSlice?.available && selectedSliceVariant?.available && sliceSauceId);
+  const popcornReady = Boolean(
+    availability.ordersOpen
+    && pipocasAvailable
+    && POPCORN.available
+    && popcornVariant?.available
+    && popcornSizeIsAvailable(popcornVariant.id)
+    && popcornOptionIds.length > 0
+    && popcornOptionIds.every((optionId) => popcornFlavorIsAvailable(optionId)),
+  );
+  const sliceReady = Boolean(
+    availability.ordersOpen
+    && fatiasAvailable
+    && selectedSlice?.available
+    && selectedSliceVariant?.available
+    && selectedSlice
+    && sliceIsAvailable(selectedSlice.id)
+    && sliceSauceId,
+  );
   const draftReady = activeCategory === "pipocas" ? popcornReady : sliceReady;
   const popcornPriceAdjustment = optionPriceAdjustment(POPCORN, popcornOptionIds);
   const popcornUnitPrice = popcornVariant ? itemUnitPrice(POPCORN, popcornVariant, popcornOptionIds) : null;
@@ -376,19 +539,21 @@ export default function Home() {
   const addressReady = fulfillment !== "entrega"
     || Boolean(selectedDeliveryZone && deliveryNeighborhood && address.trim() && reference.trim());
   const paymentReady = Boolean(payment) && (payment !== "dinheiro" || !needsChange || Boolean(changeFor.trim()));
-  const checkoutReady = STORE_CONFIG.acceptingOrders
-    && cart.length > 0
+  const checkoutFormReady = cart.length > 0
     && Boolean(fulfillment)
     && addressReady
     && paymentReady;
-  const popcornSizeStepState: StepState = popcornVariant ? "complete" : "active";
+  const checkoutReady = availability.ordersOpen
+    && cartIssues.length === 0
+    && checkoutFormReady;
+  const popcornSizeStepState: StepState = popcornVariant && popcornSizeIsAvailable(popcornVariant.id) ? "complete" : "active";
   const popcornFlavorStepState: StepState = !popcornVariant
     ? "locked"
-    : popcornOptionIds.length > 0
+    : popcornOptionIds.length > 0 && popcornOptionIds.every((optionId) => popcornFlavorIsAvailable(optionId))
       ? "complete"
       : "active";
   const popcornQuantityStepState: StepState = popcornReady ? "active" : "locked";
-  const sliceProductStepState: StepState = selectedSlice ? "complete" : "active";
+  const sliceProductStepState: StepState = selectedSlice && sliceIsAvailable(selectedSlice.id) ? "complete" : "active";
   const sliceSauceStepState: StepState = !selectedSlice
     ? "locked"
     : sliceSauceId
@@ -416,9 +581,13 @@ export default function Home() {
   const stickyPriceCaption = cart.length > 0 && !builderFlowActive
     ? hasEstimatedTotal ? "Total estimado" : "Subtotal"
     : activeCategory === "pipocas" ? "Sua pipoca" : "Sua fatia";
-  const stickyButtonLabel = editingId
-    ? "Salvar alterações"
-    : draftReady
+  const stickyButtonLabel = !availability.ordersOpen
+    ? "Pedidos fechados"
+    : !categoryIsAvailable(activeCategory) && builderFlowActive
+      ? "Esgotado no momento"
+      : editingId
+        ? "Salvar alterações"
+        : draftReady
       ? activeCategory === "pipocas"
         ? `Adicionar ${popcornQuantity} ${popcornQuantity === 1 ? "pipoca" : "pipocas"}`
         : `Adicionar ${sliceQuantity} ${sliceQuantity === 1 ? "fatia" : "fatias"}`
@@ -426,7 +595,7 @@ export default function Home() {
         ? activeCategory === "pipocas"
           ? popcornVariant ? "Escolher meus sabores" : "Escolher tamanho"
           : selectedSlice ? "Escolher calda" : "Escolher minha fatia"
-        : checkoutReady ? "Finalizar no WhatsApp" : "Continuar pedido";
+          : checkoutReady ? "Finalizar no WhatsApp" : "Continuar pedido";
 
   useEffect(() => {
     if (cart.length === 0) {
@@ -458,7 +627,7 @@ export default function Home() {
       };
 
   function selectCategory(category: CategoryId, shouldScroll = false) {
-    if (!isCategoryEnabled(category)) return;
+    if (!categoryIsVisible(category)) return;
     setActiveCategory(category);
     setEditingId(null);
     setSelectionMessage("");
@@ -472,9 +641,9 @@ export default function Home() {
   }
 
   function choosePopcornVariant(nextId: string) {
-    if (!isCategoryEnabled("pipocas")) return;
+    if (!categoryIsAvailable("pipocas")) return;
     const nextVariant = POPCORN.variants.find((variant) => variant.id === nextId);
-    if (!nextVariant?.available) return;
+    if (!nextVariant?.available || !popcornSizeIsAvailable(nextId)) return;
     setBuilderEngaged(true);
     setSelectionMessage("");
     setPopcornVariantId(nextId);
@@ -487,7 +656,9 @@ export default function Home() {
   }
 
   function togglePopcornOption(option: ProductOption) {
-    if (!isCategoryEnabled("pipocas") || !option.available || !popcornVariant) return;
+    const alreadySelected = popcornOptionIds.includes(option.id);
+    if (!categoryIsAvailable("pipocas") || !popcornVariant) return;
+    if ((!option.available || !popcornFlavorIsAvailable(option.id)) && !alreadySelected) return;
     setBuilderEngaged(true);
     setPopcornOptionIds((current) => {
       if (current.includes(option.id)) {
@@ -528,6 +699,7 @@ export default function Home() {
     setDrinkMessage("");
     setRestoredOrderNotice(false);
     setAddedNotice(null);
+    setCheckoutAvailabilityMessage("");
     checkoutStartedRef.current = false;
     paymentInfoTrackedRef.current = false;
     clearDraft();
@@ -562,13 +734,13 @@ export default function Home() {
   }
 
   function trackCheckoutStart() {
-    if (!STORE_CONFIG.acceptingOrders || checkoutStartedRef.current || cart.length === 0) return;
+    if (!availability.ordersOpen || checkoutStartedRef.current || cart.length === 0) return;
     const didTrack = trackMetaEvent("InitiateCheckout", cartMetaPayload(cartSubtotal));
     if (didTrack) checkoutStartedRef.current = true;
   }
 
   function trackPaymentInfo(paymentMethod: Payment) {
-    if (!STORE_CONFIG.acceptingOrders || paymentInfoTrackedRef.current || cart.length === 0) return;
+    if (!availability.ordersOpen || paymentInfoTrackedRef.current || cart.length === 0) return;
     const didTrack = trackMetaEvent("AddPaymentInfo", {
       ...cartMetaPayload(hasEstimatedTotal ? orderTotal : cartSubtotal),
       payment_method: paymentMethod,
@@ -593,9 +765,13 @@ export default function Home() {
   }
 
   function addOrUpdatePopcorn() {
-    if (!isCategoryEnabled("pipocas")) return;
-    if (!STORE_CONFIG.acceptingOrders) {
+    if (!categoryIsVisible("pipocas")) return;
+    if (!availability.ordersOpen) {
       setSelectionMessage(STORE_CONFIG.closedMessage);
+      return;
+    }
+    if (!categoryIsAvailable("pipocas")) {
+      setSelectionMessage("Pipocas Gourmet estão esgotadas no momento.");
       return;
     }
     if (!popcornVariant) {
@@ -637,8 +813,13 @@ export default function Home() {
   }
 
   function addOrUpdateSlice() {
-    if (!STORE_CONFIG.acceptingOrders) {
+    if (!categoryIsVisible("fatias")) return;
+    if (!availability.ordersOpen) {
       setSelectionMessage(STORE_CONFIG.closedMessage);
+      return;
+    }
+    if (!categoryIsAvailable("fatias")) {
+      setSelectionMessage("Fatias Artesanais estão esgotadas no momento.");
       return;
     }
     if (!selectedSlice || !selectedSliceVariant) {
@@ -678,7 +859,7 @@ export default function Home() {
   }
 
   function addDrink(product: Product) {
-    if (!STORE_CONFIG.acceptingOrders || !isProductEnabled(product) || !product.available || !product.variants[0].available) return;
+    if (!availability.ordersOpen || !isProductEnabled(product) || !product.available || !product.variants[0].available) return;
     setCart((current) => {
       const existing = current.find((item) => item.productId === product.id);
       if (existing) {
@@ -725,7 +906,9 @@ export default function Home() {
   }
 
   function changeCartQuantity(id: string, delta: number) {
-    if (delta > 0 && STORE_CONFIG.acceptingOrders) {
+    const itemIssue = cartIssues.find((issue) => issue.cartItemId === id);
+    if (delta > 0 && (!availability.ordersOpen || itemIssue)) return;
+    if (delta > 0 && availability.ordersOpen) {
       const item = cart.find((candidate) => candidate.id === id);
       const product = PRODUCTS.find((candidate) => candidate.id === item?.productId);
       const variant = product?.variants.find((candidate) => candidate.id === item?.variantId);
@@ -784,12 +967,12 @@ export default function Home() {
     return `Olá! Finalizei meu pedido pelo cardápio da *Luciane Oliveira Doces*. Segue para confirmação:\n\n*PEDIDO*\n${orderLines}\n\n*RECEBIMENTO*\n${receivingLines}\n\n*PAGAMENTO*\n${paymentLabel}\n\n*RESUMO*\nProdutos: ${currency.format(cartSubtotal)}\n${deliveryLine}\n${totalLine}\n\n${confirmationLine}${pixInstructions}`;
   }
 
-  function finishOnWhatsApp() {
-    if (!STORE_CONFIG.acceptingOrders) {
+  async function finishOnWhatsApp() {
+    if (!availability.ordersOpen) {
       scrollToSection("inicio");
       return;
     }
-    if (!checkoutReady) {
+    if (!checkoutFormReady) {
       if (!cart.length) {
         setBuilderEngaged(true);
         scrollToSection("configurador");
@@ -798,11 +981,41 @@ export default function Home() {
       else enterCheckout("pagamento");
       return;
     }
+
+    if (isFinalizing) return;
+    setIsFinalizing(true);
+    setCheckoutAvailabilityMessage("Conferindo a disponibilidade do seu pedido…");
+    const latest = await refreshAvailability();
+
+    if (latest.usedFallback) {
+      setCheckoutAvailabilityMessage("Não foi possível confirmar a disponibilidade agora. Seu pedido continua salvo nesta aba; tente finalizar novamente em instantes.");
+      setIsFinalizing(false);
+      scrollToSection("carrinho");
+      return;
+    }
+
+    const latestIssues = cartAvailabilityIssues(cart, latest.snapshot);
+
+    if (!latest.snapshot.ordersOpen) {
+      setCheckoutAvailabilityMessage(STORE_CONFIG.closedMessage);
+      setIsFinalizing(false);
+      scrollToSection("inicio");
+      return;
+    }
+
+    if (latestIssues.length > 0) {
+      const itemNames = latestIssues.map((issue) => issue.itemLabel).join(", ");
+      setCheckoutAvailabilityMessage(`Um item do seu pedido acabou de ficar indisponível: ${itemNames}. Revise o carrinho para continuar.`);
+      setIsFinalizing(false);
+      scrollToSection("carrinho");
+      return;
+    }
+
     window.location.assign(tintimWhatsAppUrl(buildWhatsAppMessage()));
   }
 
   function stickyBuilderAction() {
-    if (activeCategory === "pipocas" && isCategoryEnabled("pipocas")) addOrUpdatePopcorn();
+    if (activeCategory === "pipocas" && categoryIsVisible("pipocas")) addOrUpdatePopcorn();
     else addOrUpdateSlice();
   }
 
@@ -812,7 +1025,7 @@ export default function Home() {
   }
 
   function startAnother(category: CategoryId) {
-    if (!isCategoryEnabled(category)) return;
+    if (!categoryIsAvailable(category)) return;
     clearDraft();
     setBuilderEngaged(true);
     selectCategory(category, true);
@@ -823,8 +1036,11 @@ export default function Home() {
     scrollToSection("configurador");
   }
 
-  const checkoutHint = !STORE_CONFIG.acceptingOrders
+  const checkoutHint = checkoutAvailabilityMessage
+    || (!availability.ordersOpen
     ? STORE_CONFIG.closedMessage
+    : cartIssues.length > 0
+      ? "Um ou mais itens ficaram indisponíveis. Revise o carrinho para continuar."
     : !cart.length
       ? "Adicione pelo menos um produto ao pedido."
       : !fulfillment
@@ -839,7 +1055,7 @@ export default function Home() {
                 ? "Escolha a forma de pagamento."
                 : !paymentReady
                   ? "Informe o valor para o troco."
-                  : "Ao continuar, seu pedido será enviado no WhatsApp para confirmação.";
+                  : "Ao continuar, seu pedido será enviado no WhatsApp para confirmação.");
 
   return (
     <main>
@@ -871,24 +1087,40 @@ export default function Home() {
         <img className="hero-image" src={hero.image} alt={hero.alt} width="900" height="1600" loading="eager" decoding="async" fetchPriority="high" />
         <div className="hero-overlay" />
         <div className="hero-content page-shell">
-          {!STORE_CONFIG.acceptingOrders && (
+          {!availability.ordersOpen && (
             <div className="store-status-banner" role="status">
               <strong>{STORE_CONFIG.closedMessage}</strong>
               <span>Você ainda pode consultar o cardápio.</span>
             </div>
           )}
-          {STORE_CONFIG.enabledCategories.pipocas && STORE_CONFIG.enabledCategories.fatias && (
-            <div className="category-switch" aria-label="Categorias disponíveis">
-              <button type="button" className={activeCategory === "pipocas" ? "is-active" : ""} onClick={() => selectCategory("pipocas")}>
-                Pipocas Gourmet
-              </button>
-              <button type="button" className={activeCategory === "fatias" ? "is-active" : ""} onClick={() => selectCategory("fatias")}>
-                Fatias Artesanais
-              </button>
+          {(pipocasVisible || fatiasVisible) && (
+            <div className="category-entry">
+              <p className="category-entry-label">Escolha o que deseja pedir</p>
+              <div className="category-switch" aria-label="Categorias disponíveis">
+                {pipocasVisible && (
+                  <button type="button" className={activeCategory === "pipocas" ? "is-active" : ""} aria-pressed={activeCategory === "pipocas"} onClick={() => selectCategory("pipocas")}>
+                    <span><strong>Pipocas Gourmet</strong><small>Tamanhos e sabores</small></span>
+                    {!pipocasAvailable && <em>Esgotado</em>}
+                  </button>
+                )}
+                {fatiasVisible && (
+                  <button type="button" className={activeCategory === "fatias" ? "is-active" : ""} aria-pressed={activeCategory === "fatias"} onClick={() => selectCategory("fatias")}>
+                    <span><strong>Fatias Artesanais</strong><small>Com calda inclusa</small></span>
+                    {!fatiasAvailable && <em>Esgotado</em>}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+          {!pipocasVisible && !fatiasVisible && (
+            <div className="store-status-banner" role="status">
+              <strong>Cardápio em atualização.</strong>
+              <span>As opções voltarão a aparecer assim que estiverem disponíveis.</span>
             </div>
           )}
           <p className="eyebrow">{hero.eyebrow}</p>
           <h1>{hero.titleLead}<span>{hero.titleAccent}</span></h1>
+          <p className="hero-order-note">Monte seu pedido completo pelo site e envie para confirmação no WhatsApp.</p>
           <p className="hero-copy">{hero.copy}</p>
           <div className="hero-facts" aria-label="Informações principais">
             {hero.facts.map((fact) => <span key={fact}>{fact}</span>)}
@@ -908,39 +1140,44 @@ export default function Home() {
             <p>{activeCategory === "pipocas"
               ? "Escolha o tamanho, os sabores da sua pipoca e a quantidade."
               : "Monte uma combinação por vez. Depois, você pode adicionar outra fatia com um sabor diferente."}</p>
-            {activeCategory === "pipocas" && STORE_CONFIG.enabledCategories.fatias && (
+            {activeCategory === "pipocas" && fatiasVisible && (
               <button type="button" className="category-text-link" onClick={() => selectCategory("fatias", true)}>
                 Ver Fatias Artesanais <ChevronRight size={15} />
               </button>
             )}
-            {activeCategory === "fatias" && STORE_CONFIG.enabledCategories.pipocas && (
+            {activeCategory === "fatias" && pipocasVisible && (
               <button type="button" className="category-text-link" onClick={() => selectCategory("pipocas", true)}>
                 Ver Pipocas Gourmet <ChevronRight size={15} />
               </button>
             )}
           </div>
 
-          {((activeCategory === "pipocas" && !POPCORN.available)
-            || (activeCategory === "fatias" && !SLICES.some((slice) => slice.available && slice.variants[0]?.available))) && (
+          {((activeCategory === "pipocas" && (!pipocasAvailable || !POPCORN.available))
+            || (activeCategory === "fatias" && (!fatiasAvailable || !SLICES.some((slice) => (
+              sliceIsVisible(slice.id) && sliceIsAvailable(slice.id) && slice.available && slice.variants[0]?.available
+            ))))) && (
             <div className="availability-alert" role="status">
               <strong>Esgotado hoje</strong>
               <span>Esta categoria está temporariamente indisponível.</span>
             </div>
           )}
 
-          {activeCategory === "pipocas" && STORE_CONFIG.enabledCategories.pipocas ? (
+          {activeCategory === "pipocas" && pipocasVisible ? (
             <div className="builder-card">
               <section className={`step-block step-state-${popcornSizeStepState}`} id="tamanhos" aria-labelledby="step-size" aria-current={popcornSizeStepState === "active" ? "step" : undefined}>
                 <div className="step-heading"><StepMarker number={1} state={popcornSizeStepState} /><div><h3 id="step-size">Escolha o tamanho</h3><p>O preço e o limite de sabores mudam conforme o pote.</p></div></div>
                 <RadioGroup className="size-grid" value={popcornVariantId} onValueChange={choosePopcornVariant} aria-label="Tamanho da Pipoca Gourmet">
-                  {POPCORN.variants.map((variant) => (
-                    <label className={`size-card ${variant.id === popcornVariantId ? "is-selected" : ""} ${!POPCORN.available || !variant.available ? "is-unavailable" : ""}`} htmlFor={`size-${variant.id}`} key={variant.id}>
-                      <RadioGroupItem id={`size-${variant.id}`} value={variant.id} disabled={!POPCORN.available || !variant.available} />
-                      <span className="size-copy"><strong>{variant.label}</strong><b>{currency.format(itemUnitPrice(POPCORN, variant, popcornOptionIds))}</b><small>Até {variant.maxOptions} sabores</small></span>
-                      {variant.id === popcornVariantId && POPCORN.available && variant.available && <span className="selected-check" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>}
-                      {(!POPCORN.available || !variant.available) && <span className="unavailable-label">{!POPCORN.available ? "Esgotado hoje" : "Indisponível"}</span>}
-                    </label>
-                  ))}
+                  {POPCORN.variants.filter((variant) => popcornSizeIsVisible(variant.id)).map((variant) => {
+                    const available = pipocasAvailable && POPCORN.available && variant.available && popcornSizeIsAvailable(variant.id);
+                    return (
+                      <label className={`size-card ${variant.id === popcornVariantId ? "is-selected" : ""} ${!available ? "is-unavailable" : ""}`} htmlFor={`size-${variant.id}`} key={variant.id}>
+                        <RadioGroupItem id={`size-${variant.id}`} value={variant.id} disabled={!available} />
+                        <span className="size-copy"><strong>{variant.label}</strong><b>{currency.format(itemUnitPrice(POPCORN, variant, popcornOptionIds))}</b><small>Até {variant.maxOptions} sabores</small></span>
+                        {variant.id === popcornVariantId && available && <span className="selected-check" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>}
+                        {!available && <span className="unavailable-label">Esgotado hoje</span>}
+                      </label>
+                    );
+                  })}
                 </RadioGroup>
                 <div className="selection-helper" aria-live="polite">
                   {popcornVariant
@@ -956,11 +1193,12 @@ export default function Home() {
                   <span className="selection-count" aria-live="polite">{popcornVariant ? `${popcornOptionIds.length}/${popcornMaxOptions}` : "—"}</span>
                 </div>
                 <div className="flavor-grid">
-                  {POPCORN.options.map((option) => {
+                  {POPCORN.options.filter((option) => popcornFlavorIsVisible(option.id)).map((option) => {
                     const selected = popcornOptionIds.includes(option.id);
                     const limitDisabled = popcornLimitReached && !selected;
                     const waitingForSize = !popcornVariant;
-                    const disabled = waitingForSize || !option.available || limitDisabled;
+                    const available = pipocasAvailable && option.available && popcornFlavorIsAvailable(option.id);
+                    const disabled = waitingForSize || (!available && !selected) || limitDisabled;
                     return (
                       <label className={`flavor-card ${selected ? "is-selected" : ""} ${disabled ? "is-disabled" : ""}`} htmlFor={`flavor-${option.id}`} key={option.id}>
                         <Checkbox id={`flavor-${option.id}`} checked={selected} disabled={disabled} onCheckedChange={() => togglePopcornOption(option)} aria-label={`Selecionar sabor ${option.name}`} />
@@ -972,8 +1210,8 @@ export default function Home() {
                         </span>
                         {selected && <span className="flavor-selected">Selecionado</span>}
                         {waitingForSize && <span className="flavor-status">Escolha o tamanho</span>}
-                        {!waitingForSize && !option.available && <span className="flavor-status">Esgotado hoje</span>}
-                        {limitDisabled && option.available && <span className="flavor-status">Limite atingido</span>}
+                        {!waitingForSize && !available && <span className="flavor-status">Esgotado hoje</span>}
+                        {limitDisabled && available && <span className="flavor-status">Limite atingido</span>}
                       </label>
                     );
                   })}
@@ -1004,7 +1242,7 @@ export default function Home() {
                   </div>
                   <div className="draft-total"><small>Subtotal</small><strong>{popcornUnitPrice === null ? "Escolha o tamanho" : currency.format(popcornUnitPrice * popcornQuantity)}</strong></div>
                 </div>
-                <Button type="button" className="primary-cta add-button" onClick={addOrUpdatePopcorn} disabled={!STORE_CONFIG.acceptingOrders || !popcornReady}>
+                <Button type="button" className="primary-cta add-button" onClick={addOrUpdatePopcorn} disabled={!availability.ordersOpen || !popcornReady}>
                   <ShoppingBag size={18} />{editingId
                     ? "Salvar alterações"
                     : !popcornVariant
@@ -1016,17 +1254,23 @@ export default function Home() {
                 {editingId && <Button type="button" variant="ghost" className="cancel-edit" onClick={clearDraft}>Cancelar edição</Button>}
               </section>
             </div>
-          ) : (
+          ) : activeCategory === "fatias" && fatiasVisible ? (
             <div className="builder-card slice-builder">
               <section className={`step-block step-state-${sliceProductStepState}`} id="fatias" aria-labelledby="step-slice" aria-current={sliceProductStepState === "active" ? "step" : undefined}>
                 <div className="step-heading"><StepMarker number={1} state={sliceProductStepState} /><div><h3 id="step-slice">Escolha sua fatia</h3><p>Selecione um sabor por vez. Depois de adicionar, você poderá escolher outro.</p></div></div>
-                <RadioGroup className="slice-grid" value={sliceProductId} onValueChange={(value) => { setBuilderEngaged(true); setSliceProductId(value); setSelectionMessage(""); }} aria-label="Sabor da fatia artesanal">
-                  {SLICES.map((slice) => {
+                <RadioGroup className="slice-grid" value={sliceProductId} onValueChange={(value) => {
+                  if (!sliceIsAvailable(value) || !fatiasAvailable) return;
+                  setBuilderEngaged(true);
+                  setSliceProductId(value);
+                  setSelectionMessage("");
+                }} aria-label="Sabor da fatia artesanal">
+                  {SLICES.filter((slice) => sliceIsVisible(slice.id)).map((slice) => {
                     const selected = slice.id === sliceProductId;
                     const variant = slice.variants[0];
+                    const available = fatiasAvailable && slice.available && variant.available && sliceIsAvailable(slice.id);
                     return (
-                      <label className={`slice-card ${selected ? "is-selected" : ""} ${!slice.available || !variant.available ? "is-unavailable" : ""} ${slice.availabilityLabel ? "is-upcoming" : ""}`} htmlFor={`slice-${slice.id}`} key={slice.id}>
-                        <RadioGroupItem id={`slice-${slice.id}`} value={slice.id} disabled={!slice.available || !variant.available} />
+                      <label className={`slice-card ${selected ? "is-selected" : ""} ${!available ? "is-unavailable" : ""} ${slice.availabilityLabel ? "is-upcoming" : ""}`} htmlFor={`slice-${slice.id}`} key={slice.id}>
+                        <RadioGroupItem id={`slice-${slice.id}`} value={slice.id} disabled={!available} />
                         <span className="slice-media">
                           {slice.image ? <img src={slice.cardImage ?? slice.image} alt={slice.imageAlt} width="640" height="480" loading="lazy" decoding="async" fetchPriority="low" sizes="(max-width: 599px) calc(50vw - 27px), (max-width: 899px) calc(50vw - 36px), 240px" /> : <span className="slice-placeholder"><CakeSlice size={30} strokeWidth={1.4} /><small>Foto em breve</small></span>}
                         </span>
@@ -1035,8 +1279,8 @@ export default function Home() {
                           {slice.subtitle && <em>{slice.subtitle}</em>}
                           <b>{currency.format(variant.price)}</b>
                         </span>
-                        {selected && slice.available && variant.available && <span className="slice-selected"><Check size={14} strokeWidth={3} /></span>}
-                        {(!slice.available || !variant.available) && <span className={`slice-status ${slice.availabilityLabel ? "is-upcoming" : ""}`}>{slice.availabilityLabel ?? "Esgotado hoje"}</span>}
+                        {selected && available && <span className="slice-selected"><Check size={14} strokeWidth={3} /></span>}
+                        {!available && <span className={`slice-status ${slice.availabilityLabel ? "is-upcoming" : ""}`}>{slice.availabilityLabel ?? "Esgotado hoje"}</span>}
                       </label>
                     );
                   })}
@@ -1052,8 +1296,8 @@ export default function Home() {
                 <div className="step-heading"><StepMarker number={2} state={sliceSauceStepState} /><div><h3 id="step-sauce">Escolha sua calda inclusa</h3><p>Sua fatia já acompanha 1 potinho de calda. Escolha o sabor:</p></div></div>
                 <RadioGroup className="sauce-grid" value={sliceSauceId} onValueChange={(value) => { setBuilderEngaged(true); setSliceSauceId(value); setSelectionMessage(""); }} aria-label="Calda da fatia">
                   {SAUCES.map((sauce) => (
-                    <label className={`sauce-card ${sliceSauceId === sauce.id ? "is-selected" : ""} ${!selectedSlice || !sauce.available ? "is-unavailable" : ""}`} htmlFor={`sauce-${sauce.id}`} key={sauce.id}>
-                      <RadioGroupItem id={`sauce-${sauce.id}`} value={sauce.id} disabled={!selectedSlice || !sauce.available} />
+                    <label className={`sauce-card ${sliceSauceId === sauce.id ? "is-selected" : ""} ${!selectedSlice || !fatiasAvailable || !sliceIsAvailable(selectedSlice.id) || !sauce.available ? "is-unavailable" : ""}`} htmlFor={`sauce-${sauce.id}`} key={sauce.id}>
+                      <RadioGroupItem id={`sauce-${sauce.id}`} value={sauce.id} disabled={!selectedSlice || !fatiasAvailable || !sliceIsAvailable(selectedSlice.id) || !sauce.available} />
                       <span className="sauce-tone" style={{ backgroundColor: sauce.tone }} aria-hidden="true" />
                       <span><strong>{sauce.name}</strong><small>{!selectedSlice ? "Escolha a fatia" : sauce.available ? "Já inclusa" : "Indisponível hoje"}</small></span>
                       {sliceSauceId === sauce.id && <Check size={16} />}
@@ -1073,7 +1317,7 @@ export default function Home() {
                   </div>
                   <div className="draft-total"><small>Subtotal</small><strong>{selectedSliceVariant ? currency.format(selectedSliceVariant.price * sliceQuantity) : "Escolha a fatia"}</strong></div>
                 </div>
-                <Button type="button" className="primary-cta add-button" onClick={addOrUpdateSlice} disabled={!STORE_CONFIG.acceptingOrders || !sliceReady}>
+                <Button type="button" className="primary-cta add-button" onClick={addOrUpdateSlice} disabled={!availability.ordersOpen || !sliceReady}>
                   <ShoppingBag size={18} />{editingId
                     ? "Salvar alterações"
                     : !selectedSlice
@@ -1085,6 +1329,11 @@ export default function Home() {
                 {editingId && <Button type="button" variant="ghost" className="cancel-edit" onClick={clearDraft}>Cancelar edição</Button>}
               </section>
             </div>
+          ) : (
+            <div className="builder-card menu-empty-state" role="status">
+              <strong>Cardápio temporariamente sem itens visíveis.</strong>
+              <p>Consulte novamente em alguns instantes.</p>
+            </div>
           )}
 
           {addedNotice && (
@@ -1095,7 +1344,7 @@ export default function Home() {
                 <p>{addedNotice.description}</p>
               </div>
               <div className="added-panel-actions">
-                {isCategoryEnabled(addedNotice.category) && (
+                {categoryIsAvailable(addedNotice.category) && (
                   <Button type="button" variant="outline" onClick={() => startAnother(addedNotice.category)}>
                     <Plus size={16} /> {addedNotice.category === "fatias" ? "Adicionar outra fatia" : "Adicionar outra pipoca"}
                   </Button>
@@ -1123,7 +1372,7 @@ export default function Home() {
                     </span>
                     <div><strong>{drink.name}</strong><small>{variant.label}</small></div>
                     <b>{currency.format(variant.price)}</b>
-                    <Button type="button" variant="outline" size="icon" onClick={() => addDrink(drink)} disabled={!STORE_CONFIG.acceptingOrders || !drink.available || !variant.available} aria-label={`Adicionar ${drink.name} ${variant.label}`}><Plus size={17} /></Button>
+                    <Button type="button" variant="outline" size="icon" onClick={() => addDrink(drink)} disabled={!availability.ordersOpen || !drink.available || !variant.available} aria-label={`Adicionar ${drink.name} ${variant.label}`}><Plus size={17} /></Button>
                     {(!drink.available || !variant.available) && <span className="drink-status">Indisponível</span>}
                   </article>
                 );
@@ -1144,19 +1393,26 @@ export default function Home() {
               </div>
               {cart.length === 0 ? (
                 <div className="empty-cart">
-                  <ShoppingBag size={26} strokeWidth={1.5} /><strong>Seu pedido está vazio</strong><p>{STORE_CONFIG.enabledCategories.pipocas ? "Escolha uma pipoca ou uma fatia para começar." : "Escolha uma fatia para começar."}</p>
+                  <ShoppingBag size={26} strokeWidth={1.5} /><strong>Seu pedido está vazio</strong><p>{pipocasVisible && fatiasVisible ? "Escolha uma pipoca ou uma fatia para começar." : pipocasVisible ? "Escolha uma pipoca para começar." : "Escolha uma fatia para começar."}</p>
                   <Button type="button" variant="outline" onClick={beginBuilding}>Escolher produtos</Button>
                 </div>
               ) : (
                 <div className="cart-list">
+                  {checkoutAvailabilityMessage && cartIssues.length > 0 && (
+                    <div className="checkout-availability-alert" role="alert">
+                      <AlertTriangle size={18} aria-hidden="true" />
+                      <span>{checkoutAvailabilityMessage}</span>
+                    </div>
+                  )}
                   {cart.map((item) => {
                     const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
                     const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
+                    const itemIssue = cartIssues.find((issue) => issue.cartItemId === item.id);
                     const optionNames = item.optionIds.map((id) => product.options.find((option) => option.id === id)?.name).filter(Boolean).join(", ");
                     const unitPrice = itemUnitPrice(product, variant, item.optionIds);
                     const itemPriceAdjustment = optionPriceAdjustment(product, item.optionIds);
                     return (
-                      <article className="cart-item" key={item.id}>
+                      <article className={`cart-item ${itemIssue ? "is-unavailable" : ""}`} key={item.id}>
                         <div className="cart-item-top">
                           <div className="cart-item-info">
                             <span className="product-category">{product.category}</span>
@@ -1167,6 +1423,12 @@ export default function Home() {
                               <span>Quantidade: {item.quantity}</span>
                             </div>
                             {itemPriceAdjustment > 0 && <small className="cart-price-note">Inclui {currency.format(itemPriceAdjustment)} por pote do Kinder Bueno Crisp.</small>}
+                            {itemIssue && (
+                              <div className="cart-unavailable-note" role="status">
+                                <AlertTriangle size={16} aria-hidden="true" />
+                                <span><strong>Item indisponível</strong>{itemIssue.reasons.join(" ")} Edite ou remova para continuar.</span>
+                              </div>
+                            )}
                           </div>
                           <div className="cart-item-value"><small>Valor</small><strong>{currency.format(unitPrice * item.quantity)}</strong></div>
                         </div>
@@ -1174,7 +1436,7 @@ export default function Home() {
                           <div className="mini-quantity">
                             <Button type="button" variant="ghost" size="icon" onClick={() => changeCartQuantity(item.id, -1)} disabled={item.quantity === 1} aria-label="Diminuir quantidade deste item"><Minus size={15} /></Button>
                             <span>{item.quantity}</span>
-                            <Button type="button" variant="ghost" size="icon" onClick={() => changeCartQuantity(item.id, 1)} disabled={!STORE_CONFIG.acceptingOrders} aria-label="Aumentar quantidade deste item"><Plus size={15} /></Button>
+                            <Button type="button" variant="ghost" size="icon" onClick={() => changeCartQuantity(item.id, 1)} disabled={!availability.ordersOpen || Boolean(itemIssue)} aria-label="Aumentar quantidade deste item"><Plus size={15} /></Button>
                           </div>
                           {product.kind !== "drink" && <Button type="button" variant="ghost" className="text-action" onClick={() => editItem(item)}><Pencil size={15} /> Editar</Button>}
                           <Button type="button" variant="ghost" className="text-action destructive-action" onClick={() => removeItem(item.id)}><Trash2 size={15} /> Remover</Button>
@@ -1187,8 +1449,8 @@ export default function Home() {
                   <div className="cart-add-more">
                     <strong>Adicionar mais itens</strong>
                     <div className={`cart-add-options ${STORE_CONFIG.enabledExtras.drinks ? "" : "without-drinks"}`}>
-                      {STORE_CONFIG.enabledCategories.fatias && <Button type="button" variant="outline" onClick={() => startAnother("fatias")}><CakeSlice size={16} /> Outra fatia</Button>}
-                      {STORE_CONFIG.enabledCategories.pipocas && <Button type="button" variant="outline" onClick={() => startAnother("pipocas")}><Plus size={16} /> Outra pipoca</Button>}
+                      {fatiasAvailable && <Button type="button" variant="outline" onClick={() => startAnother("fatias")}><CakeSlice size={16} /> Outra fatia</Button>}
+                      {pipocasAvailable && <Button type="button" variant="outline" onClick={() => startAnother("pipocas")}><Plus size={16} /> Outra pipoca</Button>}
                       {STORE_CONFIG.enabledExtras.drinks && <Button type="button" variant="outline" onClick={() => scrollToSection("acompanhamentos")}><CupSoda size={16} /> Refrigerante</Button>}
                     </div>
                   </div>
@@ -1273,10 +1535,11 @@ export default function Home() {
               {cart.length === 0 ? <p className="summary-empty">Os produtos adicionados aparecerão aqui.</p> : cart.map((item, index) => {
                 const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
                 const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
+                const itemIssue = cartIssues.find((issue) => issue.cartItemId === item.id);
                 const names = item.optionIds.map((id) => product.options.find((option) => option.id === id)?.name).filter(Boolean).join(", ");
                 const lineTotal = itemUnitPrice(product, variant, item.optionIds) * item.quantity;
                 return (
-                  <div className="summary-item" key={item.id}>
+                  <div className={`summary-item ${itemIssue ? "is-unavailable" : ""}`} key={item.id}>
                     <div className="summary-item-main">
                       <span className="summary-item-index" aria-hidden="true">{index + 1}</span>
                       <div>
@@ -1284,6 +1547,7 @@ export default function Home() {
                         <span className="summary-variant">{variant.label}</span>
                         {names && product.optionLabel && <p>{product.optionLabel}: {names}</p>}
                         <small>Quantidade: {item.quantity}</small>
+                        {itemIssue && <span className="summary-unavailable">Indisponível — revise este item</span>}
                       </div>
                     </div>
                     <div className="summary-item-side">
@@ -1303,7 +1567,7 @@ export default function Home() {
               <button type="button" className="summary-link" onClick={() => enterCheckout("recebimento")}><span><small>Recebimento</small><strong>{fulfillment === "entrega" ? selectedDeliveryZone ? `Entrega — ${selectedDeliveryZone.label} · ${currency.format(deliveryFee)}` : "Entrega — escolher região" : fulfillment === "retirada" ? "Retirada em Paragominas" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
               <button type="button" className="summary-link" onClick={() => enterCheckout("pagamento")}><span><small>Pagamento</small><strong>{payment === "pix" ? "Pix" : payment === "dinheiro" ? "Dinheiro" : payment === "cartao" ? "Cartão na entrega" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
             </div>
-            <Button type="button" className="whatsapp-button" onClick={finishOnWhatsApp} disabled={!STORE_CONFIG.acceptingOrders} aria-describedby="checkout-status" data-event="whatsapp_checkout"><MessageCircle size={20} /> Finalizar pedido no WhatsApp</Button>
+            <Button type="button" className="whatsapp-button" onClick={finishOnWhatsApp} disabled={!availability.ordersOpen || isFinalizing} aria-describedby="checkout-status" data-event="whatsapp_checkout"><MessageCircle size={20} /> {isFinalizing ? "Conferindo pedido…" : "Finalizar pedido no WhatsApp"}</Button>
             <p id="checkout-status" className={checkoutReady ? "ready-status" : "checkout-status"} aria-live="polite">{checkoutReady && <Check size={14} />}{checkoutHint}</p>
           </aside>
         </div>
@@ -1315,7 +1579,7 @@ export default function Home() {
 
       <div className={`mobile-sticky-bar ${stickyIsWhatsAppReady ? "is-ready" : "is-building"}`} data-state={stickyIsWhatsAppReady ? "ready" : "building"}>
         <div><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></div>
-        <Button type="button" onClick={handleStickyAction} disabled={!STORE_CONFIG.acceptingOrders}>
+        <Button type="button" onClick={handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
           {stickyButtonLabel}
           {stickyIsWhatsAppReady ? <MessageCircle size={17} /> : <ChevronRight size={17} />}
         </Button>
