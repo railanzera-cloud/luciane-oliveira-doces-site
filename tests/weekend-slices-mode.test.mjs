@@ -22,15 +22,14 @@ test("keeps drinks ready to reactivate while hiding them from the current menu",
   assert.match(page, /scrollToSection\("acompanhamentos"\)/);
 });
 
-test("opens the configured category and blocks categories hidden remotely", () => {
-  assert.match(page, /const DEFAULT_CATEGORY: CategoryId = STORE_CONFIG\.enabledCategories\.pipocas \? "pipocas" : "fatias"/);
-  assert.match(page, /useState<CategoryId>\(DEFAULT_CATEGORY\)/);
-  assert.match(page, /if \(!categoryIsVisible\(category\)\) return/);
+test("starts neutral and resolves navigation from the existing availability controls", () => {
+  assert.doesNotMatch(page, /DEFAULT_CATEGORY/);
+  assert.match(page, /useState<CategoryId \| null>\(null\)/);
+  assert.match(page, /resolveMenuCategory\(availability, requestedCategory\)/);
+  assert.match(page, /if \(!categoryIsAvailable\(category\)\) return/);
   assert.match(page, /isItemVisible\(availability, CATEGORY_ITEM_KEYS\.pipocas\)/);
-  assert.match(page, /\{pipocasVisible && \(/);
-  assert.match(page, /\{fatiasVisible && \(/);
+  assert.match(page, /visibleCategories\.map/);
   assert.match(layout, /STORE_CONFIG\.enabledCategories\.pipocas/);
-  assert.match(layout, /Luciane Oliveira Doces \| Fatias Artesanais/);
 });
 
 test("removes statically disabled products from restored carts and hides unavailable add-more actions", () => {

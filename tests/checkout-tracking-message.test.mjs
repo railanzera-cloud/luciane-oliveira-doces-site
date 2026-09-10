@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+const navigation = await readFile(new URL("../app/menu-navigation.ts", import.meta.url), "utf8");
 const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
 
 function functionBody(source, functionName, nextFunctionName) {
@@ -13,9 +14,9 @@ function functionBody(source, functionName, nextFunctionName) {
   return source.slice(start, end);
 }
 
-test("keeps the requested slice sauce and checkout guidance copy", () => {
-  assert.match(page, /Escolha sua calda inclusa/);
-  assert.match(page, /Sua fatia já acompanha 1 potinho de calda\. Escolha o sabor:/);
+test("keeps the simplified slices and checkout guidance copy", () => {
+  assert.match(page, /Sabores disponíveis/);
+  assert.doesNotMatch(page, /calda|sauce/i);
   assert.match(page, /Ao continuar, seu pedido será enviado no WhatsApp para confirmação\./);
   assert.match(page, /Finalizar pedido no WhatsApp/);
 });
@@ -26,7 +27,7 @@ test("builds a clean and dynamic WhatsApp confirmation message", () => {
   assert.match(page, /\*RECEBIMENTO\*/);
   assert.match(page, /\*PAGAMENTO\*/);
   assert.match(page, /\*RESUMO\*/);
-  assert.match(page, /Calda/);
+  assert.doesNotMatch(page, /calda|sauce/i);
   assert.match(page, /Taxa estimada de entrega/);
   assert.match(page, /Entrega e valor final sujeitos à confirmação no WhatsApp/);
   assert.match(page, /Troco:/);
@@ -99,6 +100,6 @@ test("does not send Contact or Purchase from the site", () => {
 });
 
 test("preserves received campaign parameters when changing catalog category", () => {
-  assert.match(page, /const url = new URL\(window\.location\.href\)/);
-  assert.match(page, /`\$\{url\.pathname\}\$\{url\.search\}\$\{url\.hash\}`/);
+  assert.match(navigation, /const url = new URL\(href\)/);
+  assert.match(navigation, /`\$\{url\.pathname\}\$\{url\.search\}\$\{url\.hash\}`/);
 });

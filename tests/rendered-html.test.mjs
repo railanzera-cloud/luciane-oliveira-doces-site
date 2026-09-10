@@ -34,8 +34,9 @@ test("renders production metadata without a development preview marker", async (
   assert.match(html, /<title>Luciane Oliveira Doces \| Pipocas e Fatias Artesanais<\/title>/);
   assert.doesNotMatch(html, /refrigerantes/i);
   assert.doesNotMatch(html, /coca-cola-220/i);
-  assert.match(html, /Escolha uma pipoca ou uma fatia para começar/);
-  assert.match(html, /Pipocas Gourmet/);
+  assert.match(html, /Escolha o que deseja pedir/);
+  assert.match(html, /Carregando cardápio/);
+  assert.doesNotMatch(html, /id="configurador"/);
 });
 
 test("renders the admin route without exposing protected controls before auth", async () => {

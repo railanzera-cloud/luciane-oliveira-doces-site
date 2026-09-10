@@ -21,8 +21,8 @@ test("starts popcorn and slice choices empty", () => {
 test("guides dependent steps only after a conscious first choice", () => {
   assert.match(page, /Primeiro escolha o tamanho\. Depois, os sabores serão liberados/);
   assert.match(page, /const disabled = waitingForSize \|\| \(!available && !selected\) \|\| limitDisabled/);
-  assert.match(page, /Primeiro escolha sua fatia acima/);
-  assert.match(page, /disabled=\{!selectedSlice \|\| !fatiasAvailable \|\| !sliceIsAvailable\(selectedSlice\.id\) \|\| !sauce\.available\}/);
+  assert.match(page, /Confira a quantidade e adicione ao pedido/);
+  assert.match(page, /disabled=\{!sliceReady\}/);
 });
 
 test("keeps a second product easy to add after the first one", () => {
@@ -35,7 +35,7 @@ test("keeps a second product easy to add after the first one", () => {
 });
 
 test("lets the sticky action add a ready second item instead of skipping to checkout", () => {
-  assert.match(page, /const builderFlowActive = Boolean\(editingId \|\| builderEngaged \|\| draftReady \|\| !cart\.length\)/);
+  assert.match(page, /const builderFlowActive = Boolean\(activeCategory && \(editingId \|\| builderEngaged \|\| draftReady \|\| !cart\.length\)\)/);
   assert.match(page, /const stickyUsesCheckoutAction = !builderFlowActive/);
   assert.match(page, /function stickyBuilderAction\(\)/);
   assert.match(page, /function handleStickyAction\(\)/);
@@ -51,7 +51,6 @@ test("lets the sticky action add a ready second item instead of skipping to chec
 test("exposes clear active, complete, and locked step states", () => {
   assert.match(page, /type StepState = "active" \| "complete" \| "locked"/);
   assert.match(page, /step-state-\$\{sliceProductStepState\}/);
-  assert.match(page, /step-state-\$\{sliceSauceStepState\}/);
   assert.match(page, /step-state-\$\{sliceQuantityStepState\}/);
   assert.match(page, /Etapa \$\{number\} concluída/);
 });

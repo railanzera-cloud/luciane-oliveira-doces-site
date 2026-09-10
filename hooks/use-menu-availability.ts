@@ -17,6 +17,7 @@ export function useMenuAvailability() {
   const [snapshot, setSnapshot] = useState<AvailabilitySnapshot>(() => createFallbackAvailability());
   const snapshotRef = useRef(snapshot);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hasResolvedAvailability, setHasResolvedAvailability] = useState(false);
   const lastReportedErrorRef = useRef("");
 
   const refreshAvailability = useCallback(async (): Promise<AvailabilityRefreshResult> => {
@@ -37,6 +38,7 @@ export function useMenuAvailability() {
       return { snapshot: fallback, usedFallback: true };
     } finally {
       setIsRefreshing(false);
+      setHasResolvedAvailability(true);
     }
   }, []);
 
@@ -48,8 +50,10 @@ export function useMenuAvailability() {
     };
     window.addEventListener("focus", refreshWhenVisible);
     document.addEventListener("visibilitychange", refreshWhenVisible);
+    const refreshInterval = window.setInterval(refreshWhenVisible, 30_000);
     return () => {
       window.clearTimeout(initialRefresh);
+      window.clearInterval(refreshInterval);
       window.removeEventListener("focus", refreshWhenVisible);
       document.removeEventListener("visibilitychange", refreshWhenVisible);
     };
@@ -57,6 +61,7 @@ export function useMenuAvailability() {
 
   return {
     availability: snapshot,
+    hasResolvedAvailability,
     isRefreshingAvailability: isRefreshing,
     refreshAvailability,
   };

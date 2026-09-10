@@ -21,8 +21,7 @@ test("prices the four requested slices at R$ 20", () => {
 
 test("shows both enabled menus from R$ 20", () => {
   assert.match(page, /draftSubtotal === null\s*\? "A partir de R\$20"/);
-  assert.match(page, /facts: \["A partir de R\$20", "Calda grátis e separada"\]/);
-  assert.match(page, /facts: \["A partir de R\$20", "Até 3 sabores"\]/);
+  assert.match(page, /currency\.format\(variant\.price\)/);
 });
 
 test("makes Ninho com Morango in white batter available without a date notice", () => {

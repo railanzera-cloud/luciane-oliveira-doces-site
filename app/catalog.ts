@@ -58,23 +58,6 @@ export const STORE_CONFIG = {
   closedMessage: "Pedidos encerrados por hoje.",
 };
 
-export const SAUCES: ProductOption[] = [
-  {
-    id: "calda-chocolate",
-    name: "Chocolate",
-    description: "Calda de chocolate.",
-    tone: "#74412a",
-    available: true,
-  },
-  {
-    id: "calda-ninho",
-    name: "Ninho",
-    description: "Calda de Ninho.",
-    tone: "#ead9ba",
-    available: true,
-  },
-];
-
 // Catálogo central: preços, fotos e disponibilidade são alterados somente aqui.
 export const PRODUCTS: Product[] = [
   {
@@ -110,10 +93,9 @@ export const PRODUCTS: Product[] = [
     image: "/fatia-chocolate-morango.jpeg",
     cardImage: "/fatia-chocolate-morango-card.webp",
     imageAlt: "Fatia artesanal de chocolate com morango",
-    optionLabel: "Calda",
     available: true,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
-    options: SAUCES,
+    options: [],
   },
   {
     id: "fatia-ninho-morango",
@@ -124,10 +106,9 @@ export const PRODUCTS: Product[] = [
     image: "/fatia-ninho-morango.jpeg",
     cardImage: "/fatia-ninho-morango-card.webp",
     imageAlt: "Fatia artesanal de Ninho com morango em massa branca",
-    optionLabel: "Calda",
     available: true,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
-    options: SAUCES,
+    options: [],
   },
   {
     id: "fatia-prestigio",
@@ -137,10 +118,9 @@ export const PRODUCTS: Product[] = [
     image: "/fatia-prestigio.jpeg",
     cardImage: "/fatia-prestigio-card.webp",
     imageAlt: "Fatia artesanal de Prestígio com recheio cremoso",
-    optionLabel: "Calda",
     available: true,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
-    options: SAUCES,
+    options: [],
   },
   {
     id: "fatia-chocolate-maracuja",
@@ -150,10 +130,9 @@ export const PRODUCTS: Product[] = [
     image: "/fatia-chocolate-maracuja.jpeg",
     cardImage: "/fatia-chocolate-maracuja-card.webp",
     imageAlt: "Fatia artesanal de chocolate com maracujá",
-    optionLabel: "Calda",
     available: true,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
-    options: SAUCES,
+    options: [],
   },
   {
     id: "fatia-chocolatudo",
@@ -163,10 +142,9 @@ export const PRODUCTS: Product[] = [
     image: "/fatia-chocolatudo.jpeg",
     cardImage: "/fatia-chocolatudo-card-518c74f4.webp",
     imageAlt: "Fatia artesanal de chocolate com recheio de chocolate",
-    optionLabel: "Calda",
     available: true,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
-    options: SAUCES,
+    options: [],
   },
   {
     id: "fatia-chocolate-cenoura",
@@ -176,10 +154,9 @@ export const PRODUCTS: Product[] = [
     image: "/fatia-chocolate-cenoura.jpeg",
     cardImage: "/fatia-chocolate-cenoura-card-6de0c35d.webp",
     imageAlt: "Fatia artesanal de bolo de cenoura com chocolate",
-    optionLabel: "Calda",
     available: true,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
-    options: SAUCES,
+    options: [],
   },
   {
     id: "coca-cola-220",

@@ -37,17 +37,24 @@ async function fetchSupabaseRows<T>(path: string): Promise<T> {
     throw new Error(getSupabaseConfigurationIssue() ?? "Supabase indisponível.");
   }
 
-  const response = await fetch(new URL(path, url), {
-    headers: {
-      Accept: "application/json",
-      apikey: publishableKey,
-    },
-    cache: "no-store",
-  });
-  if (!response.ok) {
-    throw new Error(`Consulta de disponibilidade falhou (HTTP ${response.status}).`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6_000);
+  try {
+    const response = await fetch(new URL(path, url), {
+      headers: {
+        Accept: "application/json",
+        apikey: publishableKey,
+      },
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error(`Consulta de disponibilidade falhou (HTTP ${response.status}).`);
+    }
+    return await response.json() as T;
+  } finally {
+    clearTimeout(timeout);
   }
-  return response.json() as Promise<T>;
 }
 
 export async function loadRemoteAvailability(): Promise<AvailabilitySnapshot> {
