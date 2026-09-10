@@ -56,6 +56,11 @@ import {
 } from "@/app/menu-availability";
 import { categoryFromUrl, categoryUrl, publicCategories, resolveMenuCategory } from "@/app/menu-navigation";
 import { useMenuAvailability } from "@/hooks/use-menu-availability";
+import {
+  buildOrderMessage, captureOrderAttribution, cleanWhatsAppField, formatOrderMoney, newOrderContext,
+  parseCashCents, paymentDescription, restoreOrderContext,
+  type CheckoutDetails, type OrderAttribution, type OrderContext,
+} from "@/app/order-checkout";
 
 type CartItem = {
   id: string;
@@ -87,7 +92,11 @@ type SavedOrder = {
   deliveryZoneId: string;
   neighborhood: string;
   address: string;
+  addressNumber?: string;
+  complement?: string;
   reference: string;
+  order?: OrderContext | null;
+  order_details?: CheckoutDetails;
   payment: Payment;
   needsChange: boolean;
   changeFor: string;
@@ -134,11 +143,20 @@ function isProductEnabled(product: Product) {
   return STORE_CONFIG.enabledExtras.drinks;
 }
 
+let navigationByKeyboard = false;
+
 function scrollToSection(id: string) {
   const target = document.getElementById(id);
   if (!target) return;
   const heading = target.querySelector<HTMLElement>("h1, h2, h3") ?? target;
+  const previousTabIndex = heading.getAttribute("tabindex");
   heading.setAttribute("tabindex", "-1");
+  heading.setAttribute("data-navigation-focus", navigationByKeyboard ? "keyboard" : "pointer");
+  heading.addEventListener("blur", () => {
+    heading.removeAttribute("data-navigation-focus");
+    if (previousTabIndex === null) heading.removeAttribute("tabindex");
+    else heading.setAttribute("tabindex", previousTabIndex);
+  }, { once: true });
   heading.focus({ preventScroll: true });
   target.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
 }
@@ -251,15 +269,6 @@ function tintimWhatsAppUrl(message: string) {
   return `${TINTIM_SITE_LINK}?text=${encodeURIComponent(message)}`;
 }
 
-function cleanWhatsAppField(value: string) {
-  return value
-    .normalize("NFC")
-    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, "")
-    .replace(/[\r\n\t]+/g, " ")
-    .replace(/\s{2,}/g, " ")
-    .trim();
-}
-
 function sanitizeSavedCart(value: unknown): CartItem[] {
   if (!Array.isArray(value)) return [];
 
@@ -307,6 +316,9 @@ export default function Home() {
   const [deliveryZoneId, setDeliveryZoneId] = useState("");
   const [neighborhood, setNeighborhood] = useState("");
   const [address, setAddress] = useState("");
+  const [addressNumber, setAddressNumber] = useState("");
+  const [complement, setComplement] = useState("");
+  const [legacyAddressNotice, setLegacyAddressNotice] = useState(false);
   const [reference, setReference] = useState("");
   const [payment, setPayment] = useState<Payment>("");
   const [needsChange, setNeedsChange] = useState(false);
@@ -317,6 +329,14 @@ export default function Home() {
   const [builderEngaged, setBuilderEngaged] = useState(true);
   const [checkoutAvailabilityMessage, setCheckoutAvailabilityMessage] = useState("");
   const [isFinalizing, setIsFinalizing] = useState(false);
+  const [openingWhatsApp, setOpeningWhatsApp] = useState(false);
+  const [orderContext, setOrderContext] = useState<OrderContext | null>(null);
+  const orderContextRef = useRef<OrderContext | null>(null);
+  const attributionRef = useRef<OrderAttribution | undefined>(undefined);
+  const finalizationLockRef = useRef(false);
+  const navigationPendingRef = useRef(false);
+  const checkoutFingerprintRef = useRef("");
+  const unlockTimerRef = useRef<number | undefined>(undefined);
   const { availability, hasResolvedAvailability, refreshAvailability } = useMenuAvailability();
   const visibleCategories = publicCategories(availability);
   const activeCategory = hasResolvedAvailability ? resolveMenuCategory(availability, requestedCategory) : null;
@@ -371,6 +391,43 @@ export default function Home() {
   }
 
   useEffect(() => {
+    const keyboard = (event: KeyboardEvent) => {
+      if (!event.altKey && !event.ctrlKey && !event.metaKey) navigationByKeyboard = true;
+    };
+    const pointer = () => { navigationByKeyboard = false; };
+    document.addEventListener("keydown", keyboard, true);
+    document.addEventListener("pointerdown", pointer, true);
+    let leftPage = false;
+    const reset = () => {
+      if (!navigationPendingRef.current) return;
+      navigationPendingRef.current = false;
+      finalizationLockRef.current = false;
+      window.clearTimeout(unlockTimerRef.current);
+      setIsFinalizing(false);
+      setOpeningWhatsApp(false);
+      setCheckoutAvailabilityMessage("");
+    };
+    const onLeave = () => { if (navigationPendingRef.current) leftPage = true; };
+    const onReturn = () => { if (leftPage) { leftPage = false; reset(); } };
+    const onVisibility = () => document.visibilityState === "hidden" ? onLeave() : onReturn();
+    window.addEventListener("pagehide", onLeave);
+    window.addEventListener("pageshow", onReturn);
+    window.addEventListener("blur", onLeave);
+    window.addEventListener("focus", onReturn);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.clearTimeout(unlockTimerRef.current);
+      document.removeEventListener("keydown", keyboard, true);
+      document.removeEventListener("pointerdown", pointer, true);
+      window.removeEventListener("pagehide", onLeave);
+      window.removeEventListener("pageshow", onReturn);
+      window.removeEventListener("blur", onLeave);
+      window.removeEventListener("focus", onReturn);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, []);
+
+  useEffect(() => {
     if (window.__lucianeViewContentTracked) return;
     if (trackMetaEvent("ViewContent")) {
       window.__lucianeViewContentTracked = true;
@@ -402,6 +459,7 @@ export default function Home() {
       }
     }
 
+    attributionRef.current = captureOrderAttribution(window.location.href, document.cookie, savedOrder?.order?.attribution);
     const restoreTimer = window.setTimeout(() => {
       if (savedOrder) {
         setCart(savedCart);
@@ -411,7 +469,21 @@ export default function Home() {
           setDeliveryZoneId(savedOrder.deliveryZoneId);
         }
         if (typeof savedOrder.neighborhood === "string") setNeighborhood(savedOrder.neighborhood);
-        if (typeof savedOrder.address === "string") setAddress(savedOrder.address);
+        if (typeof savedOrder.address === "string") {
+          setAddress(savedOrder.address);
+          setLegacyAddressNotice(Boolean(savedOrder.address && !savedOrder.addressNumber));
+        }
+        if (typeof savedOrder.addressNumber === "string") setAddressNumber(savedOrder.addressNumber);
+        if (typeof savedOrder.complement === "string") setComplement(savedOrder.complement);
+        if (savedCart.length > 0) {
+          try {
+            const context = restoreOrderContext(savedOrder.order, attributionRef.current!);
+            orderContextRef.current = context;
+            setOrderContext(context);
+          } catch {
+            setCheckoutAvailabilityMessage("Não foi possível gerar o código do pedido. Tente finalizar novamente.");
+          }
+        }
         if (typeof savedOrder.reference === "string") setReference(savedOrder.reference);
         if (savedOrder.payment === "pix" || savedOrder.payment === "dinheiro" || savedOrder.payment === "cartao") setPayment(savedOrder.payment);
         if (typeof savedOrder.needsChange === "boolean") setNeedsChange(savedOrder.needsChange);
@@ -431,35 +503,6 @@ export default function Home() {
       window.removeEventListener("popstate", followHistory);
     };
   }, []);
-
-  useEffect(() => {
-    if (!storageReady) return;
-    const hasSavedData = cart.length > 0
-      || Boolean(fulfillment || deliveryZoneId || neighborhood || address || reference || payment || changeFor);
-    try {
-      if (!hasSavedData) {
-        window.sessionStorage.removeItem(ORDER_STORAGE_KEY);
-        return;
-      }
-      const savedOrder: SavedOrder = {
-        version: 2,
-        cart,
-        fulfillment,
-        deliveryZoneId,
-        neighborhood,
-        address,
-        reference,
-        payment,
-        needsChange,
-        changeFor,
-        initiateCheckoutTracked: checkoutStartedRef.current,
-        paymentInfoTracked: paymentInfoTrackedRef.current,
-      };
-      window.sessionStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(savedOrder));
-    } catch {
-      // O armazenamento da aba é uma conveniência; o fluxo do pedido não depende dele.
-    }
-  }, [address, cart, changeFor, deliveryZoneId, fulfillment, needsChange, neighborhood, payment, reference, storageReady]);
 
   const popcornVariant = POPCORN.variants.find((variant) => variant.id === popcornVariantId);
   const popcornVariantUsable = Boolean(popcornVariant?.available && pipocasAvailable && popcornSizeIsAvailable(popcornVariant.id));
@@ -519,8 +562,16 @@ export default function Home() {
     ? popcornUnitPrice === null ? null : popcornUnitPrice * popcornQuantity
     : selectedSliceVariant ? selectedSliceVariant.price * sliceQuantity : null;
   const addressReady = fulfillment !== "entrega"
-    || Boolean(selectedDeliveryZone && deliveryNeighborhood && address.trim() && reference.trim());
-  const paymentReady = Boolean(payment) && (payment !== "dinheiro" || !needsChange || Boolean(changeFor.trim()));
+    || Boolean(selectedDeliveryZone && cleanWhatsAppField(deliveryNeighborhood) && cleanWhatsAppField(address) && cleanWhatsAppField(addressNumber));
+  const cashReceivedCents = parseCashCents(changeFor);
+  const changeError = payment === "dinheiro" && needsChange
+    ? cashReceivedCents === null
+      ? "Informe um valor válido para o troco. Ex.: 50,00."
+      : cashReceivedCents < Math.round(orderTotal * 100)
+        ? `O valor para troco deve ser igual ou maior que ${formatOrderMoney(orderTotal)}.`
+        : ""
+    : "";
+  const paymentReady = Boolean(payment) && !changeError;
   const checkoutFormReady = cart.length > 0
     && Boolean(fulfillment)
     && addressReady
@@ -556,9 +607,13 @@ export default function Home() {
       ? "A partir de R$20"
       : currency.format(draftSubtotal);
   const stickyPriceCaption = cart.length > 0 && !builderFlowActive
-    ? hasEstimatedTotal ? "Total estimado" : "Subtotal"
+    ? hasEstimatedTotal ? "Total" : "Subtotal"
     : activeCategory === "pipocas" ? "Sua pipoca" : "Sua fatia";
-  const stickyButtonLabel = !availability.ordersOpen
+  const paymentLabel = paymentDescription(payment, fulfillment);
+  const finalButtonLabel = isFinalizing
+    ? openingWhatsApp ? "Abrindo WhatsApp…" : "Conferindo pedido…"
+    : payment === "pix" ? "Enviar pedido e pagar via Pix" : "Enviar pedido no WhatsApp";
+  const stickyButtonLabel = isFinalizing ? finalButtonLabel : !availability.ordersOpen
     ? "Pedidos fechados"
     : !categoryIsAvailable(activeCategory) && builderFlowActive
       ? "Esgotado no momento"
@@ -572,7 +627,55 @@ export default function Home() {
         ? activeCategory === "pipocas"
           ? popcornVariant ? "Escolher meus sabores" : "Escolher tamanho"
           : "Escolher minha fatia"
-          : checkoutReady ? "Finalizar no WhatsApp" : "Continuar pedido";
+          : checkoutReady ? finalButtonLabel : "Continuar pedido";
+
+  const checkoutDetails: CheckoutDetails = {
+    items: cart.map((item) => {
+      const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
+      const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
+      return {
+        product_id: product.id, variant_id: variant.id, option_ids: [...item.optionIds],
+        name: productLabel(product), size: variant.whatsappLabel, kind: product.kind,
+        options: item.optionIds.map((id) => product.options.find((option) => option.id === id)?.name).filter((name): name is string => Boolean(name)),
+        quantity: item.quantity, unit_price: itemUnitPrice(product, variant, item.optionIds),
+      };
+    }),
+    fulfillment, neighborhood: deliveryNeighborhood, street: address, number: addressNumber,
+    complement, reference, payment, needs_change: needsChange, cash_received_cents: cashReceivedCents,
+    subtotal: cartSubtotal, delivery_fee: deliveryFee, total: orderTotal, currency: "BRL",
+  };
+  const checkoutFingerprint = JSON.stringify(checkoutDetails);
+  useEffect(() => {
+    checkoutFingerprintRef.current = checkoutFingerprint;
+    if (!storageReady || !cart.length) return;
+    const current = orderContextRef.current;
+    // Retentativa mantém o código. Edição após abrir o WhatsApp inicia outro pedido.
+    if (!current || (current.handoff_fingerprint && current.handoff_fingerprint !== checkoutFingerprint)) {
+      try {
+        const next = newOrderContext(captureOrderAttribution(window.location.href, document.cookie, current?.attribution ?? attributionRef.current));
+        orderContextRef.current = next;
+        setOrderContext(next);
+      } catch {
+        setCheckoutAvailabilityMessage("Não foi possível gerar o código do pedido. Tente finalizar novamente.");
+      }
+    }
+  }, [checkoutFingerprint, storageReady, cart.length]);
+
+  const savedOrder: SavedOrder = {
+    version: 2, cart, fulfillment, deliveryZoneId, neighborhood, address, addressNumber, complement,
+    reference, payment, needsChange, changeFor, order: orderContext, order_details: checkoutDetails,
+  };
+  const serializedOrder = JSON.stringify(savedOrder);
+  const hasSavedData = cart.length > 0 || Boolean(fulfillment || deliveryZoneId || neighborhood || address || addressNumber || complement || reference || payment || changeFor);
+  useEffect(() => {
+    if (!storageReady) return;
+    try {
+      if (hasSavedData) window.sessionStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify({ ...JSON.parse(serializedOrder), initiateCheckoutTracked: checkoutStartedRef.current, paymentInfoTracked: paymentInfoTrackedRef.current }));
+      else window.sessionStorage.removeItem(ORDER_STORAGE_KEY);
+    } catch {
+      // Quando o armazenamento é bloqueado, o estado em memória continua disponível nesta página.
+    }
+  }, [hasSavedData, serializedOrder, storageReady]);
 
   useEffect(() => {
     if (cart.length === 0) {
@@ -650,6 +753,12 @@ export default function Home() {
   }
 
   function clearOrder() {
+    if (finalizationLockRef.current) return;
+    orderContextRef.current = null;
+    setOrderContext(null);
+    setAddressNumber("");
+    setComplement("");
+    setLegacyAddressNotice(false);
     setCart([]);
     setFulfillment("");
     setDeliveryZoneId("");
@@ -886,53 +995,13 @@ export default function Home() {
       : item));
   }
 
-  function buildWhatsAppMessage() {
-    const orderLines = cart.map((item, index) => {
-      const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
-      const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
-      const optionNames = item.optionIds
-        .map((id) => product.options.find((option) => option.id === id)?.name)
-        .filter(Boolean)
-        .join(" + ");
-      const itemQuantity = product.kind === "slice"
-        ? `${item.quantity} ${item.quantity === 1 ? "fatia" : "fatias"}`
-        : `${item.quantity} un.`;
-      const itemTitle = product.kind === "slice"
-        ? `${productLabel(product)} — ${itemQuantity}`
-        : `${productLabel(product)} ${variant.whatsappLabel} — ${itemQuantity}`;
-      const optionLabel = product.optionLabel;
-      const optionLine = optionNames && optionLabel ? `\n    ${optionLabel}: ${optionNames}` : "";
-      return `*${index + 1}. ${itemTitle}*${optionLine}\n    ${currency.format(itemUnitPrice(product, variant, item.optionIds) * item.quantity)}`;
-    }).join("\n\n");
-
-    const neighborhoodLine = selectedDeliveryZone?.asksNeighborhood
-      ? `\nBairro: ${cleanWhatsAppField(deliveryNeighborhood)}`
-      : "";
-    const receivingLines = fulfillment === "entrega"
-      ? `Entrega\nRegião: ${selectedDeliveryZone?.label ?? "Não informada"}${neighborhoodLine}\nEndereço: ${cleanWhatsAppField(address)}\nReferência: ${cleanWhatsAppField(reference)}`
-      : "Retirada\nCidade: Paragominas";
-    const paymentLabel = payment === "pix"
-      ? "Pix"
-      : payment === "dinheiro"
-        ? `Dinheiro\nTroco: ${needsChange ? `para ${cleanWhatsAppField(changeFor)}` : "não precisa"}`
-        : "Cartão na entrega";
-    const deliveryLine = fulfillment === "entrega"
-      ? `Taxa estimada de entrega: ${currency.format(deliveryFee)}`
-      : "Taxa de entrega: não se aplica";
-    const totalLine = fulfillment === "entrega"
-      ? `*Total estimado: ${currency.format(orderTotal)}*`
-      : `*Total: ${currency.format(orderTotal)}*`;
-    const confirmationLine = fulfillment === "entrega"
-      ? "Entrega e valor final sujeitos à confirmação no WhatsApp."
-      : "Pedido e retirada sujeitos à confirmação no WhatsApp.";
-    const pixInstructions = payment === "pix"
-      ? `\n\n*PIX — USE APÓS A CONFIRMAÇÃO*\nTitular: ${PIX_DETAILS.holder}\nChave Pix (${PIX_DETAILS.keyType}): ${PIX_DETAILS.key}\n\n*Aguarde a confirmação da Luciane antes de pagar.*\nApós o pagamento, envie o comprovante por esta conversa.`
-      : "";
-
-    return `Olá! Finalizei meu pedido pelo cardápio da *Luciane Oliveira Doces*. Segue para confirmação:\n\n*PEDIDO*\n${orderLines}\n\n*RECEBIMENTO*\n${receivingLines}\n\n*PAGAMENTO*\n${paymentLabel}\n\n*RESUMO*\nProdutos: ${currency.format(cartSubtotal)}\n${deliveryLine}\n${totalLine}\n\n${confirmationLine}${pixInstructions}`;
+  function buildWhatsAppMessage(orderId: string) {
+    return buildOrderMessage(checkoutDetails, orderId, PIX_DETAILS);
   }
 
   async function finishOnWhatsApp() {
+    // Trava síncrona: protege também dois toques antes do próximo render do React.
+    if (finalizationLockRef.current) return;
     if (!availability.ordersOpen) {
       scrollToSection("inicio");
       return;
@@ -940,43 +1009,72 @@ export default function Home() {
     if (!checkoutFormReady) {
       if (!cart.length) {
         setBuilderEngaged(true);
-        scrollToSection("configurador");
+        scrollToSection(activeCategory ? "configurador" : "inicio");
+      } else if (!fulfillment || !addressReady) enterCheckout("recebimento");
+      else {
+        setCheckoutAvailabilityMessage(changeError || "Escolha a forma de pagamento.");
+        enterCheckout("pagamento");
       }
-      else if (!fulfillment || !addressReady) enterCheckout("recebimento");
-      else enterCheckout("pagamento");
       return;
     }
 
-    if (isFinalizing) return;
+    finalizationLockRef.current = true;
     setIsFinalizing(true);
+    setOpeningWhatsApp(false);
     setCheckoutAvailabilityMessage("Conferindo a disponibilidade do seu pedido…");
-    const latest = await refreshAvailability();
-
-    if (latest.usedFallback) {
-      setCheckoutAvailabilityMessage("Não foi possível confirmar a disponibilidade agora. Seu pedido continua salvo nesta aba; tente finalizar novamente em instantes.");
-      setIsFinalizing(false);
+    let navigationStarted = false;
+    try {
+      const latest = await refreshAvailability();
+      if (latest.usedFallback) {
+        throw new Error("Não foi possível confirmar a disponibilidade agora. Seu pedido continua salvo nesta aba; tente finalizar novamente em instantes.");
+      }
+      if (!latest.snapshot.ordersOpen) {
+        setCheckoutAvailabilityMessage(STORE_CONFIG.closedMessage);
+        scrollToSection("inicio");
+        return;
+      }
+      const latestIssues = cartAvailabilityIssues(cart, latest.snapshot);
+      if (latestIssues.length > 0) {
+        throw new Error(`Um item do seu pedido acabou de ficar indisponível: ${latestIssues.map((issue) => issue.itemLabel).join(", ")}. Revise o carrinho para continuar.`);
+      }
+      if (checkoutFingerprintRef.current !== checkoutFingerprint) {
+        throw new Error("O pedido foi alterado durante a conferência. Confira o resumo e tente novamente.");
+      }
+      const previous = orderContextRef.current;
+      const attribution = captureOrderAttribution(window.location.href, document.cookie, previous?.attribution ?? attributionRef.current);
+      const context = !previous || (previous.handoff_fingerprint && previous.handoff_fingerprint !== checkoutFingerprint)
+        ? newOrderContext(attribution) : { ...previous, attribution };
+      const next = { ...context, whatsapp_attempted_at: new Date().toISOString(), handoff_fingerprint: checkoutFingerprint };
+      const message = buildWhatsAppMessage(next.order_id);
+      orderContextRef.current = next;
+      setOrderContext(next);
+      // Grava antes da navegação, sem depender de um efeito posterior do React.
+      try { window.sessionStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify({ ...savedOrder, order: next, initiateCheckoutTracked: checkoutStartedRef.current, paymentInfoTracked: paymentInfoTrackedRef.current })); } catch { /* Estado em memória preservado. */ }
+      setOpeningWhatsApp(true);
+      setCheckoutAvailabilityMessage("Abra o WhatsApp e toque em enviar para encaminhar seu pedido.");
+      navigationPendingRef.current = true;
+      window.location.assign(tintimWhatsAppUrl(message));
+      navigationStarted = true;
+      // Libera uma nova tentativa se o navegador não sair da página.
+      unlockTimerRef.current = window.setTimeout(() => {
+        if (document.visibilityState !== "visible") return;
+        navigationPendingRef.current = false;
+        finalizationLockRef.current = false;
+        setIsFinalizing(false);
+        setOpeningWhatsApp(false);
+        setCheckoutAvailabilityMessage("Se o WhatsApp não abriu, toque no botão para tentar novamente.");
+      }, 5000);
+    } catch (error) {
+      setCheckoutAvailabilityMessage(error instanceof Error ? error.message : "Não foi possível abrir o WhatsApp. Seu pedido foi preservado; tente novamente.");
       scrollToSection("carrinho");
-      return;
+    } finally {
+      if (!navigationStarted) {
+        navigationPendingRef.current = false;
+        finalizationLockRef.current = false;
+        setIsFinalizing(false);
+        setOpeningWhatsApp(false);
+      }
     }
-
-    const latestIssues = cartAvailabilityIssues(cart, latest.snapshot);
-
-    if (!latest.snapshot.ordersOpen) {
-      setCheckoutAvailabilityMessage(STORE_CONFIG.closedMessage);
-      setIsFinalizing(false);
-      scrollToSection("inicio");
-      return;
-    }
-
-    if (latestIssues.length > 0) {
-      const itemNames = latestIssues.map((issue) => issue.itemLabel).join(", ");
-      setCheckoutAvailabilityMessage(`Um item do seu pedido acabou de ficar indisponível: ${itemNames}. Revise o carrinho para continuar.`);
-      setIsFinalizing(false);
-      scrollToSection("carrinho");
-      return;
-    }
-
-    window.location.assign(tintimWhatsAppUrl(buildWhatsAppMessage()));
   }
 
   function stickyBuilderAction() {
@@ -1019,8 +1117,10 @@ export default function Home() {
               : !payment
                 ? "Escolha a forma de pagamento."
                 : !paymentReady
-                  ? "Informe o valor para o troco."
-                  : "Ao continuar, seu pedido será enviado no WhatsApp para confirmação.");
+                  ? changeError
+                  : payment === "pix"
+                    ? "No WhatsApp: envie o pedido, faça o Pix com a chave da mensagem e envie o comprovante."
+                    : `No WhatsApp, toque em enviar para encaminhar o pedido. O pagamento será feito na ${fulfillment === "retirada" ? "retirada" : "entrega"}.`);
 
   return (
     <main>
@@ -1063,7 +1163,7 @@ export default function Home() {
               ? "Escolha o tamanho e combine seus sabores."
               : activeCategory === "fatias"
                 ? "Sabores disponíveis"
-                : "Monte seu pedido pelo site e envie para confirmação no WhatsApp."}</p>
+                : "Monte seu pedido pelo site e envie pelo WhatsApp."}</p>
           </div>
           {!hasResolvedAvailability ? (
             <div className="entry-loading" role="status">Carregando cardápio…</div>
@@ -1451,15 +1551,18 @@ export default function Home() {
                       </SelectContent>
                     </Select>
                     {selectedDeliveryZone && (
-                      <span className="delivery-price-preview">Taxa estimada: <strong>{currency.format(selectedDeliveryZone.price)}</strong></span>
+                      <span className="delivery-price-preview">Taxa de entrega: <strong>{currency.format(selectedDeliveryZone.price)}</strong></span>
                     )}
                   </div>
                   {selectedDeliveryZone?.asksNeighborhood && (
                     <div className="field-group"><label htmlFor="neighborhood">Bairro</label><Input id="neighborhood" value={neighborhood} onChange={(event) => setNeighborhood(event.target.value)} placeholder="Informe seu bairro" autoComplete="address-level3" /></div>
                   )}
-                  <div className="field-group"><label htmlFor="address">Endereço</label><Input id="address" value={address} onChange={(event) => setAddress(event.target.value)} placeholder="Rua, número e complemento" autoComplete="street-address" /></div>
-                  <div className="field-group"><label htmlFor="reference">Ponto de referência</label><Input id="reference" value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Ex.: próximo à praça" /></div>
-                  <p className="field-note">A taxa é calculada automaticamente pela região e será confirmada no WhatsApp junto com o endereço.</p>
+                  {legacyAddressNotice && <p className="field-note" role="status">Seu endereço anterior foi preservado. Confira a rua e informe o número; se não houver, use s/n.</p>}
+                  <div className="field-group"><label htmlFor="address">Rua</label><Input id="address" value={address} onChange={(event) => setAddress(event.target.value)} placeholder="Ex.: Rua das Flores" autoComplete="address-line1" /></div>
+                  <div className="field-group"><label htmlFor="address-number">Número</label><Input id="address-number" value={addressNumber} onChange={(event) => { setAddressNumber(event.target.value); setLegacyAddressNotice(false); }} placeholder="Ex.: 123 ou s/n" /></div>
+                  <div className="field-group"><label htmlFor="complement">Complemento (opcional)</label><Input id="complement" value={complement} onChange={(event) => setComplement(event.target.value)} placeholder="Ex.: casa 2, apartamento" autoComplete="address-line2" /></div>
+                  <div className="field-group"><label htmlFor="reference">Ponto de referência (opcional)</label><Input id="reference" value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Ex.: próximo à praça" /></div>
+                  <p className="field-note">A taxa é calculada pela região escolhida. Confira o endereço e o total antes de enviar.</p>
                 </div>
               )}
               {fulfillment === "retirada" && <div className="pickup-note"><MapPin size={18} /><span><strong>Retirada disponível em Paragominas.</strong>O horário e o local serão confirmados no WhatsApp.</span></div>}
@@ -1468,19 +1571,22 @@ export default function Home() {
             <section className={`order-card payment-card step-state-${paymentStepState}`} id="pagamento" aria-labelledby="payment-title">
               <div className="order-card-heading payment-heading"><div><p className="eyebrow">Pagamento</p><h2 id="payment-title">Como prefere pagar?</h2></div></div>
               <RadioGroup className="payment-list" value={payment} onValueChange={choosePayment} aria-label="Forma de pagamento">
-                {[["pix", "Pix"], ["dinheiro", "Dinheiro"], ["cartao", "Cartão na entrega"]].map(([value, label]) => (
+                {[["pix", "Pix"], ["dinheiro", "Dinheiro"], ["cartao", paymentDescription("cartao", fulfillment)]].map(([value, label]) => (
                   <label className={`payment-option ${payment === value ? "is-selected" : ""}`} htmlFor={`payment-${value}`} key={value}>
                     <RadioGroupItem id={`payment-${value}`} value={value} /><span>{label}</span>{payment === value && <Check size={17} />}
                   </label>
                 ))}
               </RadioGroup>
+              {payment === "pix" && <p className="payment-guidance">O próximo passo é no WhatsApp: envie o pedido e use a chave Pix da mensagem para pagar. Depois, envie o comprovante na mesma conversa.</p>}
+              {payment === "cartao" && <p className="payment-guidance">{fulfillment === "retirada" ? "Pague no cartão ao retirar. Aguarde a confirmação do pedido antes de se deslocar." : fulfillment === "entrega" ? "Pague no cartão no momento da entrega." : "O pagamento será feito no momento da entrega ou retirada."}</p>}
               {payment === "dinheiro" && (
                 <div className="change-box">
                   <div className="change-question"><span><strong>Precisa de troco?</strong><small>Opcional</small></span><div className="segmented-control">
                     <Button type="button" variant={!needsChange ? "default" : "ghost"} onClick={() => setNeedsChange(false)}>Não</Button>
                     <Button type="button" variant={needsChange ? "default" : "ghost"} onClick={() => setNeedsChange(true)}>Sim</Button>
                   </div></div>
-                  {needsChange && <div className="field-group"><label htmlFor="change-for">Troco para quanto?</label><Input id="change-for" value={changeFor} onChange={(event) => setChangeFor(event.target.value)} placeholder="Ex.: R$ 100" inputMode="decimal" /></div>}
+                  {needsChange && <div className="field-group"><label htmlFor="change-for">Troco para quanto?</label><Input id="change-for" value={changeFor} onChange={(event) => setChangeFor(event.target.value)} placeholder="Ex.: 50,00" inputMode="decimal" aria-invalid={Boolean(changeError)} aria-describedby="change-help" /><p id="change-help" className={changeError ? "field-error" : "field-note"} aria-live="polite">{changeError || `Troco necessário: ${formatOrderMoney((cashReceivedCents! - Math.round(orderTotal * 100)) / 100)}`}</p></div>}
+                  <p className="field-note">{fulfillment === "retirada" ? "Pagamento em dinheiro no momento da retirada." : fulfillment === "entrega" ? "Pagamento em dinheiro no momento da entrega." : "Pagamento em dinheiro na entrega ou retirada."}</p>
                 </div>
               )}
             </section>
@@ -1488,6 +1594,7 @@ export default function Home() {
 
           <aside className="summary-card" aria-labelledby="summary-title">
             <p className="eyebrow">Confira antes de enviar</p><h2 id="summary-title">Resumo do pedido</h2>
+            {cart.length > 0 && <p className="order-code" aria-live="polite">Código do pedido: <strong>{orderContext?.order_id ?? "Gerando código…"}</strong></p>}
             <div className="summary-content">
               {cart.length === 0 ? <p className="summary-empty">Os produtos adicionados aparecerão aqui.</p> : cart.map((item, index) => {
                 const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
@@ -1516,15 +1623,19 @@ export default function Home() {
               })}
               <div className="summary-row"><span>Subtotal</span><strong>{currency.format(cartSubtotal)}</strong></div>
               {fulfillment === "entrega" && selectedDeliveryZone && (
-                <div className="summary-row summary-delivery"><span>Taxa estimada de entrega</span><strong>{currency.format(deliveryFee)}</strong></div>
+                <div className="summary-row summary-delivery"><span>Taxa de entrega</span><strong>{currency.format(deliveryFee)}</strong></div>
               )}
+              {fulfillment === "retirada" && <div className="summary-row"><span>Taxa de entrega</span><strong>Não se aplica</strong></div>}
               {cart.length > 0 && (fulfillment === "retirada" || (fulfillment === "entrega" && selectedDeliveryZone)) && (
-                <div className="summary-row summary-total"><span>Total estimado</span><strong>{currency.format(orderTotal)}</strong></div>
+                <div className="summary-row summary-total"><span>Total</span><strong>{currency.format(orderTotal)}</strong></div>
               )}
+              {fulfillment === "entrega" && <div className="summary-address"><strong>Endereço de entrega</strong><p>{[address, addressNumber].filter(Boolean).join(", ") || "Informe a rua e o número"}</p>{complement && <p>{complement}</p>}<p>{deliveryNeighborhood || "Informe o bairro"}</p>{reference && <p>Referência: {reference}</p>}</div>}
+              {payment === "dinheiro" && needsChange && !changeError && <div className="summary-address"><p>Troco para: {formatOrderMoney(cashReceivedCents! / 100)}</p><p>Troco necessário: {formatOrderMoney((cashReceivedCents! - Math.round(orderTotal * 100)) / 100)}</p></div>}
               <button type="button" className="summary-link" onClick={() => enterCheckout("recebimento")}><span><small>Recebimento</small><strong>{fulfillment === "entrega" ? selectedDeliveryZone ? `Entrega — ${selectedDeliveryZone.label} · ${currency.format(deliveryFee)}` : "Entrega — escolher região" : fulfillment === "retirada" ? "Retirada em Paragominas" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
-              <button type="button" className="summary-link" onClick={() => enterCheckout("pagamento")}><span><small>Pagamento</small><strong>{payment === "pix" ? "Pix" : payment === "dinheiro" ? "Dinheiro" : payment === "cartao" ? "Cartão na entrega" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
+              <button type="button" className="summary-link" onClick={() => enterCheckout("pagamento")}><span><small>Pagamento</small><strong>{paymentLabel}</strong></span><ChevronRight size={18} /></button>
             </div>
-            <Button type="button" className="whatsapp-button" onClick={finishOnWhatsApp} disabled={!availability.ordersOpen || isFinalizing} aria-describedby="checkout-status" data-event="whatsapp_checkout"><MessageCircle size={20} /> {isFinalizing ? "Conferindo pedido…" : "Finalizar pedido no WhatsApp"}</Button>
+            <Button type="button" className="whatsapp-button" onClick={finishOnWhatsApp} disabled={!availability.ordersOpen || isFinalizing} aria-describedby="checkout-status" data-event="whatsapp_checkout"><MessageCircle size={20} /> {finalButtonLabel}</Button>
+            {orderContext?.whatsapp_attempted_at && <div className="whatsapp-return-note" role="status"><strong>Continue no WhatsApp</strong><p>Envie a mensagem por lá para encaminhar o pedido. Seu pedido continua nesta aba para consulta.</p><Button type="button" variant="outline" onClick={clearOrder} disabled={isFinalizing}>Fazer novo pedido</Button></div>}
             <p id="checkout-status" className={checkoutReady ? "ready-status" : "checkout-status"} aria-live="polite">{checkoutReady && <Check size={14} />}{checkoutHint}</p>
           </aside>
         </div>

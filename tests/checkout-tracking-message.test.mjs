@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+const messageSource = await readFile(new URL("../app/order-checkout.ts", import.meta.url), "utf8");
 const navigation = await readFile(new URL("../app/menu-navigation.ts", import.meta.url), "utf8");
 const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
 
@@ -14,35 +15,30 @@ function functionBody(source, functionName, nextFunctionName) {
   return source.slice(start, end);
 }
 
-test("keeps the simplified slices and checkout guidance copy", () => {
+test("keeps simplified slices and explains the explicit WhatsApp send", () => {
   assert.match(page, /Sabores disponíveis/);
   assert.doesNotMatch(page, /calda|sauce/i);
-  assert.match(page, /Ao continuar, seu pedido será enviado no WhatsApp para confirmação\./);
-  assert.match(page, /Finalizar pedido no WhatsApp/);
+  assert.match(page, /toque em enviar para encaminhar o pedido/);
+  assert.match(page, /Enviar pedido e pagar via Pix/);
+  assert.match(page, /Enviar pedido no WhatsApp/);
 });
 
-test("builds a clean and dynamic WhatsApp confirmation message", () => {
-  assert.match(page, /Olá! Finalizei meu pedido pelo cardápio da \*Luciane Oliveira Doces\*\. Segue para confirmação:/);
-  assert.match(page, /\*PEDIDO\*/);
-  assert.match(page, /\*RECEBIMENTO\*/);
-  assert.match(page, /\*PAGAMENTO\*/);
-  assert.match(page, /\*RESUMO\*/);
-  assert.doesNotMatch(page, /calda|sauce/i);
-  assert.match(page, /Taxa estimada de entrega/);
-  assert.match(page, /Entrega e valor final sujeitos à confirmação no WhatsApp/);
-  assert.match(page, /Troco:/);
+test("builds a clean payment-specific message with an order code", () => {
+  assert.match(messageSource, /Olá! Finalizei meu pedido pelo cardápio da \*Luciane Oliveira Doces\*\./);
+  for (const heading of ["RECEBIMENTO", "PAGAMENTO", "RESUMO"]) assert.ok(messageSource.includes(`*${heading}*`));
+  assert.ok(messageSource.includes("*PEDIDO ${orderId}*"));
+  assert.doesNotMatch(messageSource, /Segue para confirmação|USE APÓS A CONFIRMAÇÃO|Aguarde a confirmação da Luciane antes de pagar|Total estimado/);
+  assert.match(messageSource, /Troco para:/);
+  assert.match(messageSource, /Troco necessário:/);
 });
 
-test("includes organized Pix details only when Pix is selected", () => {
-  assert.match(page, /const PIX_DETAILS = \{/);
+test("preserves the exact Pix key and instructs payment inside WhatsApp", () => {
   assert.match(page, /holder: "Luciane Galvão de Oliveira"/);
   assert.match(page, /key: "03611974200"/);
   assert.match(page, /keyType: "CPF"/);
-  assert.match(page, /const pixInstructions = payment === "pix"/);
-  assert.match(page, /\*PIX — USE APÓS A CONFIRMAÇÃO\*/);
-  assert.match(page, /Aguarde a confirmação da Luciane antes de pagar/);
-  assert.match(page, /Após o pagamento, envie o comprovante por esta conversa/);
-  assert.match(page, /\$\{confirmationLine\}\$\{pixInstructions\}/);
+  assert.match(messageSource, /PRÓXIMO PASSO — PAGAMENTO PIX/);
+  assert.match(messageSource, /Faça o pagamento e envie o comprovante nesta conversa/);
+  assert.doesNotMatch(page, /Copiar Pix|clipboard\.writeText/);
 });
 
 test("uses only the Tintim Site Link with an encoded dynamic text parameter", () => {
@@ -60,7 +56,7 @@ test("routes both checkout CTAs through the same tracked finalization function",
   const stickyAction = functionBody(page, "handleStickyAction", "startAnother");
 
   assert.equal((page.match(/window\.location\.assign\(/g) ?? []).length, 1);
-  assert.match(finish, /window\.location\.assign\(tintimWhatsAppUrl\(buildWhatsAppMessage\(\)\)\)/);
+  assert.match(finish, /window\.location\.assign\(tintimWhatsAppUrl\(message\)\)/);
   assert.match(page, /className="whatsapp-button" onClick=\{finishOnWhatsApp\}/);
   assert.match(page, /onClick=\{handleStickyAction\}/);
   assert.match(stickyAction, /if \(stickyUsesCheckoutAction\) finishOnWhatsApp\(\)/);

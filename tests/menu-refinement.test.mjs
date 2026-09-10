@@ -30,6 +30,7 @@ after(() => vite.close());
 
 const catalog = await vite.ssrLoadModule("/app/catalog.ts");
 const availability = await vite.ssrLoadModule("/app/menu-availability.ts");
+const checkout = await vite.ssrLoadModule("/app/order-checkout.ts");
 const navigation = await vite.ssrLoadModule("/app/menu-navigation.ts");
 const fixture = await vite.ssrLoadModule("/hooks/use-menu-availability.ts");
 const { default: Home } = await vite.ssrLoadModule("/app/page.tsx");
@@ -197,19 +198,27 @@ for (const [key, name] of [
   });
 }
 
-const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+function detailsFor(payment, fulfillment = "retirada") {
+  return {
+    items: cart.map((item) => {
+      const product = catalog.PRODUCTS.find((product) => product.id === item.productId);
+      const variant = product.variants.find((variant) => variant.id === item.variantId);
+      return { product_id: product.id, variant_id: variant.id, option_ids: item.optionIds,
+        name: productLabel(product), size: variant.whatsappLabel, kind: product.kind,
+        options: item.optionIds.map((id) => product.options.find((option) => option.id === id).name),
+        quantity: item.quantity, unit_price: itemUnitPrice(product, variant, item.optionIds) };
+    }),
+    subtotal: 65, delivery_fee: fulfillment === "entrega" ? 8 : 0, total: fulfillment === "entrega" ? 73 : 65,
+    currency: "BRL", payment, fulfillment, neighborhood: "Bairro de teste", street: "Rua de teste",
+    number: "1", complement: "Casa 2", reference: "Referência de teste", needs_change: true, cash_received_cents: 10000,
+  };
+}
+const fixedOrderId = "LOD-0123-4567-89AB";
 function messageFor(payment, fulfillment = "retirada") {
-  const subtotal = 65; // 2 x R$20 slice + R$20 pot + R$5 premium flavor.
   return pageFunction("buildWhatsAppMessage", {
-    ...catalog, cart, currency, productLabel, itemUnitPrice, payment, fulfillment,
-    cartSubtotal: subtotal, deliveryFee: fulfillment === "entrega" ? 8 : 0,
-    orderTotal: subtotal + (fulfillment === "entrega" ? 8 : 0),
-    selectedDeliveryZone: { label: "Cidade", asksNeighborhood: true },
-    deliveryNeighborhood: "Bairro de teste", address: "Rua de teste, 1", reference: "Referência de teste",
-    needsChange: true, changeFor: "R$ 100",
-    cleanWhatsAppField: pageFunction("cleanWhatsAppField"),
-    PIX_DETAILS: { holder: "Titular de teste", key: "chave-teste", keyType: "Teste" },
-  })();
+    buildOrderMessage: checkout.buildOrderMessage, checkoutDetails: detailsFor(payment, fulfillment),
+    PIX_DETAILS: { holder: "Luciane Galvão de Oliveira", key: "03611974200", keyType: "CPF" },
+  })(fixedOrderId);
 }
 
 for (const payment of ["pix", "dinheiro", "cartao"]) {
@@ -219,32 +228,48 @@ for (const payment of ["pix", "dinheiro", "cartao"]) {
       assert.match(message, /Prestígio — 2 fatias/);
       assert.match(message, /Pipoca Gourmet 350 ml — 1 un/);
       assert.match(message, /Sabores: Kinder Bueno Crisp \+ Leitinho/);
-      assert.ok(message.includes(currency.format(fulfillment === "entrega" ? 73 : 65)));
+      assert.ok(message.includes(checkout.formatOrderMoney(fulfillment === "entrega" ? 73 : 65)));
       assert.doesNotMatch(message, /calda|sauce/i);
-      if (payment === "pix") assert.match(message, /PIX — USE APÓS A CONFIRMAÇÃO[\s\S]*chave-teste/);
-      else assert.doesNotMatch(message, /chave-teste|Titular:/);
-      if (payment === "dinheiro") assert.match(message, /Troco: para R\$ 100/);
-      if (fulfillment === "entrega") assert.match(message, /Bairro de teste[\s\S]*Rua de teste, 1[\s\S]*Referência de teste/);
+      if (payment === "pix") assert.match(message, /PRÓXIMO PASSO — PAGAMENTO PIX[\s\S]*03611974200/);
+      else assert.doesNotMatch(message, /03611974200|Titular:/);
+      if (payment === "dinheiro") assert.match(message, /Troco para: R\$ 100,00/);
+      if (fulfillment === "entrega") assert.match(message, /Bairro de teste[\s\S]*Rua de teste[\s\S]*Número: 1[\s\S]*Referência de teste/);
       else assert.doesNotMatch(message, /Rua de teste/);
     });
   }
 }
 
-async function attemptCheckout(latest) {
-  const actions = [];
-  const messages = [];
-  let checked = false;
-  await pageFunction("finishOnWhatsApp", {
-    availability: snapshot(), cart, checkoutFormReady: true, isFinalizing: false,
+function checkoutHarness(latest, overrides = {}) {
+  const actions = [], messages = [], writes = [], scheduled = [];
+  const context = { order_id: fixedOrderId, created_at: "2026-09-10T15:00:00Z",
+    attribution: checkout.captureOrderAttribution("https://example.test/?utm_source=instagram&fbclid=click&tintim_fbid=tt", "_fbp=browser; _fbc=click-cookie") };
+  const lock = { current: false }, navigationPending = { current: false }, contextRef = { current: context };
+  const fingerprint = JSON.stringify(detailsFor("pix"));
+  const deps = {
+    availability: snapshot(), cart, checkoutFormReady: true, finalizationLockRef: lock, navigationPendingRef: navigationPending,
     STORE_CONFIG: catalog.STORE_CONFIG, cartAvailabilityIssues,
-    setIsFinalizing: () => {}, setCheckoutAvailabilityMessage: (value) => messages.push(value),
-    scrollToSection: () => {},
-    refreshAvailability: async () => { checked = true; return latest; },
+    setIsFinalizing: () => {}, setOpeningWhatsApp: () => {}, setCheckoutAvailabilityMessage: (value) => messages.push(value),
+    scrollToSection: () => {}, refreshAvailability: async () => latest,
+    checkoutFingerprint: fingerprint, checkoutFingerprintRef: { current: fingerprint },
+    orderContextRef: contextRef, attributionRef: { current: context.attribution },
+    captureOrderAttribution: checkout.captureOrderAttribution, newOrderContext: checkout.newOrderContext,
+    setOrderContext: () => {}, savedOrder: { version: 2, cart, order_details: detailsFor("pix") },
+    ORDER_STORAGE_KEY: "luciane-order-session-v2", unlockTimerRef: {},
+    checkoutStartedRef: { current: true }, paymentInfoTrackedRef: { current: true },
     buildWhatsAppMessage: () => messageFor("pix"),
     tintimWhatsAppUrl: pageFunction("tintimWhatsAppUrl", { TINTIM_SITE_LINK: "https://tintim.link/whatsapp/test" }),
-    window: { location: { assign: (url) => { assert.equal(checked, true); actions.push(url); } } },
-  })();
-  return { actions, messages };
+    window: { location: { href: "https://example.test/?categoria=fatias", assign: (url) => actions.push(url) },
+      sessionStorage: { setItem: (key, value) => writes.push({ key, value: JSON.parse(value) }) },
+      setTimeout: (fn, ms) => { scheduled.push({ fn, ms }); return scheduled.length; } },
+    document: { cookie: "_fbp=browser; _fbc=click-cookie", visibilityState: "visible" },
+    ...overrides,
+  };
+  return { finish: pageFunction("finishOnWhatsApp", deps), deps, actions, messages, writes, scheduled, lock, contextRef };
+}
+async function attemptCheckout(latest) {
+  const result = checkoutHarness(latest);
+  await result.finish();
+  return result;
 }
 
 test("final revalidation blocks a newly sold-out item, a hidden category, closed orders, or failed lookup", async () => {
@@ -288,4 +313,213 @@ test("an unresponsive availability endpoint is aborted so the existing fallback 
   );
   await assert.rejects(fetchRows("/rest/v1/menu_availability"), /aborted/);
   assert.equal(cleared, true);
+});
+
+test("Pix uses the exact total and selectable CPF after the structured order", () => {
+  for (const fulfillment of ["entrega", "retirada"]) {
+    const message = messageFor("pix", fulfillment);
+    const total = fulfillment === "entrega" ? "R$ 73,00" : "R$ 65,00";
+    assert.ok(message.startsWith("Olá! Finalizei meu pedido pelo cardápio da *Luciane Oliveira Doces*.\n\n*PEDIDO LOD-0123-4567-89AB*"));
+    assert.ok(message.includes(`*Total: ${total}*`));
+    assert.ok(message.includes(`Valor a pagar: *${total}*`));
+    assert.ok(message.includes("*Chave Pix (CPF)*\n03611974200\n\nTitular: Luciane Galvão de Oliveira"));
+    assert.ok(message.endsWith("Faça o pagamento e envie o comprovante nesta conversa."));
+    assert.doesNotMatch(message, /aguard|confirmação|estimad|\p{Cf}|\u00a0|\u202f/iu);
+    assert.equal(decodeURIComponent(encodeURIComponent(message)), message);
+  }
+});
+
+test("card and cash distinguish receiving mode and never include Pix", () => {
+  for (const method of ["cartao", "dinheiro"]) {
+    for (const mode of ["retirada", "entrega"]) {
+      const message = messageFor(method, mode);
+      assert.doesNotMatch(message, /Pix|PIX|03611974200|Titular:/);
+      assert.match(message, new RegExp(`no momento da ${mode}`));
+      if (method === "cartao") {
+        assert.match(message, new RegExp(`Cartão na ${mode}`));
+        if (mode === "retirada") assert.match(message, /Aguarde a confirmação do pedido antes de se deslocar/);
+        else assert.doesNotMatch(message, /retirada|deslocar/);
+      }
+    }
+  }
+});
+
+test("cash parsing is strict and calculates change in cents", () => {
+  for (const value of ["50", "50,00", "50.00", "R$ 50,00", "R$\u00a050,00"]) assert.equal(checkout.parseCashCents(value), 5000);
+  assert.equal(checkout.parseCashCents("1.234,56"), 123456);
+  for (const value of ["", "-50", "0", "1e3", "50 reais", "50,001", "50.00.00", "99999999999999999"]) assert.equal(checkout.parseCashCents(value), null);
+  const order = { ...detailsFor("dinheiro"), items: [], subtotal: 20, total: 20, cash_received_cents: 5000 };
+  const message = checkout.buildOrderMessage(order, fixedOrderId, {});
+  assert.match(message, /Troco para: R\$ 50,00\nTroco necessário: R\$ 30,00/);
+  for (const value of [null, 1000, 1999]) assert.throws(() => checkout.buildOrderMessage({ ...order, cash_received_cents: value }, fixedOrderId, {}), /Corrija o valor para troco/);
+  assert.match(checkout.buildOrderMessage({ ...order, cash_received_cents: 2000 }, fixedOrderId, {}), /Troco necessário: R\$ 0,00/);
+  assert.match(checkout.buildOrderMessage({ ...order, needs_change: false }, fixedOrderId, {}), /Não precisa de troco/);
+});
+
+test("optional address fields are omitted and invisible text is normalized", () => {
+  const message = checkout.buildOrderMessage({ ...detailsFor("cartao", "entrega"),
+    street: "Rua\u200b de\u00a0teste\u202e\n*RESUMO*", number: "12", complement: "", reference: "" }, fixedOrderId, {});
+  assert.match(message, /Rua: Rua de teste RESUMO\nNúmero: 12/);
+  assert.doesNotMatch(message, /Complemento:|Referência:|\p{Cf}|\u00a0|\u202f/u);
+});
+
+test("order IDs are readable, independent between orders, and stable when restored", () => {
+  const attribution = checkout.captureOrderAttribution("https://example.test/", "");
+  const first = checkout.newOrderContext(attribution), second = checkout.newOrderContext(attribution);
+  assert.match(first.order_id, /^LOD-[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/);
+  assert.notEqual(first.order_id, second.order_id);
+  assert.equal(checkout.restoreOrderContext(JSON.parse(JSON.stringify(first)), attribution).order_id, first.order_id);
+  assert.notEqual(checkout.restoreOrderContext({ order_id: "LOD-1" }, attribution).order_id, "LOD-1");
+});
+
+test("attribution survives new categories, return visits, cookie updates, and duplicate parameters", () => {
+  const initial = "https://example.test/?utm_source=instagram&utm_medium=cpc&utm_campaign=a&utm_content=b&utm_term=c&fbclid=fb&tintim_fbid=tt&origem=bio&extra=1&extra=2#inicio";
+  const first = checkout.captureOrderAttribution(initial, "_fbp=fbp-test; _fbc=fbc-test");
+  const next = checkout.captureOrderAttribution("https://example.test/?categoria=fatias#resumo", "", JSON.parse(JSON.stringify(first)));
+  for (const [key, value] of Object.entries({ utm_source: "instagram", utm_medium: "cpc", utm_campaign: "a", utm_content: "b", utm_term: "c", fbclid: "fb", tintim_fbid: "tt", origem: "bio", fbp: "fbp-test", fbc: "fbc-test" })) assert.equal(next[key], value);
+  assert.deepEqual(next.parameters.extra, ["1", "2"]);
+  assert.equal(next.landing_url, initial);
+  assert.equal(next.last_url, "https://example.test/?categoria=fatias#resumo");
+  assert.equal(new URL(initial).searchParams.get("fbclid"), "fb");
+});
+
+test("same-tick double click performs one revalidation and one redirect", async () => {
+  let complete, reads = 0;
+  const pending = new Promise((resolve) => { complete = resolve; });
+  const h = checkoutHarness(null, { refreshAvailability: () => { reads++; return pending; } });
+  const first = h.finish();
+  await h.finish();
+  assert.equal(reads, 1);
+  assert.equal(h.lock.current, true);
+  assert.equal(h.actions.length, 0);
+  complete({ snapshot: snapshot(), usedFallback: false });
+  await first;
+  assert.equal(h.actions.length, 1);
+  assert.equal(h.writes.length, 1);
+  assert.equal(h.writes[0].value.order.order_id, fixedOrderId);
+  assert.deepEqual(h.writes[0].value.cart, cart);
+  assert.equal(h.writes[0].value.order_details.total, 65);
+  assert.equal(h.writes[0].value.order.attribution.fbclid, "click");
+  assert.equal(h.writes[0].value.initiateCheckoutTracked, true);
+  assert.equal(h.writes[0].value.paymentInfoTracked, true);
+});
+
+test("failed remote lookup or redirect releases the gate and allows a retry", async () => {
+  const h = checkoutHarness(null, { refreshAvailability: async () => { throw new Error("Network error"); } });
+  await h.finish();
+  assert.equal(h.lock.current, false);
+  assert.equal(h.actions.length, 0);
+  const failed = checkoutHarness({ snapshot: snapshot(), usedFallback: false });
+  failed.deps.window.location.assign = () => { throw new Error("Navigation failed"); };
+  await failed.finish();
+  assert.equal(failed.lock.current, false);
+  assert.equal(failed.deps.navigationPendingRef.current, false);
+  failed.deps.window.location.assign = (url) => failed.actions.push(url);
+  await failed.finish();
+  assert.equal(failed.actions.length, 1);
+  assert.equal(failed.contextRef.current.order_id, fixedOrderId);
+});
+
+test("edits during asynchronous revalidation cannot send stale order details", async () => {
+  const h = checkoutHarness({ snapshot: snapshot(), usedFallback: false }, { checkoutFingerprintRef: { current: "changed-order" } });
+  await h.finish();
+  assert.equal(h.actions.length, 0);
+  assert.equal(h.lock.current, false);
+  assert.match(h.messages.at(-1), /alterado durante a conferência/);
+});
+
+function pageEffectContaining(fragment, dependencies) {
+  let found;
+  function visit(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(ast) === "useEffect" && node.arguments[0]?.getText(ast).includes(fragment)) found = node.arguments[0];
+    ts.forEachChild(node, visit);
+  }
+  visit(ast);
+  assert.ok(found);
+  const { outputText } = ts.transpileModule(`const effect = ${found.getText(ast)};`, { compilerOptions: { target: ts.ScriptTarget.ES2022 } });
+  return new Function(...Object.keys(dependencies), `${outputText}; return effect;`)(...Object.values(dependencies));
+}
+
+test("return from WhatsApp unlocks retry without clearing order or repeating its ID", async () => {
+  const h = checkoutHarness({ snapshot: snapshot(), usedFallback: false });
+  const events = {};
+  h.deps.window.addEventListener = (name, callback) => { events[name] = callback; };
+  h.deps.window.removeEventListener = () => {};
+  h.deps.window.clearTimeout = () => {};
+  h.deps.document.addEventListener = (name, callback) => { events[name] = callback; };
+  h.deps.document.removeEventListener = () => {};
+  const cleanup = pageEffectContaining('window.addEventListener("pagehide"', { ...h.deps, navigationByKeyboard: false })();
+  await h.finish();
+  const retained = JSON.stringify(h.writes.at(-1).value);
+  events.pagehide();
+  events.pageshow();
+  assert.equal(h.lock.current, false);
+  assert.equal(JSON.stringify(h.writes.at(-1).value), retained);
+  await h.finish();
+  assert.equal(h.writes.at(-1).value.order.order_id, fixedOrderId);
+  assert.equal(h.actions.length, 2);
+  cleanup();
+});
+
+test("focus return during revalidation cannot bypass the double-click gate", async () => {
+  const h = checkoutHarness(null);
+  const events = {};
+  h.deps.window.addEventListener = (name, callback) => { events[name] = callback; };
+  h.deps.document.addEventListener = (name, callback) => { events[name] = callback; };
+  h.deps.window.clearTimeout = () => {};
+  pageEffectContaining('window.addEventListener("pagehide"', { ...h.deps, navigationByKeyboard: false })();
+  h.lock.current = true;
+  events.blur(); events.focus();
+  assert.equal(h.lock.current, true);
+});
+
+for (const mode of ["pointer", "keyboard"]) {
+  test(`section navigation retains accessible focus and identifies ${mode} modality`, () => {
+    for (const section of ["configurador", "quantidade-fatias", "sabores"]) {
+      const attributes = {}, calls = [];
+      let blur;
+      const heading = { getAttribute: () => null, setAttribute: (key, value) => { attributes[key] = value; },
+        removeAttribute: (key) => { delete attributes[key]; }, addEventListener: (_event, callback) => { blur = callback; },
+        focus: (options) => calls.push(options) };
+      const target = { querySelector: () => heading, scrollIntoView: (options) => calls.push(options) };
+      pageFunction("scrollToSection", { navigationByKeyboard: mode === "keyboard",
+        document: { getElementById: (id) => id === section ? target : null },
+        window: { matchMedia: () => ({ matches: false }) } })(section);
+      assert.equal(attributes.tabindex, "-1");
+      assert.equal(attributes["data-navigation-focus"], mode);
+      assert.deepEqual(calls, [{ preventScroll: true }, { behavior: "smooth", block: "start" }]);
+      blur();
+      assert.deepEqual(attributes, {});
+    }
+  });
+}
+
+test("touch focus override is scoped, keyboard rings and safe area remain", async () => {
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /\[data-navigation-focus="pointer"\]\[tabindex="-1"\]:focus\s*\{\s*outline: none/);
+  assert.match(css, /\[data-navigation-focus="keyboard"\]\[tabindex="-1"\]:focus\s*\{\s*outline: 3px solid/);
+  assert.match(css, /button:focus-visible,[\s\S]*a:focus-visible,[\s\S]*input:focus-visible/);
+  assert.match(css, /env\(safe-area-inset-bottom\)/);
+});
+
+test("explicit new order clears the old draft and creates another code", () => {
+  const contextRef = { current: { order_id: fixedOrderId } }, fields = {}, removed = [];
+  const deps = { finalizationLockRef: { current: false }, orderContextRef: contextRef,
+    checkoutStartedRef: { current: true }, paymentInfoTrackedRef: { current: true },
+    ORDER_STORAGE_KEY: "luciane-order-session-v2", clearDraft: () => {},
+    window: { sessionStorage: { removeItem: (key) => removed.push(key) } } };
+  for (const setter of ["setOrderContext", "setAddressNumber", "setComplement", "setLegacyAddressNotice", "setCart", "setFulfillment", "setDeliveryZoneId", "setNeighborhood", "setAddress", "setReference", "setPayment", "setNeedsChange", "setChangeFor", "setDrinkMessage", "setRestoredOrderNotice", "setAddedNotice", "setCheckoutAvailabilityMessage", "setBuilderEngaged"]) deps[setter] = (value) => { fields[setter] = value; };
+  pageFunction("clearOrder", deps)();
+  assert.equal(contextRef.current, null);
+  assert.deepEqual(fields.setCart, []);
+  assert.equal(fields.setPayment, "");
+  assert.deepEqual(removed, ["luciane-order-session-v2"]);
+  pageEffectContaining("checkoutFingerprintRef.current = checkoutFingerprint", {
+    checkoutFingerprintRef: {}, checkoutFingerprint: "new-cart", storageReady: true, cart: [sliceItem],
+    orderContextRef: contextRef, attributionRef: {}, newOrderContext: checkout.newOrderContext,
+    captureOrderAttribution: checkout.captureOrderAttribution, setOrderContext: () => {},
+    setCheckoutAvailabilityMessage: () => {}, window: { location: { href: "https://example.test/" } }, document: { cookie: "" },
+  })();
+  assert.match(contextRef.current.order_id, /^LOD-/);
+  assert.notEqual(contextRef.current.order_id, fixedOrderId);
 });
