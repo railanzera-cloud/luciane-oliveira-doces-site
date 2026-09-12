@@ -64,8 +64,7 @@ function renderMenu(state, ready = true) {
 const productLabel = pageFunction("productLabel");
 const isCategoryEnabled = pageFunction("isCategoryEnabled", catalog);
 const isProductEnabled = pageFunction("isProductEnabled", { ...catalog, isCategoryEnabled });
-const optionPriceAdjustment = pageFunction("optionPriceAdjustment");
-const itemUnitPrice = pageFunction("itemUnitPrice", { optionPriceAdjustment });
+const itemUnitPrice = pageFunction("itemUnitPrice", { popcornPrice: catalog.popcornPrice });
 const unavailableReason = pageFunction("unavailableReason", availability);
 const cartAvailabilityIssues = pageFunction("cartAvailabilityIssues", {
   ...catalog, ...availability, isProductEnabled, productLabel, unavailableReason,
@@ -74,7 +73,7 @@ const sanitizeSavedCart = pageFunction("sanitizeSavedCart", {
   ...catalog, isProductEnabled, makeCartId: () => "generated-id",
 });
 const sliceItem = { id: "slice-1", productId: "fatia-prestigio", variantId: "fatia", optionIds: [], quantity: 2 };
-const popcornItem = { id: "popcorn-1", productId: "pipoca-gourmet", variantId: "350ml", optionIds: ["kinder-bueno-crisp", "leitinho"], quantity: 1 };
+const popcornItem = { id: "popcorn-1", productId: "pipoca-gourmet", variantId: "500ml", optionIds: ["kinder-bueno-crisp", "leitinho"], quantity: 1 };
 
 test("both available: neutral entry, balanced choices, no default builder or empty checkout", () => {
   assert.equal(navigation.resolveMenuCategory(snapshot(), null), null);
@@ -142,7 +141,7 @@ test("remote category changes and reopening take effect without catalog changes"
 
 for (const [key, category, label] of [
   ["popcorn_flavor_leitinho", "pipocas", "Leitinho"],
-  ["popcorn_size_350ml", "pipocas", "350 ml"],
+  ["popcorn_size_500ml", "pipocas", "500 ml"],
   ["slice_prestigio", "fatias", "Prestígio"],
 ]) {
   test(`${key}: sold_out blocks selection, hidden removes it, available restores it`, () => {
@@ -183,7 +182,7 @@ test("slices have no options and the shipped app contains no obsolete step, copy
 const cart = [sliceItem, popcornItem];
 for (const [key, name] of [
   ["category_pipocas", "Pipocas Gourmet"], ["category_fatias", "Fatias Artesanais"],
-  ["popcorn_size_350ml", "350 ml"], ["popcorn_flavor_kinder_bueno_crisp", "Kinder Bueno Crisp"],
+  ["popcorn_size_500ml", "500 ml"], ["popcorn_flavor_kinder_bueno_crisp", "Crispy Bueno"],
   ["slice_prestigio", "Prestígio"],
 ]) {
   test(`an existing cart retains and identifies ${key} when unavailable`, () => {
@@ -208,7 +207,7 @@ function detailsFor(payment, fulfillment = "retirada") {
         options: item.optionIds.map((id) => product.options.find((option) => option.id === id).name),
         quantity: item.quantity, unit_price: itemUnitPrice(product, variant, item.optionIds) };
     }),
-    subtotal: 65, delivery_fee: fulfillment === "entrega" ? 8 : 0, total: fulfillment === "entrega" ? 73 : 65,
+    subtotal: 73, delivery_fee: fulfillment === "entrega" ? 8 : 0, total: fulfillment === "entrega" ? 81 : 73,
     currency: "BRL", payment, fulfillment, neighborhood: "Bairro de teste", street: "Rua de teste",
     number: "1", complement: "Casa 2", reference: "Referência de teste", needs_change: true, cash_received_cents: 10000,
   };
@@ -226,9 +225,9 @@ for (const payment of ["pix", "dinheiro", "cartao"]) {
     test(`WhatsApp ${fulfillment}/${payment}: complete order, correct totals, no obsolete slice options`, () => {
       const message = messageFor(payment, fulfillment);
       assert.match(message, /Prestígio — 2 fatias/);
-      assert.match(message, /Pipoca Gourmet 350 ml — 1 un/);
-      assert.match(message, /Sabores: Kinder Bueno Crisp \+ Leitinho/);
-      assert.ok(message.includes(checkout.formatOrderMoney(fulfillment === "entrega" ? 73 : 65)));
+      assert.match(message, /Pipoca Gourmet 500 ml — 1 un/);
+      assert.match(message, /Sabores: Crispy Bueno \+ Leitinho/);
+      assert.ok(message.includes(checkout.formatOrderMoney(fulfillment === "entrega" ? 81 : 73)));
       assert.doesNotMatch(message, /calda|sauce/i);
       if (payment === "pix") assert.match(message, /PRÓXIMO PASSO — PAGAMENTO PIX[\s\S]*03611974200/);
       else assert.doesNotMatch(message, /03611974200|Titular:/);
@@ -318,7 +317,7 @@ test("an unresponsive availability endpoint is aborted so the existing fallback 
 test("Pix uses the exact total and selectable CPF after the structured order", () => {
   for (const fulfillment of ["entrega", "retirada"]) {
     const message = messageFor("pix", fulfillment);
-    const total = fulfillment === "entrega" ? "R$ 73,00" : "R$ 65,00";
+    const total = fulfillment === "entrega" ? "R$ 81,00" : "R$ 73,00";
     assert.ok(message.startsWith("Olá! Finalizei meu pedido pelo cardápio da *Luciane Oliveira Doces*.\n\n*PEDIDO LOD-0123-4567-89AB*"));
     assert.ok(message.includes(`*Total: ${total}*`));
     assert.ok(message.includes(`Valor a pagar: *${total}*`));
@@ -398,7 +397,7 @@ test("same-tick double click performs one revalidation and one redirect", async 
   assert.equal(h.writes.length, 1);
   assert.equal(h.writes[0].value.order.order_id, fixedOrderId);
   assert.deepEqual(h.writes[0].value.cart, cart);
-  assert.equal(h.writes[0].value.order_details.total, 65);
+  assert.equal(h.writes[0].value.order_details.total, 73);
   assert.equal(h.writes[0].value.order.attribution.fbclid, "click");
   assert.equal(h.writes[0].value.initiateCheckoutTracked, true);
   assert.equal(h.writes[0].value.paymentInfoTracked, true);
@@ -522,4 +521,89 @@ test("explicit new order clears the old draft and creates another code", () => {
   })();
   assert.match(contextRef.current.order_id, /^LOD-/);
   assert.notEqual(contextRef.current.order_id, fixedOrderId);
+});
+
+
+test("retired 350 ml remains in saved carts and blocks finalization without a zero-price sale", async () => {
+  const old = { ...popcornItem, variantId: "350ml", quantity: 2 };
+  assert.deepEqual(sanitizeSavedCart([old, sliceItem]), [old, sliceItem]);
+  const issues = cartAvailabilityIssues([old], snapshot({ popcorn_size_350ml: "available" }));
+  assert.match(issues[0].reasons.join(" "), /350 ml saiu do cardápio/);
+  const h = checkoutHarness({ snapshot: snapshot(), usedFallback: false }, { cart: [old] });
+  await h.finish();
+  assert.equal(h.actions.length, 0);
+  assert.match(h.messages.at(-1), /350 ml/);
+  const html = renderMenu(snapshot({ category_fatias: "hidden", popcorn_size_350ml: "available" }));
+  assert.doesNotMatch(html, /size-350ml/);
+  assert.deepEqual(availability.MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "popcorn_size").map((item) => item.itemKey),
+    ["popcorn_size_500ml", "popcorn_size_750ml", "popcorn_size_1l"]);
+});
+
+test("Choco Nute has its own remote control and fails closed while its record is missing", async () => {
+  const item = { ...popcornItem, optionIds: ["choco-nute", "ovomaltine"] };
+  assert.equal(availability.POPCORN_FLAVOR_ITEM_KEYS["choco-nute"], "popcorn_flavor_choco_nute");
+  assert.deepEqual(sanitizeSavedCart([item]), [item]);
+  const missing = availability.mergeRemoteAvailability([], true);
+  assert.equal(availability.statusFor(missing, "popcorn_flavor_choco_nute"), "sold_out");
+  const h = checkoutHarness({ snapshot: missing, usedFallback: false }, { cart: [item] });
+  await h.finish();
+  assert.equal(h.actions.length, 0);
+  assert.match(h.messages.at(-1), /Choco Nute/);
+  for (const status of ["available", "sold_out", "hidden"]) {
+    const state = availability.mergeRemoteAvailability([{ item_key: "popcorn_flavor_choco_nute", status }], true);
+    assert.equal(cartAvailabilityIssues([item], state).length, status === "available" ? 0 : 1);
+  }
+});
+
+const pricingCases = [
+  ["A", "500ml", ["leitinho", "ovomaltine"], 25],
+  ["B", "500ml", ["leitinho", "kinder-bueno"], 30],
+  ["C", "500ml", ["leitinho", "nutella"], 33],
+  ["D", "750ml", ["choco-cookies-branco", "kinder-bueno-crisp"], 48],
+  ["E", "1l", ["leitinho", "kinder-bueno", "nutella"], 58],
+  ["F", "1l", ["choco-nute", "ovomaltine"], 49],
+];
+for (const [label, size, optionIds, expected] of pricingCases) {
+  test(`official case ${label}: selection, saved cart, Meta values and WhatsApp share the same price`, () => {
+    const variant = catalog.POPCORN.variants.find((item) => item.id === size);
+    const unit = itemUnitPrice(catalog.POPCORN, variant, optionIds);
+    assert.equal(unit, expected);
+    const original = { id: "case-" + label, productId: catalog.POPCORN.id, variantId: size, optionIds, quantity: 2 };
+    const [restored] = sanitizeSavedCart(JSON.parse(JSON.stringify([original])));
+    assert.deepEqual(restored, original);
+    const subtotal = itemUnitPrice(catalog.POPCORN, variant, restored.optionIds) * restored.quantity;
+    assert.equal(subtotal, expected * 2);
+    const payload = pageFunction("metaProductPayload", { productLabel, itemUnitPrice })(catalog.POPCORN, variant, 2, optionIds);
+    assert.equal(payload.value, subtotal);
+    assert.equal(payload.contents[0].item_price, expected);
+    for (const fulfillment of ["retirada", "entrega"]) {
+      const fee = fulfillment === "entrega" ? catalog.DELIVERY_ZONES.find((zone) => zone.id === "cidade").price : 0;
+      const order = { ...detailsFor("pix", fulfillment), items: [{ product_id: catalog.POPCORN.id, variant_id: size, option_ids: optionIds,
+        name: catalog.POPCORN.name, size: variant.whatsappLabel, kind: "popcorn", quantity: 2, unit_price: unit,
+        options: optionIds.map((id) => catalog.POPCORN.options.find((option) => option.id === id).name) }],
+        subtotal, delivery_fee: fee, total: subtotal + fee };
+      const message = checkout.buildOrderMessage(order, fixedOrderId, { holder: "Luciane Galvão de Oliveira", key: "03611974200", keyType: "CPF" });
+      const url = pageFunction("tintimWhatsAppUrl", { TINTIM_SITE_LINK: "https://tintim.link/whatsapp/test" })(message);
+      assert.equal(new URL(url).searchParams.get("text"), message);
+      assert.ok(message.includes(`*Total: ${checkout.formatOrderMoney(subtotal + fee)}*`));
+      assert.ok(message.includes(`Valor a pagar: *${checkout.formatOrderMoney(subtotal + fee)}*`));
+      assert.ok(message.includes(`Produtos: ${checkout.formatOrderMoney(subtotal)}`));
+      assert.doesNotMatch(message, /acréscimo|adicional|Kinder Bueno Crisp/);
+    }
+  });
+}
+
+test("case G: real toggle handler recomputes from remaining flavors and enforces limits", () => {
+  const variant = catalog.POPCORN.variants.find((item) => item.id === "1l");
+  const deps = { categoryIsAvailable: () => true, popcornVariant: variant, popcornMaxOptions: 3,
+    popcornOptionIds: [], popcornFlavorIsAvailable: () => true, setBuilderEngaged: () => {}, setSelectionMessage: () => {},
+    scrollToSection: () => {}, window: { setTimeout: () => {} },
+    setPopcornOptionIds: (update) => { deps.popcornOptionIds = update(deps.popcornOptionIds); } };
+  const toggle = (id) => pageFunction("togglePopcornOption", deps)(catalog.POPCORN.options.find((item) => item.id === id));
+  for (const [id, expected] of [["leitinho", 49], ["kinder-bueno", 55], ["nutella", 58], ["nutella", 55], ["kinder-bueno", 49]]) {
+    toggle(id);
+    assert.equal(itemUnitPrice(catalog.POPCORN, variant, deps.popcornOptionIds), expected);
+  }
+  toggle("kinder-bueno"); toggle("nutella"); toggle("ovomaltine");
+  assert.deepEqual(deps.popcornOptionIds, ["leitinho", "kinder-bueno", "nutella"]);
 });

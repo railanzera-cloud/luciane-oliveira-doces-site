@@ -19,8 +19,9 @@ test("prices the four requested slices at R$ 20", () => {
   }
 });
 
-test("shows both enabled menus from R$ 20", () => {
-  assert.match(page, /draftSubtotal === null\s*\? "A partir de R\$20"/);
+test("keeps slices from R$ 20 while popcorn uses its current pricing table", () => {
+  assert.ok(page.includes('currency.format(popcornPrice("500ml"))'));
+  assert.ok(page.includes(': "A partir de R$20"'));
   assert.match(page, /currency\.format\(variant\.price\)/);
 });
 

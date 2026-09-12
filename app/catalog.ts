@@ -8,6 +8,7 @@ export type Variant = {
   price: number;
   maxOptions?: number;
   available: boolean;
+  retired?: boolean;
 };
 
 export type ProductOption = {
@@ -15,7 +16,7 @@ export type ProductOption = {
   name: string;
   description: string;
   tone: string;
-  priceAdjustment?: number;
+  pricingGroup?: PopcornPricingGroup;
   available: boolean;
 };
 
@@ -58,6 +59,16 @@ export const STORE_CONFIG = {
   closedMessage: "Pedidos encerrados por hoje.",
 };
 
+export type PopcornSize = "500ml" | "750ml" | "1l";
+export type PopcornPricingGroup = 1 | 2 | 3;
+
+// Tabela oficial: o conjunto mais alto selecionado define o preço integral do pote.
+export const POPCORN_PRICING_GROUPS: Record<PopcornPricingGroup, Record<PopcornSize, number>> = {
+  1: { "500ml": 25, "750ml": 39, "1l": 49 },
+  2: { "500ml": 30, "750ml": 45, "1l": 55 },
+  3: { "500ml": 33, "750ml": 48, "1l": 58 },
+};
+
 // Catálogo central: preços, fotos e disponibilidade são alterados somente aqui.
 export const PRODUCTS: Product[] = [
   {
@@ -70,19 +81,22 @@ export const PRODUCTS: Product[] = [
     optionLabel: "Sabores",
     available: true,
     variants: [
-      { id: "350ml", label: "350 ml", whatsappLabel: "350 ml", price: 20, maxOptions: 2, available: true },
-      { id: "500ml", label: "500 ml", whatsappLabel: "500 ml", price: 25, maxOptions: 2, available: true },
-      { id: "750ml", label: "750 ml", whatsappLabel: "750 ml", price: 39, maxOptions: 2, available: true },
-      { id: "1l", label: "1 litro", whatsappLabel: "1 litro", price: 49, maxOptions: 3, available: true },
+      // Somente para identificar carrinhos antigos. Sem preço de venda; exige edição.
+      { id: "350ml", label: "350 ml", whatsappLabel: "350 ml", price: 0, maxOptions: 2, available: false, retired: true },
+      { id: "500ml", label: "500 ml", whatsappLabel: "500 ml", price: POPCORN_PRICING_GROUPS[1]["500ml"], maxOptions: 2, available: true },
+      { id: "750ml", label: "750 ml", whatsappLabel: "750 ml", price: POPCORN_PRICING_GROUPS[1]["750ml"], maxOptions: 2, available: true },
+      { id: "1l", label: "1 litro", whatsappLabel: "1 litro", price: POPCORN_PRICING_GROUPS[1]["1l"], maxOptions: 3, available: true },
     ],
     options: [
-      { id: "leitinho", name: "Leitinho", description: "Creme branco com leite em pó.", tone: "#f3d9a7", available: true },
-      { id: "nutella", name: "Nutella", description: "Creme de avelã com cacau.", tone: "#7b4025", available: true },
-      { id: "kinder-bueno", name: "Kinder Bueno", description: "Creme de avelã com leite.", tone: "#d69a66", available: true },
-      { id: "kinder-bueno-crisp", name: "Kinder Bueno Crisp", description: "Creme de avelã com leite e pedaços crocantes.", tone: "#c88445", priceAdjustment: 5, available: true },
-      { id: "choco-cookies-branco", name: "Choco Cookies Branco", description: "Creme branco com cookies.", tone: "#ead8bc", available: true },
-      { id: "choco-cookies-leite", name: "Choco Cookies ao Leite", description: "Chocolate ao leite com cookies.", tone: "#9b6040", available: true },
-      { id: "ovomaltine", name: "Ovomaltine", description: "Creme de avelã com malte, cacau e crocância.", tone: "#8b4f2c", available: true },
+      { id: "leitinho", name: "Leitinho", description: "Creme branco com leite em pó.", tone: "#f3d9a7", pricingGroup: 1, available: true },
+      { id: "choco-nute", name: "Choco Nute", description: "Creme de avelã com cacau.", tone: "#7b4025", pricingGroup: 1, available: true },
+      { id: "ovomaltine", name: "Ovomaltine", description: "Creme de avelã com malte, cacau e crocância.", tone: "#8b4f2c", pricingGroup: 1, available: true },
+      { id: "kinder-bueno", name: "Kinder Bueno", description: "Creme de avelã com leite.", tone: "#d69a66", pricingGroup: 2, available: true },
+      { id: "choco-cookies-branco", name: "Choco Cookies Branco", description: "Creme branco de cookies com biscoito cookies.", tone: "#ead8bc", pricingGroup: 2, available: true },
+      { id: "choco-cookies-leite", name: "Choco Cookies ao Leite", description: "Chocolate ao leite com cookies.", tone: "#9b6040", pricingGroup: 2, available: true },
+      // ID preservado para disponibilidade e carrinhos; somente o nome comercial mudou.
+      { id: "kinder-bueno-crisp", name: "Crispy Bueno", description: "Creme de Bueno com pedaços crocantes.", tone: "#c88445", pricingGroup: 3, available: true },
+      { id: "nutella", name: "Nutella", description: "Creme de avelã com cacau.", tone: "#7b4025", pricingGroup: 3, available: true },
     ],
   },
   {
@@ -199,6 +213,16 @@ export const PRODUCTS: Product[] = [
 export const POPCORN = PRODUCTS.find((product) => product.kind === "popcorn")!;
 export const SLICES = PRODUCTS.filter((product) => product.kind === "slice");
 export const DRINKS = PRODUCTS.filter((product) => product.kind === "drink");
+
+export function popcornPrice(size: string, optionIds: readonly string[] = []): number {
+  if (!Object.hasOwn(POPCORN_PRICING_GROUPS[1], size)) throw new Error("Escolha um tamanho atual de pipoca.");
+  const group = optionIds.reduce<PopcornPricingGroup>((highest, id) => {
+    const option = POPCORN.options.find((candidate) => candidate.id === id);
+    if (!option?.pricingGroup) throw new Error("Escolha um sabor válido de pipoca.");
+    return Math.max(highest, option.pricingGroup) as PopcornPricingGroup;
+  }, 1);
+  return POPCORN_PRICING_GROUPS[group][size as PopcornSize];
+}
 
 // As regiões de R$8 e R$10 aparecem primeiro por serem as mais pedidas.
 export const DELIVERY_ZONES: DeliveryZone[] = [

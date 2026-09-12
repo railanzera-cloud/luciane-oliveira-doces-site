@@ -47,6 +47,6 @@ export async function updateMenuItemStatus(
 
   if (error) throw error;
   if (!data) {
-    throw new Error(`O item ${item.name} ainda não existe. Execute o supabase_seed.sql.`);
+    throw new Error(`O cadastro de disponibilidade de ${item.name} ainda não existe. Solicite a inclusão somente desse item no Supabase. Não execute o seed completo.`);
   }
 }

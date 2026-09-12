@@ -49,6 +49,7 @@ export const POPCORN_SIZE_ITEM_KEYS: Record<string, string> = {
 
 export const POPCORN_FLAVOR_ITEM_KEYS: Record<string, string> = {
   leitinho: "popcorn_flavor_leitinho",
+  "choco-nute": "popcorn_flavor_choco_nute",
   nutella: "popcorn_flavor_nutella",
   "kinder-bueno": "popcorn_flavor_kinder_bueno",
   "kinder-bueno-crisp": "popcorn_flavor_kinder_bueno_crisp",
@@ -81,7 +82,7 @@ const CATEGORY_ITEMS: MenuAvailabilityItem[] = [
   },
 ];
 
-const POPCORN_SIZE_ITEMS: MenuAvailabilityItem[] = POPCORN.variants.map((variant) => ({
+const POPCORN_SIZE_ITEMS: MenuAvailabilityItem[] = POPCORN.variants.filter((variant) => !variant.retired).map((variant) => ({
   itemKey: POPCORN_SIZE_ITEM_KEYS[variant.id],
   name: `Pipoca Gourmet — ${variant.label}`,
   itemType: "popcorn_size",
@@ -145,6 +146,8 @@ export function mergeRemoteAvailability(
 ): AvailabilitySnapshot {
   const fallback = createFallbackAvailability();
   const statuses = { ...fallback.statuses };
+  // Novo sabor só pode ser comprado após seu cadastro remoto ser confirmado.
+  statuses[POPCORN_FLAVOR_ITEM_KEYS["choco-nute"]] = "sold_out";
 
   for (const row of rows) {
     if (KNOWN_ITEM_KEYS.has(row.item_key) && AVAILABILITY_STATUSES.includes(row.status)) {

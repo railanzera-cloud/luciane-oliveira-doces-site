@@ -36,6 +36,7 @@ import {
   DELIVERY_ZONES,
   DRINKS,
   POPCORN,
+  popcornPrice,
   PRODUCTS,
   SLICES,
   STORE_CONFIG,
@@ -178,15 +179,10 @@ function trackMetaEvent(eventName: MetaEventName, payload?: Record<string, unkno
   return true;
 }
 
-function optionPriceAdjustment(product: Product, optionIds: string[]) {
-  return optionIds.reduce((total, optionId) => {
-    const option = product.options.find((candidate) => candidate.id === optionId);
-    return total + (option?.priceAdjustment ?? 0);
-  }, 0);
-}
-
 function itemUnitPrice(product: Product, variant: Variant, optionIds: string[] = []) {
-  return variant.price + optionPriceAdjustment(product, optionIds);
+  // Carrinhos com tamanho retirado ficam sem valor de venda até serem corrigidos.
+  if (variant.retired) return 0;
+  return product.kind === "popcorn" ? popcornPrice(variant.id, optionIds) : variant.price;
 }
 
 function unavailableReason(snapshot: AvailabilitySnapshot, itemKey: string, label: string) {
@@ -209,7 +205,9 @@ function cartAvailabilityIssues(
     const category = product.kind === "popcorn" ? "pipocas" : product.kind === "slice" ? "fatias" : null;
     const reasons: string[] = [];
 
-    if (!product.available || !variant.available || !isProductEnabled(product)) {
+    if (variant.retired) {
+      reasons.push(`O tamanho ${variant.label} saiu do cardápio. Escolha 500 ml, 750 ml ou 1 litro.`);
+    } else if (!product.available || !variant.available || !isProductEnabled(product)) {
       reasons.push(`${productLabel(product)} está indisponível no momento.`);
     }
 
@@ -277,14 +275,14 @@ function sanitizeSavedCart(value: unknown): CartItem[] {
     const item = candidate as Partial<CartItem>;
     const product = PRODUCTS.find((current) => current.id === item.productId);
     const variant = product?.variants.find((current) => current.id === item.variantId);
-    if (!product?.available || !variant?.available || !isProductEnabled(product)) return [];
+    if (!product?.available || !variant || (!variant.available && !variant.retired) || !isProductEnabled(product)) return [];
 
     const optionIds = product.kind === "popcorn" && Array.isArray(item.optionIds)
       ? item.optionIds.filter((id): id is string => typeof id === "string")
       : [];
     const optionsAreAvailable = optionIds.every((id) => product.options.some((option) => option.id === id && option.available));
     const optionsAreValid = product.kind === "popcorn"
-      ? optionIds.length > 0 && optionIds.length <= (variant.maxOptions ?? 0)
+      ? optionIds.length > 0 && optionIds.length <= (variant.maxOptions ?? 0) && new Set(optionIds).size === optionIds.length
       : optionIds.length === 0;
     if (!optionsAreAvailable || !optionsAreValid) return [];
 
@@ -362,12 +360,12 @@ export default function Home() {
 
   function popcornSizeIsVisible(variantId: string) {
     const itemKey = POPCORN_SIZE_ITEM_KEYS[variantId];
-    return Boolean(itemKey && isItemVisible(availability, itemKey));
+    return Boolean(itemKey && !POPCORN.variants.find((variant) => variant.id === variantId)?.retired && isItemVisible(availability, itemKey));
   }
 
   function popcornSizeIsAvailable(variantId: string) {
     const itemKey = POPCORN_SIZE_ITEM_KEYS[variantId];
-    return Boolean(itemKey && isItemAvailable(availability, itemKey));
+    return Boolean(itemKey && !POPCORN.variants.find((variant) => variant.id === variantId)?.retired && isItemAvailable(availability, itemKey));
   }
 
   function popcornFlavorIsVisible(optionId: string) {
@@ -524,6 +522,7 @@ export default function Home() {
     [cart],
   );
 
+  const cartNeedsSizeReview = cart.some((item) => PRODUCTS.find((product) => product.id === item.productId)?.variants.find((variant) => variant.id === item.variantId)?.retired);
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
   const cartIssues = useMemo(
     () => cartAvailabilityIssues(cart, availability),
@@ -545,6 +544,7 @@ export default function Home() {
     && popcornVariant?.available
     && popcornSizeIsAvailable(popcornVariant.id)
     && popcornOptionIds.length > 0
+    && popcornOptionIds.length <= popcornMaxOptions
     && popcornOptionIds.every((optionId) => popcornFlavorIsAvailable(optionId)),
   );
   const sliceReady = Boolean(
@@ -556,8 +556,7 @@ export default function Home() {
     && sliceIsAvailable(selectedSlice.id),
   );
   const draftReady = activeCategory === "pipocas" ? popcornReady : activeCategory === "fatias" && sliceReady;
-  const popcornPriceAdjustment = optionPriceAdjustment(POPCORN, popcornOptionIds);
-  const popcornUnitPrice = popcornVariant ? itemUnitPrice(POPCORN, popcornVariant, popcornOptionIds) : null;
+  const popcornUnitPrice = popcornVariant && !popcornVariant.retired ? itemUnitPrice(POPCORN, popcornVariant, popcornOptionIds) : null;
   const draftSubtotal = activeCategory === "pipocas"
     ? popcornUnitPrice === null ? null : popcornUnitPrice * popcornQuantity
     : selectedSliceVariant ? selectedSliceVariant.price * sliceQuantity : null;
@@ -602,9 +601,9 @@ export default function Home() {
   const stickyUsesCheckoutAction = !builderFlowActive;
   const stickyIsWhatsAppReady = stickyUsesCheckoutAction && checkoutReady;
   const stickyPriceLabel = cart.length > 0 && !builderFlowActive
-    ? currency.format(hasEstimatedTotal ? orderTotal : cartSubtotal)
+    ? cartNeedsSizeReview ? "Revise o tamanho" : currency.format(hasEstimatedTotal ? orderTotal : cartSubtotal)
     : draftSubtotal === null
-      ? "A partir de R$20"
+      ? activeCategory === "pipocas" ? `A partir de ${currency.format(popcornPrice("500ml"))}` : "A partir de R$20"
       : currency.format(draftSubtotal);
   const stickyPriceCaption = cart.length > 0 && !builderFlowActive
     ? hasEstimatedTotal ? "Total" : "Subtotal"
@@ -960,7 +959,7 @@ export default function Home() {
     setAddedNotice(null);
     if (product.kind === "popcorn") {
       setRequestedCategory("pipocas");
-      setPopcornVariantId(item.variantId);
+      setPopcornVariantId(product.variants.find((variant) => variant.id === item.variantId)?.retired ? "" : item.variantId);
       setPopcornOptionIds([...item.optionIds]);
       setPopcornQuantity(item.quantity);
     } else {
@@ -1035,7 +1034,7 @@ export default function Home() {
       }
       const latestIssues = cartAvailabilityIssues(cart, latest.snapshot);
       if (latestIssues.length > 0) {
-        throw new Error(`Um item do seu pedido acabou de ficar indisponível: ${latestIssues.map((issue) => issue.itemLabel).join(", ")}. Revise o carrinho para continuar.`);
+        throw new Error(`Um item do seu pedido acabou de ficar indisponível: ${latestIssues.map((issue) => `${issue.itemLabel}: ${issue.reasons.join(" ")}`).join("; ")}. Revise o carrinho para continuar.`);
       }
       if (checkoutFingerprintRef.current !== checkoutFingerprint) {
         throw new Error("O pedido foi alterado durante a conferência. Confira o resumo e tente novamente.");
@@ -1273,7 +1272,7 @@ export default function Home() {
                         <span className="flavor-copy">
                           <strong>{option.name}</strong>
                           <small>{option.description}</small>
-                          {option.priceAdjustment && <em className="flavor-surcharge">+ {currency.format(option.priceAdjustment)} por pote</em>}
+                          {popcornVariantUsable && popcornVariant && <small>{currency.format(popcornPrice(popcornVariant.id, [option.id]))} por pote</small>}
                         </span>
                         {selected && <span className="flavor-selected">Selecionado</span>}
                         {waitingForSize && available && <span className="flavor-status">Escolha o tamanho</span>}
@@ -1292,11 +1291,9 @@ export default function Home() {
                       ? "Limite preenchido. Desmarque um sabor para trocar."
                       : `Você pode escolher mais ${popcornMaxOptions - popcornOptionIds.length} ${popcornMaxOptions - popcornOptionIds.length === 1 ? "sabor" : "sabores"}, se quiser.`)}
                 </div>
-                {popcornPriceAdjustment > 0 && (
-                  <p className="premium-flavor-notice" role="status">
-                    <strong>Valor especial aplicado:</strong> Kinder Bueno Crisp acrescenta {currency.format(popcornPriceAdjustment)} por pote, uma única vez, mesmo em combinações.
-                  </p>
-                )}
+                <p className="selection-helper" role="status">
+                  Ao combinar sabores, vale o preço do conjunto mais caro escolhido.
+                </p>
               </section>
 
               <section className={`step-block step-state-${popcornQuantityStepState}`} id="quantidade-pipocas" aria-labelledby="step-quantity" aria-current={popcornQuantityStepState === "active" ? "step" : undefined}>
@@ -1467,7 +1464,6 @@ export default function Home() {
                     const itemIssue = cartIssues.find((issue) => issue.cartItemId === item.id);
                     const optionNames = item.optionIds.map((id) => product.options.find((option) => option.id === id)?.name).filter(Boolean).join(", ");
                     const unitPrice = itemUnitPrice(product, variant, item.optionIds);
-                    const itemPriceAdjustment = optionPriceAdjustment(product, item.optionIds);
                     return (
                       <article className={`cart-item ${itemIssue ? "is-unavailable" : ""}`} key={item.id}>
                         <div className="cart-item-top">
@@ -1479,7 +1475,6 @@ export default function Home() {
                               {optionNames && product.optionLabel && <span>{product.optionLabel}: {optionNames}</span>}
                               <span>Quantidade: {item.quantity}</span>
                             </div>
-                            {itemPriceAdjustment > 0 && <small className="cart-price-note">Inclui {currency.format(itemPriceAdjustment)} por pote do Kinder Bueno Crisp.</small>}
                             {itemIssue && (
                               <div className="cart-unavailable-note" role="status">
                                 <AlertTriangle size={16} aria-hidden="true" />
@@ -1487,7 +1482,7 @@ export default function Home() {
                               </div>
                             )}
                           </div>
-                          <div className="cart-item-value"><small>Valor</small><strong>{currency.format(unitPrice * item.quantity)}</strong></div>
+                          <div className="cart-item-value"><small>Valor</small><strong>{variant.retired ? "Revise o tamanho" : currency.format(unitPrice * item.quantity)}</strong></div>
                         </div>
                         <div className="cart-item-actions">
                           <div className="mini-quantity">
@@ -1501,7 +1496,8 @@ export default function Home() {
                       </article>
                     );
                   })}
-                  <div className="cart-subtotal"><span>Subtotal dos produtos</span><strong>{currency.format(cartSubtotal)}</strong></div>
+                  <div className="cart-subtotal"><span>Subtotal dos produtos</span><strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(cartSubtotal)}</strong></div>
+                  {cart.some((item) => item.productId === POPCORN.id) && <p className="cart-save-note">Pipocas calculadas pela tabela atual: tamanho e conjunto mais caro dos sabores escolhidos. Confira os valores antes de enviar.</p>}
                   <p className="cart-save-note"><Check size={14} /> Pedido mantido somente nesta aba. Ao fechá-la, ele é limpo.</p>
                   <div className="cart-add-more">
                     <strong>Adicionar mais itens</strong>
@@ -1585,7 +1581,7 @@ export default function Home() {
                     <Button type="button" variant={!needsChange ? "default" : "ghost"} onClick={() => setNeedsChange(false)}>Não</Button>
                     <Button type="button" variant={needsChange ? "default" : "ghost"} onClick={() => setNeedsChange(true)}>Sim</Button>
                   </div></div>
-                  {needsChange && <div className="field-group"><label htmlFor="change-for">Troco para quanto?</label><Input id="change-for" value={changeFor} onChange={(event) => setChangeFor(event.target.value)} placeholder="Ex.: 50,00" inputMode="decimal" aria-invalid={Boolean(changeError)} aria-describedby="change-help" /><p id="change-help" className={changeError ? "field-error" : "field-note"} aria-live="polite">{changeError || `Troco necessário: ${formatOrderMoney((cashReceivedCents! - Math.round(orderTotal * 100)) / 100)}`}</p></div>}
+                  {needsChange && <div className="field-group"><label htmlFor="change-for">Troco para quanto?</label><Input id="change-for" value={changeFor} onChange={(event) => setChangeFor(event.target.value)} placeholder="Ex.: 50,00" inputMode="decimal" aria-invalid={Boolean(changeError)} aria-describedby="change-help" /><p id="change-help" className={changeError ? "field-error" : "field-note"} aria-live="polite">{cartNeedsSizeReview ? "Corrija o tamanho da pipoca para calcular o troco." : changeError || `Troco necessário: ${formatOrderMoney((cashReceivedCents! - Math.round(orderTotal * 100)) / 100)}`}</p></div>}
                   <p className="field-note">{fulfillment === "retirada" ? "Pagamento em dinheiro no momento da retirada." : fulfillment === "entrega" ? "Pagamento em dinheiro no momento da entrega." : "Pagamento em dinheiro na entrega ou retirada."}</p>
                 </div>
               )}
@@ -1615,22 +1611,22 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="summary-item-side">
-                      <strong>{currency.format(lineTotal)}</strong>
+                      <strong>{variant.retired ? "Revise o tamanho" : currency.format(lineTotal)}</strong>
                       {product.kind !== "drink" && <Button type="button" variant="ghost" size="sm" onClick={() => editItem(item)} aria-label={`Editar item ${index + 1}`}>Editar</Button>}
                     </div>
                   </div>
                 );
               })}
-              <div className="summary-row"><span>Subtotal</span><strong>{currency.format(cartSubtotal)}</strong></div>
+              <div className="summary-row"><span>Subtotal</span><strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(cartSubtotal)}</strong></div>
               {fulfillment === "entrega" && selectedDeliveryZone && (
                 <div className="summary-row summary-delivery"><span>Taxa de entrega</span><strong>{currency.format(deliveryFee)}</strong></div>
               )}
               {fulfillment === "retirada" && <div className="summary-row"><span>Taxa de entrega</span><strong>Não se aplica</strong></div>}
               {cart.length > 0 && (fulfillment === "retirada" || (fulfillment === "entrega" && selectedDeliveryZone)) && (
-                <div className="summary-row summary-total"><span>Total</span><strong>{currency.format(orderTotal)}</strong></div>
+                <div className="summary-row summary-total"><span>Total</span><strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(orderTotal)}</strong></div>
               )}
               {fulfillment === "entrega" && <div className="summary-address"><strong>Endereço de entrega</strong><p>{[address, addressNumber].filter(Boolean).join(", ") || "Informe a rua e o número"}</p>{complement && <p>{complement}</p>}<p>{deliveryNeighborhood || "Informe o bairro"}</p>{reference && <p>Referência: {reference}</p>}</div>}
-              {payment === "dinheiro" && needsChange && !changeError && <div className="summary-address"><p>Troco para: {formatOrderMoney(cashReceivedCents! / 100)}</p><p>Troco necessário: {formatOrderMoney((cashReceivedCents! - Math.round(orderTotal * 100)) / 100)}</p></div>}
+              {payment === "dinheiro" && needsChange && !changeError && !cartNeedsSizeReview && <div className="summary-address"><p>Troco para: {formatOrderMoney(cashReceivedCents! / 100)}</p><p>Troco necessário: {formatOrderMoney((cashReceivedCents! - Math.round(orderTotal * 100)) / 100)}</p></div>}
               <button type="button" className="summary-link" onClick={() => enterCheckout("recebimento")}><span><small>Recebimento</small><strong>{fulfillment === "entrega" ? selectedDeliveryZone ? `Entrega — ${selectedDeliveryZone.label} · ${currency.format(deliveryFee)}` : "Entrega — escolher região" : fulfillment === "retirada" ? "Retirada em Paragominas" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
               <button type="button" className="summary-link" onClick={() => enterCheckout("pagamento")}><span><small>Pagamento</small><strong>{paymentLabel}</strong></span><ChevronRight size={18} /></button>
             </div>
