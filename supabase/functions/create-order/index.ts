@@ -380,7 +380,7 @@ Deno.serve(async (request: Request) => {
 
     const card = payment.card && typeof payment.card === "object" ? payment.card as Record<string, unknown> : {};
     let paymentMethod: Record<string, unknown>;
-    let payer: Record<string, unknown> = { email: customerEmail };
+    let payer: Record<string, unknown> = { email: customerEmail, first_name: customerName.split(/\s+/)[0] };
     if (method === "mercado_pago_pix") {
       paymentMethod = { id: "pix", type: "bank_transfer" };
     } else {
@@ -483,7 +483,7 @@ Deno.serve(async (request: Request) => {
     const mpOrderId = optionalString(gatewayBody.id, 120);
     const mpExternalReference = optionalString(gatewayBody.external_reference, 120);
     const mpTotalCents = parseMoneyToCents(gatewayBody.total_amount);
-    if (!mpOrderId || mpExternalReference !== orderId || mpTotalCents !== totalCents) {
+    if (!mpOrderId || mpExternalReference !== orderId || mpTotalCents !== totalCents || gatewayBody.live_mode === true) {
       await patchAttempt(String(attempt.id), { status: "unknown", last_error_code: "gateway_response_mismatch", last_error_message: "Resposta do gateway não corresponde ao pedido." });
       throw new HttpError(502, "gateway_response_mismatch", "Não foi possível confirmar os dados retornados pelo pagamento.");
     }

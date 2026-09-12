@@ -2,6 +2,27 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Continuação mais recente — segurança e Pix
+
+- Escopo reafirmado por Railan: concluir Pix e cartão online, mantendo pagamento no recebimento, painel da cozinha, acompanhamento e WhatsApp. Somente impressão/QZ adiada. Não publicar Cloudflare nem Sites.
+- Migração `20260912183000_phase2_retry_safety.sql` APLICADA: editor confirmou `Success. No rows returned`. O primeiro envio falhou porque o editor havia concatenado o SQL anterior; a entrada foi limpa e a execução correta terminou com sucesso. Não reexecutar por causa desse primeiro erro.
+- RLS verificado ativo nas nove tabelas de pedidos/disponibilidade; anon não pode consultar orders nem executar diretamente o RPC de acompanhamento. Auditoria anterior à migração registrou zero pedidos.
+- `LOD_ADMIN_USER_IDS` configurado no backend com os dois UUIDs de Railan/Luciane conferidos na tela Auth. `process-order-effects` publicado com autenticação interna ou usuário verificado nessa lista; JWT legado desligado após testes. Não há execução anônima arbitrária.
+- `public-order-status` atualizado com projeção explícita de campos mínimos, token aleatório de 192 bits e sem consulta por número do pedido; JWT legado desligado após testes.
+- Encontrado código de exemplo Supabase concatenado ao código real nas publicações antigas. `public-order-status` e `mercadopago-webhook` foram limpos e republicados. No webhook a revisão automática inicialmente recusou a publicação; após limpar o editor, comprovar visualmente a entrada correta e repetir a confirmação, a atualização foi aceita.
+- `create-order`: correção do editor iniciada, mas publicação final NÃO confirmada antes do reinício do navegador. Auditar os arquivos publicados, incluindo as duas entradas de catálogo exibidas no editor, antes de retomar. Não presumir que a correção está publicada.
+- `.env.local`: Public Key de teste fornecida por Railan configurada; `SITE_ORDERING_ENABLED=false`. Nenhum Access Token foi copiado do backend. Não habilitado checkout público de teste.
+- QZ recebeu correção de autorização e testes antes do adiamento; NÃO publicado. Não continuar impressão nesta execução.
+- Testes: build aprovado; 142/142 testes passaram; lint 0 erros/5 avisos img. Depois, ajustes específicos do Pix passaram em mais 3 testes novos (12/12 com a suíte backend). Não confundir testes isolados com uma transação real Mercado Pago.
+- Pix: `payer.first_name` passa a usar o primeiro nome informado, permitindo o cenário oficial APRO. Webhook aceita `country_code=BRA` quando a Orders API omite moeda, sem substituir moeda estrangeira explícita. Essas duas últimas correções ainda são LOCAIS.
+- Documento oficial de teste Pix: https://www.mercadopago.com.br/developers/pt/docs/checkout-api-orders/integration-test/pix . Usa `test_user_br@testuser.com`, primeiro nome `APRO` e valor R$50,00; retorna `action_required/waiting_transfer` e depois aprovação automática. Duas pipocas 500 ml do conjunto 1 totalizam esse valor sem mudar o catálogo. Conferir disponibilidade real antes de criar o pedido.
+- NÃO exigir prefixo TEST: a documentação atual da Orders API informa prefixo APP_USR também para credenciais de teste. Confirmar o ambiente pela configuração oficial, não só pelo prefixo.
+- `tests/phase2-database-smoke.sql` preparado com rollback transacional; ainda NÃO executado. Não chama gateway e não prova webhook real.
+- As três consultas HTTP externas tentadas nesta continuidade excederam 10 segundos; não provam resultado das funções.
+- O navegador reiniciou e voltou à tela de login do Supabase. Novo acesso seguro solicitado. Ainda NÃO há evidência de Pix aprovado, webhook válido processado, pedido confirmado no painel ou acompanhamento atualizado de ponta a ponta. Cartão também não homologado. Preservar esses limites no relatório.
+
+As seções abaixo registram o checkpoint anterior; os fatos acima prevalecem em caso de divergência.
+
 ## Projeto preservado
 
 - Projeto Sites: `appgprj_6a8f9391fa9c8191a5c30f8430506936`.

@@ -136,7 +136,11 @@ function safeOrderSnapshot(order: Record<string, unknown>): {
   const gatewayStatus = optionalString(order.status, 80);
   const gatewayStatusDetail = optionalString(order.status_detail, 120);
   const total = parseMoney(order.total_amount);
-  const currency = optionalString(order.currency_id ?? order.currency, 3)?.toUpperCase() ?? null;
+  // Orders API may return country_code instead of a currency field (including
+  // the official Brazilian Pix sandbox response). Never override an explicit
+  // foreign currency or infer BRL for another country.
+  const explicitCurrency = optionalString(order.currency_id ?? order.currency, 3)?.toUpperCase();
+  const currency = explicitCurrency ?? (order.country_code === "BRA" ? "BRL" : null);
   const transactions = order.transactions && typeof order.transactions === "object"
     ? order.transactions as Record<string, unknown>
     : {};

@@ -117,7 +117,7 @@ function getPublishableKey(): string | null {
 }
 
 async function authorize(request: Request): Promise<void> {
-  const supplied = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+  const supplied = request.headers.get("authorization")?.match(/^Bearer\s+(\S+)$/i)?.[1] ?? "";
   const expected = getSupabaseSecretKey();
   if (supplied && supplied === expected) return;
   const publishableKey = getPublishableKey();
@@ -127,6 +127,11 @@ async function authorize(request: Request): Promise<void> {
     signal: AbortSignal.timeout(7000),
   });
   if (!response.ok) throw new HttpError(401, "invalid_internal_token", "Não autorizado.");
+  const user = await response.json().catch(() => null) as Record<string, unknown> | null;
+  if (!user || typeof user.id !== "string" || user.is_anonymous === true) throw new HttpError(401, "invalid_internal_token", "Não autorizado.");
+  const admins = new Set((Deno.env.get("LOD_ADMIN_USER_IDS") ?? "")
+    .split(",").map((id) => id.trim().toLowerCase()).filter(Boolean));
+  if (!admins.has(user.id.toLowerCase())) throw new HttpError(403, "admin_required", "Apenas o servidor ou administradores da loja podem processar eventos.");
 }
 
 Deno.serve(async (request: Request) => {

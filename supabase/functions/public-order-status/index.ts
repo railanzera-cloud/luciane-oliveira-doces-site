@@ -38,6 +38,21 @@ function json(origin: string | null, status: number, body: Record<string, unknow
   return new Response(JSON.stringify(body), { status, headers: headers(origin) });
 }
 
+function publicSnapshot(order: Record<string, unknown>): Record<string, unknown> {
+  // Explicit projection at the HTTP boundary as well as in SQL. Future RPC
+  // columns must not accidentally expose customer data or campaign identifiers.
+  const fields = ["order_number", "payment_method", "payment_status", "order_status",
+    "fulfillment_type", "total", "currency", "created_at", "updated_at", "paid_at"];
+  const result = Object.fromEntries(fields.filter((key) => key in order).map((key) => [key, order[key]]));
+  if (order.payment_method === "mercado_pago_pix" && order.payment_status === "pending") {
+    const source = order.payment && typeof order.payment === "object" ? order.payment as Record<string, unknown> : {};
+    const payment = source.payment && typeof source.payment === "object" ? source.payment as Record<string, unknown> : {};
+    result.payment = { payment: Object.fromEntries(["qr_code", "qr_code_base64", "expires_at", "ticket_url"]
+      .filter((key) => typeof payment[key] === "string").map((key) => [key, payment[key]])) };
+  }
+  return result;
+}
+
 function getSupabaseSecretKey(): string {
   const current = Deno.env.get("SUPABASE_SECRET_KEYS");
   if (current) {
@@ -113,7 +128,7 @@ Deno.serve(async (request: Request) => {
     if (!/^[0-9a-f]{48}$/.test(token)) throw new HttpError(404, "order_not_found", "Pedido não encontrado.");
     const order = await lookup(token);
     if (!order) throw new HttpError(404, "order_not_found", "Pedido não encontrado.");
-    return json(origin, 200, { ok: true, order });
+    return json(origin, 200, { ok: true, order: publicSnapshot(order) });
   } catch (error) {
     if (error instanceof HttpError) return json(origin, error.status, { ok: false, error: { code: error.code, message: error.message } });
     console.error("public-order-status unexpected failure", error instanceof Error ? error.name : "unknown");
