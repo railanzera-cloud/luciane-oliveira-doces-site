@@ -39,6 +39,11 @@ export default defineConfig(async ({ mode }) => {
   const supabasePublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY
     ?? buildEnvironment.SUPABASE_PUBLISHABLE_KEY
     ?? "";
+  const siteOrderingEnabled = (process.env.SITE_ORDERING_ENABLED
+    ?? buildEnvironment.SITE_ORDERING_ENABLED) === "true";
+  const mercadoPagoPublicKeyTest = process.env.MP_PUBLIC_KEY_TEST
+    ?? buildEnvironment.MP_PUBLIC_KEY_TEST
+    ?? "";
 
   // Keep Wrangler and Miniflare state project-local. These are non-secret tool
   // settings; application environment belongs in ignored `.env*` files.
@@ -53,6 +58,8 @@ export default defineConfig(async ({ mode }) => {
     define: {
       __SUPABASE_URL__: JSON.stringify(supabaseUrl),
       __SUPABASE_PUBLISHABLE_KEY__: JSON.stringify(supabasePublishableKey),
+      __SITE_ORDERING_ENABLED__: JSON.stringify(siteOrderingEnabled),
+      __MP_PUBLIC_KEY_TEST__: JSON.stringify(mercadoPagoPublicKeyTest),
     },
     server: {
       host: "0.0.0.0",

@@ -52,7 +52,7 @@ test("renders the admin route without exposing protected controls before auth", 
 
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.match(html, /<title>Controle do cardápio \| Luciane Oliveira Doces<\/title>/);
+  assert.match(html, /<title>Pedidos e cardápio \| Luciane Oliveira Doces<\/title>/);
   assert.match(html, /Verificando acesso/);
   assert.doesNotMatch(html, />PEDIDOS</);
   assert.doesNotMatch(html, /Controle do cardápio<\/span>/);

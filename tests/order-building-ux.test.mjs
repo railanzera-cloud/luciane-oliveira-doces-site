@@ -40,7 +40,7 @@ test("lets the sticky action add a ready second item instead of skipping to chec
   assert.match(page, /function stickyBuilderAction\(\)/);
   assert.match(page, /function handleStickyAction\(\)/);
   assert.match(page, /onClick=\{handleStickyAction\}/);
-  assert.match(page, /const stickyIsWhatsAppReady = stickyUsesCheckoutAction && checkoutReady/);
+  assert.match(page, /const stickyIsCheckoutReady = stickyUsesCheckoutAction && checkoutReady/);
   assert.match(page, /setBuilderEngaged\(true\)/);
   assert.match(page, /setBuilderEngaged\(false\)/);
   assert.match(page, /stickyButtonLabel/);

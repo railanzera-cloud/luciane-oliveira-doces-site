@@ -24,11 +24,18 @@ const hasSupabaseEnvironment = Boolean(
   (process.env.SUPABASE_URL ?? buildEnvironment.SUPABASE_URL)?.trim()
     && (process.env.SUPABASE_PUBLISHABLE_KEY ?? buildEnvironment.SUPABASE_PUBLISHABLE_KEY)?.trim(),
 );
+const siteOrderingEnabled = (process.env.SITE_ORDERING_ENABLED ?? buildEnvironment.SITE_ORDERING_ENABLED) === "true";
+const hasMercadoPagoPublicKey = Boolean(
+  (process.env.MP_PUBLIC_KEY_TEST ?? buildEnvironment.MP_PUBLIC_KEY_TEST)?.trim(),
+);
 if (requireSupabase && !hasSupabaseEnvironment) {
   throw new Error("SUPABASE_URL e SUPABASE_PUBLISHABLE_KEY são obrigatórias para o ZIP de produção.");
 }
 if (!hasSupabaseEnvironment) {
   console.warn("Aviso: ZIP gerado em modo de fallback, sem conexão Supabase configurada.");
+}
+if (requireSupabase && siteOrderingEnabled && !hasMercadoPagoPublicKey) {
+  throw new Error("MP_PUBLIC_KEY_TEST é obrigatória quando SITE_ORDERING_ENABLED=true.");
 }
 
 await access(clientDirectory);
@@ -72,6 +79,7 @@ async function renderRoute(route, targetFile) {
 
 const homeHtml = await renderRoute("/", "index.html");
 await renderRoute("/admin", "admin/index.html");
+await renderRoute("/pedido", "pedido/index.html");
 await writeFile(path.join(packageDirectory, "404.html"), homeHtml, "utf8");
 
 await writeFile(
@@ -85,6 +93,7 @@ await execFileAsync("zip", ["-q", "-r", zipPath, "."], { cwd: packageDirectory }
 const requiredFiles = [
   "index.html",
   "admin/index.html",
+  "pedido/index.html",
   "404.html",
   "pipoca-gourmet.jpeg",
   "fatia-prestigio-card.webp",

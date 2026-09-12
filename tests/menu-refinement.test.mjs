@@ -506,8 +506,9 @@ test("explicit new order clears the old draft and creates another code", () => {
   const deps = { finalizationLockRef: { current: false }, orderContextRef: contextRef,
     checkoutStartedRef: { current: true }, paymentInfoTrackedRef: { current: true },
     ORDER_STORAGE_KEY: "luciane-order-session-v2", clearDraft: () => {},
+    COMMERCE_CONFIG: { siteOrderingEnabled: false },
     window: { sessionStorage: { removeItem: (key) => removed.push(key) } } };
-  for (const setter of ["setOrderContext", "setAddressNumber", "setComplement", "setLegacyAddressNotice", "setCart", "setFulfillment", "setDeliveryZoneId", "setNeighborhood", "setAddress", "setReference", "setPayment", "setNeedsChange", "setChangeFor", "setDrinkMessage", "setRestoredOrderNotice", "setAddedNotice", "setCheckoutAvailabilityMessage", "setBuilderEngaged"]) deps[setter] = (value) => { fields[setter] = value; };
+  for (const setter of ["setOrderContext", "setAddressNumber", "setComplement", "setLegacyAddressNotice", "setCart", "setFulfillment", "setDeliveryZoneId", "setNeighborhood", "setAddress", "setReference", "setPayment", "setCheckoutChannel", "setCustomerName", "setCustomerPhone", "setCustomerEmail", "setSiteResult", "setNewPaymentAttempt", "setNeedsChange", "setChangeFor", "setDrinkMessage", "setRestoredOrderNotice", "setAddedNotice", "setCheckoutAvailabilityMessage", "setBuilderEngaged"]) deps[setter] = (value) => { fields[setter] = value; };
   pageFunction("clearOrder", deps)();
   assert.equal(contextRef.current, null);
   assert.deepEqual(fields.setCart, []);

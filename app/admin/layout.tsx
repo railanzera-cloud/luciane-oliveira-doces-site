@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Controle do cardápio | Luciane Oliveira Doces",
-  description: "Área restrita para controle de disponibilidade do cardápio.",
+  title: "Pedidos e cardápio | Luciane Oliveira Doces",
+  description: "Área restrita para pedidos da cozinha e disponibilidade do cardápio.",
   robots: {
     index: false,
     follow: false,

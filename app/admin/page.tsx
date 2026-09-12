@@ -9,6 +9,7 @@ import {
   LockKeyhole,
   LogOut,
   RefreshCw,
+  ShoppingBag,
   Store,
 } from "lucide-react";
 
@@ -22,6 +23,8 @@ import {
 } from "@/app/menu-availability";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AdminOrdersPanel } from "@/components/admin-orders-panel";
 import {
   loadRemoteAvailability,
   updateMenuItemStatus,
@@ -265,11 +268,21 @@ export default function AdminPage() {
   return (
     <main className="admin-page">
       <header className="admin-topbar">
-        <div><strong>Luciane Oliveira Doces</strong><span>Controle do cardápio</span></div>
+        <div><strong>Luciane Oliveira Doces</strong><span>Pedidos e cardápio</span></div>
         <Button type="button" variant="ghost" size="icon" onClick={handleSignOut} disabled={pendingKeys.includes("sign_out")} aria-label="Sair do painel"><LogOut size={19} /></Button>
       </header>
 
-      <div className="admin-content">
+      <Tabs defaultValue="orders" className="admin-workspace">
+        <TabsList className="admin-main-tabs" aria-label="Áreas do painel">
+          <TabsTrigger value="orders"><ShoppingBag size={17} /> Pedidos</TabsTrigger>
+          <TabsTrigger value="availability"><Store size={17} /> Disponibilidade</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="orders" className="admin-content">
+          <AdminOrdersPanel client={supabase!} session={session} />
+        </TabsContent>
+
+        <TabsContent value="availability" className="admin-content">
         {notice && <div className="admin-notice" role="status"><Check size={16} />{notice}</div>}
         {loadError && (
           <div className="admin-load-error" role="alert">
@@ -317,7 +330,8 @@ export default function AdminPage() {
             {slices.map((item) => <AvailabilityControl item={item} status={categoryStatus(item.itemKey)} pending={pendingKeys.includes(item.itemKey)} onChange={(status) => changeItemStatus(item, status)} key={item.itemKey} />)}
           </div>
         </section>
-      </div>
+        </TabsContent>
+      </Tabs>
     </main>
   );
 }

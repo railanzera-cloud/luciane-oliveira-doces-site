@@ -50,17 +50,20 @@ test("uses only the Tintim Site Link with an encoded dynamic text parameter", ()
   assert.doesNotMatch(page, /wa\.me|api\.whatsapp\.com/i);
 });
 
-test("routes both checkout CTAs through the same tracked finalization function", () => {
+test("routes both checkout CTAs through the same dispatcher and keeps one WhatsApp finalizer", () => {
   const finish = functionBody(page, "finishOnWhatsApp", "stickyBuilderAction");
   const builderAction = functionBody(page, "stickyBuilderAction", "handleStickyAction");
-  const stickyAction = functionBody(page, "handleStickyAction", "startAnother");
+  const stickyAction = functionBody(page, "handleStickyAction", "handleFinalAction");
+  const finalAction = functionBody(page, "handleFinalAction", "startAnother");
 
   assert.equal((page.match(/window\.location\.assign\(/g) ?? []).length, 1);
   assert.match(finish, /window\.location\.assign\(tintimWhatsAppUrl\(message\)\)/);
-  assert.match(page, /className="whatsapp-button" onClick=\{finishOnWhatsApp\}/);
+  assert.match(page, /className="whatsapp-button checkout-primary-button" onClick=\{handleFinalAction\}/);
   assert.match(page, /onClick=\{handleStickyAction\}/);
-  assert.match(stickyAction, /if \(stickyUsesCheckoutAction\) finishOnWhatsApp\(\)/);
+  assert.match(stickyAction, /if \(stickyUsesCheckoutAction\) handleFinalAction\(\)/);
   assert.match(stickyAction, /else stickyBuilderAction\(\)/);
+  assert.match(finalAction, /if \(checkoutChannel === "whatsapp"\)/);
+  assert.match(finalAction, /void finishOnWhatsApp\(\)/);
   assert.doesNotMatch(builderAction, /finishOnWhatsApp|tintimWhatsAppUrl|window\.location/);
   assert.equal((page.match(/tintimWhatsAppUrl\(/g) ?? []).length, 2);
   assert.doesNotMatch(page, /<a[^>]+href=\{tintimWhatsAppUrl/);

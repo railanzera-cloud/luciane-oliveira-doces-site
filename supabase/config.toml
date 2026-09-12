@@ -1,0 +1,16 @@
+project_id = "edqiwvccmboyayojvuea"
+
+[functions.create-order]
+verify_jwt = false
+
+[functions.mercadopago-webhook]
+verify_jwt = false
+
+[functions.public-order-status]
+verify_jwt = false
+
+[functions.process-order-effects]
+verify_jwt = false
+
+[functions.qz-sign]
+verify_jwt = false

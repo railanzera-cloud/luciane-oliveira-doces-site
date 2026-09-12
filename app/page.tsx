@@ -3,20 +3,27 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
+  Banknote,
   CakeSlice,
   Check,
   ChevronRight,
+  CreditCard,
   Crown,
   CupSoda,
+  LoaderCircle,
+  Mail,
   MapPin,
   MessageCircle,
   Minus,
   Pencil,
+  Phone,
   Plus,
+  QrCode,
   ShoppingBag,
   Store,
   Trash2,
   Truck,
+  UserRound,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -62,6 +69,18 @@ import {
   parseCashCents, paymentDescription, restoreOrderContext,
   type CheckoutDetails, type OrderAttribution, type OrderContext,
 } from "@/app/order-checkout";
+import { MercadoPagoCardForm } from "@/components/mercado-pago-card-form";
+import { SiteOrderResultView } from "@/components/site-order-result";
+import { getCommercePublicConfiguration } from "@/lib/commerce-config";
+import {
+  createSiteOrder,
+  isGatewayFailed,
+  sitePaymentLabel,
+  SiteOrderError,
+  type MercadoPagoCardData,
+  type SiteOrderResult,
+  type SitePaymentMethod,
+} from "@/lib/site-order";
 
 type CartItem = {
   id: string;
@@ -72,7 +91,9 @@ type CartItem = {
 };
 
 type Fulfillment = "entrega" | "retirada" | "";
-type Payment = "pix" | "dinheiro" | "cartao" | "";
+type WhatsAppPayment = "pix" | "dinheiro" | "cartao";
+type Payment = WhatsAppPayment | SitePaymentMethod | "";
+type CheckoutChannel = "site" | "whatsapp";
 type MetaEventName = "ViewContent" | "AddToCart" | "InitiateCheckout" | "AddPaymentInfo";
 type StepState = "active" | "complete" | "locked";
 type AddedNotice = {
@@ -99,6 +120,11 @@ type SavedOrder = {
   order?: OrderContext | null;
   order_details?: CheckoutDetails;
   payment: Payment;
+  checkoutChannel?: CheckoutChannel;
+  customerName?: string;
+  customerPhone?: string;
+  customerEmail?: string;
+  siteResult?: SiteOrderResult | null;
   needsChange: boolean;
   changeFor: string;
   initiateCheckoutTracked?: boolean;
@@ -121,6 +147,8 @@ const PIX_DETAILS = {
 const ORDER_STORAGE_KEY = "luciane-order-session-v2";
 const LEGACY_ORDER_STORAGE_KEY = "luciane-order-v1";
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const COMMERCE_CONFIG = getCommercePublicConfiguration();
+const SITE_PAYMENT_METHODS: SitePaymentMethod[] = ["mercado_pago_pix", "mercado_pago_card", "card_on_delivery", "cash"];
 
 function StepMarker({ number, state }: { number: number; state: StepState }) {
   return (
@@ -142,6 +170,14 @@ function isProductEnabled(product: Product) {
   if (product.kind === "popcorn") return isCategoryEnabled("pipocas");
   if (product.kind === "slice") return isCategoryEnabled("fatias");
   return STORE_CONFIG.enabledExtras.drinks;
+}
+
+function isSitePayment(value: Payment): value is SitePaymentMethod {
+  return SITE_PAYMENT_METHODS.includes(value as SitePaymentMethod);
+}
+
+function isWhatsAppPayment(value: Payment): value is WhatsAppPayment {
+  return value === "pix" || value === "dinheiro" || value === "cartao";
 }
 
 let navigationByKeyboard = false;
@@ -319,6 +355,12 @@ export default function Home() {
   const [legacyAddressNotice, setLegacyAddressNotice] = useState(false);
   const [reference, setReference] = useState("");
   const [payment, setPayment] = useState<Payment>("");
+  const [checkoutChannel, setCheckoutChannel] = useState<CheckoutChannel>(COMMERCE_CONFIG.siteOrderingEnabled ? "site" : "whatsapp");
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [siteResult, setSiteResult] = useState<SiteOrderResult | null>(null);
+  const [newPaymentAttempt, setNewPaymentAttempt] = useState(false);
   const [needsChange, setNeedsChange] = useState(false);
   const [changeFor, setChangeFor] = useState("");
   const [storageReady, setStorageReady] = useState(false);
@@ -483,7 +525,14 @@ export default function Home() {
           }
         }
         if (typeof savedOrder.reference === "string") setReference(savedOrder.reference);
-        if (savedOrder.payment === "pix" || savedOrder.payment === "dinheiro" || savedOrder.payment === "cartao") setPayment(savedOrder.payment);
+        const knownPayments: Payment[] = ["pix", "dinheiro", "cartao", "mercado_pago_pix", "mercado_pago_card", "card_on_delivery", "cash"];
+        if (knownPayments.includes(savedOrder.payment as Payment)) setPayment(savedOrder.payment as Payment);
+        if (savedOrder.checkoutChannel === "site" && COMMERCE_CONFIG.siteOrderingEnabled) setCheckoutChannel("site");
+        else if (savedOrder.checkoutChannel === "whatsapp") setCheckoutChannel("whatsapp");
+        if (typeof savedOrder.customerName === "string") setCustomerName(savedOrder.customerName);
+        if (typeof savedOrder.customerPhone === "string") setCustomerPhone(savedOrder.customerPhone);
+        if (typeof savedOrder.customerEmail === "string") setCustomerEmail(savedOrder.customerEmail);
+        if (savedOrder.siteResult && typeof savedOrder.siteResult === "object") setSiteResult(savedOrder.siteResult);
         if (typeof savedOrder.needsChange === "boolean") setNeedsChange(savedOrder.needsChange);
         if (typeof savedOrder.changeFor === "string") setChangeFor(savedOrder.changeFor);
         checkoutStartedRef.current = savedOrder.initiateCheckoutTracked === true;
@@ -563,17 +612,28 @@ export default function Home() {
   const addressReady = fulfillment !== "entrega"
     || Boolean(selectedDeliveryZone && cleanWhatsAppField(deliveryNeighborhood) && cleanWhatsAppField(address) && cleanWhatsAppField(addressNumber));
   const cashReceivedCents = parseCashCents(changeFor);
-  const changeError = payment === "dinheiro" && needsChange
+  const isCashPayment = payment === "dinheiro" || payment === "cash";
+  const changeError = isCashPayment && needsChange
     ? cashReceivedCents === null
       ? "Informe um valor válido para o troco. Ex.: 50,00."
       : cashReceivedCents < Math.round(orderTotal * 100)
         ? `O valor para troco deve ser igual ou maior que ${formatOrderMoney(orderTotal)}.`
         : ""
     : "";
-  const paymentReady = Boolean(payment) && !changeError;
+  const customerNameReady = customerName.trim().length >= 2;
+  const customerPhoneReady = /^\d{10,15}$/.test(customerPhone.replace(/\D/g, ""));
+  const customerEmailReady = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail.trim());
+  const customerReady = checkoutChannel === "whatsapp" || (customerNameReady && customerPhoneReady);
+  const channelPaymentReady = checkoutChannel === "site"
+    ? isSitePayment(payment)
+      && (!(["mercado_pago_pix", "mercado_pago_card"] as SitePaymentMethod[]).includes(payment) || COMMERCE_CONFIG.onlinePaymentsEnabled)
+      && (payment !== "mercado_pago_pix" || customerEmailReady)
+    : isWhatsAppPayment(payment);
+  const paymentReady = channelPaymentReady && !changeError;
   const checkoutFormReady = cart.length > 0
     && Boolean(fulfillment)
     && addressReady
+    && customerReady
     && paymentReady;
   const checkoutReady = availability.ordersOpen
     && cartIssues.length === 0
@@ -599,7 +659,7 @@ export default function Home() {
       : "active";
   const builderFlowActive = Boolean(activeCategory && (editingId || builderEngaged || draftReady || !cart.length));
   const stickyUsesCheckoutAction = !builderFlowActive;
-  const stickyIsWhatsAppReady = stickyUsesCheckoutAction && checkoutReady;
+  const stickyIsCheckoutReady = stickyUsesCheckoutAction && checkoutReady;
   const stickyPriceLabel = cart.length > 0 && !builderFlowActive
     ? cartNeedsSizeReview ? "Revise o tamanho" : currency.format(hasEstimatedTotal ? orderTotal : cartSubtotal)
     : draftSubtotal === null
@@ -608,10 +668,16 @@ export default function Home() {
   const stickyPriceCaption = cart.length > 0 && !builderFlowActive
     ? hasEstimatedTotal ? "Total" : "Subtotal"
     : activeCategory === "pipocas" ? "Sua pipoca" : "Sua fatia";
-  const paymentLabel = paymentDescription(payment, fulfillment);
+  const paymentLabel = checkoutChannel === "site" && isSitePayment(payment)
+    ? sitePaymentLabel(payment, fulfillment)
+    : paymentDescription(isWhatsAppPayment(payment) ? payment : "", fulfillment);
   const finalButtonLabel = isFinalizing
     ? openingWhatsApp ? "Abrindo WhatsApp…" : "Conferindo pedido…"
-    : payment === "pix" ? "Enviar pedido e pagar via Pix" : "Enviar pedido no WhatsApp";
+    : checkoutChannel === "site"
+      ? payment === "mercado_pago_pix" ? "Gerar Pix e confirmar pedido"
+        : payment === "mercado_pago_card" ? "Preencher e pagar com cartão"
+          : "Confirmar pedido"
+      : payment === "pix" ? "Enviar pedido e pagar via Pix" : "Enviar pedido no WhatsApp";
   const stickyButtonLabel = isFinalizing ? finalButtonLabel : !availability.ordersOpen
     ? "Pedidos fechados"
     : !categoryIsAvailable(activeCategory) && builderFlowActive
@@ -640,10 +706,19 @@ export default function Home() {
       };
     }),
     fulfillment, neighborhood: deliveryNeighborhood, street: address, number: addressNumber,
-    complement, reference, payment, needs_change: needsChange, cash_received_cents: cashReceivedCents,
+    complement, reference, payment: isWhatsAppPayment(payment) ? payment : "", needs_change: needsChange, cash_received_cents: cashReceivedCents,
     subtotal: cartSubtotal, delivery_fee: deliveryFee, total: orderTotal, currency: "BRL",
   };
-  const checkoutFingerprint = JSON.stringify(checkoutDetails);
+  const checkoutFingerprint = JSON.stringify({
+    ...checkoutDetails,
+    checkout_channel: checkoutChannel,
+    selected_payment: payment,
+    ...(checkoutChannel === "site" ? {
+      customer_name: customerName.trim(),
+      customer_phone: customerPhone.replace(/\D/g, ""),
+      customer_email: payment === "mercado_pago_pix" ? customerEmail.trim().toLowerCase() : undefined,
+    } : {}),
+  });
   useEffect(() => {
     checkoutFingerprintRef.current = checkoutFingerprint;
     if (!storageReady || !cart.length) return;
@@ -662,10 +737,11 @@ export default function Home() {
 
   const savedOrder: SavedOrder = {
     version: 2, cart, fulfillment, deliveryZoneId, neighborhood, address, addressNumber, complement,
-    reference, payment, needsChange, changeFor, order: orderContext, order_details: checkoutDetails,
+    reference, payment, checkoutChannel, customerName, customerPhone, customerEmail, siteResult,
+    needsChange, changeFor, order: orderContext, order_details: checkoutDetails,
   };
   const serializedOrder = JSON.stringify(savedOrder);
-  const hasSavedData = cart.length > 0 || Boolean(fulfillment || deliveryZoneId || neighborhood || address || addressNumber || complement || reference || payment || changeFor);
+  const hasSavedData = cart.length > 0 || Boolean(fulfillment || deliveryZoneId || neighborhood || address || addressNumber || complement || reference || payment || changeFor || customerName || customerPhone || customerEmail || siteResult);
   useEffect(() => {
     if (!storageReady) return;
     try {
@@ -765,6 +841,12 @@ export default function Home() {
     setAddress("");
     setReference("");
     setPayment("");
+    setCheckoutChannel(COMMERCE_CONFIG.siteOrderingEnabled ? "site" : "whatsapp");
+    setCustomerName("");
+    setCustomerPhone("");
+    setCustomerEmail("");
+    setSiteResult(null);
+    setNewPaymentAttempt(false);
     setNeedsChange(false);
     setChangeFor("");
     setDrinkMessage("");
@@ -829,10 +911,22 @@ export default function Home() {
     setFulfillment(value as Fulfillment);
   }
 
+  function chooseCheckoutChannel(value: string) {
+    const next = value === "site" && COMMERCE_CONFIG.siteOrderingEnabled ? "site" : "whatsapp";
+    if (next === checkoutChannel) return;
+    setCheckoutChannel(next);
+    setPayment("");
+    setNeedsChange(false);
+    setChangeFor("");
+    setNewPaymentAttempt(false);
+    setCheckoutAvailabilityMessage("");
+  }
+
   function choosePayment(value: string) {
     const paymentMethod = value as Payment;
     trackPaymentInfo(paymentMethod);
     setPayment(paymentMethod);
+    setNewPaymentAttempt(false);
   }
 
   function addOrUpdatePopcorn() {
@@ -998,6 +1092,129 @@ export default function Home() {
     return buildOrderMessage(checkoutDetails, orderId, PIX_DETAILS);
   }
 
+  async function finishOnSite(card?: MercadoPagoCardData) {
+    if (finalizationLockRef.current || !COMMERCE_CONFIG.siteOrderingEnabled || !isSitePayment(payment)) return;
+    if (!availability.ordersOpen) {
+      scrollToSection("inicio");
+      return;
+    }
+    if (!checkoutFormReady) {
+      if (!cart.length) {
+        setBuilderEngaged(true);
+        scrollToSection(activeCategory ? "configurador" : "inicio");
+      } else if (!fulfillment || !addressReady) enterCheckout("recebimento");
+      else if (!customerReady) {
+        setCheckoutAvailabilityMessage(!customerNameReady ? "Informe seu nome para continuar." : "Informe um celular válido com DDD.");
+        scrollToSection("identificacao");
+      } else {
+        setCheckoutAvailabilityMessage(changeError || (payment === "mercado_pago_pix" ? "Informe um e-mail válido para gerar o Pix." : "Escolha a forma de pagamento."));
+        enterCheckout("pagamento");
+      }
+      throw new Error("Confira os campos destacados antes de pagar.");
+    }
+    if (payment === "mercado_pago_card" && !card) {
+      setCheckoutAvailabilityMessage("Preencha o formulário seguro do cartão para concluir.");
+      enterCheckout("pagamento");
+      return;
+    }
+
+    const effectiveEmail = payment === "mercado_pago_card" ? card?.payer_email?.trim().toLowerCase() : customerEmail.trim().toLowerCase();
+    if ((payment === "mercado_pago_pix" || payment === "mercado_pago_card")
+      && (!effectiveEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(effectiveEmail))) {
+      setCheckoutAvailabilityMessage("Informe um e-mail válido no pagamento seguro.");
+      throw new Error("Informe um e-mail válido no pagamento seguro.");
+    }
+
+    finalizationLockRef.current = true;
+    setIsFinalizing(true);
+    setOpeningWhatsApp(false);
+    setCheckoutAvailabilityMessage("Conferindo o pedido e calculando o total…");
+    try {
+      const latest = await refreshAvailability();
+      if (latest.usedFallback) throw new Error("Não foi possível confirmar a disponibilidade agora. Seu pedido continua salvo; tente novamente em instantes.");
+      if (!latest.snapshot.ordersOpen) throw new Error(STORE_CONFIG.closedMessage);
+      const latestIssues = cartAvailabilityIssues(cart, latest.snapshot);
+      if (latestIssues.length) {
+        throw new Error(`Um item acabou de ficar indisponível: ${latestIssues.map((issue) => `${issue.itemLabel}: ${issue.reasons.join(" ")}`).join("; ")}. Revise o carrinho.`);
+      }
+      if (checkoutFingerprintRef.current !== checkoutFingerprint) throw new Error("O pedido foi alterado durante a conferência. Confira o resumo e tente novamente.");
+
+      const previous = orderContextRef.current;
+      const attribution = captureOrderAttribution(window.location.href, document.cookie, previous?.attribution ?? attributionRef.current);
+      const context = !previous || (previous.handoff_fingerprint && previous.handoff_fingerprint !== checkoutFingerprint)
+        ? newOrderContext(attribution)
+        : { ...previous, attribution };
+      const next = { ...context, handoff_fingerprint: checkoutFingerprint };
+      orderContextRef.current = next;
+      setOrderContext(next);
+      const cardPayload = card ? {
+        token: card.token,
+        payment_method_id: card.payment_method_id,
+        payment_type_id: card.payment_type_id,
+        installments: card.installments,
+        ...(card.identification ? { identification: card.identification } : {}),
+      } : undefined;
+      const result = await createSiteOrder({
+        client_order_id: next.order_id,
+        customer: {
+          name: customerName.trim(),
+          phone: customerPhone.replace(/\D/g, ""),
+          ...(effectiveEmail ? { email: effectiveEmail } : {}),
+        },
+        items: cart.map((item) => ({
+          product_id: item.productId,
+          variant_id: item.variantId,
+          option_ids: [...item.optionIds],
+          quantity: item.quantity,
+        })),
+        fulfillment: fulfillment === "retirada" ? { type: "pickup" } : {
+          type: "delivery",
+          zone_id: deliveryZoneId,
+          neighborhood: deliveryNeighborhood,
+          street: address,
+          number: addressNumber,
+          complement,
+          reference,
+        },
+        payment: {
+          method: payment,
+          ...(payment === "cash" && needsChange && cashReceivedCents !== null
+            ? { change_for: (cashReceivedCents / 100).toFixed(2) }
+            : {}),
+          ...(cardPayload ? { card: cardPayload } : {}),
+        },
+        attribution,
+        ...(newPaymentAttempt ? { new_payment_attempt: true } : {}),
+      });
+
+      if ((payment === "mercado_pago_pix" || payment === "mercado_pago_card") && isGatewayFailed(result.payment)) {
+        setNewPaymentAttempt(true);
+        throw new Error("O pagamento não foi aprovado. Confira os dados e faça uma nova tentativa.");
+      }
+
+      setNewPaymentAttempt(false);
+      setSiteResult(result);
+      setCheckoutAvailabilityMessage("");
+      try {
+        window.sessionStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify({
+          ...savedOrder,
+          order: next,
+          siteResult: result,
+          initiateCheckoutTracked: checkoutStartedRef.current,
+          paymentInfoTracked: paymentInfoTrackedRef.current,
+        }));
+      } catch { /* O resultado continua em memória. */ }
+    } catch (error) {
+      if (error instanceof SiteOrderError && error.status === 422 && error.code === "payment_not_created") setNewPaymentAttempt(true);
+      const message = error instanceof Error ? error.message : "Não foi possível concluir o pedido. Seus dados foram preservados.";
+      setCheckoutAvailabilityMessage(message);
+      throw error;
+    } finally {
+      finalizationLockRef.current = false;
+      setIsFinalizing(false);
+    }
+  }
+
   async function finishOnWhatsApp() {
     // Trava síncrona: protege também dois toques antes do próximo render do React.
     if (finalizationLockRef.current) return;
@@ -1082,8 +1299,23 @@ export default function Home() {
   }
 
   function handleStickyAction() {
-    if (stickyUsesCheckoutAction) finishOnWhatsApp();
+    if (stickyUsesCheckoutAction) handleFinalAction();
     else stickyBuilderAction();
+  }
+
+  function handleFinalAction() {
+    if (checkoutChannel === "whatsapp") {
+      void finishOnWhatsApp();
+      return;
+    }
+    if (payment === "mercado_pago_card") {
+      setCheckoutAvailabilityMessage("Preencha o formulário seguro do cartão para concluir.");
+      enterCheckout("pagamento");
+      return;
+    }
+    void finishOnSite().catch(() => {
+      window.setTimeout(() => scrollToSection("carrinho"), 0);
+    });
   }
 
   function startAnother(category: CategoryId) {
@@ -1113,13 +1345,31 @@ export default function Home() {
             ? "Informe seu bairro."
             : !addressReady
               ? "Preencha os dados da entrega."
+              : checkoutChannel === "site" && !customerNameReady
+                ? "Informe seu nome para continuar."
+                : checkoutChannel === "site" && !customerPhoneReady
+                  ? "Informe um celular válido com DDD."
               : !payment
                 ? "Escolha a forma de pagamento."
                 : !paymentReady
-                  ? changeError
-                  : payment === "pix"
-                    ? "No WhatsApp: envie o pedido, faça o Pix com a chave da mensagem e envie o comprovante."
-                    : `No WhatsApp, toque em enviar para encaminhar o pedido. O pagamento será feito na ${fulfillment === "retirada" ? "retirada" : "entrega"}.`);
+                  ? changeError || (payment === "mercado_pago_pix" ? "Informe um e-mail válido para gerar o Pix." : "Confira a forma de pagamento.")
+                  : checkoutChannel === "site"
+                    ? payment === "mercado_pago_pix"
+                      ? "O Pix será gerado pelo Mercado Pago e confirmado automaticamente."
+                      : payment === "mercado_pago_card"
+                        ? "Preencha o formulário seguro do cartão para concluir."
+                        : `Ao confirmar, o pedido entra na cozinha e o pagamento será feito na ${fulfillment === "retirada" ? "retirada" : "entrega"}.`
+                    : payment === "pix"
+                      ? "No WhatsApp: envie o pedido, faça o Pix com a chave da mensagem e envie o comprovante."
+                      : `No WhatsApp, toque em enviar para encaminhar o pedido. O pagamento será feito na ${fulfillment === "retirada" ? "retirada" : "entrega"}.`);
+
+  if (siteResult && (fulfillment === "entrega" || fulfillment === "retirada")) {
+    return <SiteOrderResultView result={siteResult} fulfillment={fulfillment} onNewOrder={clearOrder} onRetryPayment={() => {
+      setSiteResult(null);
+      setNewPaymentAttempt(true);
+      window.setTimeout(() => enterCheckout("pagamento"), 0);
+    }} />;
+  }
 
   return (
     <main>
@@ -1162,7 +1412,9 @@ export default function Home() {
               ? "Escolha o tamanho e combine seus sabores."
               : activeCategory === "fatias"
                 ? "Sabores disponíveis"
-                : "Monte seu pedido pelo site e envie pelo WhatsApp."}</p>
+                : COMMERCE_CONFIG.siteOrderingEnabled
+                  ? "Monte seu pedido e escolha se prefere concluir no site ou pelo WhatsApp."
+                  : "Monte seu pedido pelo site e envie pelo WhatsApp."}</p>
           </div>
           {!hasResolvedAvailability ? (
             <div className="entry-loading" role="status">Carregando cardápio…</div>
@@ -1561,21 +1813,75 @@ export default function Home() {
                   <p className="field-note">A taxa é calculada pela região escolhida. Confira o endereço e o total antes de enviar.</p>
                 </div>
               )}
-              {fulfillment === "retirada" && <div className="pickup-note"><MapPin size={18} /><span><strong>Retirada disponível em Paragominas.</strong>O horário e o local serão confirmados no WhatsApp.</span></div>}
+              {fulfillment === "retirada" && <div className="pickup-note"><MapPin size={18} /><span><strong>Retirada disponível em Paragominas.</strong>{checkoutChannel === "whatsapp" ? "O horário e o local serão confirmados no WhatsApp." : "A loja confirmará o horário e o local pelo celular informado."}</span></div>}
             </section>
+
+            {COMMERCE_CONFIG.siteOrderingEnabled && (
+              <section className="order-card checkout-channel-card" id="finalizacao" aria-labelledby="channel-title">
+                <div className="order-card-heading"><div><p className="eyebrow">Finalização</p><h2 id="channel-title">Como deseja concluir?</h2></div></div>
+                <RadioGroup className="choice-grid checkout-channel-options" value={checkoutChannel} onValueChange={chooseCheckoutChannel} aria-label="Canal de finalização">
+                  <label className={`choice-card ${checkoutChannel === "site" ? "is-selected" : ""}`} htmlFor="channel-site">
+                    <RadioGroupItem id="channel-site" value="site" /><ShoppingBag size={21} /><span className="choice-copy"><strong>Concluir no site</strong><small>Receba o número e acompanhe o pedido</small></span>
+                    {checkoutChannel === "site" && <span className="choice-check" aria-hidden="true"><Check size={13} strokeWidth={3} /></span>}
+                  </label>
+                  <label className={`choice-card ${checkoutChannel === "whatsapp" ? "is-selected" : ""}`} htmlFor="channel-whatsapp">
+                    <RadioGroupItem id="channel-whatsapp" value="whatsapp" /><MessageCircle size={21} /><span className="choice-copy"><strong>Finalizar no WhatsApp</strong><small>Continue pelo atendimento da loja</small></span>
+                    {checkoutChannel === "whatsapp" && <span className="choice-check" aria-hidden="true"><Check size={13} strokeWidth={3} /></span>}
+                  </label>
+                </RadioGroup>
+              </section>
+            )}
+
+            {checkoutChannel === "site" && (
+              <section className="order-card customer-card" id="identificacao" aria-labelledby="customer-title">
+                <div className="order-card-heading"><div><p className="eyebrow">Identificação</p><h2 id="customer-title">Quem está fazendo o pedido?</h2></div></div>
+                <div className="customer-fields">
+                  <div className="field-group"><label htmlFor="customer-name"><UserRound size={15} aria-hidden="true" /> Nome</label><Input id="customer-name" value={customerName} onChange={(event) => setCustomerName(event.target.value)} placeholder="Seu nome" autoComplete="name" maxLength={100} aria-invalid={Boolean(customerName && !customerNameReady)} /></div>
+                  <div className="field-group"><label htmlFor="customer-phone"><Phone size={15} aria-hidden="true" /> Celular com DDD</label><Input id="customer-phone" value={customerPhone} onChange={(event) => setCustomerPhone(event.target.value)} placeholder="(91) 99999-9999" inputMode="tel" autoComplete="tel" maxLength={24} aria-invalid={Boolean(customerPhone && !customerPhoneReady)} /></div>
+                </div>
+                <p className="field-note">Usaremos seus dados somente para processar e acompanhar este pedido.</p>
+              </section>
+            )}
 
             <section className={`order-card payment-card step-state-${paymentStepState}`} id="pagamento" aria-labelledby="payment-title">
               <div className="order-card-heading payment-heading"><div><p className="eyebrow">Pagamento</p><h2 id="payment-title">Como prefere pagar?</h2></div></div>
-              <RadioGroup className="payment-list" value={payment} onValueChange={choosePayment} aria-label="Forma de pagamento">
-                {[["pix", "Pix"], ["dinheiro", "Dinheiro"], ["cartao", paymentDescription("cartao", fulfillment)]].map(([value, label]) => (
-                  <label className={`payment-option ${payment === value ? "is-selected" : ""}`} htmlFor={`payment-${value}`} key={value}>
-                    <RadioGroupItem id={`payment-${value}`} value={value} /><span>{label}</span>{payment === value && <Check size={17} />}
-                  </label>
-                ))}
-              </RadioGroup>
+              {checkoutChannel === "site" ? (
+                <RadioGroup className="payment-list payment-groups" value={payment} onValueChange={choosePayment} aria-label="Forma de pagamento">
+                  <div className="payment-group"><strong>Pagar agora</strong>
+                    <label className={`payment-option ${payment === "mercado_pago_pix" ? "is-selected" : ""} ${!COMMERCE_CONFIG.onlinePaymentsEnabled ? "is-disabled" : ""}`} htmlFor="payment-mp-pix">
+                      <RadioGroupItem id="payment-mp-pix" value="mercado_pago_pix" disabled={!COMMERCE_CONFIG.onlinePaymentsEnabled} /><QrCode size={19} /><span><strong>Pix online</strong><small>QR Code pelo Mercado Pago</small></span>{payment === "mercado_pago_pix" && <Check size={17} />}
+                    </label>
+                    <label className={`payment-option ${payment === "mercado_pago_card" ? "is-selected" : ""} ${!COMMERCE_CONFIG.onlinePaymentsEnabled ? "is-disabled" : ""}`} htmlFor="payment-mp-card">
+                      <RadioGroupItem id="payment-mp-card" value="mercado_pago_card" disabled={!COMMERCE_CONFIG.onlinePaymentsEnabled} /><CreditCard size={19} /><span><strong>Cartão online</strong><small>Ambiente seguro Mercado Pago</small></span>{payment === "mercado_pago_card" && <Check size={17} />}
+                    </label>
+                    {!COMMERCE_CONFIG.onlinePaymentsEnabled && <p className="field-note">Pagamento online ainda não habilitado nesta versão.</p>}
+                  </div>
+                  <div className="payment-group"><strong>Pagar no recebimento</strong>
+                    <label className={`payment-option ${payment === "card_on_delivery" ? "is-selected" : ""}`} htmlFor="payment-card-delivery">
+                      <RadioGroupItem id="payment-card-delivery" value="card_on_delivery" /><CreditCard size={19} /><span><strong>{fulfillment === "retirada" ? "Cartão na retirada" : "Cartão na entrega"}</strong><small>Pedido entra na cozinha ao confirmar</small></span>{payment === "card_on_delivery" && <Check size={17} />}
+                    </label>
+                    <label className={`payment-option ${payment === "cash" ? "is-selected" : ""}`} htmlFor="payment-cash">
+                      <RadioGroupItem id="payment-cash" value="cash" /><Banknote size={19} /><span><strong>{fulfillment === "retirada" ? "Dinheiro na retirada" : "Dinheiro na entrega"}</strong><small>Informe abaixo se precisar de troco</small></span>{payment === "cash" && <Check size={17} />}
+                    </label>
+                  </div>
+                </RadioGroup>
+              ) : (
+                <RadioGroup className="payment-list" value={payment} onValueChange={choosePayment} aria-label="Forma de pagamento pelo WhatsApp">
+                  {[["pix", "Pix"], ["dinheiro", "Dinheiro"], ["cartao", paymentDescription("cartao", fulfillment)]].map(([value, label]) => (
+                    <label className={`payment-option ${payment === value ? "is-selected" : ""}`} htmlFor={`payment-${value}`} key={value}>
+                      <RadioGroupItem id={`payment-${value}`} value={value} /><span>{label}</span>{payment === value && <Check size={17} />}
+                    </label>
+                  ))}
+                </RadioGroup>
+              )}
+              {payment === "mercado_pago_pix" && <div className="online-email-field field-group"><label htmlFor="online-email"><Mail size={15} aria-hidden="true" /> E-mail para processar o Pix</label><Input id="online-email" value={customerEmail} onChange={(event) => setCustomerEmail(event.target.value)} placeholder="voce@exemplo.com" inputMode="email" type="email" autoComplete="email" maxLength={254} aria-invalid={Boolean(customerEmail && !customerEmailReady)} /><p className="field-note">O Mercado Pago exige este dado para gerar a cobrança. Não enviaremos marketing.</p></div>}
+              {payment === "mercado_pago_card" && COMMERCE_CONFIG.onlinePaymentsEnabled && (
+                <MercadoPagoCardForm publicKey={COMMERCE_CONFIG.mercadoPagoPublicKey} amount={orderTotal} disabled={isFinalizing || !customerReady || !addressReady || cartIssues.length > 0} onSubmit={finishOnSite} />
+              )}
               {payment === "pix" && <p className="payment-guidance">O próximo passo é no WhatsApp: envie o pedido e use a chave Pix da mensagem para pagar. Depois, envie o comprovante na mesma conversa.</p>}
-              {payment === "cartao" && <p className="payment-guidance">{fulfillment === "retirada" ? "Pague no cartão ao retirar. Aguarde a confirmação do pedido antes de se deslocar." : fulfillment === "entrega" ? "Pague no cartão no momento da entrega." : "O pagamento será feito no momento da entrega ou retirada."}</p>}
-              {payment === "dinheiro" && (
+              {payment === "mercado_pago_pix" && <p className="payment-guidance">O QR Code será gerado pelo Mercado Pago. A confirmação do pagamento acontece automaticamente.</p>}
+              {(payment === "cartao" || payment === "card_on_delivery") && <p className="payment-guidance">{fulfillment === "retirada" ? "Pague no cartão ao retirar." : fulfillment === "entrega" ? "Pague no cartão no momento da entrega." : "O pagamento será feito no momento da entrega ou retirada."}</p>}
+              {isCashPayment && (
                 <div className="change-box">
                   <div className="change-question"><span><strong>Precisa de troco?</strong><small>Opcional</small></span><div className="segmented-control">
                     <Button type="button" variant={!needsChange ? "default" : "ghost"} onClick={() => setNeedsChange(false)}>Não</Button>
@@ -1590,7 +1896,9 @@ export default function Home() {
 
           <aside className="summary-card" aria-labelledby="summary-title">
             <p className="eyebrow">Confira antes de enviar</p><h2 id="summary-title">Resumo do pedido</h2>
-            {cart.length > 0 && <p className="order-code" aria-live="polite">Código do pedido: <strong>{orderContext?.order_id ?? "Gerando código…"}</strong></p>}
+            {cart.length > 0 && (checkoutChannel === "whatsapp"
+              ? <p className="order-code" aria-live="polite">Código do pedido: <strong>{orderContext?.order_id ?? "Gerando código…"}</strong></p>
+              : <p className="order-code">O número do pedido será mostrado após a confirmação.</p>)}
             <div className="summary-content">
               {cart.length === 0 ? <p className="summary-empty">Os produtos adicionados aparecerão aqui.</p> : cart.map((item, index) => {
                 const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
@@ -1626,12 +1934,13 @@ export default function Home() {
                 <div className="summary-row summary-total"><span>Total</span><strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(orderTotal)}</strong></div>
               )}
               {fulfillment === "entrega" && <div className="summary-address"><strong>Endereço de entrega</strong><p>{[address, addressNumber].filter(Boolean).join(", ") || "Informe a rua e o número"}</p>{complement && <p>{complement}</p>}<p>{deliveryNeighborhood || "Informe o bairro"}</p>{reference && <p>Referência: {reference}</p>}</div>}
-              {payment === "dinheiro" && needsChange && !changeError && !cartNeedsSizeReview && <div className="summary-address"><p>Troco para: {formatOrderMoney(cashReceivedCents! / 100)}</p><p>Troco necessário: {formatOrderMoney((cashReceivedCents! - Math.round(orderTotal * 100)) / 100)}</p></div>}
+              {isCashPayment && needsChange && !changeError && !cartNeedsSizeReview && <div className="summary-address"><p>Troco para: {formatOrderMoney(cashReceivedCents! / 100)}</p><p>Troco necessário: {formatOrderMoney((cashReceivedCents! - Math.round(orderTotal * 100)) / 100)}</p></div>}
+              {checkoutChannel === "site" && <div className="summary-address"><strong>Cliente</strong><p>{customerName.trim() || "Informe seu nome"}</p><p>{customerPhone.trim() || "Informe seu celular"}</p>{payment === "mercado_pago_pix" && <p>{customerEmail.trim() || "Informe seu e-mail"}</p>}</div>}
               <button type="button" className="summary-link" onClick={() => enterCheckout("recebimento")}><span><small>Recebimento</small><strong>{fulfillment === "entrega" ? selectedDeliveryZone ? `Entrega — ${selectedDeliveryZone.label} · ${currency.format(deliveryFee)}` : "Entrega — escolher região" : fulfillment === "retirada" ? "Retirada em Paragominas" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
               <button type="button" className="summary-link" onClick={() => enterCheckout("pagamento")}><span><small>Pagamento</small><strong>{paymentLabel}</strong></span><ChevronRight size={18} /></button>
             </div>
-            <Button type="button" className="whatsapp-button" onClick={finishOnWhatsApp} disabled={!availability.ordersOpen || isFinalizing} aria-describedby="checkout-status" data-event="whatsapp_checkout"><MessageCircle size={20} /> {finalButtonLabel}</Button>
-            {orderContext?.whatsapp_attempted_at && <div className="whatsapp-return-note" role="status"><strong>Continue no WhatsApp</strong><p>Envie a mensagem por lá para encaminhar o pedido. Seu pedido continua nesta aba para consulta.</p><Button type="button" variant="outline" onClick={clearOrder} disabled={isFinalizing}>Fazer novo pedido</Button></div>}
+            <Button type="button" className="whatsapp-button checkout-primary-button" onClick={handleFinalAction} disabled={!availability.ordersOpen || isFinalizing} aria-describedby="checkout-status" data-event={checkoutChannel === "whatsapp" ? "whatsapp_checkout" : "site_checkout"}>{isFinalizing ? <LoaderCircle className="admin-spinner" size={20} /> : checkoutChannel === "whatsapp" ? <MessageCircle size={20} /> : payment === "mercado_pago_pix" ? <QrCode size={20} /> : <ShoppingBag size={20} />} {finalButtonLabel}</Button>
+            {checkoutChannel === "whatsapp" && orderContext?.whatsapp_attempted_at && <div className="whatsapp-return-note" role="status"><strong>Continue no WhatsApp</strong><p>Envie a mensagem por lá para encaminhar o pedido. Seu pedido continua nesta aba para consulta.</p><Button type="button" variant="outline" onClick={clearOrder} disabled={isFinalizing}>Fazer novo pedido</Button></div>}
             <p id="checkout-status" className={checkoutReady ? "ready-status" : "checkout-status"} aria-live="polite">{checkoutReady && <Check size={14} />}{checkoutHint}</p>
           </aside>
         </div>
@@ -1644,11 +1953,11 @@ export default function Home() {
       <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
       {(activeCategory || cart.length > 0) && (
-      <div className={`mobile-sticky-bar ${stickyIsWhatsAppReady ? "is-ready" : "is-building"}`} data-state={stickyIsWhatsAppReady ? "ready" : "building"}>
+      <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
         <div><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></div>
         <Button type="button" onClick={handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
           {stickyButtonLabel}
-          {stickyIsWhatsAppReady ? <MessageCircle size={17} /> : <ChevronRight size={17} />}
+          {stickyIsCheckoutReady ? checkoutChannel === "whatsapp" ? <MessageCircle size={17} /> : <ShoppingBag size={17} /> : <ChevronRight size={17} />}
         </Button>
       </div>
       )}
