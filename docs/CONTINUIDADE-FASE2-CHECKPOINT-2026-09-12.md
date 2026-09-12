@@ -4,6 +4,17 @@ Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para c
 
 ## Continuação mais recente — segurança e Pix
 
+### Retomada após login — publicação aguardando confirmação manual
+
+- Login Supabase novamente confirmado pela tela autenticada do projeto. Railan pediu assumir pessoalmente CAPTCHA, login, autorizações e confirmações manuais.
+- Auditoria remota confirmou que `create-order` AINDA contém o template antigo concatenado e precisa da atualização preparada. Os dois itens `commerce-catalog.mjs` exibidos no editor possuem conteúdo idêntico ao catálogo local; conferidos por cópia do texto completo, sem alteração comercial.
+- Editor `create-order` preparado com conteúdo completo igual ao arquivo local (somente caminho do import adaptado ao arquivo irmão no editor); ausência do template comprovada. Ainda NÃO aplicado.
+- Editor `mercadopago-webhook` preparado em outra aba; antes da edição, o código publicado foi comparado integralmente com a versão anterior esperada. A única mudança pendente é o tratamento de `country_code=BRA` quando não vem moeda. Conteúdo final conferido integralmente; ainda NÃO aplicado.
+- Adicionado acesso de homologação em `create-order`: somente ambiente test + cabeçalho `x-lod-test: 1` + chave interna validada do servidor. O marcador ou a chave pública isolados NÃO concedem acesso. Isso permite usar o testador autenticado do Supabase sem definir `SITE_ORDERING_ENABLED=true` ou expor checkout para clientes. Nunca copiar a chave interna para o frontend ou para o chat; usar apenas a opção nativa do dashboard para requisição privilegiada.
+- Sete testes focados passaram: bloqueio público, bloqueio do caminho interno em produção, preço real de duas pipocas 500ml Leitinho = R$50, dados APRO para o cenário oficial, resposta pendente/QR, rejeição de live_mode e interpretação segura da moeda. `npm run lint`: zero erros/cinco avisos img.
+- Próximo passo: confirmar manualmente as atualizações preparadas de `create-order` e `mercadopago-webhook`. Depois testar a requisição Pix real com chave interna pelo testador Supabase e dados oficiais; verificar aprovação automática na API, notificação assinada, estado persistido e acompanhamento público. Não substituir esses testes por atualização manual de payment_status.
+- Nenhuma transação real de homologação foi iniciada nesta retomada; nenhum novo resultado de Pix/cartão, Realtime ou Meta foi declarado aprovado. Cloudflare permanece sem publicação. Impressão/QZ não trabalhada.
+
 - Escopo reafirmado por Railan: concluir Pix e cartão online, mantendo pagamento no recebimento, painel da cozinha, acompanhamento e WhatsApp. Somente impressão/QZ adiada. Não publicar Cloudflare nem Sites.
 - Migração `20260912183000_phase2_retry_safety.sql` APLICADA: editor confirmou `Success. No rows returned`. O primeiro envio falhou porque o editor havia concatenado o SQL anterior; a entrada foi limpa e a execução correta terminou com sucesso. Não reexecutar por causa desse primeiro erro.
 - RLS verificado ativo nas nove tabelas de pedidos/disponibilidade; anon não pode consultar orders nem executar diretamente o RPC de acompanhamento. Auditoria anterior à migração registrou zero pedidos.

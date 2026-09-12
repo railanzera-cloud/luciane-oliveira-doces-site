@@ -173,6 +173,17 @@ async function validatePublishableKey(request: Request): Promise<void> {
   }
 }
 
+function isInternalTestRequest(request: Request): boolean {
+  // The Supabase dashboard's authenticated function tester can invoke sandbox
+  // orders with its server key. Public checkout stays disabled. Neither the
+  // marker nor the publishable key grants this access on its own.
+  if ((Deno.env.get("PAYMENTS_ENVIRONMENT") ?? "test") !== "test"
+    || request.headers.get("x-lod-test") !== "1") return false;
+  const expected = getSupabaseSecretKey();
+  const bearer = request.headers.get("authorization")?.match(/^Bearer\s+(\S+)$/i)?.[1];
+  return request.headers.get("apikey") === expected || bearer === expected;
+}
+
 async function revalidateAvailability(itemKeys: string[]): Promise<void> {
   const encodedKeys = itemKeys.map((key) => encodeURIComponent(key)).join(",");
   const [settings, rows] = await Promise.all([
@@ -268,10 +279,11 @@ Deno.serve(async (request: Request) => {
     if (origin && !allowedOrigins().has(origin)) throw new HttpError(403, "origin_not_allowed", "Origem não autorizada.");
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(origin) });
     if (request.method !== "POST") throw new HttpError(405, "method_not_allowed", "Método não permitido.");
-    if (Deno.env.get("SITE_ORDERING_ENABLED") !== "true") {
+    const internalTest = isInternalTestRequest(request);
+    if (!internalTest && Deno.env.get("SITE_ORDERING_ENABLED") !== "true") {
       throw new HttpError(503, "checkout_disabled", "A finalização completa pelo site ainda está em preparação.");
     }
-    await validatePublishableKey(request);
+    if (!internalTest) await validatePublishableKey(request);
     const contentLength = Number(request.headers.get("content-length") ?? 0);
     if (contentLength > 65536) throw new HttpError(413, "payload_too_large", "Pedido muito grande.");
 
