@@ -2,6 +2,15 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Diagnóstico após novo login — 13/09/2026, 14h BRT
+
+- Consulta real do acompanhamento: pedido 1001 segue pending/payment_pending, paid_at null.
+- Logs do webhook nas últimas 24h confirmam reentregas APÓS a correção: 10:50:36 e 11:25:54 BRT, ambas com `mercadopago-webhook signature rejected SignatureMismatch`.
+- O ajuste de minúsculas NÃO resolveu o bloqueio. Não declarar Pix aprovado. A causa exata (secret de aplicação diferente, valor cadastrado divergente ou outro detalhe do manifesto) ainda não foi isolada.
+- Próximo passo indispensável: titular/usuário autorizado conferir a assinatura vigente da MESMA aplicação Mercado Pago que forneceu as credenciais de teste e compará-la/reinseri-la diretamente como MP_WEBHOOK_SECRET_TEST no Supabase. Não compartilhar secrets no chat, não gerar nova chave por rotina, não desativar validação, não alterar Access Token nem produzir nova Order para contornar.
+- Painel Mercado Pago neste navegador retorna erro genérico antes da tela de login, inclusive na página inicial. Login Supabase foi renovado com sucesso pelo usuário. Página de secrets aberta apenas para preparar a conferência manual; nenhuma credencial foi lida ou substituída nesta retomada.
+- Não houve novos testes locais, alterações de código, migrations/RLS ou publicação Cloudflare/Sites nesta retomada.
+
 ## Retomada 13/09/2026 após confirmação do ajuste da assinatura
 
 - Railan confirmou o deploy do ajuste de assinatura; captura mostra Successfully updated edge function às 10:42 BRT. Não reaplicar essa alteração por rotina.
