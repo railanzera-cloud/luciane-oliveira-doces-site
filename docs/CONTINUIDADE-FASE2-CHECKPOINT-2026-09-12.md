@@ -2,6 +2,18 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Checkpoint 13/09/2026 — primeira transação Pix real de TESTE
+
+- Railan confirmou a publicação corrigida de `create-order` e `mercadopago-webhook` (este na versão 6). O primeiro deploy de create-order falhou por import ../_shared no editor web; corrigido para ./commerce-catalog.mjs SOMENTE na cópia de implantação web. O repositório mantém o import correto para sua estrutura de pastas.
+- Requisição enviada UMA vez pelo usuário no testador Supabase, com acesso interno nativo e checkout público desativado. HTTP 201: pedido 1001, order_id LOD-G5HC-1F7F-ZZ7A, UUID 78cd93cf-5d9e-4fc0-a24b-b108e0e79d85, R$50/BRL, pending/payment_pending. Dois potes 500ml Leitinho, retirada, dados oficiais APRO.
+- Mercado Pago criou Order de TESTE ORDTST01M2DFM1WQBVVCKZ09VD49FGBV, payment PAY01M2DFM1X58E7XJRW1QCWPGV44, total_amount 50.00, action_required/waiting_transfer, QR e ticket sandbox retornados. Não houve pagamento bancário real.
+- Quatro notificações reais chegaram ao webhook às 13:34:34/38 UTC, todas HTTP 401. URL corresponde à mesma Order e referência do pedido; execução da função v6 confirmada (não bloqueio JWT anterior à função).
+- Consulta HTTP real de public-order-status com token do pedido retornou 200, pedido 1001, R$50/BRL, pending/payment_pending, paid_at null. Token não registrado neste documento; pode ser recuperado no resultado do testador ou no painel autenticado.
+- Próxima correção PREPARADA localmente: normalizar dataId para minúsculas somente no manifesto de assinatura; manter ID original na API/SQL. Adicionados logs apenas do motivo da rejeição, sem assinatura, token ou secrets. A causa exata do 401 ainda precisa ser confirmada por nova notificação real; não presumir que o ajuste resolveu.
+- Três testes NOVOS focados passaram: manifesto assinado com ID alfanumérico aceito; assinatura adulterada bloqueada antes de API/SQL; assinatura ausente bloqueada e logs sem credenciais. São testes locais com respostas simuladas, não comprovação de webhook real pago.
+- Não repetir criação para este pedido por rotina. Próximo passo: aplicar correção preparada do webhook com confirmação manual, observar reentrega do MESMO evento e consultar acompanhamento. Se persistir 401, usar o novo motivo do log para diagnosticar; não desativar validação.
+- Pix ainda NÃO homologado ponta a ponta. Cartão, deduplicação integrada, painel/Realtime, acompanhamento visual e Purchase/CAPI continuam pendentes. Nenhuma migration/RLS/seed repetida; nenhuma publicação Cloudflare/Sites; nenhuma impressão/QZ trabalhada.
+
 ## Continuação mais recente — segurança e Pix
 
 ### Retomada após login — publicação aguardando confirmação manual

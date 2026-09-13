@@ -252,17 +252,23 @@ Deno.serve(async (request: Request) => {
     const secret = Deno.env.get("MP_WEBHOOK_SECRET_TEST");
     const accessToken = Deno.env.get("MP_ACCESS_TOKEN_TEST");
     if (!secret || !accessToken) throw new HttpError(503, "mercado_pago_not_configured", "Webhook de teste ainda não configurado.");
-    if (!signature || !requestId || !dataId) throw new HttpError(401, "invalid_signature", "Assinatura ausente.");
+    if (!signature || !requestId || !dataId) {
+      console.warn("mercadopago-webhook signature rejected", "MissingSignatureInputs");
+      throw new HttpError(401, "invalid_signature", "Assinatura ausente.");
+    }
 
     try {
       WebhookSignatureValidator.validate({
         xSignature: signature,
         xRequestId: requestId,
-        dataId,
+        // Mercado Pago's signature manifest normalizes alphanumeric IDs.
+        // Keep the original ID for the authoritative API lookup and storage.
+        dataId: dataId.toLowerCase(),
         secret,
       });
     } catch (error) {
       if (error instanceof InvalidWebhookSignatureError) {
+        console.warn("mercadopago-webhook signature rejected", error.reason);
         throw new HttpError(401, "invalid_signature", "Assinatura inválida.");
       }
       throw error;
