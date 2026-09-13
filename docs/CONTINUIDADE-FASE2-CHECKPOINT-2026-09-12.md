@@ -2,6 +2,13 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Retomada 13/09/2026 após confirmação do ajuste da assinatura
+
+- Railan confirmou o deploy do ajuste de assinatura; captura mostra Successfully updated edge function às 10:42 BRT. Não reaplicar essa alteração por rotina.
+- Consulta real de acompanhamento após esse deploy: HTTP 200, pedido 1001 ainda pending/payment_pending e paid_at null.
+- Invocations ainda mostrava somente as quatro rejeições 401 anteriores, às 10:34:34/38 BRT. Não há resultado de nova entrega após a correção nesta verificação.
+- Tentativa de abrir https://www.mercadopago.com.br/developers/panel/app mostrou erro de acesso da página; uma recarga não resolveu. Não houve CAPTCHA identificado nem conclusão de login Mercado Pago. Próximo passo: acesso manual ao painel para inspecionar/reentregar a notificação original OU observar a reentrega automática. Não criar outra Order só para isso.
+
 ## Checkpoint 13/09/2026 — primeira transação Pix real de TESTE
 
 - Railan confirmou a publicação corrigida de `create-order` e `mercadopago-webhook` (este na versão 6). O primeiro deploy de create-order falhou por import ../_shared no editor web; corrigido para ./commerce-catalog.mjs SOMENTE na cópia de implantação web. O repositório mantém o import correto para sua estrutura de pastas.
