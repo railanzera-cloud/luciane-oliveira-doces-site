@@ -41,11 +41,13 @@ import {
 } from "@/components/ui/select";
 import {
   DELIVERY_ZONES,
+  DELIVERY_TIME_ESTIMATE,
   DRINKS,
   POPCORN,
   popcornPrice,
   PRODUCTS,
   SLICES,
+  SLICE_WEIGHT_GRAMS,
   STORE_CONFIG,
   type CategoryId,
   type Product,
@@ -1415,6 +1417,9 @@ export default function Home() {
                 : COMMERCE_CONFIG.siteOrderingEnabled
                   ? "Monte seu pedido e escolha se prefere concluir no site ou pelo WhatsApp."
                   : "Monte seu pedido pelo site e envie pelo WhatsApp."}</p>
+            {hasResolvedAvailability && availability.ordersOpen && visibleCategories.length > 0 && (
+              <p className="delivery-time-estimate">{DELIVERY_TIME_ESTIMATE}</p>
+            )}
           </div>
           {!hasResolvedAvailability ? (
             <div className="entry-loading" role="status">Carregando cardápio…</div>
@@ -1595,6 +1600,7 @@ export default function Home() {
                         <span className="slice-card-copy">
                           <strong>{slice.name}</strong>
                           {slice.subtitle && <em>{slice.subtitle}</em>}
+                          <span className="slice-weight">{SLICE_WEIGHT_GRAMS} g por fatia</span>
                           <b>{currency.format(variant.price)}</b>
                         </span>
                         {selected && available && <span className="slice-selected"><Check size={14} strokeWidth={3} /></span>}
@@ -1724,6 +1730,7 @@ export default function Home() {
                             <h3>{productLabel(product)}</h3>
                             <div className="cart-item-specs">
                               <span>{variant.label}</span>
+                              {product.kind === "slice" && <span>{SLICE_WEIGHT_GRAMS} g por fatia</span>}
                               {optionNames && product.optionLabel && <span>{product.optionLabel}: {optionNames}</span>}
                               <span>Quantidade: {item.quantity}</span>
                             </div>
@@ -1811,6 +1818,7 @@ export default function Home() {
                   <div className="field-group"><label htmlFor="complement">Complemento (opcional)</label><Input id="complement" value={complement} onChange={(event) => setComplement(event.target.value)} placeholder="Ex.: casa 2, apartamento" autoComplete="address-line2" /></div>
                   <div className="field-group"><label htmlFor="reference">Ponto de referência (opcional)</label><Input id="reference" value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Ex.: próximo à praça" /></div>
                   <p className="field-note">A taxa é calculada pela região escolhida. Confira o endereço e o total antes de enviar.</p>
+                  <p className="field-note">{DELIVERY_TIME_ESTIMATE}</p>
                 </div>
               )}
               {fulfillment === "retirada" && <div className="pickup-note"><MapPin size={18} /><span><strong>Retirada disponível em Paragominas.</strong>{checkoutChannel === "whatsapp" ? "O horário e o local serão confirmados no WhatsApp." : "A loja confirmará o horário e o local pelo celular informado."}</span></div>}

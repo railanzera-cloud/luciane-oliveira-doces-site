@@ -2,6 +2,15 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Retomada 14/09/2026 — peso e prazo, pagamentos pausados
+
+- Railan confirmou que ainda não fez a etapa manual com Luciane para conferir a assinatura do webhook. NÃO considerar secret conferido/substituído. Parar homologação até esse passo; não abrir novos logins ou repetir testes financeiros.
+- Adicionados SLICE_WEIGHT_GRAMS=380 e DELIVERY_TIME_ESTIMATE no catálogo. Peso aparece nos cards de fatias e no carrinho; prazo médio de preparo E entrega aparece na entrada com loja aberta e no formulário de entrega. Não aplicar o tempo como promessa de retirada.
+- Build aprovado e lint sem erros/cinco avisos existentes. Nenhuma suíte anterior repetida por rotina. iPhone real/inspeção visual final pendentes.
+- Consulta real em 14/09: pedido 1001 ainda pending/payment_pending, paid_at null. Nada novo homologado de Pix/cartão.
+- Exemplos das mensagens atuais e relatório: docs/RELATORIO-PESO-PRAZO-MENSAGENS-2026-09-14.md. Mensagem curta é suporte para pedido criado no site; finalização WhatsApp continua completa. Não afirmar que texto compacto único já atende ambos os canais.
+- Nenhum deploy Cloudflare/Sites, nenhuma impressão/QZ, nenhuma mudança de Supabase/seed/RLS nesta retomada.
+
 ## Diagnóstico após novo login — 13/09/2026, 14h BRT
 
 - Consulta real do acompanhamento: pedido 1001 segue pending/payment_pending, paid_at null.

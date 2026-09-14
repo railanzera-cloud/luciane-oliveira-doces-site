@@ -2413,6 +2413,13 @@ footer {
   line-height: 1.5;
 }
 
+.delivery-time-estimate {
+  margin: 12px 0 0;
+  color: #e1ae6d;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .category-options {
   display: grid;
   gap: 12px;
@@ -2744,6 +2751,13 @@ footer {
   padding-top: 8px;
   color: #e1ae6d;
   font-size: 0.84rem;
+}
+
+.slice-weight {
+  margin-top: 6px;
+  color: #cdbdad;
+  font-size: 0.8rem;
+  line-height: 1.4;
 }
 
 .slice-selected {

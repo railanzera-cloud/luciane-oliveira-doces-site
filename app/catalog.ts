@@ -44,6 +44,10 @@ export type DeliveryZone = {
   asksNeighborhood?: boolean;
 };
 
+// Informações comerciais confirmadas pela loja em 14/09/2026.
+export const SLICE_WEIGHT_GRAMS = 380;
+export const DELIVERY_TIME_ESTIMATE = "Preparo e entrega: em média, 15 a 20 minutos.";
+
 // Controle geral do atendimento e das categorias exibidas no cardápio.
 // Para reativar as pipocas, altere somente `pipocas` para true.
 // Para reativar os refrigerantes, altere somente `drinks` para true.
