@@ -261,9 +261,9 @@ Deno.serve(async (request: Request) => {
       WebhookSignatureValidator.validate({
         xSignature: signature,
         xRequestId: requestId,
-        // Mercado Pago's signature manifest normalizes alphanumeric IDs.
-        // Keep the original ID for the authoritative API lookup and storage.
-        dataId: dataId.toLowerCase(),
+        // Orders API: pass the original query ID to the official SDK.
+        // Changing its case changes the signed HMAC manifest.
+        dataId,
         secret,
       });
     } catch (error) {

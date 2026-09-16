@@ -2,6 +2,18 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Retomada 16/09/2026 — simulação do pedido 1001 e assinatura
+
+- Usuário confirmou a atualização de MP_WEBHOOK_SECRET_TEST com a chave da mesma aplicação/modo teste; não foi lida nem alterada nesta execução.
+- Simulação existente recebida em 16/09/2026 às 01:16:02 UTC (15/09 22:16:02 BRT), POST com data.id=ORDTST01M2DFM1WQBVVCKZ09VD49FGBV e type=order. HTTP 401 confirmado em Invocations.
+- Execução 220eb602-52c5-41fa-86b5-5dac1ab49182, função versão 9. O mesmo execution_id consta no aviso `mercadopago-webhook signature rejected SignatureMismatch`. Portanto a rejeição ocorreu dentro do validador HMAC, não no gateway JWT e não após consulta financeira/SQL. Invocation ID: 66af2299-1a5b-4d3a-9431-1adc83583c93; log ID: b5a39ea3-2975-4375-ad01-e06ce2361be5.
+- Código publicado conferido via editor: hash SHA-256 6d8f030d88d3d890c09b6327ac90d2081aebd640dc8fe7310b855d17c37202f5, igual à função da versão salva 32. A cópia local antiga foi atualizada por fast-forward para 2ea6468 antes da alteração, preservando peso/prazo e demais trabalho salvo.
+- Ajuste PREPARADO: passar dataId original ao WebhookSignatureValidator do SDK oficial 3.6.1, removendo conversão manual para minúsculas. A documentação atual específica de Orders passa req.query['data.id'] diretamente; o SDK mantém a caixa desse ID no manifesto HMAC. Fonte: https://www.mercadopago.com.br/developers/pt/docs/checkout-api-orders/notifications . Não adicionar fallback que aceite assinatura inválida; manter consulta autoritativa e todas as validações existentes.
+- Sete testes focados aprovados usando o módulo REAL utils/webhook do pacote oficial mercadopago 3.6.1 obtido no npm (temporário, sem nova dependência no site). Cobrem ID original válido e bloqueios para alteração de caixa, outro request ID, outro secret, header malformado, assinatura adulterada e ausente. API/SQL desses testes são simulados: NÃO comprovam correção da notificação real.
+- Lint focado executado com --no-ignore nos dois arquivos alterados: zero erros e zero avisos. Não foi repetido build nem a suíte completa do site, pois esta alteração afeta apenas a função backend.
+- Correção colocada no editor e conferida integralmente contra o arquivo local (13.163 caracteres), aguardando confirmação manual de Deploy updates pelo usuário. Até essa confirmação, NÃO declarar função corrigida/publicada. Depois, reenviar uma simulação do MESMO ID ou observar reentrega para verificar assinatura e resultado real. A divergência da assinatura só será considerada resolvida quando esse teste passar.
+- Nenhuma nova Order/pagamento, nenhuma migration/seed/RLS, nenhum ajuste de credenciais, nenhum trabalho QZ e nenhuma publicação Cloudflare/Sites nesta execução. Pix/cartão continuam sem homologação ponta a ponta.
+
 ## Retomada 14/09/2026 — peso e prazo, pagamentos pausados
 
 - Railan confirmou que ainda não fez a etapa manual com Luciane para conferir a assinatura do webhook. NÃO considerar secret conferido/substituído. Parar homologação até esse passo; não abrir novos logins ou repetir testes financeiros.
