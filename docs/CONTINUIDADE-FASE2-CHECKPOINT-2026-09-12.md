@@ -2,6 +2,17 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Retomada 16/09/2026 — reenvio integrado sem duplicidade
+
+Este registro substitui a pendência de replay do checkpoint anterior. NÃO solicitar outro reenvio da mesma simulação por rotina.
+
+- Usuário reenviou Order no Mercado Pago, informou sucesso e renovou manualmente o login Supabase. Invocations confirmou **HTTP 200** em **16/09/2026 13:13:28 UTC (10:13:28 BRT)** para `data.id=ORDTST01M2DFM1WQBVVCKZ09VD49FGBV&type=order`, versão **11**. Invocation: `76caf0b6-2331-4475-abc9-e1aa44a472cb`; execution: `82afa6b2-d9c9-440d-88e2-12ef92f63de0`.
+- Consulta exclusivamente SELECT após o reenvio confirmou: **1 pedido correspondente**, **1 tentativa de pagamento**, **1 evento order.processed**, **1 transição para paid**, **1 kitchen_order_actionable** e **1 meta_purchase**. As contagens são iguais às observadas antes do reenvio. Deduplicação integrada da notificação repetida validada para este cenário; não confundir com nova tentativa de cartão ou deduplicação de entrega à Meta.
+- Pedido #1001 permanece R$50,00, `paid/new`, gateway `processed/accredited`. `paid_at` e `updated_at` permanecem `2026-09-16T01:41:53.940918+00:00`; não houve reconfirmação nem alteração do total. O evento processado mantém ID `577954e2-a77a-4bbd-a6cf-3592f3d8409d` e horário original. Há também um evento distinto order.created de 13/09.
+- Eventos de cozinha e Meta permanecem únicos e pending, attempts=0, sent_at null. Nenhum Purchase enviado. A pendência de configuração Meta CAPI/código de teste permanece conforme diagnóstico anterior; não houve nova leitura/alteração de secrets. A existência do evento de cozinha ainda não comprova exibição/alerta no painel.
+- Próximas etapas ainda não homologadas: cartão aprovado/recusado/nova tentativa, painel/Realtime, acompanhamento visual e Meta CAPI/deduplicação de envio. O núcleo Pix de teste (Order existente, pending → confirmação autoritativa pelo webhook, acompanhamento via API e replay sem duplicidade) passou; a Fase 2 completa e a liberação de produção continuam pendentes.
+- Nenhuma Order/pagamento novo, mutation SQL, migration/seed/RLS, alteração de código funcional ou deploy. Sem Cloudflare/Sites e sem impressão/QZ. Apenas documentação atualizada; testes anteriores não repetidos por rotina.
+
 ## Retomada 16/09/2026 — notificação aceita e Pix 1001 pago
 
 Este registro prevalece sobre os estados históricos abaixo. Não repetir criação de pagamento, migrations, seed, RLS, configuração de credenciais Mercado Pago ou deploy do webhook por rotina.
