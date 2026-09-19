@@ -2,6 +2,22 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Retomada 19/09/2026 — CORS e acompanhamento visual validados
+
+Este registro prevalece sobre o bloqueio de CORS abaixo. Não repetir Pix, webhook ou replay.
+
+- HEAD local e origin/main conferidos em `a31c37cb988a93061ce6cf14a3b2950994ff7f11`. Diff inicial: public-order-status e teste de CORS ainda sem commit. Login Supabase renovado manualmente pelo usuário.
+- Código remoto de public-order-status comparado integralmente antes da alteração: SHA-256 `c5e2e27f39fd9ce2a962a225d083aedaf99d190d0dfdd3de1a86d56d392b5cd2`, idêntico ao HEAD. Correção restrita aplicada pelo editor; após deploy e recarga, hash remoto `b094cfe76253030701e81094db3cb99631b8129fb176cf912bd0b02355ceec3c`, idêntico ao arquivo local. Nenhuma alteração em JWT, RLS ou projeção pública.
+- Prévia permitida somente na origem exata `http://terminal.local:4173`, com `PAYMENTS_ENVIRONMENT=test` explícito e checkout público não habilitado. Não há wildcard nem proxy. O backend já usava test por padrão, mas a variável não existia: isso inicialmente manteve o bloqueio após deploy. Configurado apenas `PAYMENTS_ENVIRONMENT=test` em 19/09/2026 22:46:24 UTC. Credenciais MP, webhook e LOD_ADMIN_USER_IDS preservados; SITE_ORDERING_ENABLED continua ausente/desativado por padrão.
+- CORS HTTP real após configuração: OPTIONS da prévia = 204 com Allow-Origin exato; origem Cloudflare existente = 204 preservado; porta 4174 = 403 sem Allow-Origin. Quatro testes locais focados passaram (incluindo fechamento em produção/ambiente ausente/checkout aberto, origens e autenticação). Lint focado da função e teste aprovado.
+- POST real de acompanhamento: token existente = 200, Cache-Control no-store, #1001 paid/new, retirada, R$50/BRL, paid_at e updated_at originais de 16/09 preservados. Resposta com campos mínimos, sem nome/telefone/endereço. Token inválido = 404; chave pública ausente = 401. Token não registrado neste documento.
+- Prévia visual `/pedido` validada: Pedido #1001, Pedido recebido, Pagamento Aprovado, Retirada, Atualizar e WhatsApp opcional. Link malformado exibe “Link de acompanhamento inválido”. Nenhum redirecionamento automático ao WhatsApp. Mudança operacional de status e Realtime ainda NÃO validados.
+- Mercado Pago continua inacessível diretamente do Work: GET sem credenciais ao SDK público e a /v1/payment_methods retornou 403 com rps=w403. A API retornou corpo vazio. Evidência de bloqueio do ambiente, não diagnóstico de Access Token inválido. Nenhuma tokenização, Order ou tentativa nova criada. Não usar proxy para contornar controles de rede; cartão aprovado/recusado/retry requer ambiente autorizado com acesso ao SDK/API.
+- GET real de process-order-effects: HTTP200, configured=false e test_events_configured=false. Nenhum Purchase enviado; evidência de resposta real da Meta e deduplicação Meta/Tintim continuam pendentes. Configuração CAPI/código de teste ainda necessária, sem solicitar secrets no chat.
+- Ao abrir /admin na prévia, import antecipado de módulo opcional de impressão causava `crypto.randomUUID is not a function` e impedia até o login. Corrigido SOMENTE o carregamento no painel: import dinâmico dentro das ações de impressão. Nenhuma alteração no módulo QZ, assinatura, fila ou impressão; nenhuma dessas ações executada. Após reload, /admin abre corretamente a tela de login. Lint do componente aprovado. `tsc --noEmit` bloqueado pelos tipos de infraestrutura Cloudflare ausentes (cloudflare:workers, Fetcher e D1Database); não declarar typecheck completo aprovado. Não repetir build/suíte por rotina.
+- Próximo passo: usuário assumir o login próprio do `/admin` na prévia (distinto do dashboard Supabase), depois validar Pedidos/Realtime e atualização do acompanhamento. Cartão permanece bloqueado pela rede; CAPI depende de configuração. Não publicar Cloudflare/Sites. Nenhuma migration, alteração financeira manual, nova cobrança ou homologação de impressão nesta retomada.
+
+
 ## Retomada 19/09/2026 — login válido; cartão bloqueado no ambiente de homologação
 
 - Login manual Supabase concluído. Dashboard autenticado e formulário `Test create-order` acessíveis. Não reenviar o corpo padrão `{ "name": "Functions" }`: nenhum corpo de cartão pronto foi colocado nesse formulário.

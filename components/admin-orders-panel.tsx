@@ -30,7 +30,6 @@ import {
   transitionAdminOrder,
   type AdminOrder,
 } from "@/lib/admin-orders-client";
-import { connectKitchenPrinter, drainPrintQueue } from "@/lib/qz-print-client";
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const ALERT_PREFERENCE_KEY = "lod-kitchen-alerts-enabled";
@@ -123,6 +122,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     printingRef.current = true;
     setPrinting(true);
     try {
+      const { drainPrintQueue } = await import("@/lib/qz-print-client");
       const count = await drainPrintQueue(client);
       if (count > 0) setNotice(`${count} ${count === 1 ? "comanda impressa" : "comandas impressas"}.`);
     } catch (printError) {
@@ -236,6 +236,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     setPrinting(true);
     setError("");
     try {
+      const { connectKitchenPrinter, drainPrintQueue } = await import("@/lib/qz-print-client");
       const printer = await connectKitchenPrinter(session.access_token);
       setPrinterName(printer);
       setPrinterReady(true);

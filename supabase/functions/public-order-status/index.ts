@@ -19,7 +19,14 @@ class HttpError extends Error {
 function allowedOrigins(): Set<string> {
   const configured = Deno.env.get("CHECKOUT_ALLOWED_ORIGINS")
     ?.split(",").map((value) => value.trim()).filter(Boolean);
-  return new Set(configured?.length ? configured : DEFAULT_ALLOWED_ORIGINS);
+  const origins = new Set(configured?.length ? configured : DEFAULT_ALLOWED_ORIGINS);
+  // Exact supervised preview only, while payments remain in test and the
+  // public checkout is closed. This grants no access without a tracking token.
+  if (Deno.env.get("PAYMENTS_ENVIRONMENT") === "test"
+    && Deno.env.get("SITE_ORDERING_ENABLED") !== "true") {
+    origins.add("http://terminal.local:4173");
+  }
+  return origins;
 }
 
 function headers(origin: string | null): HeadersInit {
