@@ -2,6 +2,20 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Retomada 19/09/2026 — login válido; cartão bloqueado no ambiente de homologação
+
+- Login manual Supabase concluído. Dashboard autenticado e formulário `Test create-order` acessíveis. Não reenviar o corpo padrão `{ "name": "Functions" }`: nenhum corpo de cartão pronto foi colocado nesse formulário.
+- Main local/remota conferidas iguais em `58b5504` antes desta atualização documental. Última versão Sites continua 32; sem publicação Sites/Cloudflare.
+- Nenhuma nova Order, cobrança ou tentativa de pagamento foi enviada a `create-order`. Pedido #1001 e evidências de Pix/replay abaixo permanecem preservados; não repetir por rotina.
+- Consulta operacional pública: `orders_open=true`; categoria Pipocas, tamanho 500 ml e Kinder Bueno disponíveis. Próximo cenário de cartão pode utilizar 1 pote 500 ml Kinder Bueno, retirada, total R$30. Leitinho estava sold_out; não reutilizar a composição do Pix anterior para nova compra sem consultar disponibilidade.
+- Documentação oficial vigente de Checkout API Orders conferida: cartão fictício Mastercard 5480832801033311, validade 11/30, CVV 123, CPF fictício 12345678909; email test@testuser.com; APRO para aprovação e OTHE para recusa. Fonte: https://www.mercadopago.com.br/developers/pt/docs/checkout-api-orders/integration-test/cards . Somente dados oficiais de teste, nunca cartão real.
+- Tentativa de tokenização com Public Key de teste não produziu token utilizável. A resposta de erro não era JSON; não concluir causa de autenticação com base nisso. Consulta diagnóstica separada GET à API pública `/v1/payment_methods` retornou HTTP403, corpo vazio e cabeçalho `rps: w403`. Não houve acesso ao Access Token privado.
+- Página temporária isolada na prévia tentou carregar SDK oficial `https://sdk.mercadopago.com/js/v2`; formulário não apareceu e console registrou `MercadoPago is not defined`. Não houve CAPTCHA ou novo login identificado. O teste não comprova defeito no componente React do checkout; o SDK não ficou disponível nesse ambiente. Harness temporário removido, sem mudança no código comercial.
+- Acompanhamento visual na prévia ficou em “Failed to fetch”. Preflight OPTIONS real de `public-order-status`, com Origin da prévia interna, retornou HTTP403 `origin_not_allowed`, sem liberação CORS. Não desativar validações nem usar proxy que oculte a origem. Não ampliar a lista sem preservar configuração atual e definir ambiente de homologação autorizado. O teste HTTP200 do acompanhamento registrado em 16/09 continua válido; a integração visual ainda não passou.
+- `SITE_ORDERING_ENABLED=false` preservado. Nenhuma alteração de secrets, webhook, migrations, RLS, schema, funções ou configuração de origem nesta retomada. Sem impressão/QZ. Build/lint/suíte não repetidos para esta atualização documental.
+- Próximo passo: disponibilizar ambiente de homologação capaz de carregar SDK/API do Mercado Pago e com origem autorizada no backend; então obter token APRO, preparar requisição interna e entregar confirmação de envio ao usuário. Depois testar OTHE e nova tentativa com token APRO, preservando o mesmo pedido no retry. Não declarar cartão homologado por tokenização isolada.
+- Continuam pendentes: cartão aprovado/recusado/retry e respectivos eventos, painel/Realtime, acompanhamento visual e mudanças de status, resposta real da Meta CAPI/deduplicação e falhas críticas. Pendência de configuração Meta registrada em 16/09 não foi reaberta nem corrigida nesta execução. Não publicar até homologação integrada comprovada.
+
 ## Retomada 16/09/2026 — reenvio integrado sem duplicidade
 
 Este registro substitui a pendência de replay do checkpoint anterior. NÃO solicitar outro reenvio da mesma simulação por rotina.
