@@ -2,6 +2,19 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Retomada 20/09/2026 — SDK externo acessível; ferramenta local preparada
+
+- HEAD inicial `9d564d673d59a514d2245b357c680b5ee17604fb`, Git limpo. Usuário confirmou que Safari/Chrome fora do Work exibiu normalmente o JavaScript bruto do SDK público. Tratar 403/rps:w403 como restrição específica do ambiente Work nesse acesso; não há evidência de Access Token inválido. Não repetir o diagnóstico de SDK já concluído. API/tokenização autenticada externa ainda não foi validada.
+- Criada ferramenta independente `tools/homologacao/lod-cartao-local.mjs`, com instruções em `tools/homologacao/README.md`. Um arquivo, sem dependências npm, para Node.js >=18 no computador do usuário; servidor somente 127.0.0.1:8789. NÃO é uma URL publicada nem funciona diretamente no iPhone.
+- Usa a Public Key já existente em MP_PUBLIC_KEY_TEST; não cria, substitui ou expõe Access Token/credenciais privadas. Navegador local acessa SDK/campos diretamente. Servidor não faz chamadas externas e não tem endpoint de criação de pedido/pagamento, proxy ou túnel. Nenhuma mudança de CORS/backend/site/credenciais realizada.
+- Primeira etapa bloqueia geração de token: operador abre a página e clica Carregar formulário; devolver FORMULÁRIO CARREGADO ou erro/print. Ainda não preencher cartão nem iniciar o modo de tokenização, para evitar gerar token antes de preparar a requisição de homologação.
+- Etapa posterior opcional e explícita no arquivo: Card Brick retorna JSON mínimo do cartão tokenizado, sem PAN/CVV, só em memória na aba. Valida cenário fictício APRO/OTHE, cartão de teste final 3311, CPF/e-mail oficiais e uma parcela; trava repetição após token obtido. Não envia pagamento. JSON é objeto card, não corpo completo de create-order. Não usar dados reais nem confundir token gerado com resultado financeiro.
+- Testes focados da NOVA ferramenta: sintaxe Node e JS; inicialização sem token; callback com SDK fictício/contrato mínimo; bloqueio de repetição; HTTP local GET 200/no-store, Host indevido 403, POST 405 e rota inexistente 404. Não usaram SDK/API reais nem credenciais privadas. Não constituem homologação do cartão. Validações anteriores não repetidas.
+- Próxima ação manual: baixar lod-cartao-local.mjs; no Terminal/PowerShell da pasta do arquivo executar `node lod-cartao-local.mjs`; abrir `http://127.0.0.1:8789` no mesmo computador; clicar Carregar formulário e devolver mensagem/print. Se Node não existir ou usuário estiver somente no celular, informar a limitação para definir ambiente adequado; não afirmar que esse caminho já executou no dispositivo do usuário.
+- Após montagem externa: preparar corpo de create-order no testador interno já autorizado, com composição disponível e valor conferidos, antes de gerar token APRO. Seguir APRO, OTHE e retry APRO no pedido recusado, verificando Order/pedido server-side. Sem mudar aplicação, credenciais, webhook ou pagamento existente. Meta CAPI/deduplicação e falhas restantes seguem após cartão.
+- Nenhum token real, pedido novo ou pagamento enviado. Nada publicado Cloudflare/Sites e nenhum trabalho QZ/impressão. Ferramenta local é apenas material de homologação fora do build da aplicação.
+
+
 ## Retomada 20/09/2026 — consolidação de Pedidos/Realtime e bloqueio de cartão
 
 Este é o checkpoint mais recente. As evidências abaixo já foram obtidas na execução interrompida e confirmadas pelo usuário; NÃO repetir a homologação operacional.
