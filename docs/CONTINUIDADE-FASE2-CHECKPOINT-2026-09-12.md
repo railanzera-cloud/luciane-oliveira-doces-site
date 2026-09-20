@@ -2,6 +2,25 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Retomada 20/09/2026 — consolidação de Pedidos/Realtime e bloqueio de cartão
+
+Este é o checkpoint mais recente. As evidências abaixo já foram obtidas na execução interrompida e confirmadas pelo usuário; NÃO repetir a homologação operacional.
+
+- HEAD encontrado: `5f295670f3f420759e196ebc60c0ad6134b7e694`, sem diff nem arquivos não rastreados. Faltava somente registrar o avanço operacional ocorrido depois desse commit. Fetch de main realizado nesta retomada. Não havia correção funcional pendente de commit.
+- `/admin` autenticado exibiu #1001, dois potes 500 ml Leitinho, retirada, total R$50 e Pago — Pix. Fluxo executado pela interface: new → preparing → ready → ready_for_pickup → completed. Segunda aba recebeu eventos reais postgres_changes UPDATE, sem depender de atualização manual: preparing em 19/09 22:54:44.427 UTC; ready em 22:55:02.263; ready_for_pickup em 22:55:16.747; completed em 22:55:37.988.
+- Evidência do callback Realtime coletada com marcador temporário de diagnóstico contendo somente número/status do pedido; marcador removido ao terminar e componente novamente idêntico ao commit 5f29567. Nenhum diagnóstico temporário ficou no código.
+- Acompanhamento público refletiu Em preparo, Pronto, Pronto para retirada e Concluído, mantendo pagamento Aprovado e Retirada. Segunda aba retirou o pedido dos ativos automaticamente. Filtro Concluídos e cancelados exibiu #1001 Concluído e R$50. Histórico/conclusão e atualização integrada de status validados.
+- Estado operacional mais recente do #1001: completed; financeiro observado na interface: paid. Nenhuma criação de pagamento, reenvio de webhook, alteração manual de payment_status ou trabalho de impressão realizado. Não usar antigos registros paid/new como estado operacional atual.
+- A consulta SELECT final preparada no editor Supabase não teve resultado conferido antes da interrupção; não afirmar que houve nova confirmação SQL de paid_at, completed_at ou outbox nessa etapa. Não é necessário repetir o fluxo operacional por causa disso.
+- CORS restrito e acompanhamento público já concluídos conforme registro abaixo. Não ampliar origens nem reaplicar função/configuração. Pix, webhook HTTP200, SignatureMismatch e replay/idempotência permanecem validados.
+- Bloqueio do cartão permanece como evidência anterior de 403/rps:w403 no SDK público sem credenciais e na API pública. Não houve nova tentativa desses mesmos acessos nesta retomada nem qualquer indício novo que justifique trocar Access Token. O fetch financeiro feito pelo webhook no Supabase já funcionou anteriormente; isso demonstra um caminho backend que funcionava naquele momento, sem garantir disponibilidade atual de todas as operações de cartão.
+- Caminho seguro proposto: executar o formulário/tokenização de TESTE em navegador/ambiente próprio autorizado com acesso direto ao SDK/API e continuar usando o backend Supabase existente. Não usar proxy/túnel para ocultar ou contornar o bloqueio do Work; não publicar checkout de teste para clientes. Esse caminho ainda NÃO foi validado fora do Work.
+- Próxima ação manual mínima: no navegador normal do computador, fora do navegador remoto do Work, abrir `https://sdk.mercadopago.com/js/v2` e informar se aparece código JavaScript, download do script, ou erro de acesso. Não exige login, senha, cartão nem ação na aplicação da Luciane. Esta verificação apenas identifica disponibilidade externa do SDK; não homologa tokenização, API autenticada ou pagamento. Depois dela, preparar execução local/controlada do Card Brick com a Public Key de teste existente. Não criar token descartável antes de o envio de homologação estar preparado.
+- Roteiro restante: cartão APRO; cartão OTHE; nova tentativa APRO no mesmo pedido recusado; confirmar estado por consulta server-side e webhook, sem marcar paid no cliente. Documentação oficial conferida em 20/09 mantém APRO/OTHE e orienta GET /v1/orders/{id} para verificar o resultado: https://www.mercadopago.com.br/developers/pt/docs/checkout-api-orders/integration-test/cards . Contrato do Card Brick: https://github.com/mercadopago/sdk-js/blob/main/docs/bricks/card-payment.md . Dados de teste não foram submetidos nesta retomada.
+- Meta CAPI/Purchase/event_id/deduplicação e cenários críticos restantes continuam pendentes, após cartão, na ordem solicitada. Última evidência da função de efeitos: configured=false/test_events_configured=false. Nenhum Purchase real foi declarado enviado. CORS da prévia para process-order-effects não foi homologado; não confundir com o CORS público de status já concluído.
+- Nenhuma publicação Cloudflare/Sites, migration, alteração de credenciais/aplicação/webhook ou trabalho QZ. Testes aprovados não repetidos. Esta retomada altera somente documentação.
+
+
 ## Retomada 19/09/2026 — CORS e acompanhamento visual validados
 
 Este registro prevalece sobre o bloqueio de CORS abaixo. Não repetir Pix, webhook ou replay.
