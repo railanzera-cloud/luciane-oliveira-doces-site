@@ -2,6 +2,17 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Retomada 20/09/2026 — cartão #1002 criado; challenge em iframe local
+
+- HEAD inicial d6dcc62, Git limpo. Ferramenta original lod-cartao-local.mjs preservada. Usuário confirmou montagem do Card Brick e gerou um token APRO no computador externo. SDK/tokenização fora do Work funcionaram; não repetir diagnóstico 403 nem atribuí-lo a Access Token inválido.
+- Loja estava orders_open=false; usuário reabriu manualmente, leitura HTTP200 confirmou true e categoria Pipocas, 500 ml e Kinder Bueno disponíveis. Testador Supabase autenticado com chave interna existente pelo controle nativo e x-lod-test=1. Nenhuma credencial criada/alterada.
+- Uma única submissão create-order retornou HTTP201: pedido #1002, UUID a53ec429-4f9d-45d9-af6e-8415f29f7a39, referência LOD-M4CY-7K2P-8N6R, 1x500ml Kinder Bueno, retirada, R$30. Gateway ORDTST01M2ZHGZHNSJEQ8D9Z5EF6YKDT, pagamento PAY01M2ZHGZJ36DR8WGNSSKSA7VX4, action_required/pending_challenge. Criação em 20/09/2026 13:54:08 UTC. Não repetir envio nem reutilizar token.
+- Consulta public-order-status HTTP200 posterior confirmou pending/payment_pending, paid_at=null, R$30. Não confundir com consulta nova à API Mercado Pago nem aprovação. Token do cartão, tracking_token e guest_token não registrados neste checkpoint.
+- Usuário abriu transaction_security.url em aba direta e relatou spinner/tela branca. Orientação anterior corrigida: documentação exige iframe no checkout. Usuário não consegue usar atalhos DevTools e pediu parar diagnóstico da aba direta. Não inferir causa ou expiração apenas do spinner.
+- Acrescentado tools/homologacao/lod-3ds-1002.html, complemento local independente que recebe a URL existente e a abre em iframe restrito ao challenge #1002. Sem SDK/tokenização/API/pagamentos; sem persistir URL; sem recarga automática; COMPLETE checa origem/janela e não confirma paid. Arquivo local ainda precisa de validação real pelo usuário. Nenhum código comercial, webhook, Pix, CAPI, secrets, banco ou produção alterado.
+- Documentação 3DS consultada também diferencia os nomes de teste APRO-CHOK/OTHE-CHNO e APRO-AUTH; a ferramenta anterior só aceita APRO/OTHE. Revisar esse contrato antes de eventual cenário posterior, sem alterar nem recriar o pagamento #1002 agora. Não desabilitar 3DS por conveniência. Prazo documental do challenge é 40 minutos; confirmar estado autoritativo antes de qualquer nova tentativa.
+- Próxima ação manual: baixar/abrir lod-3ds-1002.html no navegador local, colar a URL original do challenge #1002, clicar Exibir challenge do pedido #1002 e devolver print antes de confirmar. Cartão aprovado/recusado/retry, confirmação server-side e Meta CAPI/deduplicação seguem pendentes. Pix/#1001, webhook200, idempotência, admin/Realtime/acompanhamento/CORS anteriores preservados. Sem publicação Cloudflare/Sites; sem QZ.
+
 ## Retomada 20/09/2026 — SDK externo acessível; ferramenta local preparada
 
 - HEAD inicial `9d564d673d59a514d2245b357c680b5ee17604fb`, Git limpo. Usuário confirmou que Safari/Chrome fora do Work exibiu normalmente o JavaScript bruto do SDK público. Tratar 403/rps:w403 como restrição específica do ambiente Work nesse acesso; não há evidência de Access Token inválido. Não repetir o diagnóstico de SDK já concluído. API/tokenização autenticada externa ainda não foi validada.

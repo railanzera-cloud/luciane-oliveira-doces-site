@@ -1,5 +1,17 @@
 # Homologação de cartão no computador do operador
 
+## Retomada do challenge existente — pedido #1002
+
+O arquivo independente `lod-3ds-1002.html` abre o challenge existente em iframe, conforme a integração 3DS da Orders API. Baixar e abrir esse HTML no navegador do computador; não precisa substituir/reiniciar o servidor de tokenização nem usar DevTools. Colar a URL completa original do challenge #1002 e clicar **Exibir challenge do pedido #1002**. Devolver print do quadro antes de qualquer confirmação manual.
+
+A tela restringe origem HTTPS Mercado Pago e caminho do challenge #1002. URL com guest_token é fornecida manualmente e não é salva em Git, logs, armazenamento local ou backend. O arquivo não carrega SDK de tokenização, não chama APIs, não gera token, não cria/reenvia pagamentos e não faz polling/recarga automática. Evento COMPLETE exige origem e janela do iframe e nunca marca paid. A página pode ser aberta como arquivo local; compatibilidade real do challenge nesse contexto ainda depende da execução pelo operador.
+
+Se houver expiração, não criar nova Order/token automaticamente. Preservar #1002 e consultar o backend antes de decidir outra tentativa. A documentação informa prazo de 40 minutos a partir da criação do challenge, mas o spinner não comprova expiração.
+
+Fonte: https://www.mercadopago.com.br/developers/pt/docs/checkout-api-orders/payment-management/integrate-3ds
+
+## Tokenização — aguardar orientação para outro cenário
+
 Pré-requisito: computador com Node.js 18 ou superior e navegador Chrome/Safari. Não roda diretamente no iPhone. Não é necessário instalar dependências npm, clonar o projeto ou informar Access Token.
 
 1. Baixe somente `lod-cartao-local.mjs` para Downloads.
