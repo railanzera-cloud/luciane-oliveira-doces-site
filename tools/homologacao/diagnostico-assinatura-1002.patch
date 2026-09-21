@@ -1,13 +1,13 @@
 --- a/supabase/functions/mercadopago-webhook/index.ts
 +++ b/supabase/functions/mercadopago-webhook/index.ts
-@@ -269,6 +269,68 @@
+@@ -269,6 +269,67 @@
      } catch (error) {
        if (error instanceof InvalidWebhookSignatureError) {
          console.warn("mercadopago-webhook signature rejected", error.reason);
-+        // PROPOSTA TEMPORARIA: somente diagnostico; nunca autoriza a notificacao.
++        // DIAGNOSTICO TEMPORARIO: somente observa; nunca autoriza a notificacao.
 +        if (error.reason === "SignatureMismatch" && environment === "test" &&
 +            dataId === "ORDTST01M2ZHGZHNSJEQ8D9Z5EF6YKDT" &&
-+            Date.now() < Date.parse("2026-09-23T07:49:19Z")) {
++            Date.now() < Date.parse("2026-09-23T07:49:00Z")) {
 +          try {
 +            if (signature.length <= 2048 && requestId.length <= 200) {
 +              // Mesmo parsing do SDK 3.6.1: ultimo ts/v1 nao vazio prevalece.
@@ -53,8 +53,7 @@
 +                v1_length: v1.length,
 +                v1_is_hex64: v1IsHex,
 +                v1_has_uppercase: v1IsHex && v1 !== v1.toLowerCase(),
-+                // Manifesto em claro apenas com ID fixo, request UUID e ts numerico.
-+                manifest: requestIdIsUuid && safeTimestamp ? manifest : null,
++                // Manifesto completo e HMAC ficam somente em memoria.
 +                manifest_sha256: await sha256(manifest),
 +                matches_exact_manifest: computed === v1,
 +                matches_lowercase_id: computedLowerId === v1,

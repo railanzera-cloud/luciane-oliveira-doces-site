@@ -2,6 +2,16 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Retomada 21/09/2026 — diagnóstico aplicado; registro pós-deploy recuperado
+
+- Base e0ba23b. O deploy autorizado ocorreu aproximadamente às 08:06 UTC; após recarregar, código remoto completo foi comparado com o local e coincidiu: SHA-256 fbd3c94bd460d384179382a5edc94f91be5a31f485dc7b7691d2e5fe50f64b05, 16884 caracteres. O registro Git não havia sido concluído antes da interrupção: na retomada às 12:57 UTC, HEAD ainda e0ba23b e somente o arquivo da função estava modificado. Este checkpoint conclui o registro pendente; sem novo deploy ou alteração funcional nesta retomada.
+- Diagnóstico ativo somente para SignatureMismatch / test / Order ORDTST01M2ZHGZHNSJEQ8D9Z5EF6YKDT (#1002), até 23/09/2026 07:49:00 UTC. Expiração automática pela condição no código; não há tarefa agendada nem extensão da janela. Após expirar, o código permanece inerte até remoção.
+- Manifesto completo e HMAC somente em memória. Logs sanitizados: hashes/comprimentos/estrutura dos cabeçalhos, request UUID validado, timestamp numérico e resultados booleanos das comparações HMAC e fingerprint do secret. Sem chave, assinatura/HMAC completos, corpo ou dados pessoais. Marcador lod_mp_signature_1002_v1. Nenhuma variante concede autorização; HTTP401 preservado no ramo rejeitado, sem acesso financeiro/SQL/efeitos nesse ramo. Fluxo válido preservado.
+- Nove verificações locais focadas, ESLint da função e git diff --check já passaram antes do deploy; não repetidos nesta retomada. Proposta/patch documental atualizados para refletir a versão realmente aplicada, incluindo manifesto sem texto nos logs e corte às 07:49:00. Diferença antiga de ponto e vírgula alinhada ao código remoto, sem mudança de comportamento.
+- Leitura do painel imediatamente após deploy (~08:07 UTC): Logs/Last hour sem resultados; não comprova ausência de entregas posteriores. Captura em docs/evidence/lod-diagnostico-1002-deploy.jpg. Próxima evidência depende de entrega automática, correlacionada pelo execution_id. Não provocar reenvio/simulação, token, pagamento ou novo pedido. Não estender expiração sem instrução.
+- Consulta de novas entregas na retomada (~13:00 UTC) bloqueada por sessão expirada: dashboard redirecionou para Sign in com retorno à página Logs da função. Não afirmar ausência de entregas desde 08:07; é necessário login para ler somente os registros posteriores à publicação.
+- Pedido #1002 preservado. Nenhuma nova consulta financeira nem alegação de aprovação. Credenciais, secret, URL/configuração MP, Pix, CAPI e produção intactos. Somente a instrumentação autorizada foi publicada no Supabase. Sem publicação Cloudflare/Sites ou trabalho QZ.
+
 ## Retomada 21/09/2026 — fingerprints iguais; proposta de captura não aplicada
 
 - Base/HEAD inicial 02cf935, Git limpo. Operador retornou IGUAIS no cálculo local SHA-256 com entrada oculta e apresentou captura; chave de assinatura de teste do Mercado Pago corresponde ao digest do MP_WEBHOOK_SECRET_TEST configurado no Supabase. Atualização informada: 16/09/2026 00:19:36 UTC. Hipótese de divergência dos valores atuais descartada; não repetir conferência nem trocar credenciais. Valor na execução histórica não observado diretamente.
