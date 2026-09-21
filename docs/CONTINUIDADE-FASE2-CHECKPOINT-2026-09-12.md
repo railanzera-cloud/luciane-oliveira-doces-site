@@ -2,6 +2,14 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Retomada 21/09/2026 — fingerprints iguais; proposta de captura não aplicada
+
+- Base/HEAD inicial 02cf935, Git limpo. Operador retornou IGUAIS no cálculo local SHA-256 com entrada oculta e apresentou captura; chave de assinatura de teste do Mercado Pago corresponde ao digest do MP_WEBHOOK_SECRET_TEST configurado no Supabase. Atualização informada: 16/09/2026 00:19:36 UTC. Hipótese de divergência dos valores atuais descartada; não repetir conferência nem trocar credenciais. Valor na execução histórica não observado diretamente.
+- Cabeçalhos antigos não estão nos registros disponíveis. Preparada somente proposta separada em tools/homologacao/diagnostico-assinatura-1002.patch, descrita em docs/DIAGNOSTICO-ASSINATURA-1002-PROPOSTA.md. NÃO aplicada ao arquivo funcional, NÃO publicada no Supabase. Código do webhook continua idêntico a 02cf935; cópia remota não relida nesta etapa.
+- Diagnóstico proposto restrito a SignatureMismatch/test/Order #1002 e janela até 23/09/2026 07:49:19 UTC. Reconstrói manifesto/HMAC em memória; registra fingerprint/estrutura dos headers, request UUID/ts e manifesto quando formato seguro, mais booleanos para comparação exata, ID minúsculo, caixa do hash e fingerprint do runtime. Nunca imprime secret, v1/HMAC, corpo ou dados do cliente; nenhuma variante altera autorização. HTTP401 e ausência de efeitos preservados.
+- Nove verificações novas, locais e isoladas da proposta passaram com SDK oficial 3.6.1 e dados fictícios; git apply --check aprovado sem aplicar. Não constituem captura real nem solução do SignatureMismatch. Nenhuma validação financeira anterior repetida.
+- Próximo passo depende de autorização para instrumentação temporária, porque usuário proibiu alterar webhook nesta etapa. Sem autorização, manter proposta inativa. Depois de autorizada, depender de futura entrega automática; não reenviar/simular ou criar pagamento. Se não houver entrega, informar limite sem provocar evento. Preservados pedido #1002, credenciais, Pix, CAPI e produção; sem Cloudflare/Sites publish ou QZ.
+
 ## Retomada 21/09/2026 — manifesto do SDK e evidência order.canceled
 
 - HEAD inicial 52c6f19, Git limpo. Usuário forneceu captura do painel Mercado Pago: Order ORDTST01M2ZHGZHNSJEQ8D9Z5EF6YKDT, ambiente Teste, order.canceled, falha401, data/hora do envio 20/09/2026 15:01:20 UTC. Painel não oferece assinatura, payload, URL completa ou corpo da resposta. Não solicitar novamente os mesmos campos indisponíveis.

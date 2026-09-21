@@ -1,0 +1,71 @@
+--- a/supabase/functions/mercadopago-webhook/index.ts
++++ b/supabase/functions/mercadopago-webhook/index.ts
+@@ -269,6 +269,68 @@
+     } catch (error) {
+       if (error instanceof InvalidWebhookSignatureError) {
+         console.warn("mercadopago-webhook signature rejected", error.reason);
++        // PROPOSTA TEMPORARIA: somente diagnostico; nunca autoriza a notificacao.
++        if (error.reason === "SignatureMismatch" && environment === "test" &&
++            dataId === "ORDTST01M2ZHGZHNSJEQ8D9Z5EF6YKDT" &&
++            Date.now() < Date.parse("2026-09-23T07:49:19Z")) {
++          try {
++            if (signature.length <= 2048 && requestId.length <= 200) {
++              // Mesmo parsing do SDK 3.6.1: ultimo ts/v1 nao vazio prevalece.
++              const parts = signature.trim().split(",").map((part) => {
++                const eq = part.indexOf("=");
++                return eq < 0 ? ["", ""] : [
++                  part.slice(0, eq).trim().toLowerCase(), part.slice(eq + 1).trim(),
++                ];
++              }).filter(([key, value]) => key && value);
++              const ts = parts.filter(([key]) => key === "ts").at(-1)?.[1] ?? "";
++              const v1 = parts.filter(([key]) => key === "v1").at(-1)?.[1] ?? "";
++              const normalizedRequestId = requestId.trim();
++              const requestIdIsUuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(normalizedRequestId);
++              const safeTimestamp = /^\d{1,16}$/.test(ts);
++              const v1IsHex = /^[0-9a-f]{64}$/i.test(v1);
++              const buildManifest = (id: string) => `id:${id.trim()};${normalizedRequestId ? `request-id:${normalizedRequestId};` : ""}ts:${ts};`;
++              const manifest = buildManifest(dataId);
++              const key = await crypto.subtle.importKey(
++                "raw", new TextEncoder().encode(secret),
++                { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
++              );
++              const hmac = async (value: string) => [...new Uint8Array(
++                await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(value)),
++              )].map((byte) => byte.toString(16).padStart(2, "0")).join("");
++              const computed = await hmac(manifest);
++              const computedLowerId = await hmac(buildManifest(dataId.toLowerCase()));
++              console.warn("lod_mp_signature_1002_v1", JSON.stringify({
++                order_id: dataId,
++                environment,
++                sdk: "mercadopago@3.6.1",
++                runtime_secret_matches_compared_digest: (await sha256(secret)) ===
++                  "e922f1fee5c9017f750266955ee129be10b171a5cfb9dcaded6e6efc7ffc15a2",
++                x_request_id: requestIdIsUuid ? normalizedRequestId : null,
++                x_request_id_sha256: await sha256(requestId),
++                x_request_id_length: requestId.length,
++                x_request_id_trimmed: requestId !== normalizedRequestId,
++                x_signature_sha256: await sha256(signature),
++                x_signature_length: signature.length,
++                x_signature_trimmed: signature !== signature.trim(),
++                ts: safeTimestamp ? ts : null,
++                ts_count: parts.filter(([name]) => name === "ts").length,
++                v1_count: parts.filter(([name]) => name === "v1").length,
++                v1_length: v1.length,
++                v1_is_hex64: v1IsHex,
++                v1_has_uppercase: v1IsHex && v1 !== v1.toLowerCase(),
++                // Manifesto em claro apenas com ID fixo, request UUID e ts numerico.
++                manifest: requestIdIsUuid && safeTimestamp ? manifest : null,
++                manifest_sha256: await sha256(manifest),
++                matches_exact_manifest: computed === v1,
++                matches_lowercase_id: computedLowerId === v1,
++                matches_exact_manifest_casefolded_hash: v1IsHex && computed === v1.toLowerCase(),
++              }));
++            }
++          } catch {
++            // Falha no diagnostico nao altera a resposta nem libera processamento.
++            console.warn("lod_mp_signature_1002_v1", "diagnostic_failed");
++          }
++        }
+         throw new HttpError(401, "invalid_signature", "Assinatura inválida.");
+       }
+       throw error;
