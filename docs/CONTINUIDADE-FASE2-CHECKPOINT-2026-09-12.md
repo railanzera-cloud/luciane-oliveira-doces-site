@@ -2,6 +2,16 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Retomada 26/09/2026 — gate de assinatura; simulação ainda não enviada
+
+- HEAD inicial 6894413 e Git limpo, sem diff. Isolamento do novo pedido não chegou a ser implementado, aplicado ou publicado na execução interrompida: não há migration/patch novo. O trabalho anterior parou antes da consulta SQL de verificação; não houve submissão/token/pagamento. Prioridade atual é uma única simulação oficial da Order #1002, não criar pedido diagnóstico.
+- Login Supabase renovado pelo operador. Logs e Invocations consultados pelo painel com janela exibida 20/09 11:37–26/09 12:37 e 20/09 11:38–26/09 12:38, respectivamente (horário do painel UTC-3). Ambos sem resultados disponíveis. Os registros antigos antes visíveis também não aparecem: isso não comprova que não houve entregas no intervalo, nem permite concluir que a instrumentação capturou algo. Não reabrir investigação genérica de retenção.
+- Código publicado copiado pelo editor e conferido em 26/09: SHA-256 fbd3c94bd460d384179382a5edc94f91be5a31f485dc7b7691d2e5fe50f64b05, idêntico à base. Continua restrito ao #1002 e corte 2026-09-23T07:49:00Z. Diagnóstico EXPIRADO, sem renovação silenciosa. Não houve deploy nesta retomada.
+- Instrumentação v1 registra apenas o ramo SignatureMismatch e não observa application_id/live_mode do body nem resultados de sucesso do SDK; portanto não satisfaz sozinha o gate atual. Nenhuma causa classificada por falta de captura contemporânea útil.
+- Preparado protocolo restrito em docs/GATE-ASSINATURA-1002-2026-09-26.md. Falta autorizar nova janela (proposta: 60 minutos a partir do deploy, com timestamp UTC absoluto) e identificar o ID público esperado da aplicação por fonte independente. Não usar o application_id de exemplo da documentação nem inferi-lo da notificação recebida.
+- A simulação NÃO foi enviada; a captura ampliada NÃO foi implementada/deployada. Antes do envio, preparar ramo temporário exclusivo #1002 que compare SDK/HMAC e encerre antes de GET financeiro/RPC/efeitos mesmo se a assinatura for válida. Resposta intencional de diagnóstico deve ser distinguida de falha de autenticação para não fabricar a família SDK/HMAC válidos + 401.
+- Sem mudança no #1002, banco, credenciais, secret, URL/configuração MP, Pix, CAPI ou produção. Sem Cloudflare/Sites publish e sem QZ. Próximo passo é destravar a janela e o ID público esperado; depois preparar/validar/deployar somente o diagnóstico e entregar o único clique oficial ao operador. Parar após a primeira requisição útil e informar correção antes de aplicá-la.
+
 ## Retomada 21/09/2026 — diagnóstico aplicado; registro pós-deploy recuperado
 
 - Base e0ba23b. O deploy autorizado ocorreu aproximadamente às 08:06 UTC; após recarregar, código remoto completo foi comparado com o local e coincidiu: SHA-256 fbd3c94bd460d384179382a5edc94f91be5a31f485dc7b7691d2e5fe50f64b05, 16884 caracteres. O registro Git não havia sido concluído antes da interrupção: na retomada às 12:57 UTC, HEAD ainda e0ba23b e somente o arquivo da função estava modificado. Este checkpoint conclui o registro pendente; sem novo deploy ou alteração funcional nesta retomada.
