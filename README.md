@@ -1,4 +1,10 @@
-# vinext-starter
+# Luciane Oliveira Doces
+
+Para exportação, instalação fora do Work e dependências externas, consulte
+[docs/PORTABILIDADE.md](docs/PORTABILIDADE.md). O estado da homologação está em
+[docs/CONTINUIDADE-FASE2-CHECKPOINT-2026-09-12.md](docs/CONTINUIDADE-FASE2-CHECKPOINT-2026-09-12.md).
+
+## Base técnica: vinext-starter
 
 A clean full-stack starter running on
 [vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
