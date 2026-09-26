@@ -1,5 +1,7 @@
 # Gate restrito de assinatura — #1002
 
+**Captura concluída às 18:37:02 UTC: SDK e HMAC exato válidos; fingerprint igual; runtime test/body live_mode=true. Parado antes de correções ou novo envio. Ver checkpoint e JSON sanitizado. Não repetir simulação.**
+
 **Atualização 26/09/2026 18:15 UTC: v2 PUBLICADO com autorização explícita. Código remoto conferido integralmente, hash `46f93dbdf06f4a366b51a7d4afc1941c6c74fd28b5c709c6160022f11a9aed0d`. Corte fixo 19:10 UTC / 16:10 BRT hoje. Nenhuma simulação enviada pelo agente. Aguardar único envio manual e parar na primeira captura útil, antes de correções. Detalhes no checkpoint. As seções de preparo abaixo são histórico anterior ao deploy.**
 
 Estado em 26/09/2026, após fornecimento do ID público: captura v2 preparada e testada como candidato separado; NÃO aplicada ao arquivo funcional, NÃO publicada, sem janela aberta e sem simulação enviada. Base Git inicial `02c3aac248e9c8663e5480936777e21184e46c55`. A captura v1 expirou em 23/09/2026 07:49 UTC.

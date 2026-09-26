@@ -2,6 +2,18 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Captura útil 26/09/2026 — assinatura válida na simulação; parar antes de correções
+
+- Operador informou único envio às ~15:37 BRT, aplicação 7382535553656845, HTTP409, sem nova tentativa. Log localizado às 15:37:02 BRT / 18:37:02 UTC. Evidência sanitizada em `docs/evidence/signature-1002-v2-20260926.json`.
+- Log ID `e23cf0d6-c44b-4439-a192-e361c9b7da4c`; execution_id `8e603d42-5b73-45e0-bad2-9d5d9da5133b`; deployment versão 14, observado nos metadados do log. HTTP409 informado pelo operador e compatível com a resposta fixa do ramo capturado; não foi feita consulta separada a Invocations.
+- `sdk_valid=true`, `sdk_reason=valid`, `matches_exact_manifest=true`, `runtime_secret_matches_compared_digest=true`. Sem entradas ausentes, duplicidade de query, conflito de IDs ou trim. ID em minúsculas NÃO bate (`matches_lowercase_id=false`); não há evidência para normalizar ID ou alterar secret/validador.
+- `application_matches=true` e `body_id_matches=true`; runtime `environment=test`, porém body `live_mode=true`. Divergência de metadados a esclarecer; application_id/live_mode do body não fazem parte do manifesto HMAC e não provam por si sós origem/ambiente financeiro. Não concluir produção, secret errado ou causa histórica com esse campo isolado.
+- Etapa `before_financial_lookup`, `effects_blocked=true`: o ramo termina com HTTP409 antes de GET financeiro, SQL ou efeitos, mesmo com SDK válido. O 409 é deliberado; NÃO é reprodução de SignatureMismatch, nem aprovação/cancelamento do cartão. Nenhuma consulta financeira ou homologação de cartão foi realizada nesta leitura.
+- Resultado: esta entrega valida o caminho SDK/HMAC e o fingerprint atual. Não reconstrói os headers da falha histórica e não isola a causa do SignatureMismatch das entregas automáticas antigas. Nenhuma correção técnica justificada por esta captura.
+- PARADO na primeira captura útil conforme instrução. Sem correção, nova simulação, deploy de remoção, extensão, secrets/credenciais ou chamadas financeiras. O diagnóstico permanece publicado até seu corte automático fixo em 19:10 UTC / 16:10 BRT; não confundir parar a análise com remover a instrumentação.
+- Próximo dado mínimo, somente leitura pelo operador: na sessão local MP da aplicação indicada, informar se a simulação enviada foi aberta na aba/configuração TESTE ou PRODUÇÃO. Não reenviar nem alterar configuração. Pode fornecer recorte apenas do nome da aba e URL pública do webhook, ocultando chave/credenciais. Isso esclarece a seleção do simulador, mas não prova sozinho a causa histórica.
+- Registro local e bundle portátil para push manual; não tentar autenticar/push nesta sessão.
+
 ## Retomada 26/09/2026 18:15 UTC — diagnóstico v2 publicado com autorização explícita
 
 - `origin/main` buscado e confirmado em `f856de6ffb5379975e5434a5e24ea72051ebde68`, igual ao HEAD local limpo antes desta etapa. Push anterior realizado manualmente pelo operador. Não tentar autenticação/push nesta sessão; exportar novo bundle para persistência manual.
