@@ -1,0 +1,134 @@
+// Candidato INATIVO. Inserido pelo preparador; não importar no checkout.
+// Tempos absolutos preenchidos somente para uma janela explicitamente autorizada.
+const SIGNATURE_1002_START = "__START_UTC__";
+const SIGNATURE_1002_END = "__END_UTC__";
+const SIGNATURE_1002_ID = "ORDTST01M2ZHGZHNSJEQ8D9Z5EF6YKDT";
+const SIGNATURE_1002_APPLICATION = "7382535553656845";
+
+async function observeSignature1002(request: Request, url: URL, dataId: string,
+  signature: string | null, requestId: string | null, secret: string,
+): Promise<Response> {
+  const report: Record<string, unknown> = {
+    diagnostic: "lod_mp_signature_1002_v2", stage: "before_financial_lookup",
+    environment: "test", sdk: "mercadopago@3.6.1", effects_blocked: true,
+  };
+  try {
+    const queryIds = url.searchParams.getAll("data.id");
+    const aliasIds = url.searchParams.getAll("data_id");
+    report.query_data_id_count = queryIds.length;
+    report.query_data_id_alias_count = aliasIds.length;
+    report.query_ambiguous = queryIds.length > 1 || aliasIds.length > 1 ||
+      (queryIds.length > 0 && aliasIds.length > 0);
+    report.query_values_conflict = [...queryIds, ...aliasIds].some((id) => id !== dataId);
+    report.selected_id_matches = dataId === SIGNATURE_1002_ID;
+    report.signature_present = signature !== null;
+    report.request_id_present = requestId !== null;
+    report.signature_length = signature?.length ?? 0;
+    report.request_id_length = requestId?.length ?? 0;
+    const withinLimits = (signature?.length ?? 0) <= 2048 && (requestId?.length ?? 0) <= 200;
+    report.headers_within_limits = withinLimits;
+    report.sdk_valid = null;
+    report.sdk_reason = withinLimits ? "not_run" : "DiagnosticHeaderLimit";
+    report.runtime_secret_matches_compared_digest = (await sha256(secret)) ===
+      "e922f1fee5c9017f750266955ee129be10b171a5cfb9dcaded6e6efc7ffc15a2";
+    if (withinLimits) {
+      report.signature_sha256 = signature === null ? null : await sha256(signature);
+      report.request_id_sha256 = requestId === null ? null : await sha256(requestId);
+      report.signature_trimmed = signature !== null && signature !== signature.trim();
+      report.request_id_trimmed = requestId !== null && requestId !== requestId.trim();
+      report.request_id_is_uuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(requestId?.trim() ?? "");
+      report.normal_flow_missing_inputs = !signature || !requestId || !dataId;
+      try {
+        WebhookSignatureValidator.validate({ xSignature: signature, xRequestId: requestId, dataId, secret });
+        report.sdk_valid = true;
+        report.sdk_reason = "valid";
+      } catch (error) {
+        const reasons = ["MissingSignatureHeader", "MalformedSignatureHeader", "MissingTimestamp",
+          "MissingHash", "SignatureMismatch", "TimestampOutOfTolerance"];
+        report.sdk_valid = false;
+        report.sdk_reason = error instanceof InvalidWebhookSignatureError && reasons.includes(error.reason)
+          ? error.reason : "UnexpectedValidatorError";
+      }
+      // Mesmo parsing do SDK 3.6.1; variantes abaixo são observações, nunca autorização.
+      const parts = (signature ?? "").trim().split(",").map((part) => {
+        const eq = part.indexOf("=");
+        return eq < 0 ? ["", ""] : [part.slice(0, eq).trim().toLowerCase(), part.slice(eq + 1).trim()];
+      });
+      const populated = parts.filter(([name, value]) => name && value);
+      const ts = populated.filter(([name]) => name === "ts").at(-1)?.[1] ?? "";
+      const v1 = populated.filter(([name]) => name === "v1").at(-1)?.[1] ?? "";
+      report.ts_count = parts.filter(([name]) => name === "ts").length;
+      report.v1_count = parts.filter(([name]) => name === "v1").length;
+      report.ts_numeric = /^\d+$/.test(ts);
+      report.ts_length = ts.length;
+      report.v1_length = v1.length;
+      report.v1_is_hex64 = /^[0-9a-f]{64}$/i.test(v1);
+      report.v1_has_uppercase = report.v1_is_hex64 === true && v1 !== v1.toLowerCase();
+      const manifest = (id: string) => `id:${id.trim()};${requestId?.trim() ? `request-id:${requestId.trim()};` : ""}ts:${ts};`;
+      report.manifest_sha256 = await sha256(manifest(dataId));
+      const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret),
+        { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+      const hmac = async (text: string) => [...new Uint8Array(
+        await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(text)),
+      )].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+      const exact = await hmac(manifest(dataId));
+      const lower = await hmac(manifest(dataId.toLowerCase()));
+      report.matches_exact_manifest = exact === v1;
+      report.matches_lowercase_id = lower === v1;
+      report.matches_casefolded_hash = report.v1_is_hex64 === true && exact === v1.toLowerCase();
+      report.matches_lowercase_id_casefolded_hash = report.v1_is_hex64 === true && lower === v1.toLowerCase();
+    }
+    // Body não autenticado: só comparações, nunca fonte financeira ou autorização.
+    report.body_state = "absent";
+    report.application_id_present = null;
+    report.application_id_valid_structure = null;
+    report.application_matches = null;
+    report.body_id_matches = null;
+    report.live_mode = null;
+    const reader = request.body?.getReader();
+    if (reader) {
+      let total = 0;
+      let timedOut = false;
+      const timer = setTimeout(() => { timedOut = true; void reader.cancel().catch(() => {}); }, 2000);
+      try {
+        const chunks: Uint8Array[] = [];
+        while (true) {
+          const part = await reader.read();
+          if (timedOut) { report.body_state = "timeout"; break; }
+          if (part.done) break;
+          total += part.value.byteLength;
+          if (total > MAX_BODY_BYTES) {
+            report.body_state = "too_large";
+            void reader.cancel().catch(() => {});
+            break;
+          }
+          chunks.push(part.value);
+        }
+        if (report.body_state === "absent") {
+          const bytes = new Uint8Array(total);
+          let offset = 0;
+          for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+          const body = JSON.parse(new TextDecoder().decode(bytes));
+          if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("invalid");
+          report.body_state = "parsed";
+          const app = body.application_id;
+          const appValid = (typeof app === "string" && /^\d{1,20}$/.test(app)) ||
+            (typeof app === "number" && Number.isSafeInteger(app) && app > 0);
+          report.application_id_present = Object.prototype.hasOwnProperty.call(body, "application_id");
+          report.application_id_valid_structure = appValid;
+          report.application_matches = appValid ? String(app) === SIGNATURE_1002_APPLICATION : null;
+          report.body_id_matches = typeof body.data?.id === "string" ? body.data.id === dataId : null;
+          report.live_mode = typeof body.live_mode === "boolean" ? body.live_mode : null;
+        }
+      } catch {
+        report.body_state = timedOut ? "timeout" : "unreadable";
+      } finally { clearTimeout(timer); reader.releaseLock(); }
+    }
+  } catch {
+    report.diagnostic_failed = true;
+  }
+  console.warn("lod_mp_signature_1002_v2", JSON.stringify(report));
+  // 409 proposital, mesmo com assinatura válida: NÃO equivale a rejeição HMAC.
+  return json(409, { ok: false, diagnostic: "lod_mp_signature_1002_v2",
+    stage: "before_financial_lookup", effects_blocked: true });
+}

@@ -2,6 +2,15 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Retomada 26/09/2026 — aplicação identificada; candidato v2 testado e inativo
+
+- Base inicial confirmada `main` / `02c3aac248e9c8663e5480936777e21184e46c55`, também igual ao remoto antes da alteração.
+- Operador informou Nº da aplicação Mercado Pago `7382535553656845`, coletado na sessão local da Luciane; browser em nuvem MP permanece indisponível. O número público é baseline independente, não prova de origem de um futuro body.
+- Supabase autenticado: cópia integral do código publicado com 16884 caracteres e SHA-256 `fbd3c94bd460d384179382a5edc94f91be5a31f485dc7b7691d2e5fe50f64b05`, igual ao arquivo funcional. Logs Last hour sem resultados; não inferir histórico.
+- Preparados template separado, gerador com verificação de hash/janela e 14 testes focados, todos aprovados com SDK oficial 3.6.1. Detalhes e reprodução em `docs/GATE-ASSINATURA-1002-2026-09-26.md`. Nenhuma alteração no arquivo funcional, deploy, request ao webhook, consulta financeira, pagamento, secret ou credencial.
+- Candidato retorna 409 diagnóstico antes de GET financeiro/RPC/efeitos, mesmo se assinatura válida. Body limitado e não autenticado só fornece comparações. Logs não expõem HMAC/assinatura/manifesto/secret/body/PII. Outra Order e fluxo fora da janela permanecem originais.
+- Janela v2 NÃO aberta; usuário proibiu Enviar teste nesta etapa. Próxima ação: autorização/disponibilidade para uma janela de 60 minutos (a exigência de preservar expiração está documentada no gate); depois gerar timestamps absolutos, publicar/validar código e coordenar um único envio manual. Não pedir outro dado público MP agora. Causa SignatureMismatch ainda não isolada; cartão ainda não homologado.
+
 ## Retomada 26/09/2026 — gate de assinatura; simulação ainda não enviada
 
 - HEAD inicial 6894413 e Git limpo, sem diff. Isolamento do novo pedido não chegou a ser implementado, aplicado ou publicado na execução interrompida: não há migration/patch novo. O trabalho anterior parou antes da consulta SQL de verificação; não houve submissão/token/pagamento. Prioridade atual é uma única simulação oficial da Order #1002, não criar pedido diagnóstico.

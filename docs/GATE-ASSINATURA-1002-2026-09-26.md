@@ -1,11 +1,11 @@
 # Gate restrito de assinatura — #1002
 
-Estado: protocolo preparado; captura v2 não implementada nem publicada; nenhuma simulação enviada. Base funcional 6894413. A captura v1 expirou em 23/09/2026 07:49 UTC.
+Estado em 26/09/2026, após fornecimento do ID público: captura v2 preparada e testada como candidato separado; NÃO aplicada ao arquivo funcional, NÃO publicada, sem janela aberta e sem simulação enviada. Base Git inicial `02c3aac248e9c8663e5480936777e21184e46c55`. A captura v1 expirou em 23/09/2026 07:49 UTC.
 
 ## Pré-condições
 
 1. Nova janela precisa de autorização, pois a instrução anterior determinou preservar a expiração. Proposta: 60 minutos a partir do deploy, gravados como corte UTC absoluto; informar o corte antes do envio. Não renovar automaticamente.
-2. Confirmar o ID público da aplicação Luciane Oliveira Doces em Dados da integração, separadamente do body recebido. Não ler/alterar chave, token ou configuração MP. Sem esse ID, application_matches deve ser desconhecido, não verdadeiro.
+2. ID público informado pelo operador em 26/09/2026 às 14:35 BRT, obtido na sessão local da Luciane: `7382535553656845`. Essa é a fonte independente usada pelo candidato. O navegador em nuvem do Mercado Pago continua indisponível; não houve validação visual independente do número pelo agente. Não ler/alterar chave, token ou configuração MP. O ID público isolado não autentica uma notificação.
 3. Comparar o código publicado com o checkpoint e preparar somente instrumentação. Preservar SDK mercadopago@3.6.1 e sua validação, sem fallback de autorização.
 
 ## Captura proposta para a única simulação
@@ -39,3 +39,27 @@ Somente após deploy validado e janela ativa: clicar Enviar teste uma única vez
 - Aplicação/ambiente divergentes: apontar campo e fonte independente divergentes; não alterar credencial/configuração automaticamente.
 - Parsing/canonicalização divergentes: demonstrar qual variante bate, mantendo o validador funcional intacto até autorização da correção.
 - Ausência de dados suficientes: marcar inconclusivo; não inventar uma família nem criar cartão automaticamente. Só então avaliar o pedido isolado como alternativa, preferindo estruturas existentes e sem migration.
+
+
+## Candidato preparado em 26/09/2026 — não publicado
+
+- Código remoto completo obtido pelo editor do Supabase: 16884 caracteres, SHA-256 `fbd3c94bd460d384179382a5edc94f91be5a31f485dc7b7691d2e5fe50f64b05`, idêntico ao arquivo funcional local e ao checkpoint. O ZIP não foi obtido; a verificação usou seleção integral/cópia do editor, sem editar ou publicar.
+- Logs / Last hour sem resultados nesta consulta. Isso não prova ausência de entregas históricas. Não foi repetida a investigação de retenção.
+- Template `tools/homologacao/signature-1002-v2.ts.txt` separado para não entrar no build do site. O preparador `prepare-signature-1002-v2.mjs` verifica o hash da base, exige início/fim UTC absolutos separados por exatamente 60 minutos e escreve somente um arquivo candidato novo, nunca o arquivo funcional. Não publica nem envia requisições.
+- O candidato adiciona um ramo antes da rejeição por entradas ausentes e antes do validador funcional. Seleção: ambiente test já exigido pelo fluxo, ID efetivamente selecionado da query exatamente igual ao #1002, início inclusivo e fim exclusivo. Outra Order não é capturada, mesmo que seu body alegue ser #1002.
+- Mantém o SDK e todo o fluxo funcional existente. Headers acima do limite não são processados pelo diagnóstico. O body é lido em streaming com teto de 65536 bytes e limite de 2 segundos; logs guardam apenas estrutura e comparações. `application_id` numérico só é aceito para comparação se for inteiro seguro; string deve ser estritamente numérica. Ausência/invalidade produz null. O ID informado cabe com exatidão em um inteiro seguro JavaScript.
+- `sdk_valid` representa exclusivamente o resultado do SDK. `normal_flow_missing_inputs` diferencia a pré-condição adicional do webhook, pois o SDK permite omitir request ID no manifesto. Nenhuma dessas observações libera processamento.
+- Resposta deliberada **HTTP 409** com marcador `lod_mp_signature_1002_v2`, `stage=before_financial_lookup`, `effects_blocked=true`, inclusive para assinatura válida ou erro interno do diagnóstico. Não interpretar como rejeição HMAC nem como homologação de entrega financeira. Pode gerar retries do provedor; nenhum segundo envio manual está autorizado.
+- 14 testes locais passaram com TypeScript 5.9.3 e SDK oficial mercadopago 3.6.1. Cobrem sucesso SDK/HMAC sem efeitos, minúsculas do ID, caixa do hash, query duplicada/alias conflitante, body divergente, aplicação ausente/inválida, assinaturas ausentes/malformadas, request ID ausente, ts/v1 duplicados, limites de headers/body, JSON inválido, falha criptográfica, outras Orders/produção/expiração e recusa de janelas maiores. Rede substituída por stub que impede chamadas reais. Não homologa pagamento ou entrega externa.
+
+Para reproduzir os testes, instalar as duas dependências em pasta temporária externa ao projeto (sem modificar package.json/lockfile) e executar:
+
+```sh
+LOD_DIAGNOSTIC_MODULES=/caminho/temporario/node_modules node --test tools/homologacao/signature-1002-v2.test.mjs
+```
+
+### Próxima etapa, ainda bloqueada para envio
+
+O operador pediu explicitamente não enviar teste ainda. A autorização anterior de coleta expirou e o checkpoint exige autorização de nova janela. O candidato está concreto e testado; aguardar confirmação de disponibilidade e autorização para abrir 60 minutos. Somente então definir início/fim absolutos, gerar candidato, verificar/persistir o diff, publicar no Supabase e comparar integralmente o código remoto. Informar o corte UTC/BRT antes de orientar qualquer clique manual. Não usar os horários fictícios dos testes para deploy.
+
+Não é necessário outro dado do Mercado Pago para preparar a captura. O futuro retorno mínimo após o único envio será horário com fuso e status HTTP do simulador, sem headers, credenciais ou body bruto. Após a primeira captura útil, analisar os booleanos e remover a instrumentação; não renovar automaticamente.
