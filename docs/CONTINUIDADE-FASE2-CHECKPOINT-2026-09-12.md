@@ -2,6 +2,16 @@
 
 Data: 12/09/2026. Estado: implementação em homologação, NÃO liberada para clientes.
 
+## Retomada 26/09/2026 18:15 UTC — diagnóstico v2 publicado com autorização explícita
+
+- `origin/main` buscado e confirmado em `f856de6ffb5379975e5434a5e24ea72051ebde68`, igual ao HEAD local limpo antes desta etapa. Push anterior realizado manualmente pelo operador. Não tentar autenticação/push nesta sessão; exportar novo bundle para persistência manual.
+- Após bloqueio inicial da revisão automática, o operador autorizou expressamente publicar o diagnóstico temporário na função `mercadopago-webhook`, somente #1002, com corte fixo em 26/09/2026 às 16:10 BRT / 19:10 UTC. Proibidos pagamento, secrets/credenciais, Purchase/CAPI e efeitos de cozinha/painel/estoque/status financeiro. Após primeira captura útil, parar e apresentar resultado antes de correção.
+- Deploy confirmado no diálogo do Supabase aproximadamente às 18:15 UTC. Depois de recarregar, código integral publicado igual ao candidato: 24764 caracteres, SHA-256 `46f93dbdf06f4a366b51a7d4afc1941c6c74fd28b5c709c6160022f11a9aed0d`. Arquivo funcional local alinhado ao remoto. Não afirmar versão numérica não observada.
+- Janela codificada: início 18:10 UTC, fim exclusivo 19:10 UTC de 26/09/2026. O tempo efetivamente disponível começa no deploy; não é renovado para compensar os minutos de publicação. O diagnóstico v1 continua expirado. Após 19:10 UTC, v2 fica inerte e o fluxo normal volta a valer; NÃO enviar simulação após o corte.
+- Resposta proposital HTTP409, marcador `lod_mp_signature_1002_v2`, antes de consulta financeira/RPC/efeitos, inclusive quando SDK válido. Captura só o ID selecionado exato `ORDTST01M2ZHGZHNSJEQ8D9Z5EF6YKDT` em runtime test. Comparação de application_id usa `7382535553656845`, informado independentemente pelo operador.
+- Nenhuma simulação ou pagamento enviados pelo agente. Próxima etapa manual: aplicação correta, Webhooks > Simular, URL TESTE existente, evento Order, Data ID exato; clicar Enviar teste UMA vez antes do corte. Devolver horário com fuso e HTTP, sem headers/credenciais/body. Resultado ambíguo: consultar logs, nunca repetir clique.
+- O gerador original verifica a base anterior e agora recusará regenerar sobre o arquivo funcional modificado; isso é proteção intencional, não repetir preparo/deploy. Os 14 testes do candidato foram executados antes desta publicação e não foram repetidos.
+
 ## Retomada 26/09/2026 — aplicação identificada; candidato v2 testado e inativo
 
 - Base inicial confirmada `main` / `02c3aac248e9c8663e5480936777e21184e46c55`, também igual ao remoto antes da alteração.
