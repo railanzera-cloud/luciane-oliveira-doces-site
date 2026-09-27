@@ -4,6 +4,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { loadEnv } from "vite";
+import { shortLinks } from "../cloudflare/short-links.js";
 
 const execFileAsync = promisify(execFile);
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -82,6 +83,14 @@ await renderRoute("/admin", "admin/index.html");
 await renderRoute("/pedido", "pedido/index.html");
 await writeFile(path.join(packageDirectory, "404.html"), homeHtml, "utf8");
 
+// Keep the existing static Pages output; run edge code only for organic links.
+await cp(path.join(projectRoot, "cloudflare", "short-links.js"), path.join(packageDirectory, "_worker.js"));
+await writeFile(path.join(packageDirectory, "_routes.json"), JSON.stringify({
+  version: 1,
+  include: Object.keys(shortLinks),
+  exclude: [],
+}, null, 2) + "\n", "utf8");
+
 await writeFile(
   path.join(packageDirectory, "_headers"),
   `/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n\n/assets/*\n  Cache-Control: public, max-age=31536000, immutable\n`,
@@ -91,6 +100,8 @@ await writeFile(
 await execFileAsync("zip", ["-q", "-r", zipPath, "."], { cwd: packageDirectory });
 
 const requiredFiles = [
+  "_worker.js",
+  "_routes.json",
   "index.html",
   "admin/index.html",
   "pedido/index.html",
