@@ -9,6 +9,146 @@ const MP_ORDERS_URL = "https://api.mercadopago.com/v1/orders";
 const ORDER_ID_PATTERN = /^LOD-(?:[0-9A-HJKMNP-TV-Z]{4}-){2}[0-9A-HJKMNP-TV-Z]{4}$/;
 const MAX_BODY_BYTES = 65536;
 
+// Temporary, observational only. Absolute window: never renewed by a cold start.
+const SIGNATURE_1003_START = Date.parse("2026-09-28T15:00:00Z");
+const SIGNATURE_1003_END = Date.parse("2026-09-29T15:00:00Z");
+const SIGNATURE_1003_ID = "ORDTST01M3FP3FQBJZWNBNX3YWPZHKJ8";
+
+async function observeSignature1003(
+  request: Request, url: URL, dataId: string | null,
+  signature: string | null, requestId: string | null, secret: string, environment: string,
+): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  let stopped = false;
+  const emit = (report: Record<string, unknown>) => {
+    try { console.warn("lod_mp_signature_1003_v1", JSON.stringify(report)); } catch { /* logging is optional */ }
+  };
+  try {
+    const now = Date.now();
+    if (environment !== "test" || request.method !== "POST" || dataId !== SIGNATURE_1003_ID ||
+        now < SIGNATURE_1003_START || now >= SIGNATURE_1003_END) return;
+    const report: Record<string, unknown> = {
+      diagnostic: "lod_mp_signature_1003_v1", sdk: "mercadopago@3.6.1",
+      observed_at: new Date(now).toISOString(), scoped_resource: "1003", diagnostic_failed: false,
+    };
+    // Only validated platform metadata, never request-supplied identifiers.
+    const execution = Deno.env.get("SB_EXECUTION_ID");
+    if (execution && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(execution)) report.execution_id = execution;
+    const collect = async () => {
+      if (url.search.length > 4096 || (signature?.length ?? 0) > 2048 ||
+          (requestId?.length ?? 0) > 200) { report.input_limit = true; return; }
+      const ids = url.searchParams.getAll("data.id");
+      const aliases = url.searchParams.getAll("data_id");
+      report.query_id_count = ids.length;
+      report.alias_id_count = aliases.length;
+      report.query_ids_conflict = [...ids, ...aliases].some((id) => id !== dataId);
+      report.signature_present = signature !== null;
+      report.request_id_present = requestId !== null;
+      report.signature_length = signature?.length ?? 0;
+      report.request_id_length = requestId?.length ?? 0;
+      report.request_id_trim_changes = requestId !== null && requestId !== requestId.trim();
+      report.runtime_secret_matches = await sha256(secret) ===
+        "e922f1fee5c9017f750266955ee129be10b171a5cfb9dcaded6e6efc7ffc15a2";
+      try {
+        WebhookSignatureValidator.validate({ xSignature: signature, xRequestId: requestId, dataId, secret });
+        report.sdk_valid = true;
+        report.sdk_reason = "valid";
+      } catch (error) {
+        report.sdk_valid = false;
+        const reasons = ["MissingSignatureHeader", "MalformedSignatureHeader", "MissingTimestamp",
+          "MissingHash", "SignatureMismatch", "TimestampOutOfTolerance"];
+        report.sdk_reason = error instanceof InvalidWebhookSignatureError && reasons.includes(error.reason)
+          ? error.reason : "UnexpectedValidatorError";
+      }
+      // SDK 3.6.1 parsing: last nonempty ts/v1 wins, key names case-insensitive.
+      const parts = (signature ?? "").trim().split(",").map((part) => {
+        const eq = part.indexOf("=");
+        return eq < 0 ? ["", ""] : [part.slice(0, eq).trim().toLowerCase(), part.slice(eq + 1).trim()];
+      });
+      const populated = parts.filter(([key, value]) => key && value);
+      const ts = populated.filter(([key]) => key === "ts").at(-1)?.[1] ?? "";
+      const v1 = populated.filter(([key]) => key === "v1").at(-1)?.[1] ?? "";
+      report.ts_count = parts.filter(([key]) => key === "ts").length;
+      report.v1_count = parts.filter(([key]) => key === "v1").length;
+      report.ts_numeric = /^\d+$/.test(ts);
+      report.v1_hex64 = /^[0-9a-f]{64}$/i.test(v1);
+      report.v1_uppercase = v1 !== v1.toLowerCase();
+      if (!report.ts_numeric || !report.v1_hex64) return;
+      const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret),
+        { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+      const compare = async (id: string, rid: string) => {
+        const manifest = `${id ? `id:${id};` : ""}${rid ? `request-id:${rid};` : ""}ts:${ts};`;
+        const hash = [...new Uint8Array(await crypto.subtle.sign("HMAC", key,
+          new TextEncoder().encode(manifest)))].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+        return hash === v1;
+      };
+      const rid = requestId ?? "";
+      report.matches_sdk_manifest = await compare(dataId.trim(), rid.trim());
+      report.matches_lowercase_id = await compare(dataId.trim().toLowerCase(), rid.trim());
+      report.matches_raw_request_id = await compare(dataId.trim(), rid);
+      report.matches_lowercase_raw_request_id = await compare(dataId.trim().toLowerCase(), rid);
+      // Include every conflicting query ID; log only whether any alternative matched.
+      report.alternative_query_id_checked = false;
+      report.matches_alternative_query_id = false;
+      for (const id of new Set([...ids, ...aliases])) {
+        if (stopped) return;
+        if (id === dataId) continue;
+        report.alternative_query_id_checked = true;
+        if (await compare(id.trim(), rid.trim())) report.matches_alternative_query_id = true;
+      }
+      if (stopped) return;
+      // Read only a clone. The original request remains available to the normal handler.
+      reader = request.clone().body?.getReader();
+      report.body_state = "absent";
+      if (!reader) return;
+      const chunks: Uint8Array[] = [];
+      let total = 0;
+      while (!stopped) {
+        const part = await reader.read();
+        if (stopped) return;
+        if (part.done) break;
+        total += part.value.byteLength;
+        if (total > MAX_BODY_BYTES) { report.body_state = "too_large"; return; }
+        chunks.push(part.value);
+      }
+      const bytes = new Uint8Array(total);
+      let offset = 0;
+      for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+      let body;
+      try { body = JSON.parse(new TextDecoder().decode(bytes)); }
+      catch { report.body_state = "unreadable"; return; }
+      report.body_state = "parsed";
+      const bodyId = body?.data?.id;
+      report.body_id_present = typeof bodyId === "string";
+      report.body_id_matches_query = typeof bodyId === "string" && bodyId === dataId;
+      report.body_test_mode = body?.live_mode === false;
+      if (typeof bodyId === "string" && bodyId.length <= 200 && bodyId !== dataId) {
+        report.matches_body_id = await compare(bodyId.trim(), rid.trim());
+        report.matches_body_lowercase_id = await compare(bodyId.trim().toLowerCase(), rid.trim());
+        report.matches_body_raw_request_id = await compare(bodyId.trim(), rid);
+      }
+    };
+    const outcome = await Promise.race([
+      collect().then(() => "complete", () => "failed"),
+      new Promise<string>((resolve) => { timer = setTimeout(() => resolve("timeout"), 250); }),
+    ]);
+    stopped = true;
+    report.diagnostic_failed = outcome === "failed";
+    report.timed_out = outcome === "timeout";
+    // Partial results are explicit; absence of a comparison never means false.
+    emit(report);
+  } catch {
+    // No exception details: they may contain request data or cryptographic inputs.
+    emit({ diagnostic: "lod_mp_signature_1003_v1", diagnostic_failed: true });
+  } finally {
+    stopped = true;
+    clearTimeout(timer);
+    // Never await cancellation of a tee branch: that may wait for the original body.
+    try { void reader?.cancel().catch(() => {}); } catch { /* observational only */ }
+  }
+}
+
 class HttpError extends Error {
   status: number;
   code: string;
@@ -387,6 +527,8 @@ Deno.serve(async (request: Request) => {
     const secret = Deno.env.get("MP_WEBHOOK_SECRET_TEST");
     const accessToken = Deno.env.get("MP_ACCESS_TOKEN_TEST");
     if (!secret || !accessToken) throw new HttpError(503, "mercado_pago_not_configured", "Webhook de teste ainda não configurado.");
+    // Observer returns no authorization result. Original validation below is unchanged.
+    await observeSignature1003(request, url, dataId, signature, requestId, secret, environment);
     // Observação restrita, sem qualquer efeito financeiro, inclusive se SDK válido.
     if (dataId === SIGNATURE_1002_ID && Date.now() >= Date.parse(SIGNATURE_1002_START) &&
         Date.now() < Date.parse(SIGNATURE_1002_END)) {
