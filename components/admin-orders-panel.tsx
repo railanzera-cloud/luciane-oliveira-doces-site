@@ -54,10 +54,19 @@ const ORDER_LABELS: Record<AdminOrder["order_status"], string> = {
 };
 
 function paymentLabel(order: AdminOrder) {
+  if (order.payment_method === "manual_pix") return order.payment_status === "paid" ? "Pago — Pix manual" : "Pix manual — aguardando conferência";
   if (order.payment_method === "mercado_pago_pix") return order.payment_status === "paid" ? "Pago — Pix" : "Pix online pendente";
   if (order.payment_method === "mercado_pago_card") return order.payment_status === "paid" ? "Pago — Cartão online" : "Cartão online pendente";
+  if (order.payment_status === "paid") return "Pago — " + (order.payment_method === "cash" ? "Dinheiro" : "Cartão");
   if (order.payment_method === "cash") return `Dinheiro na ${order.fulfillment_type === "pickup" ? "retirada" : "entrega"}`;
   return `Cartão na ${order.fulfillment_type === "pickup" ? "retirada" : "entrega"}`;
+}
+
+function attributionSource(order: AdminOrder, touch: "first_touch" | "current_visit") {
+  const entry = order.attribution_snapshot?.[touch];
+  const parameters = entry && typeof entry === "object" ? (entry as { parameters?: Record<string, unknown> }).parameters : null;
+  const source = parameters?.utm_source;
+  return Array.isArray(source) && typeof source[0] === "string" && source[0] ? source[0] : "Não identificada";
 }
 
 function actionable(order: AdminOrder) {
@@ -67,8 +76,9 @@ function actionable(order: AdminOrder) {
 
 function nextAction(order: AdminOrder): { label: string; status: AdminOrder["order_status"]; icon: typeof ChefHat } | null {
   if (!actionable(order)) return null;
+  if (order.sales_channel === "whatsapp" && order.order_status === "new") return { label: "Aceitar pedido", status: "confirmed", icon: Check };
   if (order.order_status === "new" || order.order_status === "confirmed") return { label: "Iniciar preparo", status: "preparing", icon: ChefHat };
-  if (order.order_status === "preparing") return { label: "Marcar pronto", status: "ready", icon: PackageCheck };
+  if (order.order_status === "preparing") return order.fulfillment_type === "pickup" ? { label: "Pronto para retirada", status: "ready_for_pickup", icon: PackageCheck } : { label: "Saiu para entrega", status: "out_for_delivery", icon: Truck };
   if (order.order_status === "ready" && order.fulfillment_type === "pickup") return { label: "Pronto para retirada", status: "ready_for_pickup", icon: ShoppingBag };
   if (order.order_status === "ready" && order.fulfillment_type === "delivery") return { label: "Saiu para entrega", status: "out_for_delivery", icon: Truck };
   if (order.order_status === "ready_for_pickup" || order.order_status === "out_for_delivery") return { label: "Concluir pedido", status: "completed", icon: Check };
@@ -76,6 +86,8 @@ function nextAction(order: AdminOrder): { label: string; status: AdminOrder["ord
 }
 
 export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; session: Session }) {
+  const [numberInput, setNumberInput] = useState("");
+  const [searchedNumber, setSearchedNumber] = useState<number | undefined>(undefined);
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -136,7 +148,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const reload = useCallback(async () => {
     setError("");
     try {
-      const nextOrders = await loadAdminOrders(client);
+      const nextOrders = await loadAdminOrders(client, searchedNumber);
       const actionableIds = nextOrders.filter(actionable).map((order) => order.id);
       if (!initializedRef.current) {
         actionableIds.forEach((id) => knownActionableRef.current.add(id));
@@ -153,7 +165,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     } finally {
       setLoading(false);
     }
-  }, [client, playAlert, printerReady, processPrints]);
+  }, [client, playAlert, printerReady, processPrints, searchedNumber]);
 
   useEffect(() => {
     let listening = false;
@@ -272,7 +284,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     try {
       await confirmOfflinePayment(client, order.id);
       setNotice(`Pagamento do pedido #${order.order_number} confirmado.`);
-      void requestOrderEffects(session.access_token).catch(() => undefined);
+      if (order.sales_channel === "site") void requestOrderEffects(session.access_token).catch(() => undefined);
       await reload();
     } catch (actionError) {
       setError(actionError instanceof Error ? actionError.message : "Não foi possível confirmar o pagamento.");
@@ -291,9 +303,9 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     } finally { setPendingId(""); }
   }
 
-  const visibleOrders = orders.filter((order) => showHistory
+  const visibleOrders = orders.filter((order) => searchedNumber !== undefined || (showHistory
     ? ["completed", "cancelled"].includes(order.order_status)
-    : !["completed", "cancelled"].includes(order.order_status));
+    : !["completed", "cancelled"].includes(order.order_status)));
 
   return (
     <section className="admin-orders-panel" aria-labelledby="admin-orders-title">
@@ -310,6 +322,19 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       {notice && <div className="admin-notice" role="status"><Check size={16} />{notice}</div>}
       {error && <div className="admin-load-error" role="alert"><AlertCircle size={18} /><span>{error}</span></div>}
 
+      <form className="admin-order-search" onSubmit={event => {
+        event.preventDefault(); const raw = numberInput.trim().replace(/^#/, "");
+        if (!raw) { setSearchedNumber(undefined); return; }
+        const value = Number(raw);
+        if (!/^\d+$/.test(raw) || !Number.isSafeInteger(value) || value < 1) { setError("Informe um número de pedido válido."); return; }
+        setSearchedNumber(value);
+      }}><label htmlFor="order-number-search">Buscar pedido pelo número</label><input id="order-number-search" inputMode="numeric" placeholder="Ex.: 1047" value={numberInput} onChange={e => setNumberInput(e.target.value)} /><Button type="submit">Buscar</Button>{searchedNumber !== undefined && <Button variant="ghost" type="button" onClick={() => { setNumberInput(""); setSearchedNumber(undefined); }}>Ver todos</Button>}</form>
+      <div className="admin-order-indicators" aria-label="Indicadores dos últimos 100 pedidos carregados">
+        <span>Aguardando confirmação: <strong>{orders.filter(o => o.order_status === "new").length}</strong></span>
+        <span>Em preparo: <strong>{orders.filter(o => o.order_status === "preparing").length}</strong></span>
+        <span>Retirada / entrega: <strong>{orders.filter(o => ["ready", "ready_for_pickup", "out_for_delivery"].includes(o.order_status)).length}</strong></span>
+        <small>{searchedNumber !== undefined ? "Resultado da busca" : "Últimos 100 pedidos carregados"}</small>
+      </div>
       <div className="admin-order-filters" role="group" aria-label="Lista de pedidos">
         <Button type="button" variant={!showHistory ? "default" : "ghost"} onClick={() => setShowHistory(false)}>Em andamento</Button>
         <Button type="button" variant={showHistory ? "default" : "ghost"} onClick={() => setShowHistory(true)}>Concluídos e cancelados</Button>
@@ -325,18 +350,21 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
               <article className={`admin-order-card status-${order.order_status}`} key={order.id}>
                 <header className="admin-order-card-heading">
                   <div><span className="admin-order-number">Pedido #{order.order_number}</span><time dateTime={order.created_at}><Clock3 size={14} /> {new Date(order.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</time></div>
-                  <span className="admin-order-status">{ORDER_LABELS[order.order_status]}</span>
+                  <span className="admin-order-status">{order.sales_channel === "whatsapp" && order.order_status === "new" ? "Aguardando confirmação" : ORDER_LABELS[order.order_status]}</span>
                 </header>
                 <div className="admin-order-customer"><strong>{order.customer_name}</strong><span>{order.customer_phone}</span></div>
                 <div className="admin-order-badges"><span>{order.fulfillment_type === "pickup" ? <ShoppingBag size={15} /> : <Truck size={15} />}{order.fulfillment_type === "pickup" ? "Retirada" : "Entrega"}</span><span className={order.payment_status === "paid" ? "is-paid" : "is-pay-later"}>{order.payment_method === "cash" ? <Banknote size={15} /> : <CreditCard size={15} />}{paymentLabel(order)}</span></div>
                 <div className="admin-order-items">{order.order_items.map((item) => <div key={item.id}><strong>{item.quantity}x {item.name}{item.size_label ? ` — ${item.size_label}` : ""}</strong>{item.option_names?.length > 0 && <span>{item.option_names.join(" + ")}</span>}</div>)}</div>
                 {order.fulfillment_type === "delivery" && <div className="admin-order-address"><MapPin size={16} /><span>{order.street}, {order.street_number}{order.complement ? ` — ${order.complement}` : ""}<br />{order.neighborhood}{order.reference ? ` · Ref.: ${order.reference}` : ""}</span></div>}
                 {order.payment_method === "cash" && order.cash_change_for && <p className="admin-order-change">Troco para: <strong>{money.format(Number(order.cash_change_for))}</strong></p>}
+                {order.notes && <p className="admin-order-change"><strong>Observação:</strong> {order.notes}</p>}
+                <p className="admin-order-change">Primeira origem conhecida: {attributionSource(order, "first_touch")} · Visita atual: {attributionSource(order, "current_visit")}. Sem inferência de campanha.</p>
+                {order.payment_method === "card_on_delivery" && <p className="admin-order-change">Confira com o cliente qualquer acréscimo da maquininha antes de aceitar.</p>}
                 <div className="admin-order-total"><span>Total</span><strong>{money.format(Number(order.total))}</strong></div>
                 <div className="admin-order-actions">
                   {next && NextIcon && <Button type="button" onClick={() => void runOrderAction(order, next.status, `Pedido #${order.order_number}: ${next.label.toLowerCase()}.`)} disabled={pending}><NextIcon size={16} /> {next.label}</Button>}
-                  {order.payment_status === "pending" && (order.payment_method === "cash" || order.payment_method === "card_on_delivery") && <Button type="button" variant="outline" onClick={() => void confirmPayment(order)} disabled={pending}><Check size={16} /> Confirmar pagamento</Button>}
-                  {actionable(order) && <Button type="button" variant="outline" onClick={() => void reprint(order)} disabled={pending}><RotateCcw size={16} /> Reimprimir</Button>}
+                  {order.payment_status === "pending" && (order.payment_method === "cash" || order.payment_method === "card_on_delivery" || order.payment_method === "manual_pix") && <Button type="button" variant="outline" onClick={() => void confirmPayment(order)} disabled={pending}><Check size={16} /> Confirmar pagamento</Button>}
+                  {order.sales_channel !== "whatsapp" && actionable(order) && <Button type="button" variant="outline" onClick={() => void reprint(order)} disabled={pending}><RotateCcw size={16} /> Reimprimir</Button>}
                   {!['completed', 'cancelled'].includes(order.order_status) && <Button type="button" variant="ghost" className="admin-cancel-order" onClick={() => void runOrderAction(order, "cancelled", `Pedido #${order.order_number} cancelado.`)} disabled={pending}><X size={16} /> Cancelar</Button>}
                 </div>
               </article>

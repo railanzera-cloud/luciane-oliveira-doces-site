@@ -4,7 +4,8 @@ export type SitePaymentMethod =
   | "mercado_pago_pix"
   | "mercado_pago_card"
   | "card_on_delivery"
-  | "cash";
+  | "cash"
+  | "manual_pix";
 
 export type MercadoPagoCardData = {
   token: string;
@@ -25,6 +26,9 @@ export type PublicOrderStatus = {
   currency: "BRL";
   created_at: string;
   updated_at: string;
+  sales_channel?: "site" | "whatsapp";
+  confirmed_at?: string | null;
+  items?: Array<{ name: string; size_label: string | null; option_names: string[]; quantity: number; line_total: number | string }>;
   paid_at?: string | null;
   payment?: SitePaymentGatewayResponse;
 };
@@ -154,6 +158,7 @@ export async function loadPublicOrderStatus(trackingToken: string): Promise<Publ
 }
 
 export function sitePaymentLabel(method: SitePaymentMethod, fulfillment: "entrega" | "retirada" | ""): string {
+  if (method === "manual_pix") return "Pix manual";
   if (method === "mercado_pago_pix") return "Pix online";
   if (method === "mercado_pago_card") return "Cartão online";
   if (method === "card_on_delivery") return fulfillment === "retirada" ? "Cartão na retirada" : "Cartão na entrega";
@@ -166,4 +171,26 @@ export function isGatewayPaid(payment: SitePaymentGatewayResponse): boolean {
 
 export function isGatewayFailed(payment: SitePaymentGatewayResponse): boolean {
   return ["failed", "cancelled", "canceled", "expired"].includes(payment.status ?? "");
+}
+
+export type WhatsAppOrderInput = Omit<CreateSiteOrderInput, "new_payment_attempt"> & {
+  request_key: string;
+  notes: string;
+  expected_total: string;
+};
+export async function createWhatsAppOrder(input: WhatsAppOrderInput): Promise<SiteOrderResult> {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), 20000);
+  try {
+    return await edgeRequest<{ ok: true } & SiteOrderResult>("create-whatsapp-order", input, controller.signal);
+  } finally { window.clearTimeout(timer); }
+}
+export const LAST_ORDER_KEY = "lod-last-tracking-token";
+export function rememberOrder(token: string) {
+  if (!/^[0-9a-f]{48}$/.test(token)) return;
+  try { window.localStorage.setItem(LAST_ORDER_KEY, token); } catch { /* Optional device recovery. */ }
+}
+export function lastOrderToken(): string {
+  try { const token = window.localStorage.getItem(LAST_ORDER_KEY) ?? ""; return /^[0-9a-f]{48}$/.test(token) ? token : ""; }
+  catch { return ""; }
 }

@@ -18,7 +18,11 @@ export type AdminOrder = {
   order_id: string;
   order_number: number;
   customer_name: string;
-  customer_phone: string;
+  customer_phone: string | null;
+  sales_channel: "site" | "whatsapp";
+  notes: string | null;
+  source: string | null;
+  attribution_snapshot: Record<string, unknown>;
   customer_email: string | null;
   fulfillment_type: "delivery" | "pickup";
   delivery_zone_id: string | null;
@@ -43,7 +47,7 @@ export type AdminOrder = {
 };
 
 const ORDER_COLUMNS = `
-  id, order_id, order_number, customer_name, customer_phone, customer_email,
+  id, order_id, order_number, customer_name, customer_phone, customer_email, sales_channel, notes, source, attribution_snapshot,
   fulfillment_type, delivery_zone_id, neighborhood, street, street_number,
   complement, reference, subtotal, delivery_fee, total, currency,
   payment_method, payment_status, order_status, cash_change_for,
@@ -61,11 +65,10 @@ function message(error: { message?: string } | null, fallback: string): string {
   return error.message || fallback;
 }
 
-export async function loadAdminOrders(client: SupabaseClient): Promise<AdminOrder[]> {
-  const { data, error } = await client.from("orders")
-    .select(ORDER_COLUMNS)
-    .order("created_at", { ascending: false })
-    .limit(100);
+export async function loadAdminOrders(client: SupabaseClient, orderNumber?: number): Promise<AdminOrder[]> {
+  let query = client.from("orders").select(ORDER_COLUMNS);
+  if (orderNumber !== undefined) query = query.eq("order_number", orderNumber);
+  const { data, error } = await query.order("created_at", { ascending: false }).limit(100);
   if (error) throw new Error(message(error, "Não foi possível carregar os pedidos."));
   return (data ?? []) as unknown as AdminOrder[];
 }

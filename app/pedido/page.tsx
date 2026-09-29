@@ -5,13 +5,15 @@ import { Check, Clock3, LoaderCircle, MessageCircle, RefreshCw, ShoppingBag } fr
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { loadPublicOrderStatus, sitePaymentLabel, type PublicOrderStatus } from "@/lib/site-order";
+import { DELIVERY_TIME_ESTIMATE } from "@/app/catalog";
+import { formatOrderMoney } from "@/app/order-checkout";
+import { lastOrderToken, rememberOrder, loadPublicOrderStatus, sitePaymentLabel, type PublicOrderStatus } from "@/lib/site-order";
 
 const TINTIM_SITE_LINK = "https://tintim.link/whatsapp/2c956a42-229f-4d21-ade6-4442f8c048ed/7522df92-bbe1-4bff-83ca-2629bba182eb";
 
 const ORDER_LABELS: Record<PublicOrderStatus["order_status"], string> = {
   payment_pending: "Aguardando pagamento",
-  new: "Pedido recebido",
+  new: "Aguardando confirmação",
   confirmed: "Pedido confirmado",
   preparing: "Em preparo",
   ready: "Pronto",
@@ -24,9 +26,10 @@ const ORDER_LABELS: Record<PublicOrderStatus["order_status"], string> = {
 export default function OrderTrackingPage() {
   const [token] = useState(() => typeof window === "undefined"
     ? ""
-    : new URL(window.location.href).searchParams.get("token")?.trim().toLowerCase() ?? "");
+    : new URL(window.location.href).searchParams.get("token")?.trim().toLowerCase() || lastOrderToken());
   const [order, setOrder] = useState<PublicOrderStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [copyNotice, setCopyNotice] = useState("");
   const [error, setError] = useState("");
 
   const refresh = useCallback(async (trackingToken = token) => {
@@ -34,6 +37,7 @@ export default function OrderTrackingPage() {
     setLoading(true);
     try {
       setOrder(await loadPublicOrderStatus(trackingToken));
+      rememberOrder(trackingToken);
       setError("");
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Não foi possível consultar o pedido.");
@@ -75,13 +79,24 @@ export default function OrderTrackingPage() {
           <h1>Pedido #{order.order_number}</h1>
           <div className="tracking-current-status"><Clock3 size={19} aria-hidden="true" /><span><small>Situação atual</small><strong>{ORDER_LABELS[order.order_status]}</strong></span></div>
           <div className="tracking-details">
-            <p><span>Pagamento</span><strong>{order.payment_status === "paid" ? "Aprovado" : order.payment_status === "pending" ? sitePaymentLabel(order.payment_method, order.fulfillment_type === "pickup" ? "retirada" : "entrega") : order.payment_status === "refunded" ? "Devolvido" : "Não aprovado"}</strong></p>
+            <p><span>Pagamento</span><strong>{order.payment_status === "paid" ? "Pago" : order.payment_status === "pending" ? `Pendente — ${sitePaymentLabel(order.payment_method, order.fulfillment_type === "pickup" ? "retirada" : "entrega")}` : order.payment_status === "refunded" ? "Devolvido" : "Não aprovado"}</strong></p>
             <p><span>Recebimento</span><strong>{order.fulfillment_type === "pickup" ? "Retirada" : "Entrega"}</strong></p>
           </div>
+          <div className="tracking-details">
+            {order.items?.map((item, index) => <div key={index}><strong>{item.quantity}x {item.name} {item.size_label}</strong>{item.option_names.length > 0 && <p>{item.option_names.join(" + ")}</p>}</div>)}
+            <p><span>Total</span><strong>{formatOrderMoney(Number(order.total))}</strong></p>
+            <p><span>Última atualização</span><time dateTime={order.updated_at}>{new Date(order.updated_at).toLocaleString("pt-BR")}</time></p>
+          </div>
+          {!["completed", "cancelled"].includes(order.order_status) && <p>{order.fulfillment_type === "delivery" ? `${DELIVERY_TIME_ESTIMATE} O prazo começa após a confirmação da loja.` : "O horário de retirada será combinado com a loja após a confirmação."}</p>}
+          {order.sales_channel === "whatsapp" && order.order_status === "new" && <p>A solicitação está registrada. Envie a mensagem pelo WhatsApp e aguarde a confirmação da loja.</p>}
           {error && <p className="site-result-notice" role="status">A última atualização falhou. A situação anterior foi mantida.</p>}
         </>}
         <div className="tracking-actions">
           {order && <Button type="button" onClick={() => void refresh()} disabled={loading}>{loading ? <LoaderCircle className="admin-spinner" size={17} /> : <RefreshCw size={17} />} Atualizar</Button>}
+          {order && <><Button variant="outline" onClick={async () => {
+            try { await navigator.clipboard.writeText(`${window.location.origin}/pedido?token=${token}`); setCopyNotice("Link copiado."); }
+            catch { setCopyNotice("Selecione o link abaixo para copiar."); }
+          }}>Copiar link do pedido</Button><input className="tracking-copy-field" aria-label="Link individual do pedido" readOnly value={typeof window === "undefined" ? "" : `${window.location.origin}/pedido?token=${token}`} onFocus={e => e.target.select()} />{copyNotice && <p role="status">{copyNotice}</p>}</>}
           <Button variant="outline" asChild><a href={supportUrl}><MessageCircle size={17} /> Falar com a loja</a></Button>
           <Button variant="ghost" asChild><Link href="/">Voltar ao cardápio</Link></Button>
         </div>

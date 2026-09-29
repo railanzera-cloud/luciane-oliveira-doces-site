@@ -1,5 +1,7 @@
 // Dados locais do pedido. Não confirma envio, pagamento ou venda.
 export type OrderAttribution = {
+  first_touch?: { url: string; parameters: Record<string, string[]> };
+  current_visit?: { url: string; path: string; parameters: Record<string, string[]> };
   landing_url: string;
   last_url: string;
   parameters: Record<string, string[]>;
@@ -16,6 +18,7 @@ export type OrderAttribution = {
 };
 
 export type OrderContext = {
+  request_key?: string;
   order_id: string;
   created_at: string;
   attribution: OrderAttribution;
@@ -24,6 +27,8 @@ export type OrderContext = {
 };
 
 export type CheckoutDetails = {
+  customer_name?: string;
+  notes?: string;
   items: Array<{
     product_id: string;
     variant_id: string;
@@ -101,6 +106,8 @@ export function captureOrderAttribution(href: string, cookies: string, previous?
   }
   for (const key of new Set(url.searchParams.keys())) parameters[key] = url.searchParams.getAll(key);
   const result: OrderAttribution = {
+    first_touch: previous?.first_touch ?? { url: previous?.landing_url || href, parameters: previous?.parameters ?? Object.fromEntries([...new Set(url.searchParams.keys())].map(key => [key, url.searchParams.getAll(key)])) },
+    current_visit: { url: href, path: url.pathname, parameters: Object.fromEntries([...new Set(url.searchParams.keys())].map(key => [key, url.searchParams.getAll(key)])) },
     landing_url: previous?.landing_url || href,
     last_url: href,
     parameters,
@@ -120,7 +127,7 @@ export function captureOrderAttribution(href: string, cookies: string, previous?
 }
 
 export function newOrderContext(attribution: OrderAttribution): OrderContext {
-  return { order_id: createOrderId(), created_at: new Date().toISOString(), attribution };
+  return { request_key: Array.from(crypto.getRandomValues(new Uint8Array(32)), b => b.toString(16).padStart(2, "0")).join(""), order_id: createOrderId(), created_at: new Date().toISOString(), attribution };
 }
 
 export function restoreOrderContext(value: unknown, attribution: OrderAttribution): OrderContext {
@@ -129,6 +136,7 @@ export function restoreOrderContext(value: unknown, attribution: OrderAttributio
     return newOrderContext(attribution);
   }
   return {
+    request_key: typeof saved.request_key === "string" && /^[0-9a-f]{64}$/.test(saved.request_key) ? saved.request_key : newOrderContext(attribution).request_key,
     order_id: saved.order_id,
     created_at: typeof saved.created_at === "string" ? saved.created_at : new Date().toISOString(),
     attribution,
@@ -186,4 +194,35 @@ export function buildOrderMessage(order: CheckoutDetails, orderId: string, pix: 
     `Taxa de entrega: ${order.fulfillment === "entrega" ? formatOrderMoney(order.delivery_fee) : "não se aplica"}`,
     `*Total: ${total}*`, "", nextStep,
   ].join("\n"));
+}
+
+// Called before the Tintim redirect. Never processes Tintim's returned text or invisible attribution suffix.
+export function buildRegisteredOrderMessage(order: CheckoutDetails, number: number, trackingUrl: string, pix: { holder: string; key: string; keyType: string }): string {
+  if (!Number.isSafeInteger(number) || number < 1) throw new Error("Pedido sem número confirmado.");
+  const lines = [`📦 PEDIDO #${number}`, `Cliente: ${cleanWhatsAppField(order.customer_name ?? "")}`, ""];
+  for (const item of order.items) {
+    lines.push(`${item.quantity}x ${item.name}${item.kind === "slice" ? "" : ` ${item.size}`}`);
+    if (item.options.length) lines.push(item.options.join(" + "));
+    lines.push("");
+  }
+  lines.push(`${order.fulfillment === "retirada" ? "Retirada" : "Entrega"} • ${paymentDescription(order.payment, order.fulfillment)}`);
+  if (order.fulfillment === "entrega") {
+    lines.push(`${cleanWhatsAppField(order.street)}, ${cleanWhatsAppField(order.number)} — ${cleanWhatsAppField(order.neighborhood)}`);
+    if (order.complement.trim()) lines.push(`Complemento: ${cleanWhatsAppField(order.complement)}`);
+    if (order.reference.trim()) lines.push(`Referência: ${cleanWhatsAppField(order.reference)}`);
+    lines.push(`Taxa de entrega: ${formatOrderMoney(order.delivery_fee)}`);
+  }
+  if (order.notes?.trim()) lines.push(`Observação: ${cleanWhatsAppField(order.notes)}`);
+  lines.push(`Total: ${formatOrderMoney(order.total)}`, "");
+  if (order.payment === "pix") lines.push("Pagamento via Pix", `${pix.keyType}: ${pix.key}`, pix.holder, "", "Após o pagamento, envio o comprovante por aqui.");
+  if (order.payment === "cartao") lines.push("Cartão no recebimento", "Pagamento pela maquininha. Eventual acréscimo será informado antes da confirmação da compra.");
+  if (order.payment === "dinheiro") {
+    lines.push("Dinheiro no recebimento");
+    if (order.needs_change) {
+      if (order.cash_received_cents === null || order.cash_received_cents < Math.round(order.total * 100)) throw new Error("Confira o troco.");
+      lines.push(`Troco para: ${formatOrderMoney(order.cash_received_cents / 100)}`);
+    } else lines.push("Não preciso de troco.");
+  }
+  lines.push("", "🔗 Acompanhar pedido:", trackingUrl);
+  return cleanWhatsAppText(lines.join("\n"));
 }

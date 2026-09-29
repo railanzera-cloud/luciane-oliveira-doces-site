@@ -49,8 +49,10 @@ function publicSnapshot(order: Record<string, unknown>): Record<string, unknown>
   // Explicit projection at the HTTP boundary as well as in SQL. Future RPC
   // columns must not accidentally expose customer data or campaign identifiers.
   const fields = ["order_number", "payment_method", "payment_status", "order_status",
-    "fulfillment_type", "total", "currency", "created_at", "updated_at", "paid_at"];
+    "fulfillment_type", "total", "currency", "created_at", "updated_at", "paid_at", "confirmed_at", "sales_channel"];
   const result = Object.fromEntries(fields.filter((key) => key in order).map((key) => [key, order[key]]));
+  if (Array.isArray(order.items)) result.items = order.items.map((item: Record<string, unknown>) =>
+    Object.fromEntries(["name", "size_label", "option_names", "quantity", "line_total"].map((key) => [key, item[key]])));
   if (order.payment_method === "mercado_pago_pix" && order.payment_status === "pending") {
     const source = order.payment && typeof order.payment === "object" ? order.payment as Record<string, unknown> : {};
     const payment = source.payment && typeof source.payment === "object" ? source.payment as Record<string, unknown> : {};

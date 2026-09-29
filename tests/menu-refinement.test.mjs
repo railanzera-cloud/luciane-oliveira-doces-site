@@ -214,25 +214,24 @@ function detailsFor(payment, fulfillment = "retirada") {
 }
 const fixedOrderId = "LOD-0123-4567-89AB";
 function messageFor(payment, fulfillment = "retirada") {
-  return pageFunction("buildWhatsAppMessage", {
-    buildOrderMessage: checkout.buildOrderMessage, checkoutDetails: detailsFor(payment, fulfillment),
-    PIX_DETAILS: { holder: "Luciane Galvão de Oliveira", key: "03611974200", keyType: "CPF" },
-  })(fixedOrderId);
+  return checkout.buildRegisteredOrderMessage({...detailsFor(payment, fulfillment), customer_name: "Maria Oliveira"}, 1047,
+    "https://example.test/pedido?token=" + "a".repeat(48),
+    { holder: "Luciane Galvão de Oliveira", key: "03611974200", keyType: "CPF" });
 }
 
 for (const payment of ["pix", "dinheiro", "cartao"]) {
   for (const fulfillment of ["entrega", "retirada"]) {
     test(`WhatsApp ${fulfillment}/${payment}: complete order, correct totals, no obsolete slice options`, () => {
       const message = messageFor(payment, fulfillment);
-      assert.match(message, /Prestígio — 2 fatias/);
-      assert.match(message, /Pipoca Gourmet 500 ml — 1 un/);
-      assert.match(message, /Sabores: Crispy Bueno \+ Leitinho/);
+      assert.match(message, /2x Prestígio/);
+      assert.match(message, /1x Pipoca Gourmet 500 ml/);
+      assert.match(message, /Crispy Bueno \+ Leitinho/);
       assert.ok(message.includes(checkout.formatOrderMoney(fulfillment === "entrega" ? 81 : 73)));
       assert.doesNotMatch(message, /calda|sauce/i);
-      if (payment === "pix") assert.match(message, /PRÓXIMO PASSO — PAGAMENTO PIX[\s\S]*03611974200/);
+      if (payment === "pix") assert.match(message, /Pagamento via Pix[\s\S]*03611974200/);
       else assert.doesNotMatch(message, /03611974200|Titular:/);
       if (payment === "dinheiro") assert.match(message, /Troco para: R\$ 100,00/);
-      if (fulfillment === "entrega") assert.match(message, /Bairro de teste[\s\S]*Rua de teste[\s\S]*Número: 1[\s\S]*Referência de teste/);
+      if (fulfillment === "entrega") assert.match(message, /Rua de teste, 1 — Bairro de teste[\s\S]*Referência de teste/);
       else assert.doesNotMatch(message, /Rua de teste/);
     });
   }
@@ -245,6 +244,11 @@ function checkoutHarness(latest, overrides = {}) {
   const lock = { current: false }, navigationPending = { current: false }, contextRef = { current: context };
   const fingerprint = JSON.stringify(detailsFor("pix"));
   const deps = {
+    customerNameReady: true, customerName: "Maria Oliveira", notes: "", fulfillment: "retirada", deliveryZoneId: "", deliveryNeighborhood: "", address: "", addressNumber: "", complement: "", reference: "", payment: "pix", needsChange: false, cashReceivedCents: null, orderTotal: 73, checkoutDetails: {...detailsFor("pix"), customer_name:"Maria Oliveira"},
+    PIX_DETAILS: {holder:"Luciane Galvão de Oliveira",key:"03611974200",keyType:"CPF"},
+    buildRegisteredOrderMessage: checkout.buildRegisteredOrderMessage, rememberOrder: () => {}, setLastToken: () => {},
+    createWhatsAppOrder: async () => ({order:{order_number:1047,tracking_token:"a".repeat(48),total:73},payment:{method:"manual_pix"}}),
+    setWhatsAppResult: value => actions.push(value.whatsappUrl),
     availability: snapshot(), cart, checkoutFormReady: true, finalizationLockRef: lock, navigationPendingRef: navigationPending,
     STORE_CONFIG: catalog.STORE_CONFIG, cartAvailabilityIssues,
     setIsFinalizing: () => {}, setOpeningWhatsApp: () => {}, setCheckoutAvailabilityMessage: (value) => messages.push(value),
@@ -257,7 +261,7 @@ function checkoutHarness(latest, overrides = {}) {
     checkoutStartedRef: { current: true }, paymentInfoTrackedRef: { current: true },
     buildWhatsAppMessage: () => messageFor("pix"),
     tintimWhatsAppUrl: pageFunction("tintimWhatsAppUrl", { TINTIM_SITE_LINK: "https://tintim.link/whatsapp/test" }),
-    window: { location: { href: "https://example.test/?categoria=fatias", assign: (url) => actions.push(url) },
+    window: { scrollTo: () => {}, location: { origin:"https://example.test", href: "https://example.test/?categoria=fatias", assign: (url) => actions.push(url) },
       sessionStorage: { setItem: (key, value) => writes.push({ key, value: JSON.parse(value) }) },
       setTimeout: (fn, ms) => { scheduled.push({ fn, ms }); return scheduled.length; } },
     document: { cookie: "_fbp=browser; _fbc=click-cookie", visibilityState: "visible" },
@@ -314,31 +318,17 @@ test("an unresponsive availability endpoint is aborted so the existing fallback 
   assert.equal(cleared, true);
 });
 
-test("Pix uses the exact total and selectable CPF after the structured order", () => {
+test("approved message uses the registered number, customer, dynamic payment and private link", () => {
   for (const fulfillment of ["entrega", "retirada"]) {
-    const message = messageFor("pix", fulfillment);
-    const total = fulfillment === "entrega" ? "R$ 81,00" : "R$ 73,00";
-    assert.ok(message.startsWith("Olá! Finalizei meu pedido pelo cardápio da *Luciane Oliveira Doces*.\n\n*PEDIDO LOD-0123-4567-89AB*"));
-    assert.ok(message.includes(`*Total: ${total}*`));
-    assert.ok(message.includes(`Valor a pagar: *${total}*`));
-    assert.ok(message.includes("*Chave Pix (CPF)*\n03611974200\n\nTitular: Luciane Galvão de Oliveira"));
-    assert.ok(message.endsWith("Faça o pagamento e envie o comprovante nesta conversa."));
-    assert.doesNotMatch(message, /aguard|confirmação|estimad|\p{Cf}|\u00a0|\u202f/iu);
-    assert.equal(decodeURIComponent(encodeURIComponent(message)), message);
-  }
-});
-
-test("card and cash distinguish receiving mode and never include Pix", () => {
-  for (const method of ["cartao", "dinheiro"]) {
-    for (const mode of ["retirada", "entrega"]) {
-      const message = messageFor(method, mode);
-      assert.doesNotMatch(message, /Pix|PIX|03611974200|Titular:/);
-      assert.match(message, new RegExp(`no momento da ${mode}`));
-      if (method === "cartao") {
-        assert.match(message, new RegExp(`Cartão na ${mode}`));
-        if (mode === "retirada") assert.match(message, /Aguarde a confirmação do pedido antes de se deslocar/);
-        else assert.doesNotMatch(message, /retirada|deslocar/);
-      }
+    for (const payment of ["pix", "cartao", "dinheiro"]) {
+      const message=messageFor(payment,fulfillment);
+      assert.ok(message.startsWith("📦 PEDIDO #1047\nCliente: Maria Oliveira"));
+      assert.ok(message.includes(`Total: R$ ${fulfillment === "entrega" ? "81" : "73"},00`));
+      assert.ok(message.endsWith("https://example.test/pedido?token="+"a".repeat(48)));
+      assert.doesNotMatch(message,/\p{Cf}|\u00a0|\u202f/u);
+      if(payment === "pix") assert.match(message,/CPF: 03611974200\nLuciane Galvão de Oliveira/);
+      else assert.doesNotMatch(message,/03611974200|Pagamento via Pix/);
+      if(payment === "cartao") assert.match(message,/acréscimo.*antes da confirmação/);
     }
   }
 });
@@ -394,29 +384,21 @@ test("same-tick double click performs one revalidation and one redirect", async 
   complete({ snapshot: snapshot(), usedFallback: false });
   await first;
   assert.equal(h.actions.length, 1);
-  assert.equal(h.writes.length, 1);
+  assert.equal(h.writes.length, 2);
   assert.equal(h.writes[0].value.order.order_id, fixedOrderId);
   assert.deepEqual(h.writes[0].value.cart, cart);
   assert.equal(h.writes[0].value.order_details.total, 73);
   assert.equal(h.writes[0].value.order.attribution.fbclid, "click");
-  assert.equal(h.writes[0].value.initiateCheckoutTracked, true);
-  assert.equal(h.writes[0].value.paymentInfoTracked, true);
+  assert.equal(h.writes[1].value.whatsappResult.result.order.order_number, 1047);
 });
 
-test("failed remote lookup or redirect releases the gate and allows a retry", async () => {
-  const h = checkoutHarness(null, { refreshAvailability: async () => { throw new Error("Network error"); } });
-  await h.finish();
-  assert.equal(h.lock.current, false);
-  assert.equal(h.actions.length, 0);
-  const failed = checkoutHarness({ snapshot: snapshot(), usedFallback: false });
-  failed.deps.window.location.assign = () => { throw new Error("Navigation failed"); };
-  await failed.finish();
-  assert.equal(failed.lock.current, false);
-  assert.equal(failed.deps.navigationPendingRef.current, false);
-  failed.deps.window.location.assign = (url) => failed.actions.push(url);
-  await failed.finish();
-  assert.equal(failed.actions.length, 1);
-  assert.equal(failed.contextRef.current.order_id, fixedOrderId);
+test("failed registration releases the lock, retains identity, and retries without automatic navigation", async () => {
+  const h=checkoutHarness({snapshot:snapshot(),usedFallback:false},{ createWhatsAppOrder:async()=>{throw new Error("Network error");} });
+  await h.finish(); assert.equal(h.lock.current,false); assert.equal(h.actions.length,0);
+  assert.equal(h.writes[0].value.order.order_id,fixedOrderId);
+  const recovered=checkoutHarness({snapshot:snapshot(),usedFallback:false});
+  recovered.deps.window.location.assign=()=>{throw new Error("Must not navigate before explicit customer action");};
+  await recovered.finish();assert.equal(recovered.actions.length,1);assert.equal(recovered.writes.at(-1).value.whatsappResult.result.order.order_number,1047);
 });
 
 test("edits during asynchronous revalidation cannot send stale order details", async () => {
@@ -508,7 +490,7 @@ test("explicit new order clears the old draft and creates another code", () => {
     ORDER_STORAGE_KEY: "luciane-order-session-v2", clearDraft: () => {},
     COMMERCE_CONFIG: { siteOrderingEnabled: false },
     window: { sessionStorage: { removeItem: (key) => removed.push(key) } } };
-  for (const setter of ["setOrderContext", "setAddressNumber", "setComplement", "setLegacyAddressNotice", "setCart", "setFulfillment", "setDeliveryZoneId", "setNeighborhood", "setAddress", "setReference", "setPayment", "setCheckoutChannel", "setCustomerName", "setCustomerPhone", "setCustomerEmail", "setSiteResult", "setNewPaymentAttempt", "setNeedsChange", "setChangeFor", "setDrinkMessage", "setRestoredOrderNotice", "setAddedNotice", "setCheckoutAvailabilityMessage", "setBuilderEngaged"]) deps[setter] = (value) => { fields[setter] = value; };
+  for (const setter of ["setOrderContext", "setAddressNumber", "setComplement", "setLegacyAddressNotice", "setCart", "setFulfillment", "setDeliveryZoneId", "setNeighborhood", "setAddress", "setReference", "setPayment", "setCheckoutChannel", "setNotes", "setWhatsAppResult", "setCustomerName", "setCustomerPhone", "setCustomerEmail", "setSiteResult", "setNewPaymentAttempt", "setNeedsChange", "setChangeFor", "setDrinkMessage", "setRestoredOrderNotice", "setAddedNotice", "setCheckoutAvailabilityMessage", "setBuilderEngaged"]) deps[setter] = (value) => { fields[setter] = value; };
   pageFunction("clearOrder", deps)();
   assert.equal(contextRef.current, null);
   assert.deepEqual(fields.setCart, []);

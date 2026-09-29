@@ -82,7 +82,7 @@ test("keeps a non-blocking local fallback and refreshes on return to the tab", (
   assert.match(page, /useMenuAvailability\(\)/);
 });
 
-test("revalidates the complete cart immediately before the single Tintim navigation", () => {
+test("revalidates the complete cart immediately before the backend registration", () => {
   const finishStart = page.indexOf("async function finishOnWhatsApp");
   const finishEnd = page.indexOf("function stickyBuilderAction", finishStart);
   const finish = page.slice(finishStart, finishEnd);
@@ -93,9 +93,9 @@ test("revalidates the complete cart immediately before the single Tintim navigat
   assert.match(finish, /Não foi possível confirmar a disponibilidade agora/);
   assert.match(finish, /cartAvailabilityIssues\(cart, latest\.snapshot\)/);
   assert.match(finish, /!latest\.snapshot\.ordersOpen/);
-  assert.match(finish, /Revise o carrinho para continuar/);
-  assert.ok(finish.indexOf("await refreshAvailability()") < finish.indexOf("window.location.assign"));
-  assert.equal((page.match(/window\.location\.assign\(/g) ?? []).length, 1);
+  assert.match(finish, /Item indisponível/);
+  assert.ok(finish.indexOf("await refreshAvailability()") < finish.indexOf("await createWhatsAppOrder"));
+  assert.equal((page.match(/window\.location\.assign\(/g) ?? []).length, 0);
 });
 
 test("marks remote cart failures without silently deleting those items", () => {
