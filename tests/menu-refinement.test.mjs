@@ -590,3 +590,13 @@ test("case G: real toggle handler recomputes from remaining flavors and enforces
   toggle("kinder-bueno"); toggle("nutella"); toggle("ovomaltine");
   assert.deepEqual(deps.popcornOptionIds, ["leitinho", "kinder-bueno", "nutella"]);
 });
+
+test('dynamic Tintim link preserves repeated parameters and tracker cookies', () => {
+  const build = pageFunction('tintimWhatsAppUrl', { TINTIM_SITE_LINK: 'https://tintim.link/fixture' });
+  const url = new URL(build('📦 PEDIDO #1047', { parameters: { extra: ['1', '2'], utm_source: ['instagram'], text: ['untrusted'] } }, 'tt_fbclid=click%201; tt_utm_source=old; tt_campaignid=42'));
+  assert.equal(url.searchParams.get('text'), '📦 PEDIDO #1047');
+  assert.deepEqual(url.searchParams.getAll('extra'), ['1', '2']);
+  assert.equal(url.searchParams.get('utm_source'), 'instagram');
+  assert.equal(url.searchParams.get('fbclid'), 'click 1');
+  assert.equal(url.searchParams.get('campaignid'), '42');
+});

@@ -20,7 +20,7 @@ export function WhatsAppOrderResultView({ order, pix, onNewOrder }: {
     catch { setNotice("Não foi possível copiar automaticamente. Selecione o texto abaixo."); }
   }
   return <main className="site-result-page"><section className="site-result-card is-pending">
-    <h1>Olá, {order.customerName}! ❤️</h1>
+    <h1>Olá, {order.customerName.trim().split(/\s+/)[0]}! ❤️</h1>
     <p>Seu pedido <strong>#{order.result.order.order_number}</strong> foi registrado.</p>
     <p>Total: <strong>{formatOrderMoney(Number(order.result.order.total))}</strong></p>
     <p>Aguardando confirmação da loja.</p>

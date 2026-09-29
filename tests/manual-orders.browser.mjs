@@ -5,7 +5,7 @@ import { readFile, mkdir } from 'node:fs/promises';
 import ts from 'typescript';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE);
 const { default: portable } = await import(process.env.CHROMIUM_MODULE);
-const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE || await portable.executablePath(), args: portable.args, headless:true });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE || await portable.executablePath(), args: ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--no-zygote", "--single-process"], headless:true });
 const origin=process.env.TEST_ORIGIN || 'http://127.0.0.1:4173';
 const out=new URL('../outputs/validation/',import.meta.url);await mkdir(out,{recursive:true});
 const catalogSource=await readFile(new URL('../app/catalog.ts',import.meta.url),'utf8');
@@ -46,7 +46,7 @@ for(const [payment,fulfillment] of [['pix','retirada'],['cartao','entrega'],['di
  await page.locator('#customer-name').fill('Maria Oliveira');await page.locator('#order-notes').fill('Entregar na portaria.');
  await page.locator('#carrinho').screenshot({path:new URL(`checkout-${payment}.png`,out).pathname});
  await page.locator('.checkout-primary-button').evaluate(el=>{el.click();el.click();});
- await page.getByRole('heading',{name:'Olá, Maria! ❤️'}).waitFor().catch(async e=>{console.log('DIAGNOSTIC',count,payload,errors,await page.locator('#checkout-status').textContent());throw e;});assert.equal(count,1);assert.equal(payload.customer.name,'Maria Oliveira');assert.equal(payload.notes,'Entregar na portaria.');assert.deepEqual(payload.attribution.parameters.extra,['1','2']);
+ await page.getByRole('heading',{name:'Olá, Maria! ❤️'}).waitFor().catch(async e=>{console.log('DIAGNOSTIC',count,payload,errors,await page.locator('body').innerText());throw e;});assert.equal(count,1);assert.equal(payload.customer.name,'Maria Oliveira');assert.equal(payload.notes,'Entregar na portaria.');assert.deepEqual(payload.attribution.parameters.extra,['1','2']);
  assert.equal(payload.expected_total,total.toFixed(2));if(payment==='dinheiro')assert.equal(payload.payment.change_for,'50.00');
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true,'No horizontal mobile overflow');
  const link=page.getByRole('link',{name:'Enviar pedido pelo WhatsApp'});const href=await link.getAttribute('href');const text=new URL(href).searchParams.get('text');
