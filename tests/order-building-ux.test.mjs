@@ -21,7 +21,7 @@ test("starts popcorn and slice choices empty", () => {
 test("guides dependent steps only after a conscious first choice", () => {
   assert.match(page, /Primeiro escolha o tamanho\. Depois, os sabores serão liberados/);
   assert.match(page, /const disabled = waitingForSize \|\| \(!available && !selected\) \|\| limitDisabled/);
-  assert.match(page, /Confira a quantidade e adicione ao pedido/);
+  assert.match(page, /Escolha como prefere sua fatia e confira a quantidade/);
   assert.match(page, /disabled=\{!sliceReady\}/);
 });
 

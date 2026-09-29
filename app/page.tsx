@@ -190,9 +190,10 @@ function isWhatsAppPayment(value: Payment): value is WhatsAppPayment {
 let navigationByKeyboard = false;
 
 function scrollToSection(id: string) {
-  const target = document.getElementById(id);
-  if (!target) return;
-  const heading = target.querySelector<HTMLElement>("h1, h2, h3") ?? target;
+  const element = document.getElementById(id);
+  if (!element) return;
+  const target = element.matches("input, select") ? element.closest<HTMLElement>(".field-group") ?? element : element;
+  const heading = target.querySelector<HTMLElement>("h1, h2, h3") ?? target.closest<HTMLElement>(".field-group") ?? target;
   const previousTabIndex = heading.getAttribute("tabindex");
   heading.setAttribute("tabindex", "-1");
   heading.setAttribute("data-navigation-focus", navigationByKeyboard ? "keyboard" : "pointer");
@@ -364,6 +365,13 @@ export default function Home() {
   const [popcornVariantId, setPopcornVariantId] = useState("");
   const [popcornOptionIds, setPopcornOptionIds] = useState<string[]>([]);
   const [popcornQuantity, setPopcornQuantity] = useState(1);
+  const [scrollRequest, setScrollRequest] = useState<{ id: string } | null>(null);
+  function requestScroll(id: string) { setScrollRequest({ id }); }
+  useEffect(() => {
+    if (!scrollRequest) return;
+    const frame = window.requestAnimationFrame(() => { scrollToSection(scrollRequest.id); setScrollRequest(null); });
+    return () => window.cancelAnimationFrame(frame);
+  }, [scrollRequest]);
   const [sliceProductId, setSliceProductId] = useState("");
   const [sliceOptionId, setSliceOptionId] = useState("");
   const [sliceQuantity, setSliceQuantity] = useState(1);
@@ -681,6 +689,7 @@ export default function Home() {
       : "active";
   const popcornQuantityStepState: StepState = popcornReady ? "active" : "locked";
   const sliceProductStepState: StepState = selectedSlice && sliceIsAvailable(selectedSlice.id) ? "complete" : "active";
+  const sliceSauceStepState: StepState = !selectedSlice ? "locked" : sliceOptionId ? "complete" : "active";
   const sliceQuantityStepState: StepState = sliceReady ? "active" : "locked";
   const receivingStepState: StepState = cart.length === 0
     ? "locked"
@@ -717,6 +726,8 @@ export default function Home() {
     ? "Pedidos fechados"
     : !categoryIsAvailable(activeCategory) && builderFlowActive
       ? "Esgotado no momento"
+      : activeCategory === "fatias" && selectedSlice && !sliceOptionId && builderFlowActive
+        ? "Escolher calda ou sem calda"
       : editingId
         ? "Salvar alterações"
         : draftReady
@@ -942,12 +953,27 @@ export default function Home() {
 
   function enterCheckout(sectionId: "recebimento" | "pagamento") {
     setBuilderEngaged(false);
-    scrollToSection(sectionId);
+    requestScroll(sectionId);
+  }
+
+  function nextCheckoutSection(receiving: Fulfillment = fulfillment): string {
+    if (!receiving) return "recebimento";
+    if (receiving === "entrega") {
+      if (!selectedDeliveryZone) return "delivery-fields";
+      if (!cleanWhatsAppField(deliveryNeighborhood)) return "neighborhood";
+      if (!cleanWhatsAppField(address)) return "address";
+      if (!cleanWhatsAppField(addressNumber)) return "address-number";
+    }
+    if (!customerNameReady) return "identificacao";
+    if (checkoutChannel === "site" && !customerPhoneReady) return "customer-phone";
+    return "pagamento";
   }
 
   function chooseFulfillment(value: string) {
     trackCheckoutStart();
     setFulfillment(value as Fulfillment);
+    setBuilderEngaged(false);
+    requestScroll(nextCheckoutSection(value as Fulfillment));
   }
 
   function chooseCheckoutChannel(value: string) {
@@ -1033,7 +1059,7 @@ export default function Home() {
       scrollToSection("fatias");
       return;
     }
-    if (!sliceReady) return;
+    if (!sliceReady) { setSelectionMessage("Escolha com calda de chocolate ou sem calda para continuar."); requestScroll("calda-fatias"); return; }
     const nextItem: Omit<CartItem, "id"> = {
       productId: selectedSlice.id,
       variantId: selectedSliceVariant.id,
@@ -1052,9 +1078,10 @@ export default function Home() {
         description: `${sliceQuantity}x ${productLabel(selectedSlice)}`,
       });
     }
-    const destination = wasEditing ? "carrinho" : "item-adicionado";
+    const destination = wasEditing ? "carrinho" : nextCheckoutSection();
     clearDraft();
-    window.setTimeout(() => scrollToSection(destination), 50);
+    setBuilderEngaged(false);
+    requestScroll(destination);
   }
 
   function addDrink(product: Product) {
@@ -1255,10 +1282,9 @@ export default function Home() {
   async function finishOnWhatsApp() {
     if (finalizationLockRef.current) return;
     if (!checkoutFormReady) {
-      if (!customerNameReady) { setCheckoutAvailabilityMessage("Informe seu nome para continuar."); scrollToSection("identificacao"); }
-      else if (!cart.length) scrollToSection("carrinho");
-      else if (!fulfillment || !addressReady) enterCheckout("recebimento");
-      else { setCheckoutAvailabilityMessage(changeError || "Escolha a forma de pagamento."); enterCheckout("pagamento"); }
+      setBuilderEngaged(false);
+      setCheckoutAvailabilityMessage("Complete a etapa indicada para continuar.");
+      requestScroll(cart.length ? nextCheckoutSection() : "carrinho");
       return;
     }
     const retrying = orderContextRef.current?.handoff_fingerprint === checkoutFingerprint;
@@ -1322,6 +1348,12 @@ export default function Home() {
   }
 
   function handleFinalAction() {
+    if (!checkoutFormReady) {
+      setBuilderEngaged(false);
+      setCheckoutAvailabilityMessage("Complete a etapa indicada para continuar.");
+      requestScroll(cart.length ? nextCheckoutSection() : "carrinho");
+      return;
+    }
     if (checkoutChannel === "whatsapp") {
       void finishOnWhatsApp();
       return;
@@ -1392,7 +1424,7 @@ export default function Home() {
   }
 
   return (
-    <main inert={isFinalizing} aria-busy={isFinalizing}>
+    <main className="storefront" inert={isFinalizing} aria-busy={isFinalizing}>
       <header className="brand-bar">
         <a className="brand-lockup" href="#inicio" aria-label="Voltar ao início">
           <span className="brand-crown" aria-hidden="true"><Crown size={17} strokeWidth={1.7} /></span>
@@ -1605,7 +1637,7 @@ export default function Home() {
                   setSliceProductId(value);
                   setSliceOptionId("");
                   setSelectionMessage("");
-                  window.setTimeout(() => scrollToSection("quantidade-fatias"), 30);
+                  requestScroll("calda-fatias");
                 }} aria-label="Sabor da fatia artesanal">
                   {SLICES.filter((slice) => sliceIsVisible(slice.id)).map((slice) => {
                     const selected = slice.id === sliceProductId;
@@ -1638,16 +1670,22 @@ export default function Home() {
                 </div>
               </section>
 
-              {selectedSlice && <fieldset className="slice-sauce-choice">
-                <legend>Como prefere sua fatia?</legend>
-                {SLICE_OPTIONS.map(option => <label key={option.id}>
-                  <input type="radio" name="slice-sauce" value={option.id} checked={sliceOptionId === option.id} onChange={() => setSliceOptionId(option.id)} />
-                  <span>{option.name}</span>
-                </label>)}
-              </fieldset>}
+              {selectedSlice && <section id="calda-fatias" className={`step-block step-state-${sliceSauceStepState}`} aria-labelledby="step-slice-sauce">
+                <div className="step-heading compact-heading"><StepMarker number={2} state={sliceSauceStepState} /><h3 id="step-slice-sauce">Como prefere sua fatia?</h3></div>
+                <RadioGroup className="slice-sauce-choice" value={sliceOptionId} onValueChange={value => {
+                  setSliceOptionId(value); setSelectionMessage(""); requestScroll("quantidade-fatias");
+                }} aria-labelledby="step-slice-sauce">
+                  {SLICE_OPTIONS.map(option => <label className={`slice-sauce-card ${sliceOptionId === option.id ? "is-selected" : ""}`} key={option.id} htmlFor={`slice-${option.id}`}>
+                    <RadioGroupItem id={`slice-${option.id}`} value={option.id} />
+                    <span>{option.name}</span>
+                    {sliceOptionId === option.id && <Check size={18} aria-hidden="true" />}
+                  </label>)}
+                </RadioGroup>
+                {selectionMessage && <p className="selection-helper" role="status">{selectionMessage}</p>}
+              </section>}
 
               <section className={`step-block step-state-${sliceQuantityStepState}`} id="quantidade-fatias" aria-labelledby="step-slice-quantity" aria-current={sliceQuantityStepState === "active" ? "step" : undefined}>
-                <div className="step-heading compact-heading"><StepMarker number={2} state={sliceQuantityStepState} /><div><h3 id="step-slice-quantity">Quantas fatias deste sabor?</h3><p>Para outro sabor, adicione este item e escolha a próxima fatia.</p></div></div>
+                <div className="step-heading compact-heading"><StepMarker number={3} state={sliceQuantityStepState} /><div><h3 id="step-slice-quantity">Quantas fatias deste sabor?</h3><p>Para outro sabor, adicione este item e escolha a próxima fatia.</p></div></div>
                 <div className="quantity-row">
                   <div className="quantity-control" aria-label="Quantidade">
                     <Button type="button" variant="ghost" size="icon" onClick={() => setSliceQuantity((current) => Math.max(1, current - 1))} disabled={!sliceReady || sliceQuantity === 1} aria-label="Diminuir quantidade"><Minus size={18} /></Button>
@@ -1799,7 +1837,7 @@ export default function Home() {
             </section>
 
             <section className={`order-card checkout-flow-card step-state-${receivingStepState}`} id="recebimento" aria-labelledby="receiving-title" aria-current={receivingStepState === "active" ? "step" : undefined}>
-              <div className="step-heading checkout-step-heading"><StepMarker number={activeCategory === "fatias" ? 3 : 4} state={receivingStepState} /><div><h2 id="receiving-title">Como deseja receber?</h2><p>Escolha a opção mais conveniente.</p></div></div>
+              <div className="step-heading checkout-step-heading"><StepMarker number={4} state={receivingStepState} /><div><h2 id="receiving-title">Como deseja receber?</h2><p>Escolha a opção mais conveniente.</p></div></div>
               <RadioGroup className="choice-grid" value={fulfillment} onValueChange={chooseFulfillment} aria-label="Forma de recebimento">
                 <label className={`choice-card ${fulfillment === "entrega" ? "is-selected" : ""}`} htmlFor="receive-delivery">
                   <RadioGroupItem id="receive-delivery" value="entrega" /><Truck size={21} /><span className="choice-copy"><strong>Entrega</strong><small>A partir de R$8</small></span>
@@ -1811,7 +1849,7 @@ export default function Home() {
                 </label>
               </RadioGroup>
               {fulfillment === "entrega" && (
-                <div className="delivery-fields">
+                <div className="delivery-fields" id="delivery-fields">
                   <div className="field-group delivery-zone-field">
                     <label id="delivery-zone-label">Região de entrega</label>
                     <Select value={deliveryZoneId} onValueChange={setDeliveryZoneId}>

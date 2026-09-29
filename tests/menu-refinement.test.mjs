@@ -460,7 +460,7 @@ for (const mode of ["pointer", "keyboard"]) {
       const heading = { getAttribute: () => null, setAttribute: (key, value) => { attributes[key] = value; },
         removeAttribute: (key) => { delete attributes[key]; }, addEventListener: (_event, callback) => { blur = callback; },
         focus: (options) => calls.push(options) };
-      const target = { querySelector: () => heading, scrollIntoView: (options) => calls.push(options) };
+      const target = { matches: () => false, querySelector: () => heading, scrollIntoView: (options) => calls.push(options) };
       pageFunction("scrollToSection", { navigationByKeyboard: mode === "keyboard",
         document: { getElementById: (id) => id === section ? target : null },
         window: { matchMedia: () => ({ matches: false }) } })(section);
@@ -618,4 +618,39 @@ test('final screen keeps WhatsApp predominant and tracking secondary for each ma
   assert.match(html,/Acompanhar meu pedido/);assert.equal((html.match(/<a /g)||[]).length,2);
   assert.doesNotMatch(html,/Copiar chave|Fazer novo pedido|03611974200/);
  }
+});
+
+test('checkout navigation follows receiving, delivery fields, identification and payment without skipping', () => {
+ const state={fulfillment:'',selectedDeliveryZone:null,deliveryNeighborhood:'',address:'',addressNumber:'',customerNameReady:false,checkoutChannel:'whatsapp',customerPhoneReady:false,cleanWhatsAppField:checkout.cleanWhatsAppField};
+ const next=(overrides={})=>pageFunction('nextCheckoutSection',{...state,...overrides})();
+ assert.equal(next(),'recebimento');
+ assert.equal(next({fulfillment:'entrega'}),'delivery-fields');
+ assert.equal(next({fulfillment:'entrega',selectedDeliveryZone:{}}),'neighborhood');
+ assert.equal(next({fulfillment:'entrega',selectedDeliveryZone:{},deliveryNeighborhood:'Centro'}),'address');
+ assert.equal(next({fulfillment:'entrega',selectedDeliveryZone:{},deliveryNeighborhood:'Centro',address:'Rua A'}),'address-number');
+ assert.equal(next({fulfillment:'entrega',selectedDeliveryZone:{},deliveryNeighborhood:'Centro',address:'Rua A',addressNumber:'12'}),'identificacao');
+ assert.equal(next({fulfillment:'retirada'}),'identificacao');
+ assert.equal(next({fulfillment:'retirada',customerNameReady:true}),'pagamento');
+});
+
+test('slice add without sauce guides the choice and never mutates cart',()=>{
+ let target;let mutated=false;
+ const add=pageFunction('addOrUpdateSlice',{categoryIsVisible:()=>true,availability:{ordersOpen:true},categoryIsAvailable:()=>true,selectedSlice:catalog.SLICES[0],selectedSliceVariant:catalog.SLICES[0].variants[0],sliceReady:false,setSelectionMessage:()=>{},requestScroll:id=>target=id,setCart:()=>mutated=true});
+ add();assert.equal(target,'calda-fatias');assert.equal(mutated,false);
+});
+
+test('slice add preserves customization, goes to receiving and edit returns to cart',()=>{
+ for(const editingId of [null,'existing']) {
+  let items=editingId?[{id:editingId,optionIds:['sem-calda']}]:[];let target;
+  const add=pageFunction('addOrUpdateSlice',{categoryIsVisible:()=>true,availability:{ordersOpen:true},categoryIsAvailable:()=>true,selectedSlice:catalog.SLICES[0],selectedSliceVariant:catalog.SLICES[0].variants[0],sliceReady:true,sliceOptionId:'calda-chocolate',sliceQuantity:1,editingId,setCheckoutAvailabilityMessage:()=>{},setCart:fn=>items=fn(items),makeCartId:()=> 'new',trackMetaEvent:()=>{},metaProductPayload:()=>({}),setAddedNotice:()=>{},productLabel:()=> 'Fatia',nextCheckoutSection:()=> 'recebimento',clearDraft:()=>{},setBuilderEngaged:()=>{},requestScroll:id=>target=id});
+  add();assert.deepEqual(items[0].optionIds,['calda-chocolate']);assert.equal(target,editingId?'carrinho':'recebimento');
+ }
+});
+
+test('sauce sequence uses post-render scrolling and preserves reduced motion',()=>{
+ assert.match(source,/setSliceProductId\(value\);[\s\S]*?requestScroll\("calda-fatias"\)/);
+ assert.match(source,/setSliceOptionId\(value\); setSelectionMessage\(""\); requestScroll\("quantidade-fatias"\)/);
+ assert.match(source,/requestAnimationFrame/);assert.match(source,/cancelAnimationFrame/);
+ assert.match(source,/prefers-reduced-motion: reduce/);
+ assert.match(source,/Escolher calda ou sem calda/);
 });
