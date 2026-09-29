@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, Clock3, LoaderCircle, MessageCircle, RefreshCw, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 
@@ -32,17 +32,22 @@ export default function OrderTrackingPage() {
   const [copyNotice, setCopyNotice] = useState("");
   const [error, setError] = useState("");
 
+  const loadSequenceRef = useRef(0);
+
   const refresh = useCallback(async (trackingToken = token) => {
     if (!trackingToken) return;
+    const sequence = ++loadSequenceRef.current;
     setLoading(true);
     try {
-      setOrder(await loadPublicOrderStatus(trackingToken));
+      const latest = await loadPublicOrderStatus(trackingToken);
+      if (sequence !== loadSequenceRef.current) return;
+      setOrder(latest);
       rememberOrder(trackingToken);
       setError("");
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Não foi possível consultar o pedido.");
+      if (sequence === loadSequenceRef.current) setError(loadError instanceof Error ? loadError.message : "Não foi possível consultar o pedido.");
     } finally {
-      setLoading(false);
+      if (sequence === loadSequenceRef.current) setLoading(false);
     }
   }, [token]);
 
@@ -59,11 +64,13 @@ export default function OrderTrackingPage() {
   }, [refresh, token]);
 
   useEffect(() => {
-    if (!token || !order || ["completed", "cancelled"].includes(order.order_status)) return;
+    if (!token || !order || (order.order_status === "cancelled" || (order.order_status === "completed" && order.payment_status !== "pending"))) return;
     const timer = window.setInterval(() => { if (document.visibilityState === "visible") void refresh(); }, 5000);
     const focus = () => void refresh();
+    const visibility = () => { if (document.visibilityState === "visible") void refresh(); };
     window.addEventListener("focus", focus);
-    return () => { window.clearInterval(timer); window.removeEventListener("focus", focus); };
+    document.addEventListener("visibilitychange", visibility);
+    return () => { window.clearInterval(timer); window.removeEventListener("focus", focus); document.removeEventListener("visibilitychange", visibility); };
   }, [order, refresh, token]);
 
   const supportUrl = order
@@ -92,7 +99,7 @@ export default function OrderTrackingPage() {
           {error && <p className="site-result-notice" role="status">A última atualização falhou. A situação anterior foi mantida.</p>}
         </>}
         <div className="tracking-actions">
-          {order && <Button type="button" onClick={() => void refresh()} disabled={loading}>{loading ? <LoaderCircle className="admin-spinner" size={17} /> : <RefreshCw size={17} />} Atualizar</Button>}
+          {order && <Button type="button" onClick={() => void refresh()} disabled={loading} aria-busy={loading}>{loading ? <LoaderCircle className="admin-spinner" size={17} /> : <RefreshCw size={17} />} {loading ? "Atualizando…" : "Atualizar"}</Button>}
           {order && <><Button variant="outline" onClick={async () => {
             try { await navigator.clipboard.writeText(`${window.location.origin}/pedido?token=${token}`); setCopyNotice("Link copiado."); }
             catch { setCopyNotice("Selecione o link abaixo para copiar."); }

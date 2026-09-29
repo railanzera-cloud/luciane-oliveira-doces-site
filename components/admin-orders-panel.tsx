@@ -105,6 +105,14 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const audioRef = useRef<AudioContext | null>(null);
   const printingRef = useRef(false);
   const effectsRunningRef = useRef(false);
+  const loadSequenceRef = useRef(0);
+
+  const getAudioContext = useCallback(() => {
+    const context = audioRef.current ?? createAudioContext();
+    audioRef.current = context;
+    context.onstatechange = () => setAlertsEnabled(context.state === "running");
+    return context;
+  }, []);
 
   const processEffects = useCallback(async () => {
     if (effectsRunningRef.current || document.visibilityState !== "visible") return;
@@ -116,7 +124,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
 
   const playAlert = useCallback(() => {
     const context = audioRef.current;
-    if (!alertsEnabled || !context) return;
+    if (!alertsEnabled || !context || context.state !== "running") return;
     const oscillator = context.createOscillator();
     const gain = context.createGain();
     oscillator.type = "sine";
@@ -146,9 +154,12 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   }, [client, printerReady]);
 
   const reload = useCallback(async () => {
+    const sequence = ++loadSequenceRef.current;
+    setLoading(true);
     setError("");
     try {
       const nextOrders = await loadAdminOrders(client, searchedNumber);
+      if (sequence !== loadSequenceRef.current) return;
       const actionableIds = nextOrders.filter(actionable).map((order) => order.id);
       if (!initializedRef.current) {
         actionableIds.forEach((id) => knownActionableRef.current.add(id));
@@ -161,18 +172,19 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       setOrders(nextOrders);
       if (printerReady) window.setTimeout(() => void processPrints(), 0);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Não foi possível carregar os pedidos.");
+      if (sequence === loadSequenceRef.current) setError(loadError instanceof Error ? loadError.message : "Não foi possível carregar os pedidos.");
     } finally {
-      setLoading(false);
+      if (sequence === loadSequenceRef.current) setLoading(false);
     }
   }, [client, playAlert, printerReady, processPrints, searchedNumber]);
 
   useEffect(() => {
     let listening = false;
     const unlock = () => {
-      const context = audioRef.current ?? createAudioContext();
-      audioRef.current = context;
-      void context.resume().then(() => setAlertsEnabled(true)).catch(() => undefined);
+      try {
+        const context = getAudioContext();
+        void context.resume().then(() => setAlertsEnabled(context.state === "running")).catch(() => setAlertsEnabled(false));
+      } catch { setAlertsEnabled(false); }
     };
     const timer = window.setTimeout(() => {
       let preferred = false;
@@ -187,7 +199,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       window.clearTimeout(timer);
       if (listening) document.removeEventListener("pointerdown", unlock, true);
     };
-  }, []);
+  }, [getAudioContext]);
 
   useEffect(() => {
     const initial = window.setTimeout(() => void processEffects(), 0);
@@ -225,9 +237,9 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
 
   async function enableAlerts() {
     try {
-      const context = audioRef.current ?? createAudioContext();
-      audioRef.current = context;
+      const context = getAudioContext();
       await context.resume();
+      if (context.state !== "running") throw new Error("Audio suspended");
       setAlertsEnabled(true);
       setAlertsPreferred(true);
       try { window.localStorage.setItem(ALERT_PREFERENCE_KEY, "true"); }
@@ -311,7 +323,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     <section className="admin-orders-panel" aria-labelledby="admin-orders-title">
       <div className="admin-orders-heading">
         <div><p className="eyebrow">Cozinha</p><h1 id="admin-orders-title">Pedidos</h1><span className={`admin-live-state ${realtimeState === "Ao vivo" ? "is-live" : ""}`}>{realtimeState}</span></div>
-        <Button type="button" variant="outline" onClick={() => void reload()} disabled={loading}><RefreshCw size={16} /> Atualizar</Button>
+        <Button type="button" variant="outline" onClick={() => void reload()} disabled={loading} aria-busy={loading}>{loading ? <LoaderCircle className="admin-spinner" size={16} /> : <RefreshCw size={16} />} {loading ? "Atualizando…" : "Atualizar"}</Button>
       </div>
 
       <div className="admin-kitchen-tools">
