@@ -46,7 +46,9 @@ export type CheckoutDetails = {
   number: string;
   complement: string;
   reference: string;
-  payment: "pix" | "dinheiro" | "cartao" | "";
+  payment: "pix" | "dinheiro" | "cartao" | "credito" | "debito" | "";
+  card_fee?: number;
+  card_basis_points?: number;
   needs_change: boolean;
   cash_received_cents: number | null;
   subtotal: number;
@@ -148,6 +150,7 @@ export function restoreOrderContext(value: unknown, attribution: OrderAttributio
 export function paymentDescription(payment: CheckoutDetails["payment"], fulfillment: CheckoutDetails["fulfillment"]): string {
   if (payment === "pix") return "Pix";
   if (payment === "dinheiro") return "Dinheiro";
+  if (payment === "credito" || payment === "debito") return `${payment === "credito" ? "Crédito à vista (1x)" : "Débito"}, na ${fulfillment === "retirada" ? "retirada" : "entrega"}`;
   if (payment === "cartao") return fulfillment === "retirada" ? "Cartão na retirada" : fulfillment === "entrega" ? "Cartão na entrega" : "Cartão";
   return "Escolher opção";
 }
@@ -199,7 +202,7 @@ export function buildOrderMessage(order: CheckoutDetails, orderId: string, pix: 
 // Called before the Tintim redirect. Never processes Tintim's returned text or invisible attribution suffix.
 export function buildRegisteredOrderMessage(order: CheckoutDetails, number: number, trackingUrl: string, pix: { holder: string; key: string; keyType: string }): string {
   if (!Number.isSafeInteger(number) || number < 1) throw new Error("Pedido sem número confirmado.");
-  const lines = [`📦 PEDIDO #${number}`, `Cliente: ${cleanWhatsAppField(order.customer_name ?? "")}`, ""];
+  const lines = ["Olá! Finalizei meu pedido pelo site da Luciane Oliveira Doces.", "", `*PEDIDO #${number}*`, "", `Cliente: ${cleanWhatsAppField(order.customer_name ?? "")}`, ""];
   for (const item of order.items) {
     lines.push(`${item.quantity}x ${item.name}${item.kind === "slice" ? "" : ` ${item.size}`}`);
     if (item.options.length) lines.push(item.options.join(" + "));
@@ -210,12 +213,17 @@ export function buildRegisteredOrderMessage(order: CheckoutDetails, number: numb
     lines.push(`${cleanWhatsAppField(order.street)}, ${cleanWhatsAppField(order.number)} — ${cleanWhatsAppField(order.neighborhood)}`);
     if (order.complement.trim()) lines.push(`Complemento: ${cleanWhatsAppField(order.complement)}`);
     if (order.reference.trim()) lines.push(`Referência: ${cleanWhatsAppField(order.reference)}`);
-    lines.push(`Taxa de entrega: ${formatOrderMoney(order.delivery_fee)}`);
   }
   if (order.notes?.trim()) lines.push(`Observação: ${cleanWhatsAppField(order.notes)}`);
+  if (order.fulfillment === "entrega" || order.payment === "credito" || order.payment === "debito") {
+    lines.push(`Produtos: ${formatOrderMoney(order.subtotal)}`);
+    if (order.fulfillment === "entrega") lines.push(`Entrega: ${formatOrderMoney(order.delivery_fee)}`);
+    if (order.payment === "credito" || order.payment === "debito") lines.push(`Acréscimo do ${order.payment === "credito" ? "crédito" : "débito"} (${((order.card_basis_points ?? 0) / 100).toLocaleString("pt-BR")}%): ${formatOrderMoney(order.card_fee ?? 0)}`);
+  }
   lines.push(`Total: ${formatOrderMoney(order.total)}`, "");
+  if (order.payment === "credito" || order.payment === "debito") lines.push(`Pagamento: ${paymentDescription(order.payment, order.fulfillment)}`, "O acréscimo já está incluído no total.");
   if (order.payment === "pix") lines.push("Pagamento via Pix", `${pix.keyType}: ${pix.key}`, pix.holder, "", "Após o pagamento, envio o comprovante por aqui.");
-  if (order.payment === "cartao") lines.push("Cartão no recebimento", "Pagamento pela maquininha. Eventual acréscimo será informado antes da confirmação da compra.");
+  if (order.payment === "cartao") lines.push("Cartão no recebimento");
   if (order.payment === "dinheiro") {
     lines.push("Dinheiro no recebimento");
     if (order.needs_change) {

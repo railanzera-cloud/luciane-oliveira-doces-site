@@ -1,3 +1,4 @@
+import { receiptCardQuote } from "../_shared/receipt-card.mjs";
 // Manual WhatsApp requests only. No gateway calls, Purchase or print effects.
 import { quoteCartItems, quoteFulfillment } from "../_shared/commerce-catalog.mjs";
 const ORDER_ID_PATTERN = /^LOD-(?:[0-9A-HJKMNP-TV-Z]{4}-){2}[0-9A-HJKMNP-TV-Z]{4}$/;
@@ -214,6 +215,8 @@ Deno.serve(async (request: Request) => {
     const payment = input.payment && typeof input.payment === "object" ? input.payment as Record<string, unknown> : {};
     const method = cleanString(payment.method, "a forma de pagamento", 40);
     if (!PAYMENT_METHODS.has(method)) throw new HttpError(400, "invalid_payment_method", "Escolha uma forma de pagamento válida.");
+    const cardMode = payment.card_mode === "credit_single" ? "credit_single" : payment.card_mode === "debit" ? "debit" : null;
+    if (payment.card_mode != null && (cardMode === null || method !== "card_on_delivery")) throw new HttpError(400, "invalid_card_mode", "Escolha crédito à vista ou débito.");
     const customerName = cleanString(customer.name, "o nome", 100);
     const customerPhone = customer.phone ? normalizePhone(customer.phone) : null;
     const customerEmail = normalizeEmail(customer.email, false);
@@ -237,12 +240,13 @@ Deno.serve(async (request: Request) => {
       throw new HttpError(400, "invalid_order", quoteError instanceof Error ? quoteError.message : "Pedido inválido.");
     }
     await revalidateAvailability(quote.availabilityKeys);
+    const cardQuote = receiptCardQuote(quote.subtotalCents + fulfillment.delivery_fee_cents, cardMode);
     const expected = parseMoneyToCents(input.expected_total);
-    if (expected === null || expected !== quote.subtotalCents + fulfillment.delivery_fee_cents) {
+    if (expected === null || expected !== cardQuote.totalCents) {
       throw new HttpError(409, "price_changed", "O preço mudou. Atualize o cardápio e confira o total antes de continuar.");
     }
 
-    const totalCents = quote.subtotalCents + fulfillment.delivery_fee_cents;
+    const totalCents = cardQuote.totalCents;
     let cashChangeFor: string | null = null;
     if (method === "cash" && payment.change_for !== undefined && payment.change_for !== null && payment.change_for !== "") {
       const cents = parseMoneyToCents(payment.change_for);
@@ -270,6 +274,7 @@ Deno.serve(async (request: Request) => {
       total: money(totalCents),
       currency: "BRL",
       payment_method: method,
+      card_mode: cardMode, card_basis_points: cardQuote.basisPoints, card_fee: money(cardQuote.feeCents),
       cash_change_for: cashChangeFor,
       gateway_environment: null,
       source: optionalString(attribution.utm_source ?? attribution.origem, 160),

@@ -75,7 +75,7 @@ import {
 import { MercadoPagoCardForm } from "@/components/mercado-pago-card-form";
 import { WhatsAppOrderResultView, type RegisteredWhatsAppOrder } from "@/components/whatsapp-order-result";
 import { SiteOrderResultView } from "@/components/site-order-result";
-import { RECEIPT_CARD_NOTICE } from "@/lib/manual-payment-policy";
+import { RECEIPT_CARD_NOTICE, receiptCardQuote } from "@/lib/manual-payment-policy";
 import { getCommercePublicConfiguration } from "@/lib/commerce-config";
 import {
   createSiteOrder, createWhatsAppOrder, rememberOrder, lastOrderToken,
@@ -96,7 +96,7 @@ type CartItem = {
 };
 
 type Fulfillment = "entrega" | "retirada" | "";
-type WhatsAppPayment = "pix" | "dinheiro" | "cartao";
+type WhatsAppPayment = "pix" | "dinheiro" | "cartao" | "credito" | "debito";
 type Payment = WhatsAppPayment | SitePaymentMethod | "";
 type CheckoutChannel = "site" | "whatsapp";
 type MetaEventName = "ViewContent" | "AddToCart" | "InitiateCheckout" | "AddPaymentInfo";
@@ -184,7 +184,7 @@ function isSitePayment(value: Payment): value is SitePaymentMethod {
 }
 
 function isWhatsAppPayment(value: Payment): value is WhatsAppPayment {
-  return value === "pix" || value === "dinheiro" || value === "cartao";
+  return value === "pix" || value === "dinheiro" || value === "cartao" || value === "credito" || value === "debito";
 }
 
 let navigationByKeyboard = false;
@@ -565,8 +565,8 @@ export default function Home() {
           }
         }
         if (typeof savedOrder.reference === "string") setReference(savedOrder.reference);
-        const knownPayments: Payment[] = ["pix", "dinheiro", "cartao", "mercado_pago_pix", "mercado_pago_card", "card_on_delivery", "cash"];
-        if (knownPayments.includes(savedOrder.payment as Payment)) setPayment(savedOrder.payment as Payment);
+        const knownPayments: Payment[] = ["pix", "dinheiro", "cartao", "credito", "debito", "mercado_pago_pix", "mercado_pago_card", "card_on_delivery", "cash"];
+        if (knownPayments.includes(savedOrder.payment as Payment)) setPayment(savedOrder.payment === "cartao" && !savedOrder.whatsappResult ? "" : savedOrder.payment as Payment);
         if (savedOrder.checkoutChannel === "site" && COMMERCE_CONFIG.siteOrderingEnabled) setCheckoutChannel("site");
         else if (savedOrder.checkoutChannel === "whatsapp") setCheckoutChannel("whatsapp");
         if (typeof savedOrder.notes === "string") setNotes(savedOrder.notes.slice(0, 500));
@@ -625,7 +625,9 @@ export default function Home() {
     return `${item.quantity}x ${productLabel(product)} ${variant.label}`;
   }).join(" · ") + (cart.length > 2 ? ` · +${cart.length - 2} ${cart.length - 2 === 1 ? "item" : "itens"}` : "");
   const deliveryFee = fulfillment === "entrega" ? selectedDeliveryZone?.price ?? 0 : 0;
-  const orderTotal = cartSubtotal + deliveryFee;
+  const cardMode = checkoutChannel === "whatsapp" ? payment === "credito" ? "credit_single" : payment === "debito" ? "debit" : null : null;
+  const cardQuote = receiptCardQuote(Math.round(cartSubtotal * 100) + Math.round(deliveryFee * 100), cardMode);
+  const orderTotal = cardQuote.totalCents / 100;
   const hasEstimatedTotal = fulfillment === "retirada" || (fulfillment === "entrega" && Boolean(selectedDeliveryZone));
 
   const popcornReady = Boolean(
@@ -754,7 +756,7 @@ export default function Home() {
     }),
     fulfillment, neighborhood: deliveryNeighborhood, street: address, number: addressNumber,
     complement, reference, payment: isWhatsAppPayment(payment) ? payment : "", needs_change: needsChange, cash_received_cents: cashReceivedCents,
-    subtotal: cartSubtotal, delivery_fee: deliveryFee, total: orderTotal, currency: "BRL",
+    subtotal: cartSubtotal, delivery_fee: deliveryFee, card_fee: cardQuote.feeCents / 100, card_basis_points: cardQuote.basisPoints, total: orderTotal, currency: "BRL",
   };
   const checkoutFingerprint = JSON.stringify({
     ...checkoutDetails,
@@ -1316,7 +1318,8 @@ export default function Home() {
         items: checkoutDetails.items.map(({ product_id, variant_id, option_ids, quantity }) => ({ product_id, variant_id, option_ids, quantity })),
         fulfillment: { type: fulfillment === "entrega" ? "delivery" : "pickup",
           ...(fulfillment === "entrega" ? { zone_id: deliveryZoneId, neighborhood: deliveryNeighborhood, street: address, number: addressNumber, complement, reference } : {}) },
-        payment: { method: payment === "pix" ? "manual_pix" : payment === "cartao" ? "card_on_delivery" : "cash",
+        payment: { method: payment === "pix" ? "manual_pix" : ["cartao", "credito", "debito"].includes(payment) ? "card_on_delivery" : "cash",
+          ...(cardMode ? { card_mode: cardMode } : {}),
           ...(payment === "dinheiro" && needsChange && cashReceivedCents !== null ? { change_for: (cashReceivedCents / 100).toFixed(2) } : {}) },
         notes: notes.trim(), expected_total: orderTotal.toFixed(2), attribution,
       });
@@ -1325,7 +1328,7 @@ export default function Home() {
       setLastToken(result.order.tracking_token);
       const registered: RegisteredWhatsAppOrder = {
         result, customerName: customerName.trim(), trackingUrl,
-        whatsappUrl: tintimWhatsAppUrl(buildRegisteredOrderMessage({ ...checkoutDetails, total: Number(result.order.total) }, result.order.order_number, trackingUrl, PIX_DETAILS), attribution, document.cookie),
+        whatsappUrl: tintimWhatsAppUrl(buildRegisteredOrderMessage({ ...checkoutDetails, subtotal: Number(result.order.subtotal ?? checkoutDetails.subtotal), delivery_fee: Number(result.order.delivery_fee ?? checkoutDetails.delivery_fee), card_fee: Number(result.order.card_fee ?? 0), card_basis_points: result.order.card_basis_points ?? 0, total: Number(result.order.total) }, result.order.order_number, trackingUrl, PIX_DETAILS), attribution, document.cookie),
       };
       // The request snapshot remains immutable even if a control changed while awaiting the server.
       setWhatsAppResult(registered);
@@ -1942,7 +1945,7 @@ export default function Home() {
                 </RadioGroup>
               ) : (
                 <RadioGroup className="payment-list" value={payment} onValueChange={choosePayment} aria-label="Forma de pagamento pelo WhatsApp">
-                  {[["pix", "Pix"], ["dinheiro", "Dinheiro"], ["cartao", paymentDescription("cartao", fulfillment)]].map(([value, label]) => (
+                  {[["pix", "Pix"], ["dinheiro", "Dinheiro"], ["credito", "Cartão de crédito à vista (1x)"], ["debito", "Cartão de débito"]].map(([value, label]) => (
                     <label className={`payment-option ${payment === value ? "is-selected" : ""}`} htmlFor={`payment-${value}`} key={value}>
                       <RadioGroupItem id={`payment-${value}`} value={value} /><span>{label}</span>{payment === value && <Check size={17} />}
                     </label>
@@ -1953,7 +1956,7 @@ export default function Home() {
               {payment === "mercado_pago_card" && COMMERCE_CONFIG.onlinePaymentsEnabled && (
                 <MercadoPagoCardForm publicKey={COMMERCE_CONFIG.mercadoPagoPublicKey} amount={orderTotal} disabled={isFinalizing || !customerReady || !addressReady || cartIssues.length > 0} onSubmit={finishOnSite} />
               )}
-              {payment === "cartao" && <p className="payment-guidance">{RECEIPT_CARD_NOTICE}</p>}
+              {cardMode && <p className="payment-guidance">{RECEIPT_CARD_NOTICE}</p>}
               {payment === "pix" && <p className="payment-guidance">O próximo passo é no WhatsApp: envie o pedido e use a chave Pix da mensagem para pagar. Depois, envie o comprovante na mesma conversa.</p>}
               {payment === "mercado_pago_pix" && <p className="payment-guidance">O QR Code será gerado pelo Mercado Pago. A confirmação do pagamento acontece automaticamente.</p>}
               {(payment === "cartao" || payment === "card_on_delivery") && <p className="payment-guidance">{fulfillment === "retirada" ? "Pague no cartão ao retirar." : fulfillment === "entrega" ? "Pague no cartão no momento da entrega." : "O pagamento será feito no momento da entrega ou retirada."}</p>}
@@ -2001,13 +2004,14 @@ export default function Home() {
                   </div>
                 );
               })}
-              <div className="summary-row"><span>Subtotal</span><strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(cartSubtotal)}</strong></div>
+              <div className="summary-row"><span>Produtos</span><strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(cartSubtotal)}</strong></div>
               {fulfillment === "entrega" && selectedDeliveryZone && (
                 <div className="summary-row summary-delivery"><span>Taxa de entrega</span><strong>{currency.format(deliveryFee)}</strong></div>
               )}
               {fulfillment === "retirada" && <div className="summary-row"><span>Taxa de entrega</span><strong>Não se aplica</strong></div>}
               {cart.length > 0 && (fulfillment === "retirada" || (fulfillment === "entrega" && selectedDeliveryZone)) && (
-                <div className="summary-row summary-total"><span>Total</span><strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(orderTotal)}</strong></div>
+                <>{cardMode && <div className="summary-row"><span>Acréscimo do cartão ({(cardQuote.basisPoints / 100).toLocaleString("pt-BR")}%)</span><strong>{currency.format(cardQuote.feeCents / 100)}</strong></div>}
+                <div className="summary-row summary-total"><span>Total a pagar</span><strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(orderTotal)}</strong></div></>
               )}
               {fulfillment === "entrega" && <div className="summary-address"><strong>Endereço de entrega</strong><p>{[address, addressNumber].filter(Boolean).join(", ") || "Informe a rua e o número"}</p>{complement && <p>{complement}</p>}<p>{deliveryNeighborhood || "Informe o bairro"}</p>{reference && <p>Referência: {reference}</p>}</div>}
               {isCashPayment && needsChange && !changeError && !cartNeedsSizeReview && <div className="summary-address"><p>Troco para: {formatOrderMoney(cashReceivedCents! / 100)}</p><p>Troco necessário: {formatOrderMoney((cashReceivedCents! - Math.round(orderTotal * 100)) / 100)}</p></div>}

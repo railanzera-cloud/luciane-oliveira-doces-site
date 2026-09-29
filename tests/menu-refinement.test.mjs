@@ -242,7 +242,7 @@ function checkoutHarness(latest, overrides = {}) {
   const lock = { current: false }, navigationPending = { current: false }, contextRef = { current: context };
   const fingerprint = JSON.stringify(detailsFor("pix"));
   const deps = {
-    customerNameReady: true, customerName: "Maria Oliveira", notes: "", fulfillment: "retirada", deliveryZoneId: "", deliveryNeighborhood: "", address: "", addressNumber: "", complement: "", reference: "", payment: "pix", needsChange: false, cashReceivedCents: null, orderTotal: 73, checkoutDetails: {...detailsFor("pix"), customer_name:"Maria Oliveira"},
+    cardMode: null, customerNameReady: true, customerName: "Maria Oliveira", notes: "", fulfillment: "retirada", deliveryZoneId: "", deliveryNeighborhood: "", address: "", addressNumber: "", complement: "", reference: "", payment: "pix", needsChange: false, cashReceivedCents: null, orderTotal: 73, checkoutDetails: {...detailsFor("pix"), customer_name:"Maria Oliveira"},
     PIX_DETAILS: {holder:"Luciane Galvão de Oliveira",key:"03611974200",keyType:"CPF"},
     buildRegisteredOrderMessage: checkout.buildRegisteredOrderMessage, rememberOrder: () => {}, setLastToken: () => {},
     createWhatsAppOrder: async () => ({order:{order_number:1047,tracking_token:"a".repeat(48),total:73},payment:{method:"manual_pix"}}),
@@ -320,13 +320,13 @@ test("approved message uses the registered number, customer, dynamic payment and
   for (const fulfillment of ["entrega", "retirada"]) {
     for (const payment of ["pix", "cartao", "dinheiro"]) {
       const message=messageFor(payment,fulfillment);
-      assert.ok(message.startsWith("📦 PEDIDO #1047\nCliente: Maria Oliveira"));
+      assert.ok(message.startsWith("Olá! Finalizei meu pedido pelo site da Luciane Oliveira Doces.\n\n*PEDIDO #1047*\n\nCliente: Maria Oliveira"));
       assert.ok(message.includes(`Total: R$ ${fulfillment === "entrega" ? "81" : "73"},00`));
       assert.ok(message.endsWith("https://example.test/pedido?token="+"a".repeat(48)));
       assert.doesNotMatch(message,/\p{Cf}|\u00a0|\u202f/u);
       if(payment === "pix") assert.match(message,/CPF: 03611974200\nLuciane Galvão de Oliveira/);
       else assert.doesNotMatch(message,/03611974200|Pagamento via Pix/);
-      if(payment === "cartao") assert.match(message,/acréscimo.*antes da confirmação/);
+      if(payment === "cartao") assert.doesNotMatch(message,/acréscimo.*antes da confirmação/);
     }
   }
 });
@@ -653,4 +653,24 @@ test('sauce sequence uses post-render scrolling and preserves reduced motion',()
  assert.match(source,/requestAnimationFrame/);assert.match(source,/cancelAnimationFrame/);
  assert.match(source,/prefers-reduced-motion: reduce/);
  assert.match(source,/Escolher calda ou sem calda/);
+});
+
+test('definitive WhatsApp composition uses the shared quote for delivery and pickup', async()=>{
+ const {receiptCardQuote}=await import('../supabase/functions/_shared/receipt-card.mjs');
+ for(const fulfillment of ['entrega','retirada']) for(const payment of ['pix','dinheiro','credito','debito']) {
+  const delivery=fulfillment==='entrega'?800:0;
+  const q=receiptCardQuote(2500+delivery,payment==='credito'?'credit_single':payment==='debito'?'debit':null);
+  const details={...detailsFor('pix',fulfillment),payment,subtotal:25,delivery_fee:delivery/100,total:q.totalCents/100,card_fee:q.feeCents/100,card_basis_points:q.basisPoints,needs_change:false};
+  const message=checkout.buildRegisteredOrderMessage(details,1008,'https://example.test/pedido?token='+ 'a'.repeat(48),{key:'03611974200',keyType:'CPF',holder:'Luciane Galvão de Oliveira'});
+  assert.ok(message.startsWith('Olá! Finalizei meu pedido pelo site da Luciane Oliveira Doces.\n\n*PEDIDO #1008*\n'));
+  assert.doesNotMatch(message,/📦|PEDIDO CONFIRMADO|eventual acréscimo/i);
+  assert.equal((message.match(/https:\/\//g)||[]).length,1);
+  assert.ok(message.endsWith('a'.repeat(48)));
+  assert.ok(message.includes('Total: '+checkout.formatOrderMoney(q.totalCents/100)));
+  if(delivery)assert.ok(message.includes('Produtos: R$ 25,00\nEntrega: R$ 8,00'));
+  else assert.doesNotMatch(message,/Entrega: R\$/);
+  if(q.feeCents)assert.ok(message.includes(`Acréscimo do ${payment==='credito'?'crédito':'débito'} (${payment==='credito'?'3,05':'0,57'}%): ${checkout.formatOrderMoney(q.feeCents/100)}`));
+  else assert.doesNotMatch(message,/Acréscimo do/);
+  if(payment==='pix')assert.match(message,/Após o pagamento, envio o comprovante por aqui/);
+ }
 });

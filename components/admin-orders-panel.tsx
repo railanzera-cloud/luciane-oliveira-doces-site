@@ -54,6 +54,7 @@ const ORDER_LABELS: Record<AdminOrder["order_status"], string> = {
 };
 
 function paymentLabel(order: AdminOrder) {
+  if (order.card_mode) return `${order.payment_status === "paid" ? "Pago" : "Pendente"} — ${order.card_mode === "credit_single" ? "Crédito à vista (1x)" : "Débito"}`;
   if (order.payment_method === "manual_pix") return order.payment_status === "paid" ? "Pago — Pix manual" : "Pix manual — aguardando conferência";
   if (order.payment_method === "mercado_pago_pix") return order.payment_status === "paid" ? "Pago — Pix" : "Pix online pendente";
   if (order.payment_method === "mercado_pago_card") return order.payment_status === "paid" ? "Pago — Cartão online" : "Cartão online pendente";
@@ -378,7 +379,9 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
                 {order.payment_method === "cash" && order.cash_change_for && <p className="admin-order-change">Troco para: <strong>{money.format(Number(order.cash_change_for))}</strong></p>}
                 {order.notes && <p className="admin-order-change"><strong>Observação:</strong> {order.notes}</p>}
                 <p className="admin-order-change">Primeira origem conhecida: {attributionSource(order, "first_touch")} · Visita atual: {attributionSource(order, "current_visit")}. Sem inferência de campanha.</p>
-                {order.payment_method === "card_on_delivery" && <p className="admin-order-change">Confira com o cliente qualquer acréscimo da maquininha antes de aceitar.</p>}
+                {order.payment_method === "card_on_delivery" && !order.card_mode && <p className="admin-order-change">Confira com o cliente qualquer acréscimo da maquininha antes de aceitar.</p>}
+                {order.card_mode && <p className="admin-order-change">Acréscimo já incluído: {money.format(Number(order.card_fee))} ({Number(order.card_basis_points) / 100}%). Informe o total em “Valor da cobrança” da maquininha. Não acrescente outra tarifa.</p>}
+                <p className="admin-order-change">Produtos: {money.format(Number(order.subtotal))} · Entrega: {money.format(Number(order.delivery_fee))}</p>
                 <div className="admin-order-total"><span>Total</span><strong>{money.format(Number(order.total))}</strong></div>
                 <div className="admin-order-actions">
                   {next && NextIcon && <Button type="button" onClick={() => void runOrderAction(order, next.status, `Pedido #${order.order_number}: ${next.label.toLowerCase()}.`)} disabled={pending}><NextIcon size={16} /> {next.label}</Button>}

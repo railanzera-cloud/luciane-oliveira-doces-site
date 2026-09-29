@@ -93,11 +93,12 @@ export default function OrderTrackingPage() {
           <h1>Pedido #{order.order_number}</h1>
           <div className="tracking-current-status"><Clock3 size={19} aria-hidden="true" /><span><small>Situação atual</small><strong>{ORDER_LABELS[order.order_status]}</strong></span></div>
           <div className="tracking-details">
-            <p><span>Pagamento</span><strong>{order.payment_status === "paid" ? "Pago" : order.payment_status === "pending" ? `Pendente — ${sitePaymentLabel(order.payment_method, order.fulfillment_type === "pickup" ? "retirada" : "entrega")}` : order.payment_status === "refunded" ? "Devolvido" : "Não aprovado"}</strong></p>
+            <p><span>Pagamento</span><strong>{order.payment_status === "paid" ? "Pago" : order.payment_status === "pending" ? `Pendente — ${(order.card_mode ? order.card_mode === "credit_single" ? "Crédito à vista (1x)" : "Débito" : sitePaymentLabel(order.payment_method, order.fulfillment_type === "pickup" ? "retirada" : "entrega"))}` : order.payment_status === "refunded" ? "Devolvido" : "Não aprovado"}</strong></p>
             <p><span>Recebimento</span><strong>{order.fulfillment_type === "pickup" ? "Retirada" : "Entrega"}</strong></p>
           </div>
           <div className="tracking-details">
             {order.items?.map((item, index) => <div key={index}><strong>{item.quantity}x {item.name} {item.size_label}</strong>{item.option_names.length > 0 && <p>{item.option_names.join(" + ")}</p>}</div>)}
+            {order.card_mode && <p><span>Acréscimo do cartão já incluído</span><strong>{formatOrderMoney(Number(order.card_fee))}</strong></p>}
             <p><span>Total</span><strong>{formatOrderMoney(Number(order.total))}</strong></p>
             <p><span>Última atualização</span><time dateTime={order.updated_at}>{new Date(order.updated_at).toLocaleString("pt-BR")}</time></p>
           </div>

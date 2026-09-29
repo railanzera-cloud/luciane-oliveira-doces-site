@@ -17,6 +17,9 @@ export type AdminOrder = {
   id: string;
   order_id: string;
   order_number: number;
+  card_mode?: "credit_single" | "debit" | null;
+  card_basis_points?: number;
+  card_fee?: number | string;
   customer_name: string;
   customer_phone: string | null;
   sales_channel: "site" | "whatsapp";
@@ -47,7 +50,7 @@ export type AdminOrder = {
 };
 
 const ORDER_COLUMNS = `
-  id, order_id, order_number, customer_name, customer_phone, customer_email, sales_channel, notes, source, attribution_snapshot,
+  id, order_id, order_number, card_mode, card_basis_points, card_fee, customer_name, customer_phone, customer_email, sales_channel, notes, source, attribution_snapshot,
   fulfillment_type, delivery_zone_id, neighborhood, street, street_number,
   complement, reference, subtotal, delivery_fee, total, currency,
   payment_method, payment_status, order_status, cash_change_for,

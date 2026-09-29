@@ -50,7 +50,7 @@ for(const [payment,fulfillment] of [['pix','retirada'],['cartao','entrega'],['di
  assert.equal(payload.expected_total,total.toFixed(2));if(payment==='dinheiro')assert.equal(payload.payment.change_for,'50.00');
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true,'No horizontal mobile overflow');
  const link=page.getByRole('link',{name:'Enviar pedido pelo WhatsApp'});const href=await link.getAttribute('href');const text=new URL(href).searchParams.get('text');
- assert.ok(text.startsWith('📦 PEDIDO #1047\nCliente: Maria Oliveira'));assert.match(text,/1x Pipoca Gourmet 500 ml/);assert.ok(text.includes('token='+token));
+ assert.ok(text.startsWith('Olá! Finalizei meu pedido pelo site da Luciane Oliveira Doces.\n\n*PEDIDO #1047*\n\nCliente: Maria Oliveira'));assert.match(text,/1x Pipoca Gourmet 500 ml/);assert.ok(text.includes('token='+token));
  if(payment==='pix')assert.match(text,/CPF: 03611974200/);else assert.doesNotMatch(text,/03611974200/);
  await page.screenshot({path:new URL(`resultado-${payment}.png`,out).pathname,fullPage:true});
  // Simulated blocked WhatsApp navigation: recover the same result on reload, with no second API call.

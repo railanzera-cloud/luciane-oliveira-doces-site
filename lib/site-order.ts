@@ -18,6 +18,12 @@ export type MercadoPagoCardData = {
 
 export type PublicOrderStatus = {
   order_number: number;
+  card_mode?: "credit_single" | "debit" | null;
+  card_basis_points?: number;
+  card_fee?: number | string;
+  subtotal?: number | string;
+  delivery_fee?: number | string;
+
   payment_method: SitePaymentMethod;
   payment_status: "pending" | "paid" | "failed" | "cancelled" | "refunded";
   order_status: "payment_pending" | "new" | "confirmed" | "preparing" | "ready" | "ready_for_pickup" | "out_for_delivery" | "completed" | "cancelled";
@@ -55,6 +61,12 @@ export type SiteOrderResult = {
     id: string;
     order_id: string;
     order_number: number;
+  card_mode?: "credit_single" | "debit" | null;
+  card_basis_points?: number;
+  card_fee?: number | string;
+  subtotal?: number | string;
+  delivery_fee?: number | string;
+
     tracking_token: string;
     payment_status: PublicOrderStatus["payment_status"];
     order_status: PublicOrderStatus["order_status"];
@@ -84,6 +96,7 @@ export type CreateSiteOrderInput = {
   };
   payment: {
     method: SitePaymentMethod;
+    card_mode?: "credit_single" | "debit";
     change_for?: string;
     card?: Omit<MercadoPagoCardData, "payer_email">;
   };

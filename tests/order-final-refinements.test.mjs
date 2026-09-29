@@ -70,3 +70,13 @@ test('repeated manual clicks share a single in-flight refresh',async()=>{
   await refresh();assert.equal(calls,2);
  }
 });
+
+test('admin identifies receipt credit/debit and preserves manual payment state and legacy labels',()=>{
+ const label=extract(admin,'paymentLabel',{});
+ assert.equal(label({card_mode:'credit_single',payment_status:'pending'}),'Pendente — Crédito à vista (1x)');
+ assert.equal(label({card_mode:'debit',payment_status:'paid'}),'Pago — Débito');
+ assert.equal(label({payment_method:'card_on_delivery',payment_status:'pending',fulfillment_type:'pickup'}),'Cartão na retirada');
+ assert.equal(label({payment_method:'manual_pix',payment_status:'pending'}),'Pix manual — aguardando conferência');
+ assert.match(admin,/Não acrescente outra tarifa/);
+ assert.match(tracking,/Acréscimo do cartão já incluído/);
+});
