@@ -73,6 +73,11 @@ export const POPCORN_PRICING_GROUPS: Record<PopcornPricingGroup, Record<PopcornS
   3: { "500ml": 33, "750ml": 48, "1l": 58 },
 };
 
+export const SLICE_OPTIONS: ProductOption[] = [
+  { id: "calda-chocolate", name: "Com calda de chocolate", description: "", tone: "#70452e", available: true },
+  { id: "sem-calda", name: "Sem calda, por favor", description: "", tone: "#70452e", available: true },
+];
+
 // Catálogo central: preços, fotos e disponibilidade são alterados somente aqui.
 export const PRODUCTS: Product[] = [
   {
@@ -113,7 +118,7 @@ export const PRODUCTS: Product[] = [
     imageAlt: "Fatia artesanal de chocolate com morango",
     available: true,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
-    options: [],
+    options: SLICE_OPTIONS,
   },
   {
     id: "fatia-ninho-morango",
@@ -126,7 +131,7 @@ export const PRODUCTS: Product[] = [
     imageAlt: "Fatia artesanal de Ninho com morango em massa branca",
     available: true,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
-    options: [],
+    options: SLICE_OPTIONS,
   },
   {
     id: "fatia-prestigio",
@@ -138,7 +143,7 @@ export const PRODUCTS: Product[] = [
     imageAlt: "Fatia artesanal de Prestígio com recheio cremoso",
     available: true,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
-    options: [],
+    options: SLICE_OPTIONS,
   },
   {
     id: "fatia-chocolate-maracuja",
@@ -150,7 +155,7 @@ export const PRODUCTS: Product[] = [
     imageAlt: "Fatia artesanal de chocolate com maracujá",
     available: true,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
-    options: [],
+    options: SLICE_OPTIONS,
   },
   {
     id: "fatia-chocolatudo",
@@ -162,7 +167,7 @@ export const PRODUCTS: Product[] = [
     imageAlt: "Fatia artesanal de chocolate com recheio de chocolate",
     available: true,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
-    options: [],
+    options: SLICE_OPTIONS,
   },
   {
     id: "fatia-chocolate-cenoura",
@@ -174,7 +179,7 @@ export const PRODUCTS: Product[] = [
     imageAlt: "Fatia artesanal de bolo de cenoura com chocolate",
     available: true,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
-    options: [],
+    options: SLICE_OPTIONS,
   },
   {
     id: "coca-cola-220",

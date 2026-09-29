@@ -72,7 +72,7 @@ const cartAvailabilityIssues = pageFunction("cartAvailabilityIssues", {
 const sanitizeSavedCart = pageFunction("sanitizeSavedCart", {
   ...catalog, isProductEnabled, makeCartId: () => "generated-id",
 });
-const sliceItem = { id: "slice-1", productId: "fatia-prestigio", variantId: "fatia", optionIds: [], quantity: 2 };
+const sliceItem = { id: "slice-1", productId: "fatia-prestigio", variantId: "fatia", optionIds: ["sem-calda"], quantity: 2 };
 const popcornItem = { id: "popcorn-1", productId: "pipoca-gourmet", variantId: "500ml", optionIds: ["kinder-bueno-crisp", "leitinho"], quantity: 1 };
 
 test("both available: neutral entry, balanced choices, no default builder or empty checkout", () => {
@@ -159,24 +159,21 @@ for (const [key, category, label] of [
 
 test("old slice choices are stripped while item IDs, quantities, and popcorn combinations survive", () => {
   const old = [{ ...sliceItem, optionIds: ["calda-ninho"] }, popcornItem];
+  const migrated = [{ ...sliceItem, optionIds: [] }, popcornItem];
   const saved = JSON.stringify(old);
-  assert.deepEqual(sanitizeSavedCart(old), [sliceItem, popcornItem]);
+  assert.deepEqual(sanitizeSavedCart(old), migrated);
   assert.equal(JSON.stringify(old), saved, "migration must not mutate its input");
-  assert.deepEqual(sanitizeSavedCart(sanitizeSavedCart(old)), [sliceItem, popcornItem]);
+  assert.deepEqual(sanitizeSavedCart(sanitizeSavedCart(old)), migrated);
   assert.deepEqual(sanitizeSavedCart([sliceItem, { ...popcornItem, optionIds: ["unknown"] }]), [sliceItem]);
 });
 
-test("slices have no options and the shipped app contains no obsolete step, copy, or styles", async () => {
-  for (const slice of catalog.SLICES) {
-    assert.deepEqual(slice.options, []);
-    assert.equal(slice.optionLabel, undefined);
-  }
-  for (const file of ["app/page.tsx", "app/catalog.ts", "app/layout.tsx", "app/globals.css"]) {
-    assert.doesNotMatch(await readFile(new URL(`../${file}`, import.meta.url), "utf8"), /calda|sauce/i);
-  }
-  const html = renderMenu(snapshot({ category_pipocas: "hidden" }));
-  assert.match(html, /id="quantidade-fatias"/);
-  assert.doesNotMatch(html, /calda|sauce/i);
+test("slices expose only chocolate and explicit no-sauce choices", () => {
+ for (const slice of catalog.SLICES) assert.deepEqual(slice.options.map(o => o.id), ['calda-chocolate', 'sem-calda']);
+ assert.match(source, /Como prefere sua fatia/);
+ assert.match(source, /useState\(""\)/);
+ assert.equal(cartAvailabilityIssues([{...sliceItem, optionIds:[]}], snapshot()).length, 1);
+ assert.equal(cartAvailabilityIssues([sliceItem], snapshot()).length, 0);
+ for (const id of ['sem-calda','calda-chocolate']) assert.deepEqual(sanitizeSavedCart([{...sliceItem,optionIds:[id]}])[0].optionIds,[id]);
 });
 
 const cart = [sliceItem, popcornItem];
@@ -227,7 +224,8 @@ for (const payment of ["pix", "dinheiro", "cartao"]) {
       assert.match(message, /1x Pipoca Gourmet 500 ml/);
       assert.match(message, /Crispy Bueno \+ Leitinho/);
       assert.ok(message.includes(checkout.formatOrderMoney(fulfillment === "entrega" ? 81 : 73)));
-      assert.doesNotMatch(message, /calda|sauce/i);
+      assert.match(message, /Sem calda, por favor/);
+      assert.doesNotMatch(message, /calda-ninho/);
       if (payment === "pix") assert.match(message, /Pagamento via Pix[\s\S]*03611974200/);
       else assert.doesNotMatch(message, /03611974200|Titular:/);
       if (payment === "dinheiro") assert.match(message, /Troco para: R\$ 100,00/);
@@ -599,4 +597,25 @@ test('dynamic Tintim link preserves repeated parameters and tracker cookies', ()
   assert.equal(url.searchParams.get('utm_source'), 'instagram');
   assert.equal(url.searchParams.get('fbclid'), 'click 1');
   assert.equal(url.searchParams.get('campaignid'), '42');
+});
+
+test('slice choices reach the authoritative quote without fees and reject retired or conflicting options', async () => {
+ const {quoteCartItems}=await import('../supabase/functions/_shared/commerce-catalog.mjs');
+ const items=['calda-chocolate','sem-calda'].map(id=>({product_id:sliceItem.productId,variant_id:'fatia',quantity:1,option_ids:[id]}));
+ const quote=quoteCartItems(items);
+ assert.deepEqual(quote.items.map(i=>i.option_names),[['Com calda de chocolate'],['Sem calda, por favor']]);
+ assert.equal(quote.items[0].unit_price_cents,quote.items[1].unit_price_cents);
+ assert.deepEqual(quote.items.map(i=>i.option_ids),items.map(i=>i.option_ids));
+ for(const option_ids of [['calda-ninho'],['calda-chocolate','sem-calda'],['unknown']]) assert.throws(()=>quoteCartItems([{...items[0],option_ids}]));
+});
+
+test('final screen keeps WhatsApp predominant and tracking secondary for each manual payment', async()=>{
+ const {WhatsAppOrderResultView}=await vite.ssrLoadModule('/components/whatsapp-order-result.tsx');
+ for(const [method,label] of [['manual_pix','Pix manual'],['cash','Dinheiro no recebimento'],['card_on_delivery','Cartão no recebimento']]) {
+  const html=renderToStaticMarkup(React.createElement(WhatsAppOrderResultView,{order:{customerName:'Maria Oliveira',result:{order:{order_number:1004,total:48},payment:{method}},trackingUrl:'/pedido?token=abc',whatsappUrl:'https://tintim.link/fixture'}}));
+  assert.match(html,/Olá, Maria/);assert.match(html,/1004/);assert.ok(html.includes(label));
+  assert.match(html,/whatsapp-final-primary/);assert.match(html,/Ao abrir o WhatsApp, toque em enviar/);
+  assert.match(html,/Acompanhar meu pedido/);assert.equal((html.match(/<a /g)||[]).length,2);
+  assert.doesNotMatch(html,/Copiar chave|Fazer novo pedido|03611974200/);
+ }
 });

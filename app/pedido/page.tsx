@@ -33,6 +33,13 @@ export default function OrderTrackingPage() {
   const [error, setError] = useState("");
 
   const loadSequenceRef = useRef(0);
+  const manualRefreshRef = useRef(false);
+  async function manualRefresh() {
+    if (manualRefreshRef.current) return;
+    manualRefreshRef.current = true;
+    try { await refresh(); } finally { manualRefreshRef.current = false; }
+  }
+
 
   const refresh = useCallback(async (trackingToken = token) => {
     if (!trackingToken) return;
@@ -99,13 +106,20 @@ export default function OrderTrackingPage() {
           {error && <p className="site-result-notice" role="status">A última atualização falhou. A situação anterior foi mantida.</p>}
         </>}
         <div className="tracking-actions">
-          {order && <Button type="button" onClick={() => void refresh()} disabled={loading} aria-busy={loading}>{loading ? <LoaderCircle className="admin-spinner" size={17} /> : <RefreshCw size={17} />} {loading ? "Atualizando…" : "Atualizar"}</Button>}
+          {order && <Button type="button" onClick={() => void manualRefresh()} disabled={loading} aria-busy={loading}>{loading ? <LoaderCircle className="admin-spinner" size={17} /> : <RefreshCw size={17} />} {loading ? "Atualizando…" : "Atualizar"}</Button>}
           {order && <><Button variant="outline" onClick={async () => {
             try { await navigator.clipboard.writeText(`${window.location.origin}/pedido?token=${token}`); setCopyNotice("Link copiado."); }
             catch { setCopyNotice("Selecione o link abaixo para copiar."); }
           }}>Copiar link do pedido</Button><input className="tracking-copy-field" aria-label="Link individual do pedido" readOnly value={typeof window === "undefined" ? "" : `${window.location.origin}/pedido?token=${token}`} onFocus={e => e.target.select()} />{copyNotice && <p role="status">{copyNotice}</p>}</>}
           <Button variant="outline" asChild><a href={supportUrl}><MessageCircle size={17} /> Falar com a loja</a></Button>
-          <Button variant="ghost" asChild><Link href="/">Voltar ao cardápio</Link></Button>
+          <Button variant="ghost" asChild><Link href="/" onClick={() => {
+            // A completed registration must not trap the customer on the handoff screen.
+            try {
+              const key = "luciane-order-session-v2";
+              const saved = JSON.parse(window.sessionStorage.getItem(key) || "null");
+              if (saved?.whatsappResult?.result?.order?.tracking_token === token) window.sessionStorage.removeItem(key);
+            } catch { /* Navigation and the last tracking token remain available. */ }
+          }}>Voltar ao cardápio</Link></Button>
         </div>
       </section>
     </main>

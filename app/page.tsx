@@ -48,6 +48,7 @@ import {
   PRODUCTS,
   SLICES,
   SLICE_WEIGHT_GRAMS,
+  SLICE_OPTIONS,
   STORE_CONFIG,
   type CategoryId,
   type Product,
@@ -277,6 +278,7 @@ function cartAvailabilityIssues(
     }
 
     if (product.kind === "slice") {
+      if (item.optionIds.length !== 1 || !SLICE_OPTIONS.some(option => option.id === item.optionIds[0])) reasons.push("Escolha com calda de chocolate ou sem calda editando esta fatia.");
       const sliceKey = SLICE_ITEM_KEYS[product.id];
       if (sliceKey && !isItemAvailable(snapshot, sliceKey)) {
         reasons.push(unavailableReason(snapshot, sliceKey, productLabel(product)));
@@ -335,13 +337,13 @@ function sanitizeSavedCart(value: unknown): CartItem[] {
     const variant = product?.variants.find((current) => current.id === item.variantId);
     if (!product?.available || !variant || (!variant.available && !variant.retired) || !isProductEnabled(product)) return [];
 
-    const optionIds = product.kind === "popcorn" && Array.isArray(item.optionIds)
-      ? item.optionIds.filter((id): id is string => typeof id === "string")
+    const optionIds = product.kind !== "drink" && Array.isArray(item.optionIds)
+      ? item.optionIds.filter((id): id is string => typeof id === "string" && (product.kind !== "slice" || product.options.some(option => option.id === id)))
       : [];
     const optionsAreAvailable = optionIds.every((id) => product.options.some((option) => option.id === id && option.available));
     const optionsAreValid = product.kind === "popcorn"
       ? optionIds.length > 0 && optionIds.length <= (variant.maxOptions ?? 0) && new Set(optionIds).size === optionIds.length
-      : optionIds.length === 0;
+      : product.kind === "slice" ? optionIds.length <= 1 : optionIds.length === 0;
     if (!optionsAreAvailable || !optionsAreValid) return [];
 
     const quantity = typeof item.quantity === "number" && Number.isInteger(item.quantity)
@@ -363,6 +365,7 @@ export default function Home() {
   const [popcornOptionIds, setPopcornOptionIds] = useState<string[]>([]);
   const [popcornQuantity, setPopcornQuantity] = useState(1);
   const [sliceProductId, setSliceProductId] = useState("");
+  const [sliceOptionId, setSliceOptionId] = useState("");
   const [sliceQuantity, setSliceQuantity] = useState(1);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -633,7 +636,8 @@ export default function Home() {
     && selectedSlice?.available
     && selectedSliceVariant?.available
     && selectedSlice
-    && sliceIsAvailable(selectedSlice.id),
+    && sliceIsAvailable(selectedSlice.id)
+    && SLICE_OPTIONS.some(option => option.id === sliceOptionId),
   );
   const draftReady = activeCategory === "pipocas" ? popcornReady : activeCategory === "fatias" && sliceReady;
   const popcornUnitPrice = popcornVariant && !popcornVariant.retired ? itemUnitPrice(POPCORN, popcornVariant, popcornOptionIds) : null;
@@ -853,6 +857,7 @@ export default function Home() {
     setPopcornOptionIds([]);
     setPopcornQuantity(1);
     setSliceProductId("");
+    setSliceOptionId("");
     setSliceQuantity(1);
     setEditingId(null);
     setSelectionMessage("");
@@ -1032,7 +1037,7 @@ export default function Home() {
     const nextItem: Omit<CartItem, "id"> = {
       productId: selectedSlice.id,
       variantId: selectedSliceVariant.id,
-      optionIds: [],
+      optionIds: [sliceOptionId],
       quantity: sliceQuantity,
     };
     setCheckoutAvailabilityMessage("");
@@ -1093,6 +1098,7 @@ export default function Home() {
     } else {
       setRequestedCategory("fatias");
       setSliceProductId(product.id);
+      setSliceOptionId(item.optionIds[0] ?? "");
       setSliceQuantity(item.quantity);
     }
     window.setTimeout(() => scrollToSection("configurador"), 30);
@@ -1375,7 +1381,7 @@ export default function Home() {
                       ? "No WhatsApp: envie o pedido, faça o Pix com a chave da mensagem e envie o comprovante."
                       : `No WhatsApp, toque em enviar para encaminhar o pedido. O pagamento será feito na ${fulfillment === "retirada" ? "retirada" : "entrega"}.`);
 
-  if (whatsappResult) return <WhatsAppOrderResultView order={whatsappResult} pix={PIX_DETAILS} onNewOrder={clearOrder} />;
+  if (whatsappResult) return <WhatsAppOrderResultView order={whatsappResult} />;
 
   if (siteResult && (fulfillment === "entrega" || fulfillment === "retirada")) {
     return <SiteOrderResultView result={siteResult} fulfillment={fulfillment} onNewOrder={clearOrder} onRetryPayment={() => {
@@ -1597,6 +1603,7 @@ export default function Home() {
                   if (!sliceIsAvailable(value) || !fatiasAvailable) return;
                   setBuilderEngaged(true);
                   setSliceProductId(value);
+                  setSliceOptionId("");
                   setSelectionMessage("");
                   window.setTimeout(() => scrollToSection("quantidade-fatias"), 30);
                 }} aria-label="Sabor da fatia artesanal">
@@ -1625,11 +1632,19 @@ export default function Home() {
                 <div className="selection-helper" aria-live="polite">
                   {selectedSlice
                     ? sliceIsAvailable(selectedSlice.id)
-                      ? `${productLabel(selectedSlice)} selecionada. Confira a quantidade e adicione ao pedido.`
+                      ? `${productLabel(selectedSlice)} selecionada. Escolha como prefere sua fatia e confira a quantidade.`
                       : "Esta fatia ficou indisponível. Escolha outro sabor para continuar."
                     : selectionMessage || "Nenhuma fatia selecionada. Escolha uma opção para continuar."}
                 </div>
               </section>
+
+              {selectedSlice && <fieldset className="slice-sauce-choice">
+                <legend>Como prefere sua fatia?</legend>
+                {SLICE_OPTIONS.map(option => <label key={option.id}>
+                  <input type="radio" name="slice-sauce" value={option.id} checked={sliceOptionId === option.id} onChange={() => setSliceOptionId(option.id)} />
+                  <span>{option.name}</span>
+                </label>)}
+              </fieldset>}
 
               <section className={`step-block step-state-${sliceQuantityStepState}`} id="quantidade-fatias" aria-labelledby="step-slice-quantity" aria-current={sliceQuantityStepState === "active" ? "step" : undefined}>
                 <div className="step-heading compact-heading"><StepMarker number={2} state={sliceQuantityStepState} /><div><h3 id="step-slice-quantity">Quantas fatias deste sabor?</h3><p>Para outro sabor, adicione este item e escolha a próxima fatia.</p></div></div>

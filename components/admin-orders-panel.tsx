@@ -106,6 +106,13 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const printingRef = useRef(false);
   const effectsRunningRef = useRef(false);
   const loadSequenceRef = useRef(0);
+  const manualRefreshRef = useRef(false);
+  async function manualRefresh() {
+    if (manualRefreshRef.current) return;
+    manualRefreshRef.current = true;
+    try { await reload(); } finally { manualRefreshRef.current = false; }
+  }
+
 
   const getAudioContext = useCallback(() => {
     const context = audioRef.current ?? createAudioContext();
@@ -323,7 +330,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     <section className="admin-orders-panel" aria-labelledby="admin-orders-title">
       <div className="admin-orders-heading">
         <div><p className="eyebrow">Cozinha</p><h1 id="admin-orders-title">Pedidos</h1><span className={`admin-live-state ${realtimeState === "Ao vivo" ? "is-live" : ""}`}>{realtimeState}</span></div>
-        <Button type="button" variant="outline" onClick={() => void reload()} disabled={loading} aria-busy={loading}>{loading ? <LoaderCircle className="admin-spinner" size={16} /> : <RefreshCw size={16} />} {loading ? "Atualizando…" : "Atualizar"}</Button>
+        <Button type="button" variant="outline" onClick={() => void manualRefresh()} disabled={loading} aria-busy={loading}>{loading ? <LoaderCircle className="admin-spinner" size={16} /> : <RefreshCw size={16} />} {loading ? "Atualizando…" : "Atualizar"}</Button>
       </div>
 
       <div className="admin-kitchen-tools">

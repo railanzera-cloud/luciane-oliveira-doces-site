@@ -61,3 +61,12 @@ test('sound activation resumes from user gesture and keeps suspended audio disab
  const activate=extract(admin,'enableAlerts',{getAudioContext:()=>context,setAlertsEnabled:v=>enabled=v,setError:v=>error=v});
  await activate();assert.equal(resumed,1);assert.equal(enabled,false);assert.match(error,/Toque novamente/);
 });
+
+test('repeated manual clicks share a single in-flight refresh',async()=>{
+ for(const [source,name] of [[admin,'reload'],[tracking,'refresh']]) {
+  const d=deferred();let calls=0;
+  const refresh=extract(source,'manualRefresh',{manualRefreshRef:{current:false},[name]:()=>{calls++;return d.promise;}});
+  const first=refresh();await refresh();assert.equal(calls,1);d.resolve();await first;
+  await refresh();assert.equal(calls,2);
+ }
+});

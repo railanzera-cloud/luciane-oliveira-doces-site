@@ -17,7 +17,7 @@ function functionBody(source, functionName, nextFunctionName) {
 
 test("keeps simplified slices and explains the explicit WhatsApp send", () => {
   assert.match(page, /Sabores disponíveis/);
-  assert.doesNotMatch(page, /calda|sauce/i);
+  assert.match(page, /Como prefere sua fatia/);
   assert.match(page, /toque em enviar para encaminhar o pedido/);
   assert.match(page, /Registrar e continuar no WhatsApp/);
 });

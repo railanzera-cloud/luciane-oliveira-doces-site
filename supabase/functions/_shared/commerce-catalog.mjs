@@ -1,6 +1,6 @@
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
-export const CATALOG_VERSION = "2026-09-12.v1";
+export const CATALOG_VERSION = "2026-09-29.sauce";
 
 export const CATEGORY_ITEM_KEYS = Object.freeze({
   pipocas: "category_pipocas",
@@ -128,7 +128,8 @@ export function quoteCartItems(rawItems) {
     }
 
     const slice = SLICES[productId];
-    if (!slice || variantId !== "fatia" || optionIds.length) throw new Error("Escolha uma fatia válida.");
+    const sauceNames = { "calda-chocolate": "Com calda de chocolate", "sem-calda": "Sem calda, por favor" };
+    if (!slice || variantId !== "fatia" || optionIds.length > 1 || optionIds.some(id => !Object.hasOwn(sauceNames, id))) throw new Error("Escolha uma fatia válida.");
     availabilityKeys.add(CATEGORY_ITEM_KEYS.fatias);
     availabilityKeys.add(slice.itemKey);
     return {
@@ -140,9 +141,9 @@ export function quoteCartItems(rawItems) {
       variant_id: "fatia",
       variant_item_key: slice.itemKey,
       size_label: "1 fatia",
-      option_ids: [],
+      option_ids: optionIds,
       option_item_keys: [],
-      option_names: [],
+      option_names: optionIds.map(id => sauceNames[id]),
       quantity,
       unit_price_cents: slice.priceCents,
       line_total_cents: slice.priceCents * quantity,

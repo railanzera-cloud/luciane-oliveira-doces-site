@@ -57,7 +57,7 @@ for(const [payment,fulfillment] of [['pix','retirada'],['cartao','entrega'],['di
  await link.click();await page.waitForTimeout(150);
  await page.goto(origin+'/?categoria=pipocas');await page.getByRole('heading',{name:'Olá, Maria! ❤️'}).waitFor();assert.equal(count,1);
  assert.equal(await page.getByRole('link',{name:'Enviar pedido pelo WhatsApp'}).getAttribute('href'),href);
- await page.getByRole('link',{name:'Acompanhar pedido',exact:true}).click();await page.getByRole('heading',{name:'Pedido #1047'}).waitFor();
+ await page.getByRole('link',{name:'Acompanhar meu pedido →',exact:true}).click();await page.getByRole('heading',{name:'Pedido #1047'}).waitFor();
  await page.getByText('Aguardando confirmação',{exact:true}).waitFor();publicStatus='preparing';await page.getByRole('button',{name:'Atualizar',exact:true}).click();await page.getByText('Em preparo',{exact:true}).waitFor();
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
  await page.screenshot({path:new URL(`acompanhamento-${payment}.png`,out).pathname,fullPage:true});

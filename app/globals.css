@@ -3749,3 +3749,24 @@ footer {
 
 .admin-order-search { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 18px 0; }
 .admin-order-search input { min-width: 0; width: 130px; border: 1px solid #e3d7d0; border-radius: 8px; padding: 10px; font-size: 16px; }
+
+/* Refinamentos pontuais: abas, indicadores, calda e finalização. */
+.admin-main-tabs { height: auto !important; min-height: 54px; border-radius: 12px; overflow: hidden; gap: 4px; align-items: stretch; }
+.admin-main-tabs button { height: auto; min-height: 44px; min-width: 0; border-radius: 8px; transition: background-color 140ms ease, color 140ms ease; box-shadow: none; }
+.admin-main-tabs button::after { display: none; }
+.admin-order-indicators span:nth-child(2) { background: #402c23; }
+.admin-order-indicators span:nth-child(3) { background: #493127; }
+.slice-sauce-choice { border: 0; padding: 16px 0; margin: 0; display: grid; gap: 10px; }
+.slice-sauce-choice legend { font-weight: 700; margin-bottom: 10px; }
+.slice-sauce-choice label { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 12px; border: 1px solid #bda18b; border-radius: 12px; cursor: pointer; }
+.slice-sauce-choice input { width: 20px; height: 20px; accent-color: #70452e; }
+.whatsapp-final-summary { padding: 16px; border-radius: 12px; background: #f4e8dd; color: #39251e; margin: 24px 0; }
+.whatsapp-final-summary div { display: flex; justify-content: space-between; gap: 16px; padding: 5px 0; }
+.whatsapp-final-summary dd { margin: 0; text-align: right; font-weight: 700; }
+.whatsapp-final-primary { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 54px; padding: 14px; margin-top: 24px; border-radius: 12px; background: #157347; color: white; font-weight: 700; text-decoration: none; }
+.whatsapp-final-primary:hover { background: #105f39; }
+.whatsapp-final-primary:focus-visible { outline: 3px solid #91603d; outline-offset: 3px; }
+.whatsapp-final-card small { display: block; margin-top: 10px; font-size: 13px; line-height: 1.5; }
+.whatsapp-final-secondary { border-top: 1px solid #98704b40; margin-top: 28px; padding-top: 22px; }
+.whatsapp-final-secondary a { color: inherit; text-underline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) { .admin-main-tabs button { transition: none; } }
