@@ -3782,3 +3782,24 @@ footer {
   .mobile-sticky-bar { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
   .storefront { padding-bottom: calc(130px + env(safe-area-inset-bottom)); }
 }
+
+/* Optional home recovery: no wrapper or reserved space until an active order is verified. */
+.home-last-order-shell { padding-top: 16px; }
+.home-last-order {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 18px;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid rgba(214, 157, 91, 0.3);
+  border-radius: 14px;
+  background: #28170f;
+  color: #fff3e2;
+  font-size: 0.9rem;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.home-last-order strong { color: #edc48d; font-weight: 600; }
+.home-last-order:focus-visible { outline: 2px solid #edc48d; outline-offset: 3px; }

@@ -74,6 +74,7 @@ import {
 } from "@/app/order-checkout";
 import { MercadoPagoCardForm } from "@/components/mercado-pago-card-form";
 import { WhatsAppOrderResultView, type RegisteredWhatsAppOrder } from "@/components/whatsapp-order-result";
+import { HomeLastOrderLink } from "@/components/home-last-order";
 import { SiteOrderResultView } from "@/components/site-order-result";
 import { RECEIPT_CARD_NOTICE, receiptCardQuote } from "@/lib/manual-payment-policy";
 import { getCommercePublicConfiguration } from "@/lib/commerce-config";
@@ -1436,7 +1437,7 @@ export default function Home() {
         <span className="location-chip"><MapPin size={14} /> Paragominas</span>
       </header>
 
-      {lastToken && <div className="page-shell"><a className="summary-link" href={`/pedido?token=${lastToken}`}>Acompanhar meu último pedido</a></div>}
+      <HomeLastOrderLink token={lastToken} />
       {restoredOrderNotice && cart.length > 0 && (
         <section className="session-order-strip" aria-label="Pedido em andamento">
           <div className="page-shell session-order-content" role="status">
