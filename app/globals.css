@@ -2149,6 +2149,7 @@ footer {
 }
 
 .mobile-sticky-bar button {
+  white-space: normal;
   min-height: 49px;
   flex: 1;
   gap: 4px;

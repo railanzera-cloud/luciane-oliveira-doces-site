@@ -249,7 +249,7 @@ function checkoutHarness(latest, overrides = {}) {
     setWhatsAppResult: value => actions.push(value.whatsappUrl),
     availability: snapshot(), cart, checkoutFormReady: true, finalizationLockRef: lock, navigationPendingRef: navigationPending,
     STORE_CONFIG: catalog.STORE_CONFIG, cartAvailabilityIssues,
-    setIsFinalizing: () => {}, setOpeningWhatsApp: () => {}, setCheckoutAvailabilityMessage: (value) => messages.push(value),
+    setWhatsAppRetryAvailable: () => {}, setIsFinalizing: () => {}, setOpeningWhatsApp: () => {}, setCheckoutAvailabilityMessage: (value) => messages.push(value),
     scrollToSection: () => {}, refreshAvailability: async () => latest,
     checkoutFingerprint: fingerprint, checkoutFingerprintRef: { current: fingerprint },
     orderContextRef: contextRef, attributionRef: { current: context.attribution },
@@ -282,7 +282,7 @@ test("final revalidation blocks a newly sold-out item, a hidden category, closed
   ]) {
     const result = await attemptCheckout(latest);
     assert.deepEqual(result.actions, []);
-    assert.match(result.messages.at(-1), /indisponível|encerrados|Não foi possível confirmar/);
+    assert.match(result.messages.at(-1), /indisponível|encerrados|Não conseguimos concluir/);
     assert.deepEqual(cart, [sliceItem, popcornItem]);
   }
 });
@@ -495,6 +495,7 @@ test("explicit new order clears the old draft and creates another code", () => {
   assert.equal(fields.setPayment, "");
   assert.deepEqual(removed, ["luciane-order-session-v2"]);
   pageEffectContaining("checkoutFingerprintRef.current = checkoutFingerprint", {
+    setWhatsAppRetryAvailable: value => { fields.retry = value; },
     checkoutFingerprintRef: {}, checkoutFingerprint: "new-cart", storageReady: true, cart: [sliceItem],
     orderContextRef: contextRef, attributionRef: {}, newOrderContext: checkout.newOrderContext,
     captureOrderAttribution: checkout.captureOrderAttribution, setOrderContext: () => {},
@@ -502,6 +503,7 @@ test("explicit new order clears the old draft and creates another code", () => {
   })();
   assert.match(contextRef.current.order_id, /^LOD-/);
   assert.notEqual(contextRef.current.order_id, fixedOrderId);
+  assert.equal(fields.retry, false);
 });
 
 
@@ -740,5 +742,44 @@ test('hidden technical identity and request key are reused when retrying registr
   assert.equal(payload.request_key,context.request_key);
  }
  assert.match(context.order_id,/^LOD-/); assert.match(context.request_key,/^[0-9a-f]{64}$/);
+ assert.equal(h.writes.at(-1).value.whatsappResult.result.order.order_number,1047);
+});
+
+function checkoutCopy(name, values) {
+ let expression;
+ function visit(node) {
+  if(ts.isVariableDeclaration(node) && node.name.getText(ast)===name) expression=node.initializer.getText(ast);
+  ts.forEachChild(node,visit);
+ }
+ visit(ast);
+ assert.ok(expression);
+ return new Function(...Object.keys(values),`return ${expression}`)(...Object.values(values));
+}
+
+for(const payment of ['pix','dinheiro','credito','debito']) test(`final CTA and temporary failure recovery — ${payment}`, async () => {
+ let retry=false, reads=0, registrations=0, resume;
+ const pending=new Promise(resolve=>{resume=resolve;});
+ const label=(busy=false)=>checkoutCopy('finalButtonLabel',{isFinalizing:busy,openingWhatsApp:false,checkoutChannel:'whatsapp',payment,whatsAppRetryAvailable:retry});
+ const sticky=()=>checkoutCopy('stickyButtonLabel',{isFinalizing:false,finalButtonLabel:label(),availability:{ordersOpen:true},categoryIsAvailable:()=>true,activeCategory:null,builderFlowActive:false,editingId:null,draftReady:false,checkoutReady:true});
+ const h=checkoutHarness(null,{
+  payment,cardMode:payment==='credito'?'credit_single':payment==='debito'?'debit':null,
+  setWhatsAppRetryAvailable:value=>{retry=value;},
+  refreshAvailability:async()=>++reads===1?{snapshot:snapshot(),usedFallback:true}:pending,
+  createWhatsAppOrder:async()=>{
+   registrations++;
+   return {order:{order_number:1047,tracking_token:'a'.repeat(48),total:73},payment:{method:payment==='pix'?'manual_pix':payment==='dinheiro'?'cash':'card_on_delivery'}};
+  },
+ });
+ assert.equal(label(),'Finalizar pedido no WhatsApp'); assert.equal(sticky(),label());
+ await h.finish();
+ assert.equal(registrations,0); assert.equal(h.actions.length,0);
+ assert.equal(h.messages.at(-1),'Não conseguimos concluir seu pedido agora. Tente novamente.');
+ assert.equal(label(),'Tentar novamente'); assert.equal(sticky(),label());
+ const next=h.finish(); await h.finish();
+ assert.equal(reads,2); assert.equal(label(true),'Conferindo pedido…');
+ resume({snapshot:snapshot(),usedFallback:false}); await next;
+ assert.equal(registrations,1); assert.equal(h.actions.length,1);
+ assert.equal(h.messages.at(-1),''); assert.equal(retry,false);
+ assert.equal(label(),'Finalizar pedido no WhatsApp');
  assert.equal(h.writes.at(-1).value.whatsappResult.result.order.order_number,1047);
 });

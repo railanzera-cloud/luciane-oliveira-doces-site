@@ -405,6 +405,7 @@ export default function Home() {
   const [addedNotice, setAddedNotice] = useState<AddedNotice | null>(null);
   const [builderEngaged, setBuilderEngaged] = useState(true);
   const [checkoutAvailabilityMessage, setCheckoutAvailabilityMessage] = useState("");
+  const [whatsAppRetryAvailable, setWhatsAppRetryAvailable] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [openingWhatsApp, setOpeningWhatsApp] = useState(false);
   const [orderContext, setOrderContext] = useState<OrderContext | null>(null);
@@ -724,7 +725,7 @@ export default function Home() {
       ? payment === "mercado_pago_pix" ? "Gerar Pix e confirmar pedido"
         : payment === "mercado_pago_card" ? "Preencher e pagar com cartão"
           : "Confirmar pedido"
-      : "Registrar e continuar no WhatsApp";
+      : whatsAppRetryAvailable ? "Tentar novamente" : "Finalizar pedido no WhatsApp";
   const stickyButtonLabel = isFinalizing ? finalButtonLabel : !availability.ordersOpen
     ? "Pedidos fechados"
     : !categoryIsAvailable(activeCategory) && builderFlowActive
@@ -771,6 +772,7 @@ export default function Home() {
   });
   useEffect(() => {
     checkoutFingerprintRef.current = checkoutFingerprint;
+    setWhatsAppRetryAvailable(false);
     if (!storageReady || !cart.length) return;
     const current = orderContextRef.current;
     // Retentativa mantém o código. Edição após abrir o WhatsApp inicia outro pedido.
@@ -1294,11 +1296,12 @@ export default function Home() {
     if (!availability.ordersOpen && !retrying) { setCheckoutAvailabilityMessage(STORE_CONFIG.closedMessage); return; }
     finalizationLockRef.current = true;
     setIsFinalizing(true);
+    setWhatsAppRetryAvailable(false);
     setCheckoutAvailabilityMessage("Registrando sua solicitação…");
     try {
       if (!retrying) {
       const latest = await refreshAvailability();
-      if (latest.usedFallback) throw new Error("Não foi possível confirmar a disponibilidade agora. Tente novamente.");
+      if (latest.usedFallback) throw new Error("Não conseguimos concluir seu pedido agora. Tente novamente.");
       if (!latest.snapshot.ordersOpen) throw new Error(STORE_CONFIG.closedMessage);
       const issues = cartAvailabilityIssues(cart, latest.snapshot);
       if (issues.length) throw new Error(`Item indisponível: ${issues.map(issue => `${issue.itemLabel}: ${issue.reasons.join(" ")}`).join("; ")}`);
@@ -1337,6 +1340,7 @@ export default function Home() {
       setCheckoutAvailabilityMessage("");
       window.scrollTo({ top: 0, behavior: "instant" });
     } catch (error) {
+      setWhatsAppRetryAvailable(true);
       setCheckoutAvailabilityMessage(error instanceof Error ? error.message : "Não foi possível registrar. Tente novamente sem alterar o pedido.");
     } finally { finalizationLockRef.current = false; setIsFinalizing(false); }
   }
