@@ -1288,7 +1288,7 @@ export default function Home() {
     if (finalizationLockRef.current) return;
     if (!checkoutFormReady) {
       setBuilderEngaged(false);
-      setCheckoutAvailabilityMessage("Complete a etapa indicada para continuar.");
+      setCheckoutAvailabilityMessage("Complete as informações acima para continuar.");
       requestScroll(cart.length ? nextCheckoutSection() : "carrinho");
       return;
     }
@@ -1341,7 +1341,9 @@ export default function Home() {
       window.scrollTo({ top: 0, behavior: "instant" });
     } catch (error) {
       setWhatsAppRetryAvailable(true);
-      setCheckoutAvailabilityMessage(error instanceof Error ? error.message : "Não foi possível registrar. Tente novamente sem alterar o pedido.");
+      const temporaryFailure = !(error instanceof Error) || error instanceof TypeError || error.name === "AbortError"
+        || (error instanceof SiteOrderError && (error.status >= 500 || error.status === 429));
+      setCheckoutAvailabilityMessage(temporaryFailure ? "Não conseguimos concluir seu pedido agora. Tente novamente." : error.message);
     } finally { finalizationLockRef.current = false; setIsFinalizing(false); }
   }
 
@@ -1358,7 +1360,7 @@ export default function Home() {
   function handleFinalAction() {
     if (!checkoutFormReady) {
       setBuilderEngaged(false);
-      setCheckoutAvailabilityMessage("Complete a etapa indicada para continuar.");
+      setCheckoutAvailabilityMessage("Complete as informações acima para continuar.");
       requestScroll(cart.length ? nextCheckoutSection() : "carrinho");
       return;
     }
@@ -1388,11 +1390,17 @@ export default function Home() {
     scrollToSection(activeCategory ? "configurador" : "inicio");
   }
 
-  const checkoutHint = checkoutAvailabilityMessage
+  // A resolved form warning must not override the current ready state.
+  const checkoutFeedbackMessage = checkoutFormReady && checkoutAvailabilityMessage === "Complete as informações acima para continuar."
+    ? "" : checkoutAvailabilityMessage;
+  const checkoutShowsReady = checkoutReady && !isFinalizing && !whatsAppRetryAvailable && !checkoutFeedbackMessage;
+  const checkoutHint = checkoutFeedbackMessage
     || (!availability.ordersOpen
     ? STORE_CONFIG.closedMessage
     : cartIssues.length > 0
       ? "Um ou mais itens ficaram indisponíveis. Revise o carrinho para continuar."
+    : checkoutChannel === "whatsapp" && !checkoutFormReady
+      ? "Complete as informações acima para continuar."
     : !cart.length
       ? "Adicione pelo menos um produto ao pedido."
       : !fulfillment
@@ -1417,9 +1425,7 @@ export default function Home() {
                       : payment === "mercado_pago_card"
                         ? "Preencha o formulário seguro do cartão para concluir."
                         : `Ao confirmar, o pedido entra na cozinha e o pagamento será feito na ${fulfillment === "retirada" ? "retirada" : "entrega"}.`
-                    : payment === "pix"
-                      ? "No WhatsApp: envie o pedido, faça o Pix com a chave da mensagem e envie o comprovante."
-                      : `No WhatsApp, toque em enviar para encaminhar o pedido. O pagamento será feito na ${fulfillment === "retirada" ? "retirada" : "entrega"}.`);
+                    : "Tudo certo! Seu pedido está pronto para ser enviado.");
 
   if (whatsappResult) return <WhatsAppOrderResultView order={whatsappResult} />;
 
@@ -1784,10 +1790,10 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="cart-list">
-                  {checkoutAvailabilityMessage && !isFinalizing && (
+                  {checkoutFeedbackMessage && !isFinalizing && (
                     <div className="checkout-availability-alert" role="alert">
                       <AlertTriangle size={18} aria-hidden="true" />
-                      <span>{checkoutAvailabilityMessage}</span>
+                      <span>{checkoutFeedbackMessage}</span>
                     </div>
                   )}
                   {cart.map((item) => {
@@ -2024,7 +2030,7 @@ export default function Home() {
             </div>
             <Button type="button" className="whatsapp-button checkout-primary-button" onClick={handleFinalAction} disabled={isFinalizing || (!availability.ordersOpen && orderContext?.handoff_fingerprint !== checkoutFingerprint)} aria-describedby="checkout-status" data-event={checkoutChannel === "whatsapp" ? "whatsapp_checkout" : "site_checkout"}>{isFinalizing ? <LoaderCircle className="admin-spinner" size={20} /> : checkoutChannel === "whatsapp" ? <MessageCircle size={20} /> : payment === "mercado_pago_pix" ? <QrCode size={20} /> : <ShoppingBag size={20} />} {finalButtonLabel}</Button>
             {checkoutChannel === "whatsapp" && orderContext?.whatsapp_attempted_at && <div className="whatsapp-return-note" role="status"><strong>Continue no WhatsApp</strong><p>Envie a mensagem por lá para encaminhar o pedido. Seu pedido continua nesta aba para consulta.</p><Button type="button" variant="outline" onClick={clearOrder} disabled={isFinalizing}>Fazer novo pedido</Button></div>}
-            <p id="checkout-status" className={checkoutReady ? "ready-status" : "checkout-status"} aria-live="polite">{checkoutReady && <Check size={14} />}{checkoutHint}</p>
+            <p id="checkout-status" className={checkoutShowsReady ? "ready-status" : "checkout-status"} aria-live="polite">{checkoutShowsReady && <Check size={14} />}{checkoutHint}</p>
           </aside>
         </div>
       </section>

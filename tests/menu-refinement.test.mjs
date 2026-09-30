@@ -31,6 +31,7 @@ after(() => vite.close());
 const catalog = await vite.ssrLoadModule("/app/catalog.ts");
 const availability = await vite.ssrLoadModule("/app/menu-availability.ts");
 const checkout = await vite.ssrLoadModule("/app/order-checkout.ts");
+const { SiteOrderError } = await vite.ssrLoadModule("/lib/site-order.ts");
 const navigation = await vite.ssrLoadModule("/app/menu-navigation.ts");
 const fixture = await vite.ssrLoadModule("/hooks/use-menu-availability.ts");
 const { default: Home } = await vite.ssrLoadModule("/app/page.tsx");
@@ -242,7 +243,7 @@ function checkoutHarness(latest, overrides = {}) {
   const lock = { current: false }, navigationPending = { current: false }, contextRef = { current: context };
   const fingerprint = JSON.stringify(detailsFor("pix"));
   const deps = {
-    cardMode: null, customerNameReady: true, customerName: "Maria Oliveira", notes: "", fulfillment: "retirada", deliveryZoneId: "", deliveryNeighborhood: "", address: "", addressNumber: "", complement: "", reference: "", payment: "pix", needsChange: false, cashReceivedCents: null, orderTotal: 73, checkoutDetails: {...detailsFor("pix"), customer_name:"Maria Oliveira"},
+    SiteOrderError, cardMode: null, customerNameReady: true, customerName: "Maria Oliveira", notes: "", fulfillment: "retirada", deliveryZoneId: "", deliveryNeighborhood: "", address: "", addressNumber: "", complement: "", reference: "", payment: "pix", needsChange: false, cashReceivedCents: null, orderTotal: 73, checkoutDetails: {...detailsFor("pix"), customer_name:"Maria Oliveira"},
     PIX_DETAILS: {holder:"Luciane Galvão de Oliveira",key:"03611974200",keyType:"CPF"},
     buildRegisteredOrderMessage: checkout.buildRegisteredOrderMessage, rememberOrder: () => {}, setLastToken: () => {},
     createWhatsAppOrder: async () => ({order:{order_number:1047,tracking_token:"a".repeat(48),total:73},payment:{method:"manual_pix"}}),
@@ -782,4 +783,63 @@ for(const payment of ['pix','dinheiro','credito','debito']) test(`final CTA and 
  assert.equal(h.messages.at(-1),''); assert.equal(retry,false);
  assert.equal(label(),'Finalizar pedido no WhatsApp');
  assert.equal(h.writes.at(-1).value.whatsappResult.result.order.order_number,1047);
+});
+
+function checkoutFeedback(overrides = {}) {
+ const state={checkoutChannel:'whatsapp',checkoutFormReady:true,checkoutReady:true,isFinalizing:false,
+  whatsAppRetryAvailable:false,checkoutAvailabilityMessage:'',availability:{ordersOpen:true},cartIssues:[],cart,
+  fulfillment:'retirada',selectedDeliveryZone:null,neighborhood:'',addressReady:true,customerNameReady:true,
+  customerPhoneReady:true,payment:'pix',paymentReady:true,changeError:'',STORE_CONFIG:catalog.STORE_CONFIG,...overrides};
+ state.checkoutFeedbackMessage=checkoutCopy('checkoutFeedbackMessage',state);
+ state.checkoutShowsReady=checkoutCopy('checkoutShowsReady',state);
+ state.checkoutHint=checkoutCopy('checkoutHint',state);
+ return state;
+}
+function renderCheckoutFeedback(state) {
+ let node;
+ function visit(candidate) {
+  if(ts.isJsxElement(candidate) && candidate.openingElement.attributes.properties.some(prop=>ts.isJsxAttribute(prop) && prop.name.text==='id' && prop.initializer?.text==='checkout-status')) node=candidate;
+  ts.forEachChild(candidate,visit);
+ }
+ visit(ast); assert.ok(node);
+ const {outputText}=ts.transpileModule(`const renderStatus=()=>(${node.getText(ast)});`,{compilerOptions:{jsx:ts.JsxEmit.React,target:ts.ScriptTarget.ES2022}});
+ const element=new Function('React','Check',...Object.keys(state),`${outputText}; return renderStatus();`)(React,()=>React.createElement('svg',{'data-ready-check':true}),...Object.values(state));
+ return renderToStaticMarkup(element);
+}
+for(const payment of ['pix','dinheiro','credito','debito']) test(`checkout feedback follows incomplete, ready, processing and failed states — ${payment}`, () => {
+ const warning='Complete as informações acima para continuar.';
+ const ready='Tudo certo! Seu pedido está pronto para ser enviado.';
+ const failure='Não conseguimos concluir seu pedido agora. Tente novamente.';
+ for(const missing of [{fulfillment:''},{addressReady:false},{customerNameReady:false},{paymentReady:false}]) {
+  const state=checkoutFeedback({payment,...missing,checkoutFormReady:false,checkoutReady:false});
+  assert.equal(state.checkoutHint,warning); assert.equal(state.checkoutShowsReady,false);
+  const html=renderCheckoutFeedback(state); assert.ok(html.includes(warning)); assert.doesNotMatch(html,/data-ready-check|class="ready-status"/);
+ }
+ // A warning from a previous click disappears as soon as the form is valid.
+ const complete=checkoutFeedback({payment,checkoutAvailabilityMessage:warning});
+ assert.equal(complete.checkoutFeedbackMessage,''); assert.equal(complete.checkoutHint,ready);
+ assert.equal(complete.checkoutShowsReady,true); assert.match(renderCheckoutFeedback(complete),/class="ready-status".*data-ready-check/);
+ const busy=checkoutFeedback({payment,isFinalizing:true,checkoutAvailabilityMessage:'Registrando sua solicitação…'});
+ assert.equal(busy.checkoutHint,'Registrando sua solicitação…'); assert.doesNotMatch(renderCheckoutFeedback(busy),/data-ready-check|class="ready-status"/);
+ const failed=checkoutFeedback({payment,whatsAppRetryAvailable:true,checkoutAvailabilityMessage:failure});
+ assert.equal(failed.checkoutHint,failure); assert.doesNotMatch(renderCheckoutFeedback(failed),/data-ready-check|class="ready-status"/);
+ assert.equal(checkoutCopy('finalButtonLabel',{...failed,openingWhatsApp:false}),'Tentar novamente');
+});
+test('operational restrictions keep their guidance instead of a ready or form warning', () => {
+ const closed=checkoutFeedback({availability:{ordersOpen:false},checkoutReady:false});
+ assert.equal(closed.checkoutHint,catalog.STORE_CONFIG.closedMessage); assert.equal(closed.checkoutShowsReady,false);
+ const unavailable=checkoutFeedback({cartIssues:[{}],checkoutReady:false});
+ assert.match(unavailable.checkoutHint,/indisponíveis/); assert.equal(unavailable.checkoutShowsReady,false);
+});
+
+
+test('temporary registration errors use approved copy while business errors keep actionable details', async () => {
+ for(const error of [new TypeError('Failed to fetch'),Object.assign(new Error('timeout'),{name:'AbortError'}),new SiteOrderError(503,'unavailable','Internal error'),new SiteOrderError(429,'rate_limit','Too many requests')]) {
+  const h=checkoutHarness({snapshot:snapshot(),usedFallback:false},{createWhatsAppOrder:async()=>{throw error;}});
+  await h.finish();
+  assert.equal(h.messages.at(-1),'Não conseguimos concluir seu pedido agora. Tente novamente.');
+  assert.equal(h.lock.current,false); assert.equal(h.actions.length,0);
+ }
+ const h=checkoutHarness({snapshot:snapshot(),usedFallback:false},{createWhatsAppOrder:async()=>{throw new SiteOrderError(409,'unavailable_item','Item indisponível: revise o carrinho.');}});
+ await h.finish(); assert.equal(h.messages.at(-1),'Item indisponível: revise o carrinho.');
 });
