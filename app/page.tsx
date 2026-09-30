@@ -717,7 +717,7 @@ export default function Home() {
     : activeCategory === "pipocas" ? "Sua pipoca" : "Sua fatia";
   const paymentLabel = checkoutChannel === "site" && isSitePayment(payment)
     ? sitePaymentLabel(payment, fulfillment)
-    : paymentDescription(isWhatsAppPayment(payment) ? payment : "", fulfillment);
+    : paymentDescription(isWhatsAppPayment(payment) ? payment : "", fulfillment).replace(" (1x)", "");
   const finalButtonLabel = isFinalizing
     ? openingWhatsApp ? "Abrindo WhatsApp…" : "Conferindo pedido…"
     : checkoutChannel === "site"
@@ -1946,7 +1946,7 @@ export default function Home() {
                 </RadioGroup>
               ) : (
                 <RadioGroup className="payment-list" value={payment} onValueChange={choosePayment} aria-label="Forma de pagamento pelo WhatsApp">
-                  {[["pix", "Pix"], ["dinheiro", "Dinheiro"], ["credito", "Cartão de crédito à vista (1x)"], ["debito", "Cartão de débito"]].map(([value, label]) => (
+                  {[["pix", "Pix"], ["dinheiro", "Dinheiro"], ["credito", "Cartão de crédito à vista"], ["debito", "Cartão de débito"]].map(([value, label]) => (
                     <label className={`payment-option ${payment === value ? "is-selected" : ""}`} htmlFor={`payment-${value}`} key={value}>
                       <RadioGroupItem id={`payment-${value}`} value={value} /><span>{label}</span>{payment === value && <Check size={17} />}
                     </label>
@@ -1976,9 +1976,7 @@ export default function Home() {
 
           <aside className="summary-card" aria-labelledby="summary-title">
             <p className="eyebrow">Confira antes de enviar</p><h2 id="summary-title">Resumo do pedido</h2>
-            {cart.length > 0 && (checkoutChannel === "whatsapp"
-              ? <p className="order-code" aria-live="polite">Código do pedido: <strong>{orderContext?.order_id ?? "Gerando código…"}</strong></p>
-              : <p className="order-code">O número do pedido será mostrado após a confirmação.</p>)}
+            {cart.length > 0 && checkoutChannel !== "whatsapp" && <p className="order-code">O número do pedido será mostrado após a confirmação.</p>}
             <div className="summary-content">
               {cart.length === 0 ? <p className="summary-empty">Os produtos adicionados aparecerão aqui.</p> : cart.map((item, index) => {
                 const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;

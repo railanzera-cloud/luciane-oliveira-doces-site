@@ -11,7 +11,7 @@ export type RegisteredWhatsAppOrder = {
 };
 export function WhatsAppOrderResultView({ order }: { order: RegisteredWhatsAppOrder }) {
   const method = order.result.payment.method;
-  const label = order.result.order.card_mode ? order.result.order.card_mode === "credit_single" ? "Crédito à vista (1x), no recebimento" : "Débito no recebimento" : method === "manual_pix" ? "Pix manual" : method === "cash" ? "Dinheiro no recebimento" : method === "card_on_delivery" ? "Cartão no recebimento" : method === "mercado_pago_pix" ? "Pix online" : "Cartão online";
+  const label = order.result.order.card_mode ? order.result.order.card_mode === "credit_single" ? "Crédito à vista, no recebimento" : "Débito no recebimento" : method === "manual_pix" ? "Pix manual" : method === "cash" ? "Dinheiro no recebimento" : method === "card_on_delivery" ? "Cartão no recebimento" : method === "mercado_pago_pix" ? "Pix online" : "Cartão online";
   return <main className="site-result-page"><section className="site-result-card whatsapp-final-card">
     <span className="tracking-icon" aria-hidden="true"><Check size={28} /></span>
     <h1>Olá, {order.customerName.trim().split(/\s+/)[0]}! ❤️</h1>

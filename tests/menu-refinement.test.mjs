@@ -694,3 +694,51 @@ test('Pix and cash messages remain identical to checkpoint 11782be', async () =>
   assert.equal(createHash('sha256').update(message).digest('hex'),hashes[index++]);
  }
 });
+
+test('checkout copy hides technical identity and shortens credit without changing other labels', () => {
+ let labelExpression, options;
+ function visit(node) {
+  if(ts.isVariableDeclaration(node) && node.name.getText(ast)==='paymentLabel') labelExpression=node.initializer.getText(ast);
+  if(ts.isArrayLiteralExpression(node) && node.elements.some(element=>ts.isArrayLiteralExpression(element) && element.elements[0]?.getText(ast)==='"credito"')) options=node.getText(ast);
+  ts.forEachChild(node,visit);
+ }
+ visit(ast);
+ assert.deepEqual(new Function(`return ${options}`)(), [['pix','Pix'],['dinheiro','Dinheiro'],['credito','Cartão de crédito à vista'],['debito','Cartão de débito']]);
+ const label=new Function('checkoutChannel','isSitePayment','sitePaymentLabel','isWhatsAppPayment','paymentDescription','payment','fulfillment',`return ${labelExpression}`);
+ for(const fulfillment of ['entrega','retirada']) for(const payment of ['credito','debito','pix','dinheiro']) {
+  const actual=label('whatsapp',()=>false,()=>'',()=>true,checkout.paymentDescription,payment,fulfillment);
+  const expected=payment==='credito'?`Crédito à vista, na ${fulfillment}`:checkout.paymentDescription(payment,fulfillment);
+  assert.equal(actual,expected); assert.doesNotMatch(actual,/\(1x\)/);
+ }
+ const summary=source.slice(source.indexOf('<aside className="summary-card"'),source.indexOf('</aside>'));
+ assert.match(summary,/Resumo do pedido/); assert.doesNotMatch(summary,/Código do pedido|Gerando código|orderContext\?\.order_id/);
+});
+
+test('registered checkout screen keeps real order number and simplified credit label', async () => {
+ const {WhatsAppOrderResultView}=await vite.ssrLoadModule('/components/whatsapp-order-result.tsx');
+ for(const [card_mode,label] of [['credit_single','Crédito à vista, no recebimento'],['debit','Débito no recebimento']]) {
+  const html=renderToStaticMarkup(React.createElement(WhatsAppOrderResultView,{order:{customerName:'Maria',result:{order:{order_number:1047,total:34.04,card_mode},payment:{method:'card_on_delivery'}},trackingUrl:'/pedido?token=abc',whatsappUrl:'https://tintim.link/fixture'}}));
+  assert.ok(html.includes(label)); assert.match(html,/#1047/); assert.match(html,/34,04/); assert.doesNotMatch(html,/\(1x\)/);
+ }
+});
+
+test('hidden technical identity and request key are reused when retrying registration', async () => {
+ const payloads=[];
+ const context=checkout.newOrderContext(checkout.captureOrderAttribution('https://example.test/',''));
+ const h=checkoutHarness({snapshot:snapshot(),usedFallback:false},{
+  orderContextRef:{current:context},
+  createWhatsAppOrder:async payload=>{
+   payloads.push(payload);
+   if(payloads.length===1)throw new Error('temporary failure');
+   return {order:{order_number:1047,tracking_token:'a'.repeat(48),total:73},payment:{method:'manual_pix'}};
+  },
+ });
+ await h.finish(); await h.finish();
+ assert.equal(payloads.length,2);
+ for(const payload of payloads) {
+  assert.equal(payload.client_order_id,context.order_id);
+  assert.equal(payload.request_key,context.request_key);
+ }
+ assert.match(context.order_id,/^LOD-/); assert.match(context.request_key,/^[0-9a-f]{64}$/);
+ assert.equal(h.writes.at(-1).value.whatsappResult.result.order.order_number,1047);
+});
