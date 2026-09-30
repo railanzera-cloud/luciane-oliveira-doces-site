@@ -669,8 +669,28 @@ test('definitive WhatsApp composition uses the shared quote for delivery and pic
   assert.ok(message.includes('Total: '+checkout.formatOrderMoney(q.totalCents/100)));
   if(delivery)assert.ok(message.includes('Produtos: R$ 25,00\nEntrega: R$ 8,00'));
   else assert.doesNotMatch(message,/Entrega: R\$/);
-  if(q.feeCents)assert.ok(message.includes(`Acréscimo do ${payment==='credito'?'crédito':'débito'} (${payment==='credito'?'3,05':'0,57'}%): ${checkout.formatOrderMoney(q.feeCents/100)}`));
-  else assert.doesNotMatch(message,/Acréscimo do/);
+  if(q.feeCents)assert.ok(message.includes(`Acréscimo (${payment==='credito'?'3,05':'0,57'}%): ${checkout.formatOrderMoney(q.feeCents/100)}`));
+  else assert.doesNotMatch(message,/Acréscimo/);
+  if(q.feeCents) {
+   const label=payment==='credito'?'Crédito à vista (1x)':'Débito';
+   assert.ok(message.includes(`${fulfillment==='entrega'?'Entrega':'Retirada'} • ${label}\n`));
+   assert.equal(message.split(label).length-1,1);
+   assert.doesNotMatch(message,/Pagamento:|, na entrega|, na retirada|O acréscimo/);
+   assert.ok(message.includes('\n\nProdutos:'));
+   assert.ok(message.includes('\n\nAcréscimo já incluído no total.\n\n🔗 Acompanhar pedido:'));
+  }
   if(payment==='pix')assert.match(message,/Após o pagamento, envio o comprovante por aqui/);
+ }
+});
+
+// Frozen before the card-only wording edit: byte-for-byte preservation of Pix/cash.
+test('Pix and cash messages remain identical to checkpoint 11782be', async () => {
+ const {createHash}=await import('node:crypto');
+ const hashes=['579c1edd5866685208186c8d21ad3e68b72c11d9f5e384bb893eaa1eb38219f3','4ec179c25fc8fd0f92c156fc1c77e6ae5c4c50e82ac2438c44e1eff38527d002','099410080966894914c082242a883f9fb8c00db311047213b79e090aba4ac0a3','5a029e3bebdfa4c93b1c7ec1a7f67ecadc3d7b28c7e4805b5e5e1c1303ca52c6'];
+ let index=0;
+ for(const payment of ['pix','dinheiro'])for(const fulfillment of ['retirada','entrega']) {
+  const details={customer_name:'Maria',items:[{name:'Fatia',kind:'slice',quantity:1,options:['Sem calda, por favor'],unit_price:22}],subtotal:22,delivery_fee:fulfillment==='entrega'?8:0,total:fulfillment==='entrega'?30:22,payment,fulfillment,street:'Rua A',number:'10',neighborhood:'Centro',complement:'',reference:'',needs_change:true,cash_received_cents:5000};
+  const message=checkout.buildRegisteredOrderMessage(details,1021,'https://example.test/pedido?token='+'a'.repeat(48),{key:'chave-existente',keyType:'CPF',holder:'Titular existente'});
+  assert.equal(createHash('sha256').update(message).digest('hex'),hashes[index++]);
  }
 });

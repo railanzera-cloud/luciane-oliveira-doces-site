@@ -208,20 +208,23 @@ export function buildRegisteredOrderMessage(order: CheckoutDetails, number: numb
     if (item.options.length) lines.push(item.options.join(" + "));
     lines.push("");
   }
-  lines.push(`${order.fulfillment === "retirada" ? "Retirada" : "Entrega"} • ${paymentDescription(order.payment, order.fulfillment)}`);
+  const isCard = order.payment === "credito" || order.payment === "debito";
+  const summaryPayment = order.payment === "credito" ? "Crédito à vista (1x)" : order.payment === "debito" ? "Débito" : paymentDescription(order.payment, order.fulfillment);
+  lines.push(`${order.fulfillment === "retirada" ? "Retirada" : "Entrega"} • ${summaryPayment}`);
   if (order.fulfillment === "entrega") {
     lines.push(`${cleanWhatsAppField(order.street)}, ${cleanWhatsAppField(order.number)} — ${cleanWhatsAppField(order.neighborhood)}`);
     if (order.complement.trim()) lines.push(`Complemento: ${cleanWhatsAppField(order.complement)}`);
     if (order.reference.trim()) lines.push(`Referência: ${cleanWhatsAppField(order.reference)}`);
   }
   if (order.notes?.trim()) lines.push(`Observação: ${cleanWhatsAppField(order.notes)}`);
-  if (order.fulfillment === "entrega" || order.payment === "credito" || order.payment === "debito") {
+  if (isCard) lines.push("");
+  if (order.fulfillment === "entrega" || isCard) {
     lines.push(`Produtos: ${formatOrderMoney(order.subtotal)}`);
     if (order.fulfillment === "entrega") lines.push(`Entrega: ${formatOrderMoney(order.delivery_fee)}`);
-    if (order.payment === "credito" || order.payment === "debito") lines.push(`Acréscimo do ${order.payment === "credito" ? "crédito" : "débito"} (${((order.card_basis_points ?? 0) / 100).toLocaleString("pt-BR")}%): ${formatOrderMoney(order.card_fee ?? 0)}`);
+    if (isCard) lines.push(`Acréscimo (${((order.card_basis_points ?? 0) / 100).toLocaleString("pt-BR")}%): ${formatOrderMoney(order.card_fee ?? 0)}`);
   }
   lines.push(`Total: ${formatOrderMoney(order.total)}`, "");
-  if (order.payment === "credito" || order.payment === "debito") lines.push(`Pagamento: ${paymentDescription(order.payment, order.fulfillment)}`, "O acréscimo já está incluído no total.");
+  if (isCard) lines.push("Acréscimo já incluído no total.");
   if (order.payment === "pix") lines.push("Pagamento via Pix", `${pix.keyType}: ${pix.key}`, pix.holder, "", "Após o pagamento, envio o comprovante por aqui.");
   if (order.payment === "cartao") lines.push("Cartão no recebimento");
   if (order.payment === "dinheiro") {
