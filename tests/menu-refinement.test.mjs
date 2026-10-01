@@ -221,13 +221,16 @@ for (const payment of ["pix", "dinheiro", "cartao"]) {
   for (const fulfillment of ["entrega", "retirada"]) {
     test(`WhatsApp ${fulfillment}/${payment}: complete order, correct totals, no obsolete slice options`, () => {
       const message = messageFor(payment, fulfillment);
+      const openUrl = new URL(pageFunction("tintimWhatsAppUrl", { TINTIM_SITE_LINK: "https://tintim.link/fixture" })(message));
+      assert.equal(openUrl.searchParams.get("text"),message);
+      assert.doesNotMatch(message,/Acompanhar pedido|https?:\/\/|\/pedido\?token=/);
       assert.match(message, /2x Prestígio/);
       assert.match(message, /1x Pipoca Gourmet 500 ml/);
       assert.match(message, /Crispy Bueno \+ Leitinho/);
       assert.ok(message.includes(checkout.formatOrderMoney(fulfillment === "entrega" ? 81 : 73)));
       assert.match(message, /Sem calda, por favor/);
       assert.doesNotMatch(message, /calda-ninho/);
-      if (payment === "pix") assert.match(message, /Pagamento via Pix[\s\S]*03611974200/);
+      if (payment === "pix") assert.match(message, /PRÓXIMO PASSO — PAGAMENTO VIA PIX[\s\S]*03611974200/);
       else assert.doesNotMatch(message, /03611974200|Titular:/);
       if (payment === "dinheiro") assert.match(message, /Troco para: R\$ 100,00/);
       if (fulfillment === "entrega") assert.match(message, /Rua de teste, 1 — Bairro de teste[\s\S]*Referência de teste/);
@@ -317,15 +320,15 @@ test("an unresponsive availability endpoint is aborted so the existing fallback 
   assert.equal(cleared, true);
 });
 
-test("approved message uses the registered number, customer, dynamic payment and private link", () => {
+test("approved message uses the registered number, customer and dynamic payment without a public URL", () => {
   for (const fulfillment of ["entrega", "retirada"]) {
     for (const payment of ["pix", "cartao", "dinheiro"]) {
       const message=messageFor(payment,fulfillment);
       assert.ok(message.startsWith("Olá! Finalizei meu pedido pelo site da Luciane Oliveira Doces.\n\n*PEDIDO #1047*\n\nCliente: Maria Oliveira"));
       assert.ok(message.includes(`Total: R$ ${fulfillment === "entrega" ? "81" : "73"},00`));
-      assert.ok(message.endsWith("https://example.test/pedido?token="+"a".repeat(48)));
+      assert.doesNotMatch(message,/Acompanhar pedido|\/pedido\?token=|https?:\/\//);
       assert.doesNotMatch(message,/\p{Cf}|\u00a0|\u202f/u);
-      if(payment === "pix") assert.match(message,/CPF: 03611974200\nLuciane Galvão de Oliveira/);
+      if(payment === "pix") assert.match(message,/\*Chave Pix \(CPF\):\* 03611974200\nTitular: Luciane Galvão de Oliveira/);
       else assert.doesNotMatch(message,/03611974200|Pagamento via Pix/);
       if(payment === "cartao") assert.doesNotMatch(message,/acréscimo.*antes da confirmação/);
     }
@@ -618,7 +621,7 @@ test('final screen keeps WhatsApp predominant and tracking secondary for each ma
   const html=renderToStaticMarkup(React.createElement(WhatsAppOrderResultView,{order:{customerName:'Maria Oliveira',result:{order:{order_number:1004,total:48},payment:{method}},trackingUrl:'/pedido?token=abc',whatsappUrl:'https://tintim.link/fixture'}}));
   assert.match(html,/Olá, Maria/);assert.match(html,/1004/);assert.ok(html.includes(label));
   assert.match(html,/whatsapp-final-primary/);assert.match(html,/Ao abrir o WhatsApp, toque em enviar/);
-  assert.match(html,/Acompanhar meu pedido/);assert.equal((html.match(/<a /g)||[]).length,2);
+  assert.match(html,/Ver pedido/);assert.equal((html.match(/<a /g)||[]).length,2);
   assert.doesNotMatch(html,/Copiar chave|Fazer novo pedido|03611974200/);
  }
 });
@@ -667,8 +670,7 @@ test('definitive WhatsApp composition uses the shared quote for delivery and pic
   const message=checkout.buildRegisteredOrderMessage(details,1008,'https://example.test/pedido?token='+ 'a'.repeat(48),{key:'03611974200',keyType:'CPF',holder:'Luciane Galvão de Oliveira'});
   assert.ok(message.startsWith('Olá! Finalizei meu pedido pelo site da Luciane Oliveira Doces.\n\n*PEDIDO #1008*\n'));
   assert.doesNotMatch(message,/📦|PEDIDO CONFIRMADO|eventual acréscimo/i);
-  assert.equal((message.match(/https:\/\//g)||[]).length,1);
-  assert.ok(message.endsWith('a'.repeat(48)));
+  assert.doesNotMatch(message,/Acompanhar pedido|\/pedido|https?:\/\//);
   assert.ok(message.includes('Total: '+checkout.formatOrderMoney(q.totalCents/100)));
   if(delivery)assert.ok(message.includes('Produtos: R$ 25,00\nEntrega: R$ 8,00'));
   else assert.doesNotMatch(message,/Entrega: R\$/);
@@ -680,21 +682,28 @@ test('definitive WhatsApp composition uses the shared quote for delivery and pic
    assert.equal(message.split(label).length-1,1);
    assert.doesNotMatch(message,/Pagamento:|, na entrega|, na retirada|O acréscimo/);
    assert.ok(message.includes('\n\nProdutos:'));
-   assert.ok(message.includes('\n\nAcréscimo já incluído no total.\n\n🔗 Acompanhar pedido:'));
+   assert.ok(message.endsWith('\n\nAcréscimo já incluído no total.'));
   }
-  if(payment==='pix')assert.match(message,/Após o pagamento, envio o comprovante por aqui/);
+  if(payment==='pix') {
+   assert.ok(message.includes(`*Valor a pagar:* ${checkout.formatOrderMoney(q.totalCents/100)}`));
+   assert.match(message,/\*Chave Pix \(CPF\):\* 03611974200\nTitular: Luciane Galvão de Oliveira/);
+   assert.ok(message.endsWith('*Agora faço o Pix e envio o comprovante por aqui.*'));
+   assert.doesNotMatch(message,/Faça o pagamento/);
+  }
  }
 });
 
-// Frozen before the card-only wording edit: byte-for-byte preservation of Pix/cash.
-test('Pix and cash messages remain identical to checkpoint 11782be', async () => {
+// Cash is unchanged byte-for-byte apart from the explicitly removed final link.
+test('cash structure remains identical to the previous snapshot apart from the link', async () => {
  const {createHash}=await import('node:crypto');
- const hashes=['579c1edd5866685208186c8d21ad3e68b72c11d9f5e384bb893eaa1eb38219f3','4ec179c25fc8fd0f92c156fc1c77e6ae5c4c50e82ac2438c44e1eff38527d002','099410080966894914c082242a883f9fb8c00db311047213b79e090aba4ac0a3','5a029e3bebdfa4c93b1c7ec1a7f67ecadc3d7b28c7e4805b5e5e1c1303ca52c6'];
+ const hashes=['099410080966894914c082242a883f9fb8c00db311047213b79e090aba4ac0a3','5a029e3bebdfa4c93b1c7ec1a7f67ecadc3d7b28c7e4805b5e5e1c1303ca52c6'];
  let index=0;
- for(const payment of ['pix','dinheiro'])for(const fulfillment of ['retirada','entrega']) {
-  const details={customer_name:'Maria',items:[{name:'Fatia',kind:'slice',quantity:1,options:['Sem calda, por favor'],unit_price:22}],subtotal:22,delivery_fee:fulfillment==='entrega'?8:0,total:fulfillment==='entrega'?30:22,payment,fulfillment,street:'Rua A',number:'10',neighborhood:'Centro',complement:'',reference:'',needs_change:true,cash_received_cents:5000};
-  const message=checkout.buildRegisteredOrderMessage(details,1021,'https://example.test/pedido?token='+'a'.repeat(48),{key:'chave-existente',keyType:'CPF',holder:'Titular existente'});
-  assert.equal(createHash('sha256').update(message).digest('hex'),hashes[index++]);
+ for(const fulfillment of ['retirada','entrega']) {
+  const details={customer_name:'Maria',items:[{name:'Fatia',kind:'slice',quantity:1,options:['Sem calda, por favor'],unit_price:22}],subtotal:22,delivery_fee:fulfillment==='entrega'?8:0,total:fulfillment==='entrega'?30:22,payment:'dinheiro',fulfillment,street:'Rua A',number:'10',neighborhood:'Centro',complement:'',reference:'',needs_change:true,cash_received_cents:5000};
+  const tracking='https://example.test/pedido?token='+'a'.repeat(48);
+  const message=checkout.buildRegisteredOrderMessage(details,1021,tracking,{key:'chave-existente',keyType:'CPF',holder:'Titular existente'});
+  const previous=message+'\n\n🔗 Acompanhar pedido:\n'+tracking;
+  assert.equal(createHash('sha256').update(previous).digest('hex'),hashes[index++]);
  }
 });
 
@@ -842,4 +851,49 @@ test('temporary registration errors use approved copy while business errors keep
  }
  const h=checkoutHarness({snapshot:snapshot(),usedFallback:false},{createWhatsAppOrder:async()=>{throw new SiteOrderError(409,'unavailable_item','Item indisponível: revise o carrinho.');}});
  await h.finish(); assert.equal(h.messages.at(-1),'Item indisponível: revise o carrinho.');
+});
+
+test('approved Pix guidance is rendered next to final CTA only while manual Pix is selected', () => {
+ let guidance;
+ function visit(node) {
+  if(ts.isJsxExpression(node) && node.getText(ast).includes('Depois de finalizar no WhatsApp')) guidance=node.expression;
+  ts.forEachChild(node,visit);
+ }
+ visit(ast); assert.ok(guidance);
+ const {outputText}=ts.transpileModule(`const renderGuidance=()=>(${guidance.getText(ast)});`,{compilerOptions:{jsx:ts.JsxEmit.React,target:ts.ScriptTarget.ES2022}});
+ const render=new Function('React','payment',`${outputText}; return renderGuidance();`);
+ const approved='Depois de finalizar no WhatsApp, faça o Pix com a chave informada na mensagem e envie o comprovante na conversa.';
+ assert.ok(renderToStaticMarkup(render(React,'pix')).includes(approved));
+ for(const payment of ['dinheiro','credito','debito','mercado_pago_pix','']) assert.equal(renderToStaticMarkup(render(React,payment)),'');
+ assert.equal(source.split(approved).length-1,1);
+ assert.ok(source.indexOf(approved)>source.indexOf('className="whatsapp-button checkout-primary-button"'));
+});
+
+
+test('delivery Pix matches approved compact message and ends with the consumer next action', () => {
+ const details={...detailsFor('pix','entrega'),customer_name:'Fabiola Sousa',items:[{kind:'slice',name:'Chocolate com Morango',quantity:1,size:'Fatia',options:['Com calda de chocolate'],unit_price:22}],street:'Travessa Lauro Martins',number:'39',neighborhood:'Laércio Cabeline',complement:'',reference:'',subtotal:22,delivery_fee:8,total:30};
+ const message=checkout.buildRegisteredOrderMessage(details,1025,'https://example.test/pedido?token='+'a'.repeat(48),{key:'03611974200',keyType:'CPF',holder:'Luciane Galvão de Oliveira'});
+ assert.equal(message,`Olá! Finalizei meu pedido pelo site da Luciane Oliveira Doces.
+
+*PEDIDO #1025*
+
+Cliente: Fabiola Sousa
+
+1x Chocolate com Morango
+Com calda de chocolate
+
+Entrega • Pix
+Travessa Lauro Martins, 39 — Laércio Cabeline
+
+Produtos: R$ 22,00
+Entrega: R$ 8,00
+Total: R$ 30,00
+
+*PRÓXIMO PASSO — PAGAMENTO VIA PIX*
+
+*Valor a pagar:* R$ 30,00
+*Chave Pix (CPF):* 03611974200
+Titular: Luciane Galvão de Oliveira
+
+*Agora faço o Pix e envio o comprovante por aqui.*`);
 });

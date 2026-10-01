@@ -143,14 +143,14 @@ export function SiteOrderResultView({
         {notice && <p className="site-result-notice" role="status">{notice}</p>}
 
         <div className="site-result-actions">
-          <Button asChild><a href={trackingUrl}><ShoppingBag size={17} /> Acompanhar pedido</a></Button>
+          <Button asChild><a href={trackingUrl}><ShoppingBag size={17} /> Ver pedido</a></Button>
           <Button variant="outline" asChild><a href={supportUrl(status.order_number)}><MessageCircle size={17} /> Falar com a loja</a></Button>
           {!paid && isOnline && <Button type="button" variant="ghost" onClick={() => void refresh()} disabled={refreshing}>{refreshing ? <LoaderCircle className="admin-spinner" size={17} /> : <RefreshCw size={17} />} Atualizar situação</Button>}
           {isOnline && ["failed", "cancelled"].includes(status.payment_status) && status.order_status !== "cancelled" && <Button type="button" variant="outline" onClick={onRetryPayment}>Tentar pagamento novamente</Button>}
           {gatewayPayment.ticket_url && method === "mercado_pago_pix" && status.payment_status === "pending" && <Button variant="ghost" asChild><a href={gatewayPayment.ticket_url} target="_blank" rel="noreferrer">Abrir pagamento <ExternalLink size={16} /></a></Button>}
           <Button type="button" variant="ghost" onClick={onNewOrder}>Fazer novo pedido</Button>
         </div>
-        <p className="site-result-privacy">Seus dados são usados somente para processar e acompanhar este pedido.</p>
+        <p className="site-result-privacy">Seus dados são usados somente para processar este pedido.</p>
       </section>
     </main>
   );

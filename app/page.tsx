@@ -1968,7 +1968,6 @@ export default function Home() {
                 <MercadoPagoCardForm publicKey={COMMERCE_CONFIG.mercadoPagoPublicKey} amount={orderTotal} disabled={isFinalizing || !customerReady || !addressReady || cartIssues.length > 0} onSubmit={finishOnSite} />
               )}
               {cardMode && <p className="payment-guidance">{RECEIPT_CARD_NOTICE}</p>}
-              {payment === "pix" && <p className="payment-guidance">O próximo passo é no WhatsApp: envie o pedido e use a chave Pix da mensagem para pagar. Depois, envie o comprovante na mesma conversa.</p>}
               {payment === "mercado_pago_pix" && <p className="payment-guidance">O QR Code será gerado pelo Mercado Pago. A confirmação do pagamento acontece automaticamente.</p>}
               {(payment === "cartao" || payment === "card_on_delivery") && <p className="payment-guidance">{fulfillment === "retirada" ? "Pague no cartão ao retirar." : fulfillment === "entrega" ? "Pague no cartão no momento da entrega." : "O pagamento será feito no momento da entrega ou retirada."}</p>}
               {isCashPayment && (
@@ -2030,6 +2029,7 @@ export default function Home() {
             </div>
             <Button type="button" className="whatsapp-button checkout-primary-button" onClick={handleFinalAction} disabled={isFinalizing || (!availability.ordersOpen && orderContext?.handoff_fingerprint !== checkoutFingerprint)} aria-describedby="checkout-status" data-event={checkoutChannel === "whatsapp" ? "whatsapp_checkout" : "site_checkout"}>{isFinalizing ? <LoaderCircle className="admin-spinner" size={20} /> : checkoutChannel === "whatsapp" ? <MessageCircle size={20} /> : payment === "mercado_pago_pix" ? <QrCode size={20} /> : <ShoppingBag size={20} />} {finalButtonLabel}</Button>
             {checkoutChannel === "whatsapp" && orderContext?.whatsapp_attempted_at && <div className="whatsapp-return-note" role="status"><strong>Continue no WhatsApp</strong><p>Envie a mensagem por lá para encaminhar o pedido. Seu pedido continua nesta aba para consulta.</p><Button type="button" variant="outline" onClick={clearOrder} disabled={isFinalizing}>Fazer novo pedido</Button></div>}
+            {payment === "pix" && <p className="payment-guidance">Depois de finalizar no WhatsApp, faça o Pix com a chave informada na mensagem e envie o comprovante na conversa.</p>}
             <p id="checkout-status" className={checkoutShowsReady ? "ready-status" : "checkout-status"} aria-live="polite">{checkoutShowsReady && <Check size={14} />}{checkoutHint}</p>
           </aside>
         </div>

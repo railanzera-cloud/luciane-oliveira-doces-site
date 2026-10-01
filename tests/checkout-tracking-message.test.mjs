@@ -18,8 +18,8 @@ function functionBody(source, functionName, nextFunctionName) {
 test("keeps simplified slices and explains the explicit WhatsApp send", () => {
   assert.match(page, /Sabores disponíveis/);
   assert.match(page, /Como prefere sua fatia/);
-  assert.match(page, /toque em enviar para encaminhar o pedido/);
-  assert.match(page, /Registrar e continuar no WhatsApp/);
+  assert.match(page, /Tudo certo! Seu pedido está pronto para ser enviado/);
+  assert.match(page, /Finalizar pedido no WhatsApp/);
 });
 
 test("builds a clean payment-specific message with an order code", () => {
@@ -35,8 +35,8 @@ test("preserves the exact Pix key and instructs payment inside WhatsApp", () => 
   assert.match(page, /holder: "Luciane Galvão de Oliveira"/);
   assert.match(page, /key: "03611974200"/);
   assert.match(page, /keyType: "CPF"/);
-  assert.match(messageSource, /PRÓXIMO PASSO — PAGAMENTO PIX/);
-  assert.match(messageSource, /Faça o pagamento e envie o comprovante nesta conversa/);
+  assert.match(messageSource, /PRÓXIMO PASSO — PAGAMENTO VIA PIX/);
+  assert.match(messageSource, /Agora faço o Pix e envio o comprovante por aqui/);
   assert.doesNotMatch(page, /Copiar Pix|clipboard\.writeText/);
 });
 

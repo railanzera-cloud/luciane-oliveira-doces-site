@@ -200,7 +200,7 @@ export function buildOrderMessage(order: CheckoutDetails, orderId: string, pix: 
 }
 
 // Called before the Tintim redirect. Never processes Tintim's returned text or invisible attribution suffix.
-export function buildRegisteredOrderMessage(order: CheckoutDetails, number: number, trackingUrl: string, pix: { holder: string; key: string; keyType: string }): string {
+export function buildRegisteredOrderMessage(order: CheckoutDetails, number: number, _trackingUrl: string, pix: { holder: string; key: string; keyType: string }): string {
   if (!Number.isSafeInteger(number) || number < 1) throw new Error("Pedido sem número confirmado.");
   const lines = ["Olá! Finalizei meu pedido pelo site da Luciane Oliveira Doces.", "", `*PEDIDO #${number}*`, "", `Cliente: ${cleanWhatsAppField(order.customer_name ?? "")}`, ""];
   for (const item of order.items) {
@@ -217,7 +217,7 @@ export function buildRegisteredOrderMessage(order: CheckoutDetails, number: numb
     if (order.reference.trim()) lines.push(`Referência: ${cleanWhatsAppField(order.reference)}`);
   }
   if (order.notes?.trim()) lines.push(`Observação: ${cleanWhatsAppField(order.notes)}`);
-  if (isCard) lines.push("");
+  if (isCard || (order.payment === "pix" && order.fulfillment === "entrega")) lines.push("");
   if (order.fulfillment === "entrega" || isCard) {
     lines.push(`Produtos: ${formatOrderMoney(order.subtotal)}`);
     if (order.fulfillment === "entrega") lines.push(`Entrega: ${formatOrderMoney(order.delivery_fee)}`);
@@ -225,7 +225,13 @@ export function buildRegisteredOrderMessage(order: CheckoutDetails, number: numb
   }
   lines.push(`Total: ${formatOrderMoney(order.total)}`, "");
   if (isCard) lines.push("Acréscimo já incluído no total.");
-  if (order.payment === "pix") lines.push("Pagamento via Pix", `${pix.keyType}: ${pix.key}`, pix.holder, "", "Após o pagamento, envio o comprovante por aqui.");
+  if (order.payment === "pix") lines.push(
+    "*PRÓXIMO PASSO — PAGAMENTO VIA PIX*", "",
+    `*Valor a pagar:* ${formatOrderMoney(order.total)}`,
+    `*Chave Pix (${pix.keyType}):* ${pix.key}`,
+    `Titular: ${pix.holder}`, "",
+    "*Agora faço o Pix e envio o comprovante por aqui.*",
+  );
   if (order.payment === "cartao") lines.push("Cartão no recebimento");
   if (order.payment === "dinheiro") {
     lines.push("Dinheiro no recebimento");
@@ -234,6 +240,5 @@ export function buildRegisteredOrderMessage(order: CheckoutDetails, number: numb
       lines.push(`Troco para: ${formatOrderMoney(order.cash_received_cents / 100)}`);
     } else lines.push("Não preciso de troco.");
   }
-  lines.push("", "🔗 Acompanhar pedido:", trackingUrl);
   return cleanWhatsAppText(lines.join("\n"));
 }

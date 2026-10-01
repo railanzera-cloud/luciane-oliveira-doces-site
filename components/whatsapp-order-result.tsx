@@ -24,8 +24,8 @@ export function WhatsAppOrderResultView({ order }: { order: RegisteredWhatsAppOr
     <a className="whatsapp-final-primary" href={order.whatsappUrl}><MessageCircle size={21} /> Enviar pedido pelo WhatsApp</a>
     <small>Ao abrir o WhatsApp, toque em enviar.</small>
     <div className="whatsapp-final-secondary">
-      <a href={order.trackingUrl}>Acompanhar meu pedido →</a>
-      <small>O link também estará na mensagem do WhatsApp.</small>
+      <a href={order.trackingUrl}>Ver pedido →</a>
+      <small>Consulte aqui os detalhes do seu pedido.</small>
     </div>
   </section></main>;
 }
