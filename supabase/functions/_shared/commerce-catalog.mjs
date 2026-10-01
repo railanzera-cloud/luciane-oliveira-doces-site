@@ -63,6 +63,17 @@ export const DELIVERY_ZONES = Object.freeze({
   "resort-toddys": Object.freeze({ id: "resort-toddys", label: "Resort Toddys", priceCents: 2400 }),
 });
 
+// Correspondência exata após normalização; não tenta adivinhar bairros parecidos.
+export function deliveryZoneMismatchMessage(zoneId, neighborhood) {
+  if (!DELIVERY_ZONES[zoneId]?.asksNeighborhood || typeof neighborhood !== "string") return "";
+  const normalize = value => value.normalize("NFD").replace(/\p{M}/gu, "").trim().replace(/\s+/g, " ").toLowerCase();
+  const normalized = normalize(neighborhood);
+  const specific = Object.values(DELIVERY_ZONES).find(zone => !zone.asksNeighborhood && normalize(zone.label) === normalized);
+  if (!specific) return "";
+  const price = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(specific.priceCents / 100).replace(/\u00a0/g, " ");
+  return `Esse local possui uma taxa de entrega específica. Selecione ‘${specific.label} — ${price}’ em ‘Onde será a entrega?’.`;
+}
+
 function requiredString(value, field, maxLength = 160) {
   if (typeof value !== "string") throw new Error(`Campo inválido: ${field}.`);
   const result = value.normalize("NFC").trim();
@@ -179,6 +190,8 @@ export function quoteFulfillment(raw) {
   const neighborhood = zone.asksNeighborhood
     ? requiredString(raw.neighborhood, "bairro", 120)
     : zone.label;
+  const mismatch = deliveryZoneMismatchMessage(zone.id, neighborhood);
+  if (mismatch) throw new Error(mismatch);
   return {
     fulfillment_type: "delivery",
     delivery_zone_id: zone.id,

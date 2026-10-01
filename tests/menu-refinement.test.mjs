@@ -627,7 +627,7 @@ test('final screen keeps WhatsApp predominant and tracking secondary for each ma
 });
 
 test('checkout navigation follows receiving, delivery fields, identification and payment without skipping', () => {
- const state={fulfillment:'',selectedDeliveryZone:null,deliveryNeighborhood:'',address:'',addressNumber:'',customerNameReady:false,checkoutChannel:'whatsapp',customerPhoneReady:false,cleanWhatsAppField:checkout.cleanWhatsAppField};
+ const state={deliveryZoneError:'',fulfillment:'',selectedDeliveryZone:null,deliveryNeighborhood:'',address:'',addressNumber:'',customerNameReady:false,checkoutChannel:'whatsapp',customerPhoneReady:false,cleanWhatsAppField:checkout.cleanWhatsAppField};
  const next=(overrides={})=>pageFunction('nextCheckoutSection',{...state,...overrides})();
  assert.equal(next(),'recebimento');
  assert.equal(next({fulfillment:'entrega'}),'delivery-fields');
@@ -677,7 +677,7 @@ test('definitive WhatsApp composition uses the shared quote for delivery and pic
   if(q.feeCents)assert.ok(message.includes(`Acréscimo (${payment==='credito'?'3,05':'0,57'}%): ${checkout.formatOrderMoney(q.feeCents/100)}`));
   else assert.doesNotMatch(message,/Acréscimo/);
   if(q.feeCents) {
-   const label=payment==='credito'?'Crédito à vista (1x)':'Débito';
+   const label=payment==='credito'?'Crédito à vista':'Débito';
    assert.ok(message.includes(`${fulfillment==='entrega'?'Entrega':'Retirada'} • ${label}\n`));
    assert.equal(message.split(label).length-1,1);
    assert.doesNotMatch(message,/Pagamento:|, na entrega|, na retirada|O acréscimo/);
@@ -687,7 +687,7 @@ test('definitive WhatsApp composition uses the shared quote for delivery and pic
   if(payment==='pix') {
    assert.ok(message.includes(`*Valor a pagar:* ${checkout.formatOrderMoney(q.totalCents/100)}`));
    assert.match(message,/\*Chave Pix \(CPF\):\* 03611974200\nTitular: Luciane Galvão de Oliveira/);
-   assert.ok(message.endsWith('*Agora faço o Pix e envio o comprovante por aqui.*'));
+   assert.ok(message.endsWith('*Vou fazer o Pix e enviar o comprovante por aqui.*'));
    assert.doesNotMatch(message,/Faça o pagamento/);
   }
  }
@@ -796,7 +796,7 @@ for(const payment of ['pix','dinheiro','credito','debito']) test(`final CTA and 
 
 function checkoutFeedback(overrides = {}) {
  const state={checkoutChannel:'whatsapp',checkoutFormReady:true,checkoutReady:true,isFinalizing:false,
-  whatsAppRetryAvailable:false,checkoutAvailabilityMessage:'',availability:{ordersOpen:true},cartIssues:[],cart,
+  whatsAppRetryAvailable:false,deliveryZoneError:'',checkoutAvailabilityMessage:'',availability:{ordersOpen:true},cartIssues:[],cart,
   fulfillment:'retirada',selectedDeliveryZone:null,neighborhood:'',addressReady:true,customerNameReady:true,
   customerPhoneReady:true,payment:'pix',paymentReady:true,changeError:'',STORE_CONFIG:catalog.STORE_CONFIG,...overrides};
  state.checkoutFeedbackMessage=checkoutCopy('checkoutFeedbackMessage',state);
@@ -895,5 +895,158 @@ Total: R$ 30,00
 *Chave Pix (CPF):* 03611974200
 Titular: Luciane Galvão de Oliveira
 
-*Agora faço o Pix e envio o comprovante por aqui.*`);
+*Vou fazer o Pix e enviar o comprovante por aqui.*`);
+});
+
+const deliveryPolicy = await import('../supabase/functions/_shared/commerce-catalog.mjs');
+const deliveryAddress = {type:'delivery', zone_id:'cidade', neighborhood:'Centro', street:'Rua X', number:'12', complement:'Casa 2', reference:'Portaria'};
+function deliveryState(zoneId, neighborhood, fulfillment='entrega') {
+ const values={fulfillment,deliveryZoneId:zoneId,neighborhood,address:'Rua X',addressNumber:'12',DELIVERY_ZONES:catalog.DELIVERY_ZONES,
+  cleanWhatsAppField:checkout.cleanWhatsAppField,deliveryZoneMismatchMessage:deliveryPolicy.deliveryZoneMismatchMessage};
+ values.selectedDeliveryZone=checkoutCopy('selectedDeliveryZone',values);
+ values.deliveryNeighborhood=checkoutCopy('deliveryNeighborhood',values);
+ values.deliveryZoneError=checkoutCopy('deliveryZoneError',values);
+ values.addressReady=checkoutCopy('addressReady',values);
+ return values;
+}
+
+test('all existing delivery prices, order and specific locality names remain unchanged', () => {
+ assert.deepEqual(catalog.DELIVERY_ZONES.map(z=>z.id),Object.keys(deliveryPolicy.DELIVERY_ZONES));
+ for(const zone of catalog.DELIVERY_ZONES) {
+  const state=deliveryState(zone.id,'Centro');
+  const recorded=deliveryPolicy.quoteFulfillment({...deliveryAddress,zone_id:zone.id,neighborhood:state.deliveryNeighborhood,delivery_fee:0});
+  assert.equal(recorded.delivery_fee_cents,zone.price*100);
+  assert.equal(recorded.neighborhood,zone.asksNeighborhood?'Centro':zone.label);
+  assert.equal(state.deliveryNeighborhood,recorded.neighborhood);
+  assert.equal(state.addressReady,true); assert.equal(state.deliveryZoneError,'');
+ }
+});
+
+test('city delivery blocks exact specific names including accents, case and spaces in browser and server', () => {
+ for(const zone of Object.values(deliveryPolicy.DELIVERY_ZONES).filter(z=>!z.asksNeighborhood)) {
+  for(const typed of [zone.label,zone.label.toUpperCase(),`  ${zone.label.normalize('NFD').replace(/\p{M}/gu,'').toLowerCase()}  `]) {
+   const state=deliveryState('cidade',typed);
+   assert.equal(state.addressReady,false);
+   assert.ok(state.deliveryZoneError.includes(`${zone.label} — ${checkout.formatOrderMoney(zone.priceCents/100)}`));
+   assert.ok(state.deliveryZoneError.includes('Onde será a entrega?'));
+   assert.throws(()=>deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:typed}),{message:state.deliveryZoneError});
+   assert.equal(state.deliveryZoneId,'cidade','no silent tariff switch');
+  }
+ }
+ for(const typed of ['Centro','Laércio Cabeline','Acaizal próximo à praça','Acaizais']) {
+  assert.equal(deliveryState('cidade',typed).addressReady,true);
+  assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:typed}).delivery_fee_cents,800);
+ }
+ assert.throws(()=>deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:'   '}),/bairro/);
+});
+
+test('fixing a delivery mismatch or changing to pickup clears only validation, preserving typed fields', () => {
+ const invalid=deliveryState('cidade','Acaizal'); assert.equal(invalid.addressReady,false);
+ for(const state of [deliveryState('acaizal','Acaizal'),deliveryState('cidade','Centro'),deliveryState('cidade','Acaizal','retirada')]) {
+  assert.equal(state.addressReady,true);if(state.fulfillment==='entrega')assert.equal(state.deliveryZoneError,'');
+  assert.equal(state.address,'Rua X');assert.equal(state.addressNumber,'12');
+ }
+ assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,type:'pickup',neighborhood:'Acaizal'}).delivery_fee_cents,0);
+ const pickup=deliveryState('cidade','Acaizal','retirada');
+ assert.equal(checkoutFeedback(pickup).checkoutHint,'Tudo certo! Seu pedido está pronto para ser enviado.');
+ // Selecting delivery from pickup must not skip a stored locality conflict before React renders again.
+ const next=pageFunction('nextCheckoutSection',{...pickup,customerNameReady:true,checkoutChannel:'whatsapp'});
+ assert.equal(next('entrega'),'delivery-fields');
+});
+
+function renderDeliveryFields(state) {
+ let node;
+ function visit(candidate) {
+  if(ts.isJsxElement(candidate) && candidate.openingElement.attributes.properties.some(prop=>ts.isJsxAttribute(prop) && prop.name.text==='id' && prop.initializer?.text==='delivery-fields')) node=candidate;
+  ts.forEachChild(candidate,visit);
+ }
+ visit(ast);assert.ok(node);
+ const container=({children})=>React.createElement('div',null,children);
+ const values={React,...state,currency:new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}),legacyAddressNotice:false,
+  setDeliveryZoneId:()=>{},setNeighborhood:()=>{},setAddress:()=>{},setAddressNumber:()=>{},setLegacyAddressNotice:()=>{},
+  setComplement:()=>{},setReference:()=>{},complement:'',reference:'',DELIVERY_TIME_ESTIMATE:catalog.DELIVERY_TIME_ESTIMATE,
+  Select:container,SelectTrigger:container,SelectValue:()=>null,SelectContent:container,SelectGroup:container,SelectLabel:container,SelectItem:container,
+  Input:props=>React.createElement('input',props)};
+ const {outputText}=ts.transpileModule(`const render=()=>(${node.getText(ast)});`,{compilerOptions:{jsx:ts.JsxEmit.React,target:ts.ScriptTarget.ES2022}});
+ return renderToStaticMarkup(new Function(...Object.keys(values),`${outputText};return render();`)(...Object.values(values)));
+}
+
+test('real delivery JSX keeps required city neighborhood, hides it for specific places and shows accessible conflict guidance', () => {
+ const city=renderDeliveryFields(deliveryState('cidade','Centro'));
+ assert.match(city,/Onde será a entrega\?/);assert.match(city,/id="neighborhood"/);assert.doesNotMatch(city,/id="delivery-zone-error"/);
+ assert.match(city,/Taxa de entrega:[\s\S]*8,00/);
+ for(const id of ['acaizal','aeroporto','km-12','colonia-uraim']) {
+  const html=renderDeliveryFields(deliveryState(id,'Centro'));
+  assert.doesNotMatch(html,/id="neighborhood"|Informe seu bairro/);
+  assert.match(html,/id="address"/);assert.match(html,/id="address-number"/);
+  assert.match(html,/id="complement"/);assert.match(html,/id="reference"/);
+ }
+ const html=renderDeliveryFields(deliveryState('cidade','  AÇAIZAL '));
+ assert.match(html,/aria-invalid="true" aria-describedby="delivery-zone-error"/);
+ assert.match(html,/id="delivery-zone-error" class="field-error" role="status"/);
+ assert.match(html,/Açaizal — R\$ 10,00/);
+});
+
+test('a mismatched locality blocks registration and guides both checkout and sticky action back to delivery', async () => {
+ const state=deliveryState('cidade','acaizal');
+ const next=pageFunction('nextCheckoutSection',{...state,customerNameReady:true,checkoutChannel:'whatsapp'});
+ assert.equal(next(),'delivery-fields');
+ let destination;let calls=0;
+ const h=checkoutHarness({snapshot:snapshot(),usedFallback:false},{...state,checkoutFormReady:false,
+  setBuilderEngaged:()=>{},requestScroll:id=>destination=id,nextCheckoutSection:next,createWhatsAppOrder:async()=>{calls++;}});
+ await h.finish();assert.equal(calls,0);assert.equal(destination,'delivery-fields');assert.equal(h.lock.current,false);
+ const feedback=checkoutFeedback({...state,checkoutFormReady:false,checkoutReady:false,checkoutAvailabilityMessage:'Complete as informações acima para continuar.'});
+ assert.equal(feedback.checkoutHint,state.deliveryZoneError);assert.equal(feedback.checkoutShowsReady,false);
+ // Both existing checkout actions continue to use the same pending-section function.
+ const finalAction=pageFunction('handleFinalAction',{checkoutFormReady:false,cart,nextCheckoutSection:next,
+  setBuilderEngaged:()=>{},setCheckoutAvailabilityMessage:()=>{},requestScroll:id=>destination=id});
+ const sticky=pageFunction('handleStickyAction',{stickyUsesCheckoutAction:true,handleFinalAction:finalAction});
+ destination=null;sticky();assert.equal(destination,'delivery-fields');
+});
+
+test('specific delivery fee and financial total agree from actual request payload through server quote and WhatsApp', async () => {
+ for(const zoneId of ['cidade','acaizal','aeroporto','condominio-rural','colonia-uraim']) for(const payment of ['pix','dinheiro','credito','debito']) {
+  const state=deliveryState(zoneId,'Centro');
+  const mode=payment==='credito'?'credit_single':payment==='debito'?'debit':null;
+  const {receiptCardQuote}=await import('../supabase/functions/_shared/receipt-card.mjs');
+  const items=[{product_id:'pipoca-gourmet',variant_id:'500ml',option_ids:['leitinho'],quantity:1}];
+  const products=deliveryPolicy.quoteCartItems(items);
+  const preview=receiptCardQuote(products.subtotalCents+state.selectedDeliveryZone.price*100,mode);
+  const details={...detailsFor(payment,'entrega'),customer_name:'Maria Oliveira',items:[{...items[0],kind:'popcorn',name:'Pipoca Gourmet',size:'500 ml',options:['Leitinho'],unit_price:25}],
+   neighborhood:state.deliveryNeighborhood,street:state.address,number:state.addressNumber,complement:'Casa 2',reference:'Portaria',
+   subtotal:25,delivery_fee:state.selectedDeliveryZone.price,total:preview.totalCents/100,card_fee:preview.feeCents/100,card_basis_points:preview.basisPoints,needs_change:false};
+  let recorded,message;
+  const h=checkoutHarness({snapshot:snapshot(),usedFallback:false},{...state,payment,cardMode:mode,orderTotal:details.total,checkoutDetails:details,
+   createWhatsAppOrder:async payload=>{
+    recorded=deliveryPolicy.quoteFulfillment(payload.fulfillment);
+    const q=receiptCardQuote(deliveryPolicy.quoteCartItems(payload.items).subtotalCents+recorded.delivery_fee_cents,payload.payment.card_mode??null);
+    assert.equal(Number(payload.expected_total)*100,q.totalCents);
+    return {order:{order_number:1047,tracking_token:'a'.repeat(48),subtotal:25,delivery_fee:recorded.delivery_fee_cents/100,total:q.totalCents/100,card_fee:q.feeCents/100,card_basis_points:q.basisPoints},payment:{method:payload.payment.method}};
+   },buildRegisteredOrderMessage:(...args)=>{message=checkout.buildRegisteredOrderMessage(...args);return message;}});
+  await h.finish();assert.ok(recorded);assert.ok(message);assert.equal(h.messages.at(-1),'');
+  assert.equal(recorded.neighborhood,state.deliveryNeighborhood);
+  assert.equal(recorded.delivery_fee_cents,details.delivery_fee*100);
+  assert.ok(message.includes(`Entrega: ${checkout.formatOrderMoney(details.delivery_fee)}`));
+  assert.ok(message.includes(`Total: ${checkout.formatOrderMoney(details.total)}`));
+  assert.equal(message.split(` — ${state.deliveryNeighborhood}`).length-1,1);
+  assert.doesNotMatch(message,/Bairro:|\/pedido\?token=|Acompanhar pedido|\(1x\)/);
+  if(payment==='credito'||payment==='debito')assert.match(message,/Acréscimo já incluído no total\./);
+ }
+});
+
+test('checkout recalculates existing totals immediately after place, receiving, cart and payment changes', async () => {
+ const {receiptCardQuote}=await import('../supabase/functions/_shared/receipt-card.mjs');
+ for(const [zoneId,fulfillment,payment,subtotal] of [
+  ['cidade','entrega','pix',25],['acaizal','entrega','pix',25],['acaizal','entrega','credito',25],
+  ['aeroporto','entrega','credito',47],['aeroporto','entrega','debito',47],['cidade','retirada','debito',47],
+  ['cidade','retirada','dinheiro',47],['cidade','entrega','pix',22],
+ ]) {
+  const values={...deliveryState(zoneId,'Centro',fulfillment),payment,cartSubtotal:subtotal,checkoutChannel:'whatsapp',receiptCardQuote};
+  for(const name of ['deliveryFee','cardMode','cardQuote','orderTotal'])values[name]=checkoutCopy(name,values);
+  const expected=receiptCardQuote(Math.round(subtotal*100)+Math.round(values.deliveryFee*100),values.cardMode);
+  assert.equal(values.orderTotal,expected.totalCents/100);
+  assert.equal(values.deliveryFee,fulfillment==='retirada'?0:catalog.DELIVERY_ZONES.find(z=>z.id===zoneId).price);
+  assert.equal(values.cardMode,payment==='credito'?'credit_single':payment==='debito'?'debit':null);
+  if(payment==='pix'||payment==='dinheiro')assert.equal(values.orderTotal,subtotal+values.deliveryFee);
+ }
 });

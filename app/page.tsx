@@ -76,6 +76,7 @@ import { MercadoPagoCardForm } from "@/components/mercado-pago-card-form";
 import { WhatsAppOrderResultView, type RegisteredWhatsAppOrder } from "@/components/whatsapp-order-result";
 import { HomeLastOrderLink } from "@/components/home-last-order";
 import { SiteOrderResultView } from "@/components/site-order-result";
+import { deliveryZoneMismatchMessage } from "@/supabase/functions/_shared/commerce-catalog.mjs";
 import { RECEIPT_CARD_NOTICE, receiptCardQuote } from "@/lib/manual-payment-policy";
 import { getCommercePublicConfiguration } from "@/lib/commerce-config";
 import {
@@ -606,6 +607,8 @@ export default function Home() {
     ? neighborhood.trim()
     : selectedDeliveryZone?.label ?? "";
 
+  const deliveryZoneError = deliveryZoneMismatchMessage(deliveryZoneId, cleanWhatsAppField(neighborhood));
+
   const cartSubtotal = useMemo(
     () => cart.reduce((total, item) => {
       const product = PRODUCTS.find((candidate) => candidate.id === item.productId);
@@ -657,7 +660,7 @@ export default function Home() {
     ? popcornUnitPrice === null ? null : popcornUnitPrice * popcornQuantity
     : selectedSliceVariant ? selectedSliceVariant.price * sliceQuantity : null;
   const addressReady = fulfillment !== "entrega"
-    || Boolean(selectedDeliveryZone && cleanWhatsAppField(deliveryNeighborhood) && cleanWhatsAppField(address) && cleanWhatsAppField(addressNumber));
+    || Boolean(selectedDeliveryZone && !deliveryZoneError && cleanWhatsAppField(deliveryNeighborhood) && cleanWhatsAppField(address) && cleanWhatsAppField(addressNumber));
   const cashReceivedCents = parseCashCents(changeFor);
   const isCashPayment = payment === "dinheiro" || payment === "cash";
   const changeError = isCashPayment && needsChange
@@ -964,7 +967,7 @@ export default function Home() {
   function nextCheckoutSection(receiving: Fulfillment = fulfillment): string {
     if (!receiving) return "recebimento";
     if (receiving === "entrega") {
-      if (!selectedDeliveryZone) return "delivery-fields";
+      if (!selectedDeliveryZone || deliveryZoneError) return "delivery-fields";
       if (!cleanWhatsAppField(deliveryNeighborhood)) return "neighborhood";
       if (!cleanWhatsAppField(address)) return "address";
       if (!cleanWhatsAppField(addressNumber)) return "address-number";
@@ -1394,7 +1397,7 @@ export default function Home() {
   const checkoutFeedbackMessage = checkoutFormReady && checkoutAvailabilityMessage === "Complete as informações acima para continuar."
     ? "" : checkoutAvailabilityMessage;
   const checkoutShowsReady = checkoutReady && !isFinalizing && !whatsAppRetryAvailable && !checkoutFeedbackMessage;
-  const checkoutHint = checkoutFeedbackMessage
+  const checkoutHint = (fulfillment === "entrega" && deliveryZoneError) || checkoutFeedbackMessage
     || (!availability.ordersOpen
     ? STORE_CONFIG.closedMessage
     : cartIssues.length > 0
@@ -1406,7 +1409,7 @@ export default function Home() {
       : !fulfillment
         ? "Escolha entrega ou retirada."
         : fulfillment === "entrega" && !selectedDeliveryZone
-          ? "Escolha sua região de entrega."
+          ? "Escolha onde será a entrega."
           : fulfillment === "entrega" && selectedDeliveryZone?.asksNeighborhood && !neighborhood.trim()
             ? "Informe seu bairro."
             : !addressReady
@@ -1865,10 +1868,10 @@ export default function Home() {
               {fulfillment === "entrega" && (
                 <div className="delivery-fields" id="delivery-fields">
                   <div className="field-group delivery-zone-field">
-                    <label id="delivery-zone-label">Região de entrega</label>
+                    <label id="delivery-zone-label">Onde será a entrega?</label>
                     <Select value={deliveryZoneId} onValueChange={setDeliveryZoneId}>
                       <SelectTrigger className="delivery-select-trigger" aria-labelledby="delivery-zone-label">
-                        <SelectValue placeholder="Selecione seu bairro ou região" />
+                        <SelectValue placeholder="Selecione o local de entrega" />
                       </SelectTrigger>
                       <SelectContent className="delivery-select-content" align="start">
                         <SelectGroup>
@@ -1890,14 +1893,18 @@ export default function Home() {
                     )}
                   </div>
                   {selectedDeliveryZone?.asksNeighborhood && (
-                    <div className="field-group"><label htmlFor="neighborhood">Bairro</label><Input id="neighborhood" value={neighborhood} onChange={(event) => setNeighborhood(event.target.value)} placeholder="Informe seu bairro" autoComplete="address-level3" /></div>
+                    <div className="field-group">
+                      <label htmlFor="neighborhood">Bairro</label>
+                      <Input id="neighborhood" value={neighborhood} onChange={(event) => setNeighborhood(event.target.value)} placeholder="Informe seu bairro" autoComplete="address-level3" aria-invalid={Boolean(deliveryZoneError)} aria-describedby={deliveryZoneError ? "delivery-zone-error" : undefined} />
+                      {deliveryZoneError && <p id="delivery-zone-error" className="field-error" role="status">{deliveryZoneError}</p>}
+                    </div>
                   )}
                   {legacyAddressNotice && <p className="field-note" role="status">Seu endereço anterior foi preservado. Confira a rua e informe o número; se não houver, use s/n.</p>}
                   <div className="field-group"><label htmlFor="address">Rua</label><Input id="address" value={address} onChange={(event) => setAddress(event.target.value)} placeholder="Ex.: Rua das Flores" autoComplete="address-line1" /></div>
                   <div className="field-group"><label htmlFor="address-number">Número</label><Input id="address-number" value={addressNumber} onChange={(event) => { setAddressNumber(event.target.value); setLegacyAddressNotice(false); }} placeholder="Ex.: 123 ou s/n" /></div>
                   <div className="field-group"><label htmlFor="complement">Complemento (opcional)</label><Input id="complement" value={complement} onChange={(event) => setComplement(event.target.value)} placeholder="Ex.: casa 2, apartamento" autoComplete="address-line2" /></div>
                   <div className="field-group"><label htmlFor="reference">Ponto de referência (opcional)</label><Input id="reference" value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Ex.: próximo à praça" /></div>
-                  <p className="field-note">A taxa é calculada pela região escolhida. Confira o endereço e o total antes de enviar.</p>
+                  <p className="field-note">A taxa é calculada pelo local escolhido. Confira o endereço e o total antes de enviar.</p>
                   <p className="field-note">{DELIVERY_TIME_ESTIMATE} O prazo começa após a confirmação da loja.</p>
                 </div>
               )}
@@ -2024,7 +2031,7 @@ export default function Home() {
               {fulfillment === "entrega" && <div className="summary-address"><strong>Endereço de entrega</strong><p>{[address, addressNumber].filter(Boolean).join(", ") || "Informe a rua e o número"}</p>{complement && <p>{complement}</p>}<p>{deliveryNeighborhood || "Informe o bairro"}</p>{reference && <p>Referência: {reference}</p>}</div>}
               {isCashPayment && needsChange && !changeError && !cartNeedsSizeReview && <div className="summary-address"><p>Troco para: {formatOrderMoney(cashReceivedCents! / 100)}</p><p>Troco necessário: {formatOrderMoney((cashReceivedCents! - Math.round(orderTotal * 100)) / 100)}</p></div>}
               {<div className="summary-address"><strong>Cliente</strong><p>{customerName.trim() || "Informe seu nome"}</p>{checkoutChannel === "site" && <p>{customerPhone.trim() || "Informe seu celular"}</p>}{payment === "mercado_pago_pix" && <p>{customerEmail.trim() || "Informe seu e-mail"}</p>}</div>}
-              <button type="button" className="summary-link" onClick={() => enterCheckout("recebimento")}><span><small>Recebimento</small><strong>{fulfillment === "entrega" ? selectedDeliveryZone ? `Entrega — ${selectedDeliveryZone.label} · ${currency.format(deliveryFee)}` : "Entrega — escolher região" : fulfillment === "retirada" ? "Retirada em Paragominas" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
+              <button type="button" className="summary-link" onClick={() => enterCheckout("recebimento")}><span><small>Recebimento</small><strong>{fulfillment === "entrega" ? selectedDeliveryZone ? `Entrega — ${selectedDeliveryZone.label} · ${currency.format(deliveryFee)}` : "Entrega — escolher local" : fulfillment === "retirada" ? "Retirada em Paragominas" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
               <button type="button" className="summary-link" onClick={() => enterCheckout("pagamento")}><span><small>Pagamento</small><strong>{paymentLabel}</strong></span><ChevronRight size={18} /></button>
             </div>
             <Button type="button" className="whatsapp-button checkout-primary-button" onClick={handleFinalAction} disabled={isFinalizing || (!availability.ordersOpen && orderContext?.handoff_fingerprint !== checkoutFingerprint)} aria-describedby="checkout-status" data-event={checkoutChannel === "whatsapp" ? "whatsapp_checkout" : "site_checkout"}>{isFinalizing ? <LoaderCircle className="admin-spinner" size={20} /> : checkoutChannel === "whatsapp" ? <MessageCircle size={20} /> : payment === "mercado_pago_pix" ? <QrCode size={20} /> : <ShoppingBag size={20} />} {finalButtonLabel}</Button>

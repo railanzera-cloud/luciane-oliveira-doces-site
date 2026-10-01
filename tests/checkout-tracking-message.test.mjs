@@ -36,7 +36,7 @@ test("preserves the exact Pix key and instructs payment inside WhatsApp", () => 
   assert.match(page, /key: "03611974200"/);
   assert.match(page, /keyType: "CPF"/);
   assert.match(messageSource, /PRÓXIMO PASSO — PAGAMENTO VIA PIX/);
-  assert.match(messageSource, /Agora faço o Pix e envio o comprovante por aqui/);
+  assert.match(messageSource, /Vou fazer o Pix e enviar o comprovante por aqui/);
   assert.doesNotMatch(page, /Copiar Pix|clipboard\.writeText/);
 });
 

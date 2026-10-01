@@ -209,7 +209,7 @@ export function buildRegisteredOrderMessage(order: CheckoutDetails, number: numb
     lines.push("");
   }
   const isCard = order.payment === "credito" || order.payment === "debito";
-  const summaryPayment = order.payment === "credito" ? "Crédito à vista (1x)" : order.payment === "debito" ? "Débito" : paymentDescription(order.payment, order.fulfillment);
+  const summaryPayment = order.payment === "credito" ? "Crédito à vista" : order.payment === "debito" ? "Débito" : paymentDescription(order.payment, order.fulfillment);
   lines.push(`${order.fulfillment === "retirada" ? "Retirada" : "Entrega"} • ${summaryPayment}`);
   if (order.fulfillment === "entrega") {
     lines.push(`${cleanWhatsAppField(order.street)}, ${cleanWhatsAppField(order.number)} — ${cleanWhatsAppField(order.neighborhood)}`);
@@ -230,7 +230,7 @@ export function buildRegisteredOrderMessage(order: CheckoutDetails, number: numb
     `*Valor a pagar:* ${formatOrderMoney(order.total)}`,
     `*Chave Pix (${pix.keyType}):* ${pix.key}`,
     `Titular: ${pix.holder}`, "",
-    "*Agora faço o Pix e envio o comprovante por aqui.*",
+    "*Vou fazer o Pix e enviar o comprovante por aqui.*",
   );
   if (order.payment === "cartao") lines.push("Cartão no recebimento");
   if (order.payment === "dinheiro") {
