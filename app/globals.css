@@ -1572,6 +1572,23 @@ label:has(button:focus-visible) {
   color: #fff6e9 !important;
 }
 
+.delivery-selection-help {
+  color: #765a43;
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+/* O rótulo mais longo continua legível no seletor de 48px do mobile. */
+.delivery-select-trigger [data-slot="select-value"] {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  min-width: 0;
+  line-height: 1.1;
+  text-align: left;
+}
+
 .delivery-price-preview {
   display: inline-flex;
   align-items: center;

@@ -928,12 +928,12 @@ test('city delivery blocks exact specific names including accents, case and spac
    const state=deliveryState('cidade',typed);
    assert.equal(state.addressReady,false);
    assert.ok(state.deliveryZoneError.includes(`${zone.label} — ${checkout.formatOrderMoney(zone.priceCents/100)}`));
-   assert.ok(state.deliveryZoneError.includes('Onde será a entrega?'));
-   assert.throws(()=>deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:typed}),{message:state.deliveryZoneError});
+   assert.ok(state.deliveryZoneError.includes('Selecione seu bairro ou local de entrega'));
+   assert.throws(()=>deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:typed}),{message:deliveryPolicy.deliveryZoneMismatchMessage('cidade',typed)});
    assert.equal(state.deliveryZoneId,'cidade','no silent tariff switch');
   }
  }
- for(const typed of ['Centro','Laércio Cabeline','Acaizal próximo à praça','Acaizais']) {
+ for(const typed of ['Centro','Promissão I','Laércio Cabeline','Acaizal próximo à praça','Acaizais']) {
   assert.equal(deliveryState('cidade',typed).addressReady,true);
   assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:typed}).delivery_fee_cents,800);
  }
@@ -973,11 +973,11 @@ function renderDeliveryFields(state) {
 
 test('real delivery JSX keeps required city neighborhood, hides it for specific places and shows accessible conflict guidance', () => {
  const city=renderDeliveryFields(deliveryState('cidade','Centro'));
- assert.match(city,/Onde será a entrega\?/);assert.match(city,/id="neighborhood"/);assert.doesNotMatch(city,/id="delivery-zone-error"/);
+ assert.match(city,/Selecione seu bairro ou local de entrega/);assert.match(city,/id="neighborhood"/);assert.doesNotMatch(city,/id="delivery-zone-error"/);
  assert.match(city,/Taxa de entrega:[\s\S]*8,00/);
  for(const id of ['acaizal','aeroporto','km-12','colonia-uraim']) {
   const html=renderDeliveryFields(deliveryState(id,'Centro'));
-  assert.doesNotMatch(html,/id="neighborhood"|Informe seu bairro/);
+  assert.doesNotMatch(html,/id="neighborhood"|Qual é o seu bairro\?|Digite seu bairro/);
   assert.match(html,/id="address"/);assert.match(html,/id="address-number"/);
   assert.match(html,/id="complement"/);assert.match(html,/id="reference"/);
  }
@@ -1049,4 +1049,37 @@ test('checkout recalculates existing totals immediately after place, receiving, 
   assert.equal(values.cardMode,payment==='credito'?'credit_single':payment==='debito'?'debit':null);
   if(payment==='pix'||payment==='dinheiro')assert.equal(values.orderTotal,subtotal+values.deliveryFee);
  }
+});
+
+test('delivery copy guides city choice without changing IDs, prices, order or specific labels', () => {
+ const initial=renderDeliveryFields(deliveryState('',''));
+ assert.match(initial,/id="delivery-zone-label">Selecione seu bairro ou local de entrega/);
+ assert.match(initial,/id="delivery-zone-hint" class="delivery-selection-help">Selecione seu local para calcular a taxa de entrega\./);
+ assert.doesNotMatch(initial,/id="neighborhood"/);
+ const city=renderDeliveryFields(deliveryState('cidade','Promissão I')).replace(/\u00a0/g,' ');
+ assert.ok(city.includes('Outro bairro dentro da cidade — R$ 8,00'));
+ assert.match(city,/<label for="neighborhood">Qual é o seu bairro\?<\/label>/);
+ assert.match(city,/<input(?=[^>]*id="neighborhood")(?=[^>]*value="Promissão I")(?=[^>]*placeholder="Digite seu bairro")[^>]*>/);
+ const state=deliveryState('cidade','Promissão I');assert.equal(state.addressReady,true);
+ assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:state.deliveryNeighborhood}).delivery_fee_cents,800);
+ let previous=-1;
+ for(const zone of catalog.DELIVERY_ZONES) {
+  const label=zone.id==='cidade'?'Outro bairro dentro da cidade':zone.label;
+  const index=city.indexOf(`${label} — ${checkout.formatOrderMoney(zone.price)}`);
+  assert.ok(index>previous,`option ${zone.id} keeps its order and tariff`);previous=index;
+ }
+ assert.equal(catalog.DELIVERY_ZONES.find(z=>z.id==='cidade').label,'Dentro da cidade','internal catalog preserved');
+ assert.match(source,/aria-describedby="delivery-zone-hint"/);
+});
+
+test('delivery copy refinement retains mobile trigger, scrollable dropdown and shared checkout CTA', async () => {
+ const css=await readFile(new URL('../app/globals.css',import.meta.url),'utf8');
+ assert.match(css,/\.delivery-select-trigger \{[^}]*height: 48px !important;/);
+ assert.match(css,/\.delivery-select-trigger \[data-slot="select-value"\] \{[^}]*white-space: normal;[^}]*min-width: 0;/);
+ assert.match(css,/\.delivery-select-content \{[^}]*max-height: min\(420px, 70vh\)/);
+ assert.match(css,/-webkit-line-clamp: 2;/);
+ assert.match(source,/onValueChange=\{setDeliveryZoneId\}/);
+ assert.match(source,/onClick=\{handleStickyAction\}/);
+ assert.match(source,/onClick=\{handleFinalAction\}/);
+ assert.match(source,/zone\.id === "cidade" \? "Outro bairro dentro da cidade" : zone\.label/);
 });
