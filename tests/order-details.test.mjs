@@ -18,6 +18,7 @@ function render(order) {
   'react/jsx-runtime':jsx,
   'lucide-react':{Check:icon,Clock3:icon,LoaderCircle:icon,MessageCircle:icon,RefreshCw:icon,ShoppingBag:icon},
   'next/link':{default:({children,...props})=>React.createElement('a',props,children)},
+  '@/components/tintim-contact-link':{TintimContactLink:({message,children})=>React.createElement('a',{'data-contact-message':message},children)},
   '@/components/ui/button':{Button:({children,asChild,variant,...props})=>asChild?children:React.createElement('button',props,children)},
   '@/app/catalog':{DELIVERY_TIME_ESTIMATE:'Preparo e entrega: em média, 15 a 20 minutos.'},
   '@/app/order-checkout':{formatOrderMoney:value=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(value)},

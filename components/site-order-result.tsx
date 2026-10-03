@@ -12,11 +12,7 @@ import {
   type SitePaymentMethod,
 } from "@/lib/site-order";
 
-const TINTIM_SITE_LINK = "https://tintim.link/whatsapp/2c956a42-229f-4d21-ade6-4442f8c048ed/7522df92-bbe1-4bff-83ca-2629bba182eb";
-
-function supportUrl(orderNumber: number) {
-  return `${TINTIM_SITE_LINK}?text=${encodeURIComponent(`Olá! Já fiz o pedido #${orderNumber} pelo site e preciso de ajuda.`)}`;
-}
+import { TintimContactLink } from "@/components/tintim-contact-link";
 
 function paymentStatusFromResult(result: SiteOrderResult): PublicOrderStatus["payment_status"] {
   if (result.payment.status === "processed" && result.payment.status_detail === "accredited") return "paid";
@@ -144,7 +140,7 @@ export function SiteOrderResultView({
 
         <div className="site-result-actions">
           <Button asChild><a href={trackingUrl}><ShoppingBag size={17} /> Ver pedido</a></Button>
-          <Button variant="outline" asChild><a href={supportUrl(status.order_number)}><MessageCircle size={17} /> Falar com a loja</a></Button>
+          <Button variant="outline" asChild><TintimContactLink message={`Olá! Já fiz o pedido #${status.order_number} pelo site e preciso de ajuda.`}><MessageCircle size={17} /> Falar com a loja</TintimContactLink></Button>
           {!paid && isOnline && <Button type="button" variant="ghost" onClick={() => void refresh()} disabled={refreshing}>{refreshing ? <LoaderCircle className="admin-spinner" size={17} /> : <RefreshCw size={17} />} Atualizar situação</Button>}
           {isOnline && ["failed", "cancelled"].includes(status.payment_status) && status.order_status !== "cancelled" && <Button type="button" variant="outline" onClick={onRetryPayment}>Tentar pagamento novamente</Button>}
           {gatewayPayment.ticket_url && method === "mercado_pago_pix" && status.payment_status === "pending" && <Button variant="ghost" asChild><a href={gatewayPayment.ticket_url} target="_blank" rel="noreferrer">Abrir pagamento <ExternalLink size={16} /></a></Button>}

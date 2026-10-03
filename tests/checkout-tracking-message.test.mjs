@@ -4,6 +4,7 @@ import test from "node:test";
 
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 const messageSource = await readFile(new URL("../app/order-checkout.ts", import.meta.url), "utf8");
+const tintim = await readFile(new URL("../lib/tintim.ts", import.meta.url), "utf8");
 const navigation = await readFile(new URL("../app/menu-navigation.ts", import.meta.url), "utf8");
 const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
 
@@ -42,10 +43,10 @@ test("preserves the exact Pix key and instructs payment inside WhatsApp", () => 
 
 test("uses only the Tintim Site Link with an encoded dynamic text parameter", () => {
   assert.match(
-    page,
+    tintim,
     /const TINTIM_SITE_LINK = "https:\/\/tintim\.link\/whatsapp\/2c956a42-229f-4d21-ade6-4442f8c048ed\/7522df92-bbe1-4bff-83ca-2629bba182eb"/,
   );
-  assert.match(page, /\?text=\$\{encodeURIComponent\(message\)\}/);
+  assert.match(tintim, /\?text=\$\{encodeURIComponent\(message\)\}/);
   assert.doesNotMatch(page, /wa\.me|api\.whatsapp\.com/i);
 });
 
@@ -65,7 +66,7 @@ test("routes both checkout CTAs through the same dispatcher and keeps one WhatsA
   assert.match(finalAction, /if \(checkoutChannel === "whatsapp"\)/);
   assert.match(finalAction, /void finishOnWhatsApp\(\)/);
   assert.doesNotMatch(builderAction, /finishOnWhatsApp|tintimWhatsAppUrl|window\.location/);
-  assert.equal((page.match(/tintimWhatsAppUrl\(/g) ?? []).length, 2);
+  assert.equal((page.match(/tintimWhatsAppUrl\(/g) ?? []).length, 1);
   assert.doesNotMatch(page, /<a[^>]+href=\{tintimWhatsAppUrl/);
 });
 

@@ -31,6 +31,7 @@ after(() => vite.close());
 const catalog = await vite.ssrLoadModule("/app/catalog.ts");
 const availability = await vite.ssrLoadModule("/app/menu-availability.ts");
 const checkout = await vite.ssrLoadModule("/app/order-checkout.ts");
+const tintim = await vite.ssrLoadModule("/lib/tintim.ts");
 const { SiteOrderError } = await vite.ssrLoadModule("/lib/site-order.ts");
 const navigation = await vite.ssrLoadModule("/app/menu-navigation.ts");
 const fixture = await vite.ssrLoadModule("/hooks/use-menu-availability.ts");
@@ -221,7 +222,7 @@ for (const payment of ["pix", "dinheiro", "cartao"]) {
   for (const fulfillment of ["entrega", "retirada"]) {
     test(`WhatsApp ${fulfillment}/${payment}: complete order, correct totals, no obsolete slice options`, () => {
       const message = messageFor(payment, fulfillment);
-      const openUrl = new URL(pageFunction("tintimWhatsAppUrl", { TINTIM_SITE_LINK: "https://tintim.link/fixture" })(message));
+      const openUrl = new URL(tintim.tintimWhatsAppUrl(message));
       assert.equal(openUrl.searchParams.get("text"),message);
       assert.doesNotMatch(message,/Acompanhar pedido|https?:\/\/|\/pedido\?token=/);
       assert.match(message, /2x Prestígio/);
@@ -262,7 +263,7 @@ function checkoutHarness(latest, overrides = {}) {
     ORDER_STORAGE_KEY: "luciane-order-session-v2", unlockTimerRef: {},
     checkoutStartedRef: { current: true }, paymentInfoTrackedRef: { current: true },
     buildWhatsAppMessage: () => messageFor("pix"),
-    tintimWhatsAppUrl: pageFunction("tintimWhatsAppUrl", { TINTIM_SITE_LINK: "https://tintim.link/whatsapp/test" }),
+    tintimWhatsAppUrl: tintim.tintimWhatsAppUrl,
     window: { scrollTo: () => {}, location: { origin:"https://example.test", href: "https://example.test/?categoria=fatias", assign: (url) => actions.push(url) },
       sessionStorage: { setItem: (key, value) => writes.push({ key, value: JSON.parse(value) }) },
       setTimeout: (fn, ms) => { scheduled.push({ fn, ms }); return scheduled.length; } },
@@ -570,7 +571,7 @@ for (const [label, size, optionIds, expected] of pricingCases) {
         options: optionIds.map((id) => catalog.POPCORN.options.find((option) => option.id === id).name) }],
         subtotal, delivery_fee: fee, total: subtotal + fee };
       const message = checkout.buildOrderMessage(order, fixedOrderId, { holder: "Luciane Galvão de Oliveira", key: "03611974200", keyType: "CPF" });
-      const url = pageFunction("tintimWhatsAppUrl", { TINTIM_SITE_LINK: "https://tintim.link/whatsapp/test" })(message);
+      const url = tintim.tintimWhatsAppUrl(message);
       assert.equal(new URL(url).searchParams.get("text"), message);
       assert.ok(message.includes(`*Total: ${checkout.formatOrderMoney(subtotal + fee)}*`));
       assert.ok(message.includes(`Valor a pagar: *${checkout.formatOrderMoney(subtotal + fee)}*`));
@@ -596,7 +597,7 @@ test("case G: real toggle handler recomputes from remaining flavors and enforces
 });
 
 test('dynamic Tintim link preserves repeated parameters and tracker cookies', () => {
-  const build = pageFunction('tintimWhatsAppUrl', { TINTIM_SITE_LINK: 'https://tintim.link/fixture' });
+  const build = tintim.tintimWhatsAppUrl;
   const url = new URL(build('📦 PEDIDO #1047', { parameters: { extra: ['1', '2'], utm_source: ['instagram'], text: ['untrusted'] } }, 'tt_fbclid=click%201; tt_utm_source=old; tt_campaignid=42'));
   assert.equal(url.searchParams.get('text'), '📦 PEDIDO #1047');
   assert.deepEqual(url.searchParams.getAll('extra'), ['1', '2']);
@@ -1082,4 +1083,112 @@ test('delivery copy refinement retains mobile trigger, scrollable dropdown and s
  assert.match(source,/onClick=\{handleStickyAction\}/);
  assert.match(source,/onClick=\{handleFinalAction\}/);
  assert.match(source,/zone\.id === "cidade" \? "Outro bairro dentro da cidade" : zone\.label/);
+});
+
+function withTintimBrowser({href='https://fixture.invalid/', cookies='', session=null, local=null, blocked=false}, run) {
+ const oldWindow=globalThis.window,oldDocument=globalThis.document;
+ const writes=[];
+ const storage=value=>({getItem:()=>{if(blocked)throw new Error('storage blocked');return value===null?null:JSON.stringify(value);},setItem:()=>writes.push('write')});
+ globalThis.window={location:{href},sessionStorage:storage(session),localStorage:storage(local)};
+ globalThis.document={cookie:cookies};
+ try {return run(writes);} finally {
+  if(oldWindow===undefined)delete globalThis.window;else globalThis.window=oldWindow;
+  if(oldDocument===undefined)delete globalThis.document;else globalThis.document=oldDocument;
+ }
+}
+
+test('secondary Tintim URLs reuse checkout attribution with repeated params and fresh cookies, without storage writes', () => {
+ const previous=checkout.captureOrderAttribution('https://fixture.invalid/?utm_source=instagram&utm_campaign=bolo&extra=old','');
+ const message='Olá! Já fiz o pedido #1025 pelo site e preciso de ajuda.';
+ withTintimBrowser({href:'https://fixture.invalid/pedido?token=private-token&utm_medium=bio&extra=1&extra=2&fbclid=current&text=untrusted',
+  cookies:'tt_fbclid=old; tt_campaignid=42; tt_tintim_fbid=click%201; tt_text=bad; tt_bad=%ZZ; unrelated=secret',
+  session:{version:2,order:{attribution:previous}}},writes=>{
+  const url=new URL(tintim.tintimContactUrl(message));
+  const expected=new URL(tintim.tintimWhatsAppUrl(message,checkout.captureOrderAttribution(window.location.href,document.cookie,previous),document.cookie));
+  expected.searchParams.delete('token');assert.equal(url.href,expected.href);
+  assert.equal(url.searchParams.get('text'),message);assert.equal(url.searchParams.getAll('text').length,1);
+  assert.equal(url.searchParams.get('utm_source'),'instagram');assert.equal(url.searchParams.get('utm_campaign'),'bolo');
+  assert.equal(url.searchParams.get('utm_medium'),'bio');assert.deepEqual(url.searchParams.getAll('extra'),['1','2']);
+  assert.equal(url.searchParams.get('fbclid'),'current');assert.equal(url.searchParams.get('campaignid'),'42');
+  assert.equal(url.searchParams.get('tintim_fbid'),'click 1');assert.equal(url.searchParams.has('bad'),false);
+  assert.equal(url.searchParams.has('token'),false);assert.equal(url.searchParams.has('unrelated'),false);
+  assert.deepEqual(writes,[]);
+ });
+});
+
+test('generic contact keeps no message, session attribution wins and first-known fallback survives navigation',()=>{
+ const first=checkout.captureOrderAttribution('https://fixture.invalid/?utm_source=instagram&origem=bio','');
+ for(const session of [null,{version:2,order:{attribution:first}}]) withTintimBrowser({local:first,session,cookies:'tt_campaignid=7; tt_text=not-a-message'},()=>{
+  const url=new URL(tintim.tintimContactUrl());
+  assert.equal(url.searchParams.has('text'),false);assert.equal(url.searchParams.get('origem'),'bio');
+  assert.equal(url.searchParams.get('campaignid'),'7');assert.equal(url.searchParams.get('utm_source'),'instagram');
+ });
+ withTintimBrowser({local:first,session:{version:2,order:{attribution:checkout.captureOrderAttribution('https://fixture.invalid/?utm_source=facebook','')}}},()=>{
+  assert.equal(new URL(tintim.tintimContactUrl()).searchParams.get('utm_source'),'facebook');
+ });
+});
+
+test('secondary contacts handle SSR, blocked storage and no attribution without inventing origin',()=>{
+ const base=new URL(tintim.tintimWhatsAppUrl(''));base.searchParams.delete('text');
+ assert.equal(tintim.tintimContactUrl(),base.href);
+ withTintimBrowser({blocked:true,href:'https://fixture.invalid/?utm_source=instagram&extra=1&extra=2',cookies:'tt_campaignid=9'},()=>{
+  const url=new URL(tintim.tintimContactUrl());assert.equal(url.searchParams.get('utm_source'),'instagram');
+  assert.deepEqual(url.searchParams.getAll('extra'),['1','2']);assert.equal(url.searchParams.get('campaignid'),'9');
+ });
+ withTintimBrowser({},()=>assert.equal(tintim.tintimContactUrl(),base.href));
+});
+
+test('contact anchor preserves native navigation and message while refreshing cookies at activation', async()=>{
+ const componentSource=await readFile(new URL('../components/tintim-contact-link.tsx',import.meta.url),'utf8');
+ const {outputText}=ts.transpileModule(componentSource,{compilerOptions:{jsx:ts.JsxEmit.React,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}});
+ let state,effect;const exports={};
+ const mockedReact={useState:init=>[state??init,value=>state=value],useEffect:fn=>effect=fn};
+ new Function('require','exports','React',outputText)(name=>name==='react'?mockedReact:tintim,exports,React);
+ const Component=exports.TintimContactLink;
+ withTintimBrowser({href:'https://fixture.invalid/?utm_source=instagram'},()=>{
+  const props={message:'Olá! Já fiz o pedido #1025 pelo site e preciso de ajuda.',className:'original',children:'Falar com a loja'};
+  let element=Component(props);
+  assert.equal(new URL(element.props.href).searchParams.has('utm_source'),false,'stable initial hydration');
+  effect();element=Component(props);assert.equal(new URL(element.props.href).searchParams.get('utm_source'),'instagram');
+  document.cookie='tt_tintim_fbid=late-cookie';
+  const event={currentTarget:{href:element.props.href},defaultPrevented:false};
+  element.props.onClick(event);
+  assert.equal(new URL(event.currentTarget.href).searchParams.get('tintim_fbid'),'late-cookie');
+  assert.equal(new URL(event.currentTarget.href).searchParams.get('text'),props.message);
+  assert.equal(element.props.className,'original');assert.equal(element.props.children,props.children);
+  assert.equal(event.defaultPrevented,false,'native anchor navigation remains unchanged');
+  const cancelled=Component({...props,onClick:e=>e.defaultPrevented=true});
+  const prevented={currentTarget:{href:'unchanged'},defaultPrevented:false};cancelled.props.onClick(prevented);
+  assert.equal(prevented.currentTarget.href,'unchanged');
+ });
+});
+
+test('all three secondary contact paths keep their original messages using the shared anchor',async()=>{
+ const contact=await vite.ssrLoadModule('/components/tintim-contact-link.tsx');
+ const received=[];
+ const mock=props=>{received.push(props);return React.createElement(contact.TintimContactLink,props);};
+ const nodes=[];
+ function visit(node){if(ts.isJsxElement(node)&&node.openingElement.tagName.getText(ast)==='TintimContactLink')nodes.push(node);ts.forEachChild(node,visit);}
+ visit(ast);assert.equal(nodes.length,1);
+ const {outputText}=ts.transpileModule(`const render=()=>(${nodes[0].getText(ast)});`,{compilerOptions:{jsx:ts.JsxEmit.React}});
+ renderToStaticMarkup(new Function('React','TintimContactLink','MessageCircle',`${outputText};return render();`)(React,mock,()=>null));
+ assert.equal(received[0].message,undefined);assert.equal(received[0].className,'category-text-link');
+ for(const file of ['../app/pedido/page.tsx','../components/site-order-result.tsx']) {
+  const text=await readFile(new URL(file,import.meta.url),'utf8');
+  assert.match(text,/TintimContactLink/);assert.doesNotMatch(text,/tintim\.link|wa\.me|api\.whatsapp\.com/);
+  const tree=ts.createSourceFile('component.tsx',text,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+  let messageExpression;
+  function find(node){
+   if(ts.isVariableDeclaration(node)&&node.name.getText(tree)==='supportMessage')messageExpression=node.initializer;
+   if(ts.isJsxAttribute(node)&&node.name.text==='message'&&ts.isJsxExpression(node.initializer)&&ts.isTemplateExpression(node.initializer.expression))messageExpression=node.initializer.expression;
+   ts.forEachChild(node,find);
+  }
+  find(tree);assert.ok(messageExpression);
+  const expression=messageExpression.getText(tree);
+  const message=new Function('order','status',`return (${expression})`)({order_number:1025},{order_number:1025});
+  const html=renderToStaticMarkup(React.createElement(contact.TintimContactLink,{message},'Falar com a loja'));
+  const url=new URL(html.match(/href="([^"]+)"/)[1].replaceAll('&amp;','&'));
+  assert.equal(url.searchParams.get('text'),'Olá! Já fiz o pedido #1025 pelo site e preciso de ajuda.');
+  assert.equal(url.origin,'https://tintim.link');
+ }
 });

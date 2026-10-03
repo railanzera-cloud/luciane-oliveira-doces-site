@@ -9,7 +9,7 @@ import { DELIVERY_TIME_ESTIMATE } from "@/app/catalog";
 import { formatOrderMoney } from "@/app/order-checkout";
 import { lastOrderToken, rememberOrder, loadPublicOrderStatus, sitePaymentLabel, type PublicOrderStatus } from "@/lib/site-order";
 
-const TINTIM_SITE_LINK = "https://tintim.link/whatsapp/2c956a42-229f-4d21-ade6-4442f8c048ed/7522df92-bbe1-4bff-83ca-2629bba182eb";
+import { TintimContactLink } from "@/components/tintim-contact-link";
 
 const ORDER_LABELS: Record<PublicOrderStatus["order_status"], string> = {
   payment_pending: "Aguardando pagamento",
@@ -80,9 +80,9 @@ export default function OrderTrackingPage() {
     return () => { window.clearInterval(timer); window.removeEventListener("focus", focus); document.removeEventListener("visibilitychange", visibility); };
   }, [order, refresh, token]);
 
-  const supportUrl = order
-    ? `${TINTIM_SITE_LINK}?text=${encodeURIComponent(`Olá! Já fiz o pedido #${order.order_number} pelo site e preciso de ajuda.`)}`
-    : TINTIM_SITE_LINK;
+  const supportMessage = order
+    ? `Olá! Já fiz o pedido #${order.order_number} pelo site e preciso de ajuda.`
+    : undefined;
 
   return (
     <main className="tracking-page">
@@ -112,7 +112,7 @@ export default function OrderTrackingPage() {
             try { await navigator.clipboard.writeText(`${window.location.origin}/pedido?token=${token}`); setCopyNotice("Link copiado."); }
             catch { setCopyNotice("Selecione o link abaixo para copiar."); }
           }}>Copiar link do pedido</Button><input className="tracking-copy-field" aria-label="Link individual do pedido" readOnly value={typeof window === "undefined" ? "" : `${window.location.origin}/pedido?token=${token}`} onFocus={e => e.target.select()} />{copyNotice && <p role="status">{copyNotice}</p>}</>}
-          <Button variant="outline" asChild><a href={supportUrl}><MessageCircle size={17} /> Falar com a loja</a></Button>
+          <Button variant="outline" asChild><TintimContactLink message={supportMessage}><MessageCircle size={17} /> Falar com a loja</TintimContactLink></Button>
           <Button variant="ghost" asChild><Link href="/" onClick={() => {
             // A completed registration must not trap the customer on the handoff screen.
             try {
