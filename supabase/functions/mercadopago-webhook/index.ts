@@ -10,11 +10,12 @@ const ORDER_ID_PATTERN = /^LOD-(?:[0-9A-HJKMNP-TV-Z]{4}-){2}[0-9A-HJKMNP-TV-Z]{4
 const MAX_BODY_BYTES = 65536;
 
 // Temporary, observational only. Absolute window: never renewed by a cold start.
-const SIGNATURE_1003_START = Date.parse("2026-09-28T15:00:00Z");
-const SIGNATURE_1003_END = Date.parse("2026-09-29T15:00:00Z");
-const SIGNATURE_1003_ID = "ORDTST01M3FP3FQBJZWNBNX3YWPZHKJ8";
+const SIGNATURE_DIAGNOSTIC_START = Date.parse("2026-10-07T19:52:00Z");
+const SIGNATURE_DIAGNOSTIC_END = Date.parse("2026-10-08T19:52:00Z");
+// Resource metadata is untrusted. Only provider-shaped IDs may enter logs.
+const DIAGNOSTIC_RESOURCE_ID = /^ORD[A-Z0-9]{8,100}$/i;
 
-async function observeSignature1003(
+async function observeTestSignature(
   request: Request, url: URL, dataId: string | null,
   signature: string | null, requestId: string | null, secret: string, environment: string,
 ): Promise<void> {
@@ -22,15 +23,15 @@ async function observeSignature1003(
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
   let stopped = false;
   const emit = (report: Record<string, unknown>) => {
-    try { console.warn("lod_mp_signature_1003_v1", JSON.stringify(report)); } catch { /* logging is optional */ }
+    try { console.warn("lod_mp_signature_test_v1", JSON.stringify(report)); } catch { /* logging is optional */ }
   };
   try {
     const now = Date.now();
-    if (environment !== "test" || request.method !== "POST" || dataId !== SIGNATURE_1003_ID ||
-        now < SIGNATURE_1003_START || now >= SIGNATURE_1003_END) return;
+    if (environment !== "test" || Deno.env.get("PAYMENTS_ENVIRONMENT") !== "test" || request.method !== "POST" ||
+        now < SIGNATURE_DIAGNOSTIC_START || now >= SIGNATURE_DIAGNOSTIC_END) return;
     const report: Record<string, unknown> = {
-      diagnostic: "lod_mp_signature_1003_v1", sdk: "mercadopago@3.6.1",
-      observed_at: new Date(now).toISOString(), scoped_resource: "1003", diagnostic_failed: false,
+      diagnostic: "lod_mp_signature_test_v1", sdk: "mercadopago@3.6.1",
+      observed_at: new Date(now).toISOString(), environment: "test", metadata_authenticated: false, diagnostic_failed: false,
     };
     // Only validated platform metadata, never request-supplied identifiers.
     const execution = Deno.env.get("SB_EXECUTION_ID");
@@ -48,8 +49,16 @@ async function observeSignature1003(
       report.signature_length = signature?.length ?? 0;
       report.request_id_length = requestId?.length ?? 0;
       report.request_id_trim_changes = requestId !== null && requestId !== requestId.trim();
-      report.runtime_secret_matches = await sha256(secret) ===
-        "e922f1fee5c9017f750266955ee129be10b171a5cfb9dcaded6e6efc7ffc15a2";
+      report.signature_sha256 = signature === null ? null : await sha256(signature);
+      report.request_id_sha256 = requestId === null ? null : await sha256(requestId);
+      report.query_id_source = url.searchParams.has("data.id") ? "data.id"
+        : url.searchParams.has("data_id") ? "data_id" : "absent";
+      report.data_id = dataId && DIAGNOSTIC_RESOURCE_ID.test(dataId.trim()) ? dataId.trim() : null;
+      report.data_id_length = dataId?.length ?? 0;
+      report.data_id_trim_changes = dataId !== null && dataId !== dataId.trim();
+      report.signature_trim_changes = signature !== null && signature !== signature.trim();
+      // A fingerprint identifies the loaded secret, but cannot prove its application.
+      report.secret_sha256 = await sha256(secret);
       try {
         WebhookSignatureValidator.validate({ xSignature: signature, xRequestId: requestId, dataId, secret });
         report.sdk_valid = true;
@@ -74,20 +83,33 @@ async function observeSignature1003(
       report.ts_numeric = /^\d+$/.test(ts);
       report.v1_hex64 = /^[0-9a-f]{64}$/i.test(v1);
       report.v1_uppercase = v1 !== v1.toLowerCase();
-      if (!report.ts_numeric || !report.v1_hex64) return;
+      report.ts = /^\d{1,16}$/.test(ts) ? ts : null;
+      report.v1_length = v1.length;
+      report.v1_sha256 = v1 ? await sha256(v1) : null;
+      const comparable = Boolean(report.ts_numeric && report.v1_hex64);
       const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret),
         { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-      const compare = async (id: string, rid: string) => {
+      const compare = async (id: string, rid: string, official = false): Promise<boolean | null> => {
+        if (!comparable || stopped) return null;
         const manifest = `${id ? `id:${id};` : ""}${rid ? `request-id:${rid};` : ""}ts:${ts};`;
         const hash = [...new Uint8Array(await crypto.subtle.sign("HMAC", key,
           new TextEncoder().encode(manifest)))].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+        if (official) {
+          // Never log v1, a raw HMAC or the full request-id/manifest: combined
+          // with ts they would recreate authentication material.
+          report.manifest_sha256 = await sha256(manifest);
+          report.hmac_sha256 = await sha256(hash);
+          report.matches_casefolded_hash = hash === v1.toLowerCase();
+        }
         return hash === v1;
       };
       const rid = requestId ?? "";
-      report.matches_sdk_manifest = await compare(dataId.trim(), rid.trim());
-      report.matches_lowercase_id = await compare(dataId.trim().toLowerCase(), rid.trim());
-      report.matches_raw_request_id = await compare(dataId.trim(), rid);
-      report.matches_lowercase_raw_request_id = await compare(dataId.trim().toLowerCase(), rid);
+      report.matches_sdk_manifest = await compare((dataId ?? "").trim(), rid.trim(), true);
+      report.matches_lowercase_id = await compare((dataId ?? "").trim().toLowerCase(), rid.trim());
+      report.matches_raw_request_id = await compare((dataId ?? "").trim(), rid);
+      report.matches_lowercase_raw_request_id = await compare((dataId ?? "").trim().toLowerCase(), rid);
+      report.matches_raw_id = await compare(dataId ?? "", rid.trim());
+      report.matches_raw_id_and_request_id = await compare(dataId ?? "", rid);
       // Include every conflicting query ID; log only whether any alternative matched.
       report.alternative_query_id_checked = false;
       report.matches_alternative_query_id = false;
@@ -123,6 +145,14 @@ async function observeSignature1003(
       report.body_id_present = typeof bodyId === "string";
       report.body_id_matches_query = typeof bodyId === "string" && bodyId === dataId;
       report.body_test_mode = body?.live_mode === false;
+      const application = body?.application_id;
+      report.application_id = typeof application === "string" && /^\d{1,20}$/.test(application)
+        ? application : typeof application === "number" && Number.isSafeInteger(application) && application > 0
+          ? String(application) : null;
+      report.live_mode = typeof body?.live_mode === "boolean" ? body.live_mode : null;
+      report.action = typeof body?.action === "string" && /^order\.[a-z_]{1,60}$/.test(body.action) ? body.action : null;
+      report.resource_id = typeof bodyId === "string" && DIAGNOSTIC_RESOURCE_ID.test(bodyId) ? bodyId : null;
+      // Even when SDK passes, body/application metadata is not bound by its HMAC.
       if (typeof bodyId === "string" && bodyId.length <= 200 && bodyId !== dataId) {
         report.matches_body_id = await compare(bodyId.trim(), rid.trim());
         report.matches_body_lowercase_id = await compare(bodyId.trim().toLowerCase(), rid.trim());
@@ -140,7 +170,7 @@ async function observeSignature1003(
     emit(report);
   } catch {
     // No exception details: they may contain request data or cryptographic inputs.
-    emit({ diagnostic: "lod_mp_signature_1003_v1", diagnostic_failed: true });
+    emit({ diagnostic: "lod_mp_signature_test_v1", diagnostic_failed: true });
   } finally {
     stopped = true;
     clearTimeout(timer);
@@ -366,141 +396,6 @@ function triggerOrderEffects(): void {
   if (runtime?.waitUntil) runtime.waitUntil(task);
 }
 
-// Candidato INATIVO. Inserido pelo preparador; não importar no checkout.
-// Tempos absolutos preenchidos somente para uma janela explicitamente autorizada.
-const SIGNATURE_1002_START = "2026-09-26T18:10:00Z";
-const SIGNATURE_1002_END = "2026-09-26T19:10:00Z";
-const SIGNATURE_1002_ID = "ORDTST01M2ZHGZHNSJEQ8D9Z5EF6YKDT";
-const SIGNATURE_1002_APPLICATION = "7382535553656845";
-
-async function observeSignature1002(request: Request, url: URL, dataId: string,
-  signature: string | null, requestId: string | null, secret: string,
-): Promise<Response> {
-  const report: Record<string, unknown> = {
-    diagnostic: "lod_mp_signature_1002_v2", stage: "before_financial_lookup",
-    environment: "test", sdk: "mercadopago@3.6.1", effects_blocked: true,
-  };
-  try {
-    const queryIds = url.searchParams.getAll("data.id");
-    const aliasIds = url.searchParams.getAll("data_id");
-    report.query_data_id_count = queryIds.length;
-    report.query_data_id_alias_count = aliasIds.length;
-    report.query_ambiguous = queryIds.length > 1 || aliasIds.length > 1 ||
-      (queryIds.length > 0 && aliasIds.length > 0);
-    report.query_values_conflict = [...queryIds, ...aliasIds].some((id) => id !== dataId);
-    report.selected_id_matches = dataId === SIGNATURE_1002_ID;
-    report.signature_present = signature !== null;
-    report.request_id_present = requestId !== null;
-    report.signature_length = signature?.length ?? 0;
-    report.request_id_length = requestId?.length ?? 0;
-    const withinLimits = (signature?.length ?? 0) <= 2048 && (requestId?.length ?? 0) <= 200;
-    report.headers_within_limits = withinLimits;
-    report.sdk_valid = null;
-    report.sdk_reason = withinLimits ? "not_run" : "DiagnosticHeaderLimit";
-    report.runtime_secret_matches_compared_digest = (await sha256(secret)) ===
-      "e922f1fee5c9017f750266955ee129be10b171a5cfb9dcaded6e6efc7ffc15a2";
-    if (withinLimits) {
-      report.signature_sha256 = signature === null ? null : await sha256(signature);
-      report.request_id_sha256 = requestId === null ? null : await sha256(requestId);
-      report.signature_trimmed = signature !== null && signature !== signature.trim();
-      report.request_id_trimmed = requestId !== null && requestId !== requestId.trim();
-      report.request_id_is_uuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(requestId?.trim() ?? "");
-      report.normal_flow_missing_inputs = !signature || !requestId || !dataId;
-      try {
-        WebhookSignatureValidator.validate({ xSignature: signature, xRequestId: requestId, dataId, secret });
-        report.sdk_valid = true;
-        report.sdk_reason = "valid";
-      } catch (error) {
-        const reasons = ["MissingSignatureHeader", "MalformedSignatureHeader", "MissingTimestamp",
-          "MissingHash", "SignatureMismatch", "TimestampOutOfTolerance"];
-        report.sdk_valid = false;
-        report.sdk_reason = error instanceof InvalidWebhookSignatureError && reasons.includes(error.reason)
-          ? error.reason : "UnexpectedValidatorError";
-      }
-      // Mesmo parsing do SDK 3.6.1; variantes abaixo são observações, nunca autorização.
-      const parts = (signature ?? "").trim().split(",").map((part) => {
-        const eq = part.indexOf("=");
-        return eq < 0 ? ["", ""] : [part.slice(0, eq).trim().toLowerCase(), part.slice(eq + 1).trim()];
-      });
-      const populated = parts.filter(([name, value]) => name && value);
-      const ts = populated.filter(([name]) => name === "ts").at(-1)?.[1] ?? "";
-      const v1 = populated.filter(([name]) => name === "v1").at(-1)?.[1] ?? "";
-      report.ts_count = parts.filter(([name]) => name === "ts").length;
-      report.v1_count = parts.filter(([name]) => name === "v1").length;
-      report.ts_numeric = /^\d+$/.test(ts);
-      report.ts_length = ts.length;
-      report.v1_length = v1.length;
-      report.v1_is_hex64 = /^[0-9a-f]{64}$/i.test(v1);
-      report.v1_has_uppercase = report.v1_is_hex64 === true && v1 !== v1.toLowerCase();
-      const manifest = (id: string) => `id:${id.trim()};${requestId?.trim() ? `request-id:${requestId.trim()};` : ""}ts:${ts};`;
-      report.manifest_sha256 = await sha256(manifest(dataId));
-      const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret),
-        { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-      const hmac = async (text: string) => [...new Uint8Array(
-        await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(text)),
-      )].map((byte) => byte.toString(16).padStart(2, "0")).join("");
-      const exact = await hmac(manifest(dataId));
-      const lower = await hmac(manifest(dataId.toLowerCase()));
-      report.matches_exact_manifest = exact === v1;
-      report.matches_lowercase_id = lower === v1;
-      report.matches_casefolded_hash = report.v1_is_hex64 === true && exact === v1.toLowerCase();
-      report.matches_lowercase_id_casefolded_hash = report.v1_is_hex64 === true && lower === v1.toLowerCase();
-    }
-    // Body não autenticado: só comparações, nunca fonte financeira ou autorização.
-    report.body_state = "absent";
-    report.application_id_present = null;
-    report.application_id_valid_structure = null;
-    report.application_matches = null;
-    report.body_id_matches = null;
-    report.live_mode = null;
-    const reader = request.body?.getReader();
-    if (reader) {
-      let total = 0;
-      let timedOut = false;
-      const timer = setTimeout(() => { timedOut = true; void reader.cancel().catch(() => {}); }, 2000);
-      try {
-        const chunks: Uint8Array[] = [];
-        while (true) {
-          const part = await reader.read();
-          if (timedOut) { report.body_state = "timeout"; break; }
-          if (part.done) break;
-          total += part.value.byteLength;
-          if (total > MAX_BODY_BYTES) {
-            report.body_state = "too_large";
-            void reader.cancel().catch(() => {});
-            break;
-          }
-          chunks.push(part.value);
-        }
-        if (report.body_state === "absent") {
-          const bytes = new Uint8Array(total);
-          let offset = 0;
-          for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
-          const body = JSON.parse(new TextDecoder().decode(bytes));
-          if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("invalid");
-          report.body_state = "parsed";
-          const app = body.application_id;
-          const appValid = (typeof app === "string" && /^\d{1,20}$/.test(app)) ||
-            (typeof app === "number" && Number.isSafeInteger(app) && app > 0);
-          report.application_id_present = Object.prototype.hasOwnProperty.call(body, "application_id");
-          report.application_id_valid_structure = appValid;
-          report.application_matches = appValid ? String(app) === SIGNATURE_1002_APPLICATION : null;
-          report.body_id_matches = typeof body.data?.id === "string" ? body.data.id === dataId : null;
-          report.live_mode = typeof body.live_mode === "boolean" ? body.live_mode : null;
-        }
-      } catch {
-        report.body_state = timedOut ? "timeout" : "unreadable";
-      } finally { clearTimeout(timer); reader.releaseLock(); }
-    }
-  } catch {
-    report.diagnostic_failed = true;
-  }
-  console.warn("lod_mp_signature_1002_v2", JSON.stringify(report));
-  // 409 proposital, mesmo com assinatura válida: NÃO equivale a rejeição HMAC.
-  return json(409, { ok: false, diagnostic: "lod_mp_signature_1002_v2",
-    stage: "before_financial_lookup", effects_blocked: true });
-}
-
 Deno.serve(async (request: Request) => {
   try {
     const environment = Deno.env.get("PAYMENTS_ENVIRONMENT") ?? "test";
@@ -528,12 +423,7 @@ Deno.serve(async (request: Request) => {
     const accessToken = Deno.env.get("MP_ACCESS_TOKEN_TEST");
     if (!secret || !accessToken) throw new HttpError(503, "mercado_pago_not_configured", "Webhook de teste ainda não configurado.");
     // Observer returns no authorization result. Original validation below is unchanged.
-    await observeSignature1003(request, url, dataId, signature, requestId, secret, environment);
-    // Observação restrita, sem qualquer efeito financeiro, inclusive se SDK válido.
-    if (dataId === SIGNATURE_1002_ID && Date.now() >= Date.parse(SIGNATURE_1002_START) &&
-        Date.now() < Date.parse(SIGNATURE_1002_END)) {
-      return await observeSignature1002(request, url, dataId, signature, requestId, secret);
-    }
+    await observeTestSignature(request, url, dataId, signature, requestId, secret, environment);
     if (!signature || !requestId || !dataId) {
       console.warn("mercadopago-webhook signature rejected", "MissingSignatureInputs");
       throw new HttpError(401, "invalid_signature", "Assinatura ausente.");
@@ -551,67 +441,6 @@ Deno.serve(async (request: Request) => {
     } catch (error) {
       if (error instanceof InvalidWebhookSignatureError) {
         console.warn("mercadopago-webhook signature rejected", error.reason);
-        // DIAGNOSTICO TEMPORARIO: somente observa; nunca autoriza a notificacao.
-        if (error.reason === "SignatureMismatch" && environment === "test" &&
-            dataId === "ORDTST01M2ZHGZHNSJEQ8D9Z5EF6YKDT" &&
-            Date.now() < Date.parse("2026-09-23T07:49:00Z")) {
-          try {
-            if (signature.length <= 2048 && requestId.length <= 200) {
-              // Mesmo parsing do SDK 3.6.1: ultimo ts/v1 nao vazio prevalece.
-              const parts = signature.trim().split(",").map((part) => {
-                const eq = part.indexOf("=");
-                return eq < 0 ? ["", ""] : [
-                  part.slice(0, eq).trim().toLowerCase(), part.slice(eq + 1).trim(),
-                ];
-              }).filter(([key, value]) => key && value);
-              const ts = parts.filter(([key]) => key === "ts").at(-1)?.[1] ?? "";
-              const v1 = parts.filter(([key]) => key === "v1").at(-1)?.[1] ?? "";
-              const normalizedRequestId = requestId.trim();
-              const requestIdIsUuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(normalizedRequestId);
-              const safeTimestamp = /^\d{1,16}$/.test(ts);
-              const v1IsHex = /^[0-9a-f]{64}$/i.test(v1);
-              const buildManifest = (id: string) => `id:${id.trim()};${normalizedRequestId ? `request-id:${normalizedRequestId};` : ""}ts:${ts};`;
-              const manifest = buildManifest(dataId);
-              const key = await crypto.subtle.importKey(
-                "raw", new TextEncoder().encode(secret),
-                { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
-              );
-              const hmac = async (value: string) => [...new Uint8Array(
-                await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(value)),
-              )].map((byte) => byte.toString(16).padStart(2, "0")).join("");
-              const computed = await hmac(manifest);
-              const computedLowerId = await hmac(buildManifest(dataId.toLowerCase()));
-              console.warn("lod_mp_signature_1002_v1", JSON.stringify({
-                order_id: dataId,
-                environment,
-                sdk: "mercadopago@3.6.1",
-                runtime_secret_matches_compared_digest: (await sha256(secret)) ===
-                  "e922f1fee5c9017f750266955ee129be10b171a5cfb9dcaded6e6efc7ffc15a2",
-                x_request_id: requestIdIsUuid ? normalizedRequestId : null,
-                x_request_id_sha256: await sha256(requestId),
-                x_request_id_length: requestId.length,
-                x_request_id_trimmed: requestId !== normalizedRequestId,
-                x_signature_sha256: await sha256(signature),
-                x_signature_length: signature.length,
-                x_signature_trimmed: signature !== signature.trim(),
-                ts: safeTimestamp ? ts : null,
-                ts_count: parts.filter(([name]) => name === "ts").length,
-                v1_count: parts.filter(([name]) => name === "v1").length,
-                v1_length: v1.length,
-                v1_is_hex64: v1IsHex,
-                v1_has_uppercase: v1IsHex && v1 !== v1.toLowerCase(),
-                // Manifesto completo e HMAC ficam somente em memoria.
-                manifest_sha256: await sha256(manifest),
-                matches_exact_manifest: computed === v1,
-                matches_lowercase_id: computedLowerId === v1,
-                matches_exact_manifest_casefolded_hash: v1IsHex && computed === v1.toLowerCase(),
-              }));
-            }
-          } catch {
-            // Falha no diagnostico nao altera a resposta nem libera processamento.
-            console.warn("lod_mp_signature_1002_v1", "diagnostic_failed");
-          }
-        }
         throw new HttpError(401, "invalid_signature", "Assinatura inválida.");
       }
       throw error;
