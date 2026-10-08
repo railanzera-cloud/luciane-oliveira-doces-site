@@ -57,6 +57,13 @@ test("refunded payment is not labeled paid or pending", () => {
   assert.equal(pendingOnlineOrderLabel("refunded", null), "Pagamento reembolsado");
 });
 
+test("online payment status takes priority over optional card_mode", () => {
+  const panel = readFileSync(path.join(root, "components/admin-orders-panel.tsx"), "utf8");
+  const block = panel.slice(panel.indexOf("function paymentLabel("), panel.indexOf("function attributionSource("));
+  assert.ok(block.indexOf('order.payment_method === "mercado_pago_card"') >= 0);
+  assert.ok(block.indexOf('order.payment_method === "mercado_pago_card"') < block.indexOf("if (order.card_mode)"));
+});
+
 test("admin reads gateway detail but retains order transition logic and no financial mutations", () => {
   const query = readFileSync(path.join(root, "lib/admin-orders-client.ts"), "utf8");
   const panel = readFileSync(path.join(root, "components/admin-orders-panel.tsx"), "utf8");
