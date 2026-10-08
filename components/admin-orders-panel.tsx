@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { onlinePaymentLabel, pendingOnlineOrderLabel } from "@/lib/admin-online-payment-status";
 import {
   confirmOfflinePayment,
   createReprint,
@@ -56,8 +57,9 @@ const ORDER_LABELS: Record<AdminOrder["order_status"], string> = {
 function paymentLabel(order: AdminOrder) {
   if (order.card_mode) return `${order.payment_status === "paid" ? "Pago" : "Pendente"} — ${order.card_mode === "credit_single" ? "Crédito à vista (1x)" : "Débito"}`;
   if (order.payment_method === "manual_pix") return order.payment_status === "paid" ? "Pago — Pix manual" : "Pix manual — aguardando conferência";
-  if (order.payment_method === "mercado_pago_pix") return order.payment_status === "paid" ? "Pago — Pix" : "Pix online pendente";
-  if (order.payment_method === "mercado_pago_card") return order.payment_status === "paid" ? "Pago — Cartão online" : "Cartão online pendente";
+  if (order.payment_method === "mercado_pago_pix" || order.payment_method === "mercado_pago_card") {
+    return onlinePaymentLabel(order.payment_method, order.payment_status, order.gateway_status_detail);
+  }
   if (order.payment_status === "paid") return "Pago — " + (order.payment_method === "cash" ? "Dinheiro" : "Cartão");
   if (order.payment_method === "cash") return `Dinheiro na ${order.fulfillment_type === "pickup" ? "retirada" : "entrega"}`;
   return `Cartão na ${order.fulfillment_type === "pickup" ? "retirada" : "entrega"}`;
@@ -68,6 +70,16 @@ function attributionSource(order: AdminOrder, touch: "first_touch" | "current_vi
   const parameters = entry && typeof entry === "object" ? (entry as { parameters?: Record<string, unknown> }).parameters : null;
   const source = parameters?.utm_source;
   return Array.isArray(source) && typeof source[0] === "string" && source[0] ? source[0] : "Não identificada";
+}
+
+function adminOrderStatusLabel(order: AdminOrder): string {
+  if (order.sales_channel === "whatsapp" && order.order_status === "new") return "Aguardando confirmação";
+  if (order.order_status === "payment_pending"
+    && (order.payment_method === "mercado_pago_pix" || order.payment_method === "mercado_pago_card")) {
+    return pendingOnlineOrderLabel(order.payment_status, order.gateway_status_detail)
+      ?? ORDER_LABELS[order.order_status];
+  }
+  return ORDER_LABELS[order.order_status];
 }
 
 function actionable(order: AdminOrder) {
@@ -370,7 +382,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
               <article className={`admin-order-card status-${order.order_status}`} key={order.id}>
                 <header className="admin-order-card-heading">
                   <div><span className="admin-order-number">Pedido #{order.order_number}</span><time dateTime={order.created_at}><Clock3 size={14} /> {new Date(order.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</time></div>
-                  <span className="admin-order-status">{order.sales_channel === "whatsapp" && order.order_status === "new" ? "Aguardando confirmação" : ORDER_LABELS[order.order_status]}</span>
+                  <span className="admin-order-status">{adminOrderStatusLabel(order)}</span>
                 </header>
                 <div className="admin-order-customer"><strong>{order.customer_name}</strong><span>{order.customer_phone}</span></div>
                 <div className="admin-order-badges"><span>{order.fulfillment_type === "pickup" ? <ShoppingBag size={15} /> : <Truck size={15} />}{order.fulfillment_type === "pickup" ? "Retirada" : "Entrega"}</span><span className={order.payment_status === "paid" ? "is-paid" : "is-pay-later"}>{order.payment_method === "cash" ? <Banknote size={15} /> : <CreditCard size={15} />}{paymentLabel(order)}</span></div>
