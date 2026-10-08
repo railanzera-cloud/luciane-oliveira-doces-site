@@ -86,15 +86,17 @@ Deno.serve(async req => {
     if (apply && Deno.env.get("LOD_RECONCILIATION_APPLY_ENABLED") !== "true") {
       throw new Err(403, "apply_disabled");
     }
+    if (apply && req.headers.get("x-lod-apply-order") !== orderId) throw new Err(403, "apply_order_confirmation_missing");
     const orders = await db(`orders?select=id,order_id,total,currency,sales_channel,payment_method,payment_status,gateway_environment&order_id=eq.${encodeURIComponent(orderId)}&limit=1`) as Obj[];
     if (orders.length !== 1) throw new Err(404, "order_not_found");
     const order = orders[0];
     if (order.sales_channel !== "site" || !["mercado_pago_pix", "mercado_pago_card"].includes(field(order, "payment_method")) ||
       order.gateway_environment !== "test" || field(order, "currency") !== "BRL") throw new Err(422, "order_scope_mismatch");
-    const attempts = await db(`payment_attempts?select=id,attempt_number,mercado_pago_order_id,status&order_uuid=eq.${encodeURIComponent(field(order, "id"))}&order=attempt_number.desc&limit=1`) as Obj[];
+    const attempts = await db(`payment_attempts?select=id,attempt_number,method,mercado_pago_order_id,status&order_uuid=eq.${encodeURIComponent(field(order, "id"))}&order=attempt_number.desc&limit=1`) as Obj[];
     if (attempts.length !== 1 || !MP_ORDER_PATTERN.test(field(attempts[0], "mercado_pago_order_id"))) {
       throw new Err(422, "attempt_missing");
     }
+    if (attempts[0].method !== order.payment_method) throw new Err(422, "attempt_method_mismatch");
     const mpId = field(attempts[0], "mercado_pago_order_id");
     const accessToken = Deno.env.get("MP_ACCESS_TOKEN_TEST");
     if (!accessToken) throw new Err(503, "gateway_unconfigured");
@@ -111,6 +113,9 @@ Deno.serve(async req => {
     if (field(remote, "id") !== mpId || field(remote, "external_reference") !== orderId ||
       remote.live_mode !== false || currency !== "BRL" || amount === null || amount !== cents(order.total) ||
       !status || !detail) throw new Err(422, "gateway_order_mismatch");
+    if (apply && !["processed", "action_required", "pending", "processing", "canceled", "cancelled", "expired", "failed", "refused", "refunded", "charged_back", "chargeback"].includes(status.toLowerCase())) {
+      throw new Err(422, "unsupported_gateway_status");
+    }
     const payments = obj(remote.transactions).payments;
     const payment = Array.isArray(payments) ? obj(payments[0]) : {};
     const payId = field(payment, "id") || null;
