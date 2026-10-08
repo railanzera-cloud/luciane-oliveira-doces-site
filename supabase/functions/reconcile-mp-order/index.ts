@@ -6,7 +6,7 @@ const MP_ORDER_PATTERN = /^ORDTST[A-Z0-9]{10,90}$/;
 const encoder = new TextEncoder();
 type Obj = Record<string, unknown>;
 class Err extends Error {
-  constructor(public status: number, public code: string, public failedChecks: string[] = []) { super(code); }
+  constructor(public status: number, public code: string, public failedChecks: string[] = [], public upstreamStatus: number | null = null) { super(code); }
 }
 const response = (status: number, body: Obj) => new Response(JSON.stringify(body), {
   status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
@@ -105,7 +105,8 @@ Deno.serve(async req => {
     const provider = await call(`${MP_URL}/${encodeURIComponent(mpId)}`, {
       headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" },
     });
-    if (!provider.ok) throw new Err(502, "gateway_lookup_failed");
+    // Report only the HTTP status, never the provider error body, tokens or headers.
+    if (!provider.ok) throw new Err(502, "gateway_lookup_failed", [], provider.status);
     const remote = obj(await provider.json());
     const country = field(remote, "country_code");
     const currency = (field(remote, "currency_id") || field(remote, "currency") || (country === "BRA" ? "BRL" : "")).toUpperCase();
@@ -164,6 +165,7 @@ Deno.serve(async req => {
     return response(err.status, { ok: false, error: {
       code: err.code,
       ...(err.code === "gateway_order_mismatch" ? { failed_checks: err.failedChecks } : {}),
+      ...(err.code === "gateway_lookup_failed" && err.upstreamStatus !== null ? { upstream_status: err.upstreamStatus } : {}),
     } });
   }
 });
