@@ -59,7 +59,7 @@ function mock(overrides = {}) {
       return Response.json(overrides.applyResponse || { changed_to_paid: false, payment_status: "cancelled", order_status: "cancelled", duplicate: false });
     }
     if (String(url).includes("/functions/v1/process-order-effects")) return Response.json({ ok: true });
-    if (String(url).startsWith("https://api.mercadopago.com/v1/orders/")) return Response.json(mp);
+    if (String(url).startsWith("https://api.mercadopago.com/v1/orders/")) return Response.json(overrides.mpErrorBody ?? mp, { status: overrides.mpStatus ?? 200 });
     throw new Error("unexpected URL: " + url);
   };
   const context = {
@@ -222,3 +222,16 @@ test("does not fabricate false in the sanitized payload when live_mode is absent
   assert.equal(JSON.parse(rpc.body).p_sanitized_payload.live_mode, null);
   assert.equal(h.calls.filter(c => c.url.includes("process-order-effects")).length, 0);
 });
+
+for (const status of [401, 403, 404, 429, 503]) {
+  test(`GET /v1/orders HTTP ${status} returns only safe upstream status without any database writes`, async () => {
+    const h = mock({ mpStatus: status, mpErrorBody: { message: "do not expose raw provider error", access_token: "sensitive" } });
+    const r = await h.post();
+    assert.equal(r.status, 502);
+    assert.equal(r.data.error.code, "gateway_lookup_failed");
+    assert.equal(r.data.error.upstream_status, status);
+    assert.equal(JSON.stringify(r.data).includes("sensitive"), false);
+    assert.equal(JSON.stringify(r.data).includes("raw provider error"), false);
+    assert.equal(writes(h).length, 0);
+  });
+}
