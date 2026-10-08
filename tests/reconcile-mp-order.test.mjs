@@ -131,6 +131,7 @@ test("rejects wrong value before RPC", async () => {
   const r = await h.post({ apply: true }, { "x-lod-apply-order": ORDER_ID });
   assert.equal(r.status, 422);
   assert.equal(r.data.error.code, "gateway_order_mismatch");
+  assert.deepEqual(Array.from(r.data.error.failed_checks), ["amount"]);
   assert.equal(writes(h).length, 0);
 });
 
@@ -177,4 +178,28 @@ test("duplicate SQL transition never invokes downstream effects", async () => {
   const r = await h.post({ apply: true }, { "x-lod-apply-order": ORDER_ID });
   assert.equal(r.status, 200);
   assert.equal(h.calls.filter(c => c.url.includes("process-order-effects")).length, 0);
+});
+
+test("reports only the failed currency check without changing payment state", async () => {
+  const h = mock({ mp: { country_code: "BR", currency_id: undefined, currency: undefined } });
+  const r = await h.post();
+  assert.equal(r.status, 422);
+  assert.deepEqual(Array.from(r.data.error.failed_checks), ["currency"]);
+  assert.equal(writes(h).length, 0);
+});
+
+test("reports missing live_mode while preserving fail-closed validation", async () => {
+  const h = mock({ mp: { live_mode: undefined } });
+  const r = await h.post();
+  assert.equal(r.status, 422);
+  assert.deepEqual(Array.from(r.data.error.failed_checks), ["live_mode"]);
+  assert.equal(writes(h).length, 0);
+});
+
+test("reports multiple mismatch checks without exposing gateway values", async () => {
+  const h = mock({ mp: { total_amount: "35.00", live_mode: undefined, country_code: "BR" } });
+  const r = await h.post();
+  assert.equal(r.status, 422);
+  assert.deepEqual(Array.from(r.data.error.failed_checks), ["live_mode", "currency", "amount"]);
+  assert.equal(writes(h).length, 0);
 });
