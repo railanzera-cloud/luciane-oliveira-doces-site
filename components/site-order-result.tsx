@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Clock3, Copy, ExternalLink, LoaderCircle, MessageCircle, RefreshCw, ShoppingBag } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,7 @@ export function SiteOrderResultView({
     updated_at: new Date().toISOString(),
     payment: result.payment,
   }));
+  const challengeFrameRef = useRef<HTMLIFrameElement>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [notice, setNotice] = useState("");
 
@@ -71,6 +72,8 @@ export function SiteOrderResultView({
 
   useEffect(() => {
     const message = (event: MessageEvent) => {
+      if (event.origin !== "https://www.mercadopago.com.br" ||
+          event.source !== challengeFrameRef.current?.contentWindow) return;
       if (event.data && typeof event.data === "object" && event.data.status === "COMPLETE") void refresh();
     };
     window.addEventListener("message", message);
@@ -129,7 +132,7 @@ export function SiteOrderResultView({
           <div className="card-challenge-box">
             <strong>Confirme a compra com seu banco</strong>
             <p>Conclua a verificação segura abaixo. A aprovação será consultada automaticamente.</p>
-            <iframe src={gatewayPayment.challenge_url} title="Verificação segura do cartão" allow="payment" />
+            <iframe ref={challengeFrameRef} src={gatewayPayment.challenge_url} title="Verificação segura do cartão" allow="payment" />
           </div>
         )}
 
