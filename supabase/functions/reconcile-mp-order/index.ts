@@ -5,7 +5,9 @@ const ORDER_PATTERN = /^LOD-(?:[0-9A-HJKMNP-TV-Z]{4}-){2}[0-9A-HJKMNP-TV-Z]{4}$/
 const MP_ORDER_PATTERN = /^ORDTST[A-Z0-9]{10,90}$/;
 const encoder = new TextEncoder();
 type Obj = Record<string, unknown>;
-class Err extends Error { constructor(public status: number, public code: string) { super(code); } }
+class Err extends Error {
+  constructor(public status: number, public code: string, public failedChecks: string[] = []) { super(code); }
+}
 const response = (status: number, body: Obj) => new Response(JSON.stringify(body), {
   status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
 });
@@ -110,9 +112,18 @@ Deno.serve(async req => {
     const status = field(remote, "status");
     const detail = field(remote, "status_detail");
     const amount = cents(remote.total_amount);
-    if (field(remote, "id") !== mpId || field(remote, "external_reference") !== orderId ||
-      remote.live_mode !== false || currency !== "BRL" || amount === null || amount !== cents(order.total) ||
-      !status || !detail) throw new Err(422, "gateway_order_mismatch");
+    // Report only the names of failed checks, never provider values or credentials.
+    // Preserve all existing fail-closed validations in both dry-run and apply.
+    const failedChecks = [
+      field(remote, "id") !== mpId ? "order_id" : null,
+      field(remote, "external_reference") !== orderId ? "external_reference" : null,
+      remote.live_mode !== false ? "live_mode" : null,
+      currency !== "BRL" ? "currency" : null,
+      amount === null || amount !== cents(order.total) ? "amount" : null,
+      !status ? "status" : null,
+      !detail ? "status_detail" : null,
+    ].filter((name): name is string => name !== null);
+    if (failedChecks.length) throw new Err(422, "gateway_order_mismatch", failedChecks);
     if (apply && !["processed", "action_required", "pending", "processing", "canceled", "cancelled", "expired", "failed", "refused", "refunded", "charged_back", "chargeback"].includes(status.toLowerCase())) {
       throw new Err(422, "unsupported_gateway_status");
     }
@@ -148,6 +159,9 @@ Deno.serve(async req => {
     });
   } catch (e) {
     const err = e instanceof Err ? e : new Err(400, "invalid_request");
-    return response(err.status, { ok: false, error: { code: err.code } });
+    return response(err.status, { ok: false, error: {
+      code: err.code,
+      ...(err.code === "gateway_order_mismatch" ? { failed_checks: err.failedChecks } : {}),
+    } });
   }
 });
