@@ -16,9 +16,9 @@ const compiled = ts.transpileModule(readFileSync(helper, "utf8"), {
 });
 const errors = (compiled.diagnostics || []).filter(x => x.category === ts.DiagnosticCategory.Error);
 assert.equal(errors.length, 0, errors.map(x => ts.flattenDiagnosticMessageText(x.messageText, "\n")).join("\n"));
-const module = { exports: {} };
-vm.runInNewContext(compiled.outputText, { module, exports: module.exports }, { filename: helper });
-const { onlinePaymentLabel, pendingOnlineOrderLabel } = module.exports;
+const testModule = { exports: {} };
+vm.runInNewContext(compiled.outputText, { module: testModule, exports: testModule.exports }, { filename: helper });
+const { onlinePaymentLabel, pendingOnlineOrderLabel } = testModule.exports;
 
 test("new online card and Pix payments still display as pending", () => {
   assert.equal(onlinePaymentLabel("mercado_pago_card", "pending", null), "Cartão online pendente");
