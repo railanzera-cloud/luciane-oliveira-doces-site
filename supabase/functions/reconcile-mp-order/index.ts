@@ -117,7 +117,8 @@ Deno.serve(async req => {
     const failedChecks = [
       field(remote, "id") !== mpId ? "order_id" : null,
       field(remote, "external_reference") !== orderId ? "external_reference" : null,
-      remote.live_mode !== false ? "live_mode" : null,
+      // GET /v1/orders can omit live_mode. An explicit true or nonboolean value is still rejected.
+      remote.live_mode !== false && remote.live_mode !== undefined ? "live_mode" : null,
       currency !== "BRL" ? "currency" : null,
       amount === null || amount !== cents(order.total) ? "amount" : null,
       !status ? "status" : null,
@@ -133,7 +134,8 @@ Deno.serve(async req => {
     const version = typeof remote.version === "number" ? remote.version : null;
     const normalized = {
       id: mpId, external_reference: orderId, status, status_detail: detail,
-      total_amount: (amount / 100).toFixed(2), currency_id: currency, live_mode: false, version,
+      total_amount: (amount / 100).toFixed(2), currency_id: currency,
+      live_mode: remote.live_mode === false ? false : null, version,
       payment: { id: payId, status: field(payment, "status") || null, status_detail: field(payment, "status_detail") || null },
     };
     if (!apply) return response(200, {
