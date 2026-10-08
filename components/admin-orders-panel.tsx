@@ -55,11 +55,11 @@ const ORDER_LABELS: Record<AdminOrder["order_status"], string> = {
 };
 
 function paymentLabel(order: AdminOrder) {
-  if (order.card_mode) return `${order.payment_status === "paid" ? "Pago" : "Pendente"} — ${order.card_mode === "credit_single" ? "Crédito à vista (1x)" : "Débito"}`;
-  if (order.payment_method === "manual_pix") return order.payment_status === "paid" ? "Pago — Pix manual" : "Pix manual — aguardando conferência";
   if (order.payment_method === "mercado_pago_pix" || order.payment_method === "mercado_pago_card") {
     return onlinePaymentLabel(order.payment_method, order.payment_status, order.gateway_status_detail);
   }
+  if (order.card_mode) return `${order.payment_status === "paid" ? "Pago" : "Pendente"} — ${order.card_mode === "credit_single" ? "Crédito à vista (1x)" : "Débito"}`;
+  if (order.payment_method === "manual_pix") return order.payment_status === "paid" ? "Pago — Pix manual" : "Pix manual — aguardando conferência";
   if (order.payment_status === "paid") return "Pago — " + (order.payment_method === "cash" ? "Dinheiro" : "Cartão");
   if (order.payment_method === "cash") return `Dinheiro na ${order.fulfillment_type === "pickup" ? "retirada" : "entrega"}`;
   return `Cartão na ${order.fulfillment_type === "pickup" ? "retirada" : "entrega"}`;
