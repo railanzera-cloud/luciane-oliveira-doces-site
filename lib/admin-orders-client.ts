@@ -41,6 +41,7 @@ export type AdminOrder = {
   payment_method: SitePaymentMethod;
   payment_status: PublicOrderStatus["payment_status"];
   order_status: PublicOrderStatus["order_status"];
+  gateway_status_detail: string | null;
   cash_change_for: number | string | null;
   created_at: string;
   updated_at: string;
@@ -53,7 +54,7 @@ const ORDER_COLUMNS = `
   id, order_id, order_number, card_mode, card_basis_points, card_fee, customer_name, customer_phone, customer_email, sales_channel, notes, source, attribution_snapshot,
   fulfillment_type, delivery_zone_id, neighborhood, street, street_number,
   complement, reference, subtotal, delivery_fee, total, currency,
-  payment_method, payment_status, order_status, cash_change_for,
+  payment_method, payment_status, order_status, gateway_status_detail, cash_change_for,
   created_at, updated_at, paid_at, completed_at,
   order_items ( id, name, size_label, option_names, quantity, unit_price, line_total )
 `;
