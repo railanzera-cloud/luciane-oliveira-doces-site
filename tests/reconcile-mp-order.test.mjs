@@ -188,18 +188,37 @@ test("reports only the failed currency check without changing payment state", as
   assert.equal(writes(h).length, 0);
 });
 
-test("reports missing live_mode while preserving fail-closed validation", async () => {
+test("accepts omitted live_mode in dry-run while leaving financial data unchanged", async () => {
   const h = mock({ mp: { live_mode: undefined } });
+  const r = await h.post();
+  assert.equal(r.status, 200);
+  assert.equal(r.data.dry_run, true);
+  assert.equal(r.data.gateway_status, "canceled");
+  assert.equal(writes(h).length, 0);
+});
+
+test("reports multiple mismatch checks without exposing gateway values", async () => {
+  const h = mock({ mp: { total_amount: "35.00", live_mode: null, country_code: "BR" } });
+  const r = await h.post();
+  assert.equal(r.status, 422);
+  assert.deepEqual(Array.from(r.data.error.failed_checks), ["live_mode", "currency", "amount"]);
+  assert.equal(writes(h).length, 0);
+});
+
+test("rejects explicit live_mode string instead of boolean", async () => {
+  const h = mock({ mp: { live_mode: "false" } });
   const r = await h.post();
   assert.equal(r.status, 422);
   assert.deepEqual(Array.from(r.data.error.failed_checks), ["live_mode"]);
   assert.equal(writes(h).length, 0);
 });
 
-test("reports multiple mismatch checks without exposing gateway values", async () => {
-  const h = mock({ mp: { total_amount: "35.00", live_mode: undefined, country_code: "BR" } });
-  const r = await h.post();
-  assert.equal(r.status, 422);
-  assert.deepEqual(Array.from(r.data.error.failed_checks), ["live_mode", "currency", "amount"]);
-  assert.equal(writes(h).length, 0);
+test("does not fabricate false in the sanitized payload when live_mode is absent", async () => {
+  const h = mock({ mp: { live_mode: undefined }, env: { LOD_RECONCILIATION_APPLY_ENABLED: "true" } });
+  const r = await h.post({ apply: true }, { "x-lod-apply-order": ORDER_ID });
+  assert.equal(r.status, 200);
+  const rpc = h.calls.find(c => c.url.includes("rpc/apply_mercadopago_order_event"));
+  assert.ok(rpc);
+  assert.equal(JSON.parse(rpc.body).p_sanitized_payload.live_mode, null);
+  assert.equal(h.calls.filter(c => c.url.includes("process-order-effects")).length, 0);
 });
