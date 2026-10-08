@@ -11,7 +11,7 @@ export function onlinePaymentLabel(
 ): string {
   const methodLabel = method === "mercado_pago_pix" ? "Pix online" : "Cartão online";
   switch (paymentStatus) {
-    case "paid": return `Pago — ${methodLabel}`;
+    case "paid": return method === "mercado_pago_pix" ? "Pago — Pix" : "Pago — Cartão online";
     case "cancelled": return `${methodLabel} ${gatewayStatusDetail === "expired" ? "expirado" : "cancelado"}`;
     case "failed": return `${methodLabel} recusado`;
     case "refunded": return `${methodLabel} reembolsado`;
