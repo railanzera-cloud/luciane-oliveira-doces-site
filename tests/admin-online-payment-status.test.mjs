@@ -28,7 +28,7 @@ test("new online card and Pix payments still display as pending", () => {
 
 test("accredited card and Pix remain explicitly paid", () => {
   assert.equal(onlinePaymentLabel("mercado_pago_card", "paid", null), "Pago — Cartão online");
-  assert.equal(onlinePaymentLabel("mercado_pago_pix", "paid", null), "Pago — Pix online");
+  assert.equal(onlinePaymentLabel("mercado_pago_pix", "paid", null), "Pago — Pix");
   assert.equal(pendingOnlineOrderLabel("paid", null), null);
 });
 
