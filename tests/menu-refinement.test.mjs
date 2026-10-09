@@ -979,13 +979,16 @@ function renderDeliveryFields(state) {
  return renderToStaticMarkup(new Function(...Object.keys(values),`${outputText};return render();`)(...Object.values(values)));
 }
 
-test('optional delivery details open for saved values without hiding required fields', () => {
+test('optional complement and reference stay visible and preserve saved values', () => {
  const blank=renderDeliveryFields(deliveryState('cidade','Promissão I'));
- assert.match(blank,/<details class="delivery-extras">/);
- assert.ok(blank.indexOf('id="address-number"') < blank.indexOf('<details'));
+ assert.match(blank,/<div class="delivery-extras">/);
+ assert.doesNotMatch(blank,/<details\b/);
+ assert.ok(blank.indexOf('id="address-number"') < blank.indexOf('id="complement"'));
+ assert.match(blank,/id="complement"/);
+ assert.match(blank,/id="reference"/);
  for(const saved of [{complement:'Casa 2'},{reference:'Portaria'}]) {
   const html=renderDeliveryFields({...deliveryState('cidade','Promissão I'),...saved});
-  assert.match(html,/<details class="delivery-extras" open="">/);
+  assert.match(html,/<div class="delivery-extras">/);
   assert.ok(html.includes(Object.values(saved)[0]));
  }
 });
