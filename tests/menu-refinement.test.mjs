@@ -799,7 +799,7 @@ function checkoutFeedback(overrides = {}) {
  const state={checkoutChannel:'whatsapp',checkoutFormReady:true,checkoutReady:true,isFinalizing:false,
   whatsAppRetryAvailable:false,deliveryZoneError:'',checkoutAvailabilityMessage:'',availability:{ordersOpen:true},cartIssues:[],cart,
   fulfillment:'retirada',selectedDeliveryZone:null,neighborhood:'',addressReady:true,customerNameReady:true,
-  customerPhoneReady:true,payment:'pix',paymentReady:true,changeError:'',STORE_CONFIG:catalog.STORE_CONFIG,...overrides};
+  customerPhoneReady:true,payment:'pix',paymentReady:true,changeError:'',address:'Rua A',cleanWhatsAppField:checkout.cleanWhatsAppField,STORE_CONFIG:catalog.STORE_CONFIG,...overrides};
  state.checkoutFeedbackMessage=checkoutCopy('checkoutFeedbackMessage',state);
  state.checkoutShowsReady=checkoutCopy('checkoutShowsReady',state);
  state.checkoutHint=checkoutCopy('checkoutHint',state);
@@ -820,10 +820,17 @@ for(const payment of ['pix','dinheiro','credito','debito']) test(`checkout feedb
  const warning='Complete as informações acima para continuar.';
  const ready='Tudo certo! Seu pedido está pronto para ser enviado.';
  const failure='Não conseguimos concluir seu pedido agora. Tente novamente.';
- for(const missing of [{fulfillment:''},{addressReady:false},{customerNameReady:false},{paymentReady:false}]) {
-  const state=checkoutFeedback({payment,...missing,checkoutFormReady:false,checkoutReady:false});
-  assert.equal(state.checkoutHint,warning); assert.equal(state.checkoutShowsReady,false);
-  const html=renderCheckoutFeedback(state); assert.ok(html.includes(warning)); assert.doesNotMatch(html,/data-ready-check|class="ready-status"/);
+ for(const [missing,hint] of [
+  [{fulfillment:''},'Escolha entrega ou retirada para continuar.'],
+  [{addressReady:false,address:''},'Informe a rua da entrega.'],
+  [{addressReady:false},'Informe o número da entrega (ou s/n).'],
+  [{customerNameReady:false},'Informe seu nome para continuar.'],
+  [{payment:''},'Escolha a forma de pagamento.'],
+  [{paymentReady:false},'Confira a forma de pagamento.'],
+ ]) {
+  const state=checkoutFeedback({payment,...missing,checkoutFormReady:false,checkoutReady:false,checkoutAvailabilityMessage:warning});
+  assert.equal(state.checkoutHint,hint); assert.equal(state.checkoutShowsReady,false);
+  const html=renderCheckoutFeedback(state); assert.ok(html.includes(hint)); assert.doesNotMatch(html,/data-ready-check|class="ready-status"/);
  }
  // A warning from a previous click disappears as soon as the form is valid.
  const complete=checkoutFeedback({payment,checkoutAvailabilityMessage:warning});
@@ -967,10 +974,72 @@ function renderDeliveryFields(state) {
   setDeliveryZoneId:()=>{},setNeighborhood:()=>{},setAddress:()=>{},setAddressNumber:()=>{},setLegacyAddressNotice:()=>{},
   setComplement:()=>{},setReference:()=>{},complement:'',reference:'',DELIVERY_TIME_ESTIMATE:catalog.DELIVERY_TIME_ESTIMATE,
   Select:container,SelectTrigger:container,SelectValue:()=>null,SelectContent:container,SelectGroup:container,SelectLabel:container,SelectItem:container,
-  Input:props=>React.createElement('input',props)};
+  Input:props=>React.createElement('input',props),...state};
  const {outputText}=ts.transpileModule(`const render=()=>(${node.getText(ast)});`,{compilerOptions:{jsx:ts.JsxEmit.React,target:ts.ScriptTarget.ES2022}});
  return renderToStaticMarkup(new Function(...Object.keys(values),`${outputText};return render();`)(...Object.values(values)));
 }
+
+test('optional delivery details open for saved values without hiding required fields', () => {
+ const blank=renderDeliveryFields(deliveryState('cidade','Promissão I'));
+ assert.match(blank,/<details class="delivery-extras">/);
+ assert.ok(blank.indexOf('id="address-number"') < blank.indexOf('<details'));
+ for(const saved of [{complement:'Casa 2'},{reference:'Portaria'}]) {
+  const html=renderDeliveryFields({...deliveryState('cidade','Promissão I'),...saved});
+  assert.match(html,/<details class="delivery-extras" open="">/);
+  assert.ok(html.includes(Object.values(saved)[0]));
+ }
+});
+
+function storefrontControl(marker, values) {
+ let found;
+ function visit(node) {
+  if(ts.isJsxElement(node) && node.openingElement.tagName.getText(ast)==='Button' && node.getText(ast).includes(marker)) found=node;
+  ts.forEachChild(node,visit);
+ }
+ visit(ast);assert.ok(found);
+ let expression=found;
+ if(marker==='flavor-continue') {
+  while(!ts.isJsxExpression(expression.parent)) expression=expression.parent;
+ }
+ const jsx=expression.getText(ast);
+ const js=ts.transpileModule(`const render=()=>(${jsx});`,{compilerOptions:{jsx:ts.JsxEmit.React,target:ts.ScriptTarget.ES2022}}).outputText;
+ const dependencies={React,Button:'button',ChevronRight:()=>null,...values};
+ return new Function(...Object.keys(dependencies),`${js};return render();`)(...Object.values(dependencies));
+}
+
+test('valid fewer-flavor selections can continue; empty, full and unavailable selections cannot', () => {
+ for(const [ids,ready,visible] of [[[],false,false],[['a'],true,true],[['a','b'],true,true],[['a','b','c'],true,false],[['a'],false,false]]) {
+  let destination;
+  const control=storefrontControl('flavor-continue',{popcornReady:ready,popcornOptionIds:ids,popcornMaxOptions:3,requestScroll:id=>destination=id});
+  assert.equal(Boolean(control),visible);
+  if(visible) { control.props.onClick();assert.equal(destination,'quantidade-pipocas');assert.match(renderToStaticMarkup(control),new RegExp(`Continuar com ${ids.length}`)); }
+ }
+});
+
+test('continue after adding follows the next pending section without finalizing or clearing the cart', () => {
+ for(const target of ['recebimento','delivery-fields','identificacao','pagamento']) {
+  let destination,engaged=true;
+  const control=storefrontControl('Continuar pedido <ChevronRight',{
+   setBuilderEngaged:value=>engaged=value,requestScroll:id=>destination=id,nextCheckoutSection:()=>target,
+  });
+  control.props.onClick();assert.equal(destination,target);assert.equal(engaged,false);
+ }
+});
+
+test('direct category navigation rejects unavailable categories and preserves saved items', () => {
+ let selected='pipocas';let scheduled=0;
+ for(const allowed of [false,true]) {
+  const select=pageFunction('selectCategory',{
+   categoryIsAvailable:()=>allowed,setRequestedCategory:value=>selected=value,setEditingId:()=>{},setSelectionMessage:()=>{},setAddedNotice:()=>{},setBuilderEngaged:()=>{},
+   setCart:()=>assert.fail('Category navigation must not change saved cart items'),
+   window:{history:{state:null,replaceState(){}},location:{href:'https://example.test/?utm_source=instagram'},setTimeout:fn=>{scheduled++;fn();}},
+   categoryUrl:navigation.categoryUrl,scrollToSection:()=>{},
+  });
+  select('fatias');assert.equal(selected,allowed?'fatias':'pipocas');assert.equal(scheduled,allowed?1:0);
+ }
+ assert.match(source,/visibleCategories\.filter\(\(category\) => category.id !== activeCategory\)/);
+ assert.match(source,/disabled=\{!categoryIsAvailable\(category.id\)\} onClick=\{\(\) => selectCategory\(category.id\)\}/);
+});
 
 test('real delivery JSX keeps required city neighborhood, hides it for specific places and shows accessible conflict guidance', () => {
  const city=renderDeliveryFields(deliveryState('cidade','Centro'));
