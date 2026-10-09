@@ -1886,13 +1886,12 @@ export default function Home() {
                   {legacyAddressNotice && <p className="field-note" role="status">Seu endereço anterior foi preservado. Confira a rua e informe o número; se não houver, use s/n.</p>}
                   <div className="field-group"><label htmlFor="address">Rua</label><Input id="address" value={address} onChange={(event) => setAddress(event.target.value)} placeholder="Ex.: Rua das Flores" autoComplete="address-line1" /></div>
                   <div className="field-group"><label htmlFor="address-number">Número</label><Input id="address-number" value={addressNumber} onChange={(event) => { setAddressNumber(event.target.value); setLegacyAddressNotice(false); }} placeholder="Ex.: 123 ou s/n" /></div>
-                  <details className="delivery-extras" open={Boolean(complement || reference)}>
-                    <summary>Adicionar complemento ou referência (opcional)</summary>
+                  <div className="delivery-extras">
                     <div className="delivery-extras-fields">
                       <div className="field-group"><label htmlFor="complement">Complemento (opcional)</label><Input id="complement" value={complement} onChange={(event) => setComplement(event.target.value)} placeholder="Ex.: casa 2, apartamento" autoComplete="address-line2" /></div>
                       <div className="field-group"><label htmlFor="reference">Ponto de referência (opcional)</label><Input id="reference" value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Ex.: próximo à praça" /></div>
                     </div>
-                  </details>
+                  </div>
                   <p className="field-note">A taxa é calculada pelo local escolhido. Confira o endereço e o total antes de enviar.</p>
                   <p className="field-note">{DELIVERY_TIME_ESTIMATE} O prazo começa após a confirmação da loja.</p>
                 </div>
