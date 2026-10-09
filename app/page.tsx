@@ -807,14 +807,6 @@ export default function Home() {
     if (shouldScroll) window.setTimeout(() => scrollToSection("configurador"), 30);
   }
 
-  function returnToCategories() {
-    clearDraft();
-    setAddedNotice(null);
-    setRequestedCategory(null);
-    window.history.replaceState(window.history.state, "", categoryUrl(window.location.href, null));
-    window.setTimeout(() => scrollToSection("inicio"), 30);
-  }
-
   function choosePopcornVariant(nextId: string) {
     if (!categoryIsAvailable("pipocas")) return;
     const nextVariant = POPCORN.variants.find((variant) => variant.id === nextId);
@@ -1375,8 +1367,8 @@ export default function Home() {
     scrollToSection(activeCategory ? "configurador" : "inicio");
   }
 
-  // A resolved form warning must not override the current ready state.
-  const checkoutFeedbackMessage = checkoutFormReady && checkoutAvailabilityMessage === "Complete as informações acima para continuar."
+  // Generic form feedback follows the current missing field instead of staying stale.
+  const checkoutFeedbackMessage = checkoutAvailabilityMessage === "Complete as informações acima para continuar."
     ? "" : checkoutAvailabilityMessage;
   const checkoutShowsReady = checkoutReady && !isFinalizing && !whatsAppRetryAvailable && !checkoutFeedbackMessage;
   const checkoutHint = (fulfillment === "entrega" && deliveryZoneError) || checkoutFeedbackMessage
@@ -1384,18 +1376,16 @@ export default function Home() {
     ? STORE_CONFIG.closedMessage
     : cartIssues.length > 0
       ? "Um ou mais itens ficaram indisponíveis. Revise o carrinho para continuar."
-    : checkoutChannel === "whatsapp" && !checkoutFormReady
-      ? "Complete as informações acima para continuar."
     : !cart.length
       ? "Adicione pelo menos um produto ao pedido."
       : !fulfillment
-        ? "Escolha entrega ou retirada."
+        ? "Escolha entrega ou retirada para continuar."
         : fulfillment === "entrega" && !selectedDeliveryZone
           ? "Escolha onde será a entrega."
           : fulfillment === "entrega" && selectedDeliveryZone?.asksNeighborhood && !neighborhood.trim()
             ? "Informe seu bairro."
             : !addressReady
-              ? "Preencha os dados da entrega."
+              ? !cleanWhatsAppField(address) ? "Informe a rua da entrega." : "Informe o número da entrega (ou s/n)."
               : !customerNameReady
                 ? "Informe seu nome para continuar."
                 : checkoutChannel === "site" && !customerPhoneReady
@@ -1515,11 +1505,12 @@ export default function Home() {
             <p>{activeCategory === "pipocas"
               ? "Escolha o tamanho, os sabores da sua pipoca e a quantidade."
               : "Monte uma combinação por vez. Depois, você pode adicionar outra fatia com um sabor diferente."}</p>
-            {visibleCategories.length > 1 && (
-              <button type="button" className="category-text-link" onClick={returnToCategories}>
-                Trocar categoria <ChevronRight size={15} aria-hidden="true" />
+            {visibleCategories.filter((category) => category.id !== activeCategory).map((category) => (
+              <button type="button" className="category-text-link" key={category.id}
+                disabled={!categoryIsAvailable(category.id)} onClick={() => selectCategory(category.id)}>
+                {category.name}{!categoryIsAvailable(category.id) && " — Esgotado"} <ChevronRight size={15} aria-hidden="true" />
               </button>
-            )}
+            ))}
           </div>
 
           {((activeCategory === "pipocas" && (!pipocasAvailable || !POPCORN.available))
@@ -1601,6 +1592,13 @@ export default function Home() {
                 <p className="selection-helper" role="status">
                   Ao combinar sabores, vale o preço do conjunto mais caro escolhido.
                 </p>
+                {popcornReady && popcornOptionIds.length < popcornMaxOptions && (
+                  <Button type="button" variant="outline" className="flavor-continue"
+                    onClick={() => requestScroll("quantidade-pipocas")}>
+                    Continuar com {popcornOptionIds.length} {popcornOptionIds.length === 1 ? "sabor" : "sabores"}
+                    <ChevronRight size={16} aria-hidden="true" />
+                  </Button>
+                )}
               </section>
 
               <section className={`step-block step-state-${popcornQuantityStepState}`} id="quantidade-pipocas" aria-labelledby="step-quantity" aria-current={popcornQuantityStepState === "active" ? "step" : undefined}>
@@ -1718,12 +1716,15 @@ export default function Home() {
                 <p>{addedNotice.description}</p>
               </div>
               <div className="added-panel-actions">
+                <Button type="button" variant="outline" onClick={() => {
+                  setBuilderEngaged(false);
+                  requestScroll(nextCheckoutSection());
+                }}>Continuar pedido <ChevronRight size={16} aria-hidden="true" /></Button>
                 {categoryIsAvailable(addedNotice.category) && (
                   <Button type="button" variant="outline" onClick={() => startAnother(addedNotice.category)}>
                     <Plus size={16} /> {addedNotice.category === "fatias" ? "Adicionar outra fatia" : "Adicionar outra pipoca"}
                   </Button>
                 )}
-                <Button type="button" variant="ghost" onClick={() => scrollToSection("carrinho")}>Ver pedido</Button>
               </div>
             </div>
           )}
@@ -1885,8 +1886,13 @@ export default function Home() {
                   {legacyAddressNotice && <p className="field-note" role="status">Seu endereço anterior foi preservado. Confira a rua e informe o número; se não houver, use s/n.</p>}
                   <div className="field-group"><label htmlFor="address">Rua</label><Input id="address" value={address} onChange={(event) => setAddress(event.target.value)} placeholder="Ex.: Rua das Flores" autoComplete="address-line1" /></div>
                   <div className="field-group"><label htmlFor="address-number">Número</label><Input id="address-number" value={addressNumber} onChange={(event) => { setAddressNumber(event.target.value); setLegacyAddressNotice(false); }} placeholder="Ex.: 123 ou s/n" /></div>
-                  <div className="field-group"><label htmlFor="complement">Complemento (opcional)</label><Input id="complement" value={complement} onChange={(event) => setComplement(event.target.value)} placeholder="Ex.: casa 2, apartamento" autoComplete="address-line2" /></div>
-                  <div className="field-group"><label htmlFor="reference">Ponto de referência (opcional)</label><Input id="reference" value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Ex.: próximo à praça" /></div>
+                  <details className="delivery-extras" open={Boolean(complement || reference)}>
+                    <summary>Adicionar complemento ou referência (opcional)</summary>
+                    <div className="delivery-extras-fields">
+                      <div className="field-group"><label htmlFor="complement">Complemento (opcional)</label><Input id="complement" value={complement} onChange={(event) => setComplement(event.target.value)} placeholder="Ex.: casa 2, apartamento" autoComplete="address-line2" /></div>
+                      <div className="field-group"><label htmlFor="reference">Ponto de referência (opcional)</label><Input id="reference" value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Ex.: próximo à praça" /></div>
+                    </div>
+                  </details>
                   <p className="field-note">A taxa é calculada pelo local escolhido. Confira o endereço e o total antes de enviar.</p>
                   <p className="field-note">{DELIVERY_TIME_ESTIMATE} O prazo começa após a confirmação da loja.</p>
                 </div>
