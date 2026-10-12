@@ -1,4 +1,4 @@
-name: Empacotar Cloudflare Pages - rastreamento claro
+name: Empacotar Cloudflare Pages - resultados CRM
 on:
   push:
     branches:
@@ -55,7 +55,11 @@ jobs:
               assert 'Mais informações do Tintim' in js, 'bloco Tintim ausente'
               assert 'Histórico de visitas identificadas' in js, 'rotulo de historico ausente'
               assert 'O identificador de clique deste pedido coincide' in js, 'evidencia de clique ausente'
-              assert 'admin_get_tintim_order_tracking_v3' in js, 'consulta de origem v2 ausente'
+              assert 'admin_get_tintim_order_tracking_v3' in js, 'consulta de historico por pedido ausente'
+              assert 'admin_get_results_overview' in js, 'consulta de Resultados ausente'
+              assert 'Pagamentos confirmados' in js, 'indicadores de pagamentos ausentes'
+              assert 'Campanhas registradas no Tintim' in js, 'visao de campanhas ausente'
+              assert 'Aguardando pagamento' in js, 'separacao de pendencias ausente'
               assert 'Campanha identificada em outra visita' in js, 'referencia de campanha anterior ausente'
               assert 'marketing_interactions' in js, 'historico nao compilado'
               assert 'https://edqiwvccmboyayojvuea.supabase.co' in js, 'Supabase ausente'
@@ -67,7 +71,7 @@ jobs:
       - name: Publicar ZIP de build como artefato do GitHub
         uses: actions/upload-artifact@v4
         with:
-          name: luciane-cloudflare-rastreamento-claro-20261012
+          name: luciane-cloudflare-resultados-crm-20261012
           path: outputs/luciane-oliveira-doces-cloudflare-pages.zip
           if-no-files-found: error
           retention-days: 7
