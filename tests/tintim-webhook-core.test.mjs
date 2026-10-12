@@ -54,7 +54,7 @@ test('message without account id uses the same known Tintim tenant as lead event
  const lead=normalizeTintimPayload({
   event_type:'lead.update',phone:'91999998888',lead:{phone:'91999998888'}
  },t);
- const msg=extractOrderReferenceFromTintim(inbound(),t);
+ const msg=extractOrderReferenceFromTintim(inbound({account:undefined}),t);
  assert.equal(msg.account_key,lead.account_key);
  assert.equal(msg.account_key,'2c956a42-229f-4d21-ade6-4442f8c048ed');
 });
