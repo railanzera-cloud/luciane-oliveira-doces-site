@@ -90,7 +90,7 @@ test("revalidates the complete cart immediately before the backend registration"
   assert.notEqual(finishStart, -1);
   assert.match(finish, /await refreshAvailability\(\)/);
   assert.match(finish, /if \(latest\.usedFallback\)/);
-  assert.match(finish, /Não foi possível confirmar a disponibilidade agora/);
+  assert.match(finish, /Não conseguimos concluir seu pedido agora/);
   assert.match(finish, /cartAvailabilityIssues\(cart, latest\.snapshot\)/);
   assert.match(finish, /!latest\.snapshot\.ordersOpen/);
   assert.match(finish, /Item indisponível/);
