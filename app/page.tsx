@@ -67,6 +67,8 @@ import {
 } from "@/app/menu-availability";
 import { categoryFromUrl, categoryUrl, publicCategories, resolveMenuCategory } from "@/app/menu-navigation";
 import { useMenuAvailability } from "@/hooks/use-menu-availability";
+import { usePopcornPromotion } from "@/hooks/use-popcorn-promotion";
+import { isPopcornPromotionActive } from "@/supabase/functions/_shared/popcorn-promotion.mjs";
 import {
   buildRegisteredOrderMessage, captureOrderAttribution, cleanWhatsAppField, formatOrderMoney, newOrderContext,
   parseCashCents, paymentDescription, restoreOrderContext,
@@ -226,10 +228,10 @@ function trackMetaEvent(eventName: MetaEventName, payload?: Record<string, unkno
   return true;
 }
 
-function itemUnitPrice(product: Product, variant: Variant, optionIds: string[] = []) {
+function itemUnitPrice(product: Product, variant: Variant, optionIds: string[] = [], now = Date.now()) {
   // Carrinhos com tamanho retirado ficam sem valor de venda até serem corrigidos.
   if (variant.retired) return 0;
-  return product.kind === "popcorn" ? popcornPrice(variant.id, optionIds) : variant.price;
+  return product.kind === "popcorn" ? popcornPrice(variant.id, optionIds, now) : variant.price;
 }
 
 function unavailableReason(snapshot: AvailabilitySnapshot, itemKey: string, label: string) {
@@ -344,6 +346,8 @@ function sanitizeSavedCart(value: unknown): CartItem[] {
 }
 
 export default function Home() {
+  const { promotionTime, refreshPromotionTime } = usePopcornPromotion();
+  const popcornPromotionActive = isPopcornPromotionActive(promotionTime);
   const [requestedCategory, setRequestedCategory] = useState<CategoryId | null>(null);
   const [popcornVariantId, setPopcornVariantId] = useState("");
   const [popcornOptionIds, setPopcornOptionIds] = useState<string[]>([]);
@@ -608,9 +612,9 @@ export default function Home() {
     () => cart.reduce((total, item) => {
       const product = PRODUCTS.find((candidate) => candidate.id === item.productId);
       const variant = product?.variants.find((candidate) => candidate.id === item.variantId);
-      return total + (product && variant ? itemUnitPrice(product, variant, item.optionIds) : 0) * item.quantity;
+      return total + (product && variant ? itemUnitPrice(product, variant, item.optionIds, promotionTime) : 0) * item.quantity;
     }, 0),
-    [cart],
+    [cart, promotionTime],
   );
 
   const cartNeedsSizeReview = cart.some((item) => PRODUCTS.find((product) => product.id === item.productId)?.variants.find((variant) => variant.id === item.variantId)?.retired);
@@ -650,7 +654,7 @@ export default function Home() {
     && SLICE_OPTIONS.some(option => option.id === sliceOptionId),
   );
   const draftReady = activeCategory === "pipocas" ? popcornReady : activeCategory === "fatias" && sliceReady;
-  const popcornUnitPrice = popcornVariant && !popcornVariant.retired ? itemUnitPrice(POPCORN, popcornVariant, popcornOptionIds) : null;
+  const popcornUnitPrice = popcornVariant && !popcornVariant.retired ? itemUnitPrice(POPCORN, popcornVariant, popcornOptionIds, promotionTime) : null;
   const draftSubtotal = activeCategory === "pipocas"
     ? popcornUnitPrice === null ? null : popcornUnitPrice * popcornQuantity
     : selectedSliceVariant ? selectedSliceVariant.price * sliceQuantity : null;
@@ -709,7 +713,7 @@ export default function Home() {
   const stickyPriceLabel = cart.length > 0 && !builderFlowActive
     ? cartNeedsSizeReview ? "Revise o tamanho" : currency.format(hasEstimatedTotal ? orderTotal : cartSubtotal)
     : draftSubtotal === null
-      ? activeCategory === "pipocas" ? `A partir de ${currency.format(popcornPrice("500ml"))}` : "A partir de R$20"
+      ? activeCategory === "pipocas" ? `A partir de ${currency.format(popcornPrice("500ml", [], promotionTime))}` : "A partir de R$20"
       : currency.format(draftSubtotal);
   const stickyPriceCaption = cart.length > 0 && !builderFlowActive
     ? hasEstimatedTotal ? "Total" : "Subtotal"
@@ -751,7 +755,7 @@ export default function Home() {
         product_id: product.id, variant_id: variant.id, option_ids: [...item.optionIds],
         name: productLabel(product), size: variant.whatsappLabel, kind: product.kind,
         options: item.optionIds.map((id) => product.options.find((option) => option.id === id)?.name).filter((name): name is string => Boolean(name)),
-        quantity: item.quantity, unit_price: itemUnitPrice(product, variant, item.optionIds),
+        quantity: item.quantity, unit_price: itemUnitPrice(product, variant, item.optionIds, promotionTime),
       };
     }),
     fulfillment, neighborhood: deliveryNeighborhood, street: address, number: addressNumber,
@@ -913,7 +917,7 @@ export default function Home() {
     const contents = cart.map((item) => {
       const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
       const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
-      const unitPrice = itemUnitPrice(product, variant, item.optionIds);
+      const unitPrice = itemUnitPrice(product, variant, item.optionIds, promotionTime);
       return {
         id: `${product.id}:${variant.id}`,
         quantity: item.quantity,
@@ -1276,6 +1280,11 @@ export default function Home() {
 
   async function finishOnWhatsApp() {
     if (finalizationLockRef.current) return;
+    if (popcornPromotionActive !== isPopcornPromotionActive()) {
+      refreshPromotionTime();
+      setCheckoutAvailabilityMessage("Os preços foram atualizados. Confira o total e finalize novamente.");
+      return;
+    }
     if (!checkoutFormReady) {
       setBuilderEngaged(false);
       setCheckoutAvailabilityMessage("Complete as informações acima para continuar.");
@@ -1540,6 +1549,19 @@ export default function Home() {
             <div className="builder-card">
               <section className={`step-block step-state-${popcornSizeStepState}`} id="tamanhos" aria-labelledby="step-size" aria-current={popcornSizeStepState === "active" ? "step" : undefined}>
                 <div className="step-heading"><StepMarker number={1} state={popcornSizeStepState} /><div><h3 id="step-size">Escolha o tamanho</h3><p>O preço e o limite de sabores mudam conforme o pote.</p></div></div>
+                {popcornPromotionActive && pipocasAvailable && POPCORN.variants.some(variant => popcornSizeIsAvailable(variant.id)) && (
+                  <aside className="popcorn-weekend-offer" aria-label="Promoção de fim de semana">
+                    <span>🍿 Fim de semana especial</span>
+                    <div className="popcorn-offer-prices">
+                      <span>500 ml<strong>R$ 25</strong></span>
+                      <span>750 ml<strong>R$ 39</strong></span>
+                      <span>1 litro<strong>R$ 49</strong></span>
+                    </div>
+                    <p>Preço fixo por tamanho, com qualquer combinação de sabores disponíveis!</p>
+                    <small>Até 2 sabores em 500 e 750 ml; até 3 sabores em 1 litro.</small>
+                    <small>Só sábado e domingo, 10 e 11/10. Na segunda-feira, os preços normais de cada sabor voltam.</small>
+                  </aside>
+                )}
                 {!POPCORN.variants.some((variant) => popcornSizeIsVisible(variant.id)) && <p className="selection-helper" role="status">Nenhum tamanho disponível no momento.</p>}
                 <RadioGroup className="size-grid" value={popcornVariantId} onValueChange={choosePopcornVariant} aria-label="Tamanho da Pipoca Gourmet">
                   {POPCORN.variants.filter((variant) => popcornSizeIsVisible(variant.id)).map((variant) => {
@@ -1547,7 +1569,7 @@ export default function Home() {
                     return (
                       <label className={`size-card ${variant.id === popcornVariantId ? "is-selected" : ""} ${!available ? "is-unavailable" : ""}`} htmlFor={`size-${variant.id}`} key={variant.id}>
                         <RadioGroupItem id={`size-${variant.id}`} value={variant.id} disabled={!available} />
-                        <span className="size-copy"><strong>{variant.label}</strong><b>{currency.format(itemUnitPrice(POPCORN, variant, popcornOptionIds))}</b><small>Até {variant.maxOptions} sabores</small></span>
+                        <span className="size-copy"><strong>{variant.label}</strong><b>{currency.format(itemUnitPrice(POPCORN, variant, popcornOptionIds, promotionTime))}</b><small>Até {variant.maxOptions} sabores</small></span>
                         {variant.id === popcornVariantId && available && <span className="selected-check" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>}
                         {!available && <span className="unavailable-label">Esgotado hoje</span>}
                       </label>
@@ -1583,7 +1605,7 @@ export default function Home() {
                         <span className="flavor-copy">
                           <strong>{option.name}</strong>
                           <small>{option.description}</small>
-                          {popcornVariantUsable && popcornVariant && <small>{currency.format(popcornPrice(popcornVariant.id, [option.id]))} por pote</small>}
+                          {popcornVariantUsable && popcornVariant && <small>{currency.format(popcornPrice(popcornVariant.id, [option.id], promotionTime))} por pote</small>}
                         </span>
                         {selected && <span className="flavor-selected">Selecionado</span>}
                         {waitingForSize && available && <span className="flavor-status">Escolha o tamanho</span>}
@@ -1603,7 +1625,9 @@ export default function Home() {
                       : `Você pode escolher mais ${popcornMaxOptions - popcornOptionIds.length} ${popcornMaxOptions - popcornOptionIds.length === 1 ? "sabor" : "sabores"}, se quiser.`)}
                 </div>
                 <p className="selection-helper" role="status">
-                  Ao combinar sabores, vale o preço do conjunto mais caro escolhido.
+                  {popcornPromotionActive
+                    ? "Neste fim de semana, o preço do tamanho escolhido é o mesmo para qualquer combinação de sabores disponíveis."
+                    : "Ao combinar sabores, vale o preço do conjunto mais caro escolhido."}
                 </p>
                 {popcornReady && popcornOptionIds.length < popcornMaxOptions && (
                   <Button type="button" variant="outline" className="flavor-continue"
@@ -1800,7 +1824,7 @@ export default function Home() {
                     const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
                     const itemIssue = cartIssues.find((issue) => issue.cartItemId === item.id);
                     const optionNames = item.optionIds.map((id) => product.options.find((option) => option.id === id)?.name).filter(Boolean).join(", ");
-                    const unitPrice = itemUnitPrice(product, variant, item.optionIds);
+                    const unitPrice = itemUnitPrice(product, variant, item.optionIds, promotionTime);
                     return (
                       <article className={`cart-item ${itemIssue ? "is-unavailable" : ""}`} key={item.id}>
                         <div className="cart-item-top">
@@ -2000,7 +2024,7 @@ export default function Home() {
                 const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
                 const itemIssue = cartIssues.find((issue) => issue.cartItemId === item.id);
                 const names = item.optionIds.map((id) => product.options.find((option) => option.id === id)?.name).filter(Boolean).join(", ");
-                const lineTotal = itemUnitPrice(product, variant, item.optionIds) * item.quantity;
+                const lineTotal = itemUnitPrice(product, variant, item.optionIds, promotionTime) * item.quantity;
                 return (
                   <div className={`summary-item ${itemIssue ? "is-unavailable" : ""}`} key={item.id}>
                     <div className="summary-item-main">
