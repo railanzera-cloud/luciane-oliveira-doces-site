@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { captureMarketingInteractions } from "../app/attribution-history.ts";
+import { readFile } from "node:fs/promises";
+import ts from "typescript";
+const source = await readFile(new URL("../app/attribution-history.ts", import.meta.url), "utf8");
+const { outputText } = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } });
+const { captureMarketingInteractions } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
 
 const t0 = "2026-10-12T13:00:00.000Z";
 const ad1 = "https://lucianeoliveiradoces.pages.dev/?utm_source=ig&utm_campaign=Morango&tintim_fbid=120123456789_ig_Instagram_Stories";
