@@ -103,7 +103,7 @@ export function createOrderId(): string {
   return `LOD-${code.slice(0, 4)}-${code.slice(4, 8)}-${code.slice(8)}`;
 }
 
-export function captureOrderAttribution(href: string, cookies: string, previous?: OrderAttribution): OrderAttribution {
+export function captureOrderAttribution(href: string, cookies: string, previous?: OrderAttribution, recordArrival = false): OrderAttribution {
   const url = new URL(href);
   const parameters: Record<string, string[]> = Object.create(null);
   if (previous?.parameters) {
@@ -118,7 +118,10 @@ export function captureOrderAttribution(href: string, cookies: string, previous?
     landing_url: previous?.landing_url || href,
     last_url: href,
     parameters,
-    marketing_interactions: captureMarketingInteractions(previous?.marketing_interactions, href),
+    // Somente entrada real na página registra uma interação. Checkout não fabrica novo clique.
+    marketing_interactions: recordArrival
+      ? captureMarketingInteractions(previous?.marketing_interactions, href)
+      : previous?.marketing_interactions ?? [],
   };
   for (const key of attributionKeys) {
     const value = url.searchParams.get(key) || previous?.[key];
