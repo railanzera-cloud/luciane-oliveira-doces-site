@@ -5,8 +5,11 @@ import ts from "typescript";
 
 const source = await readFile(new URL("../app/catalog.ts", import.meta.url), "utf8");
 const { outputText } = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } });
-const catalog = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
-const { POPCORN, POPCORN_PRICING_GROUPS, popcornPrice } = catalog;
+const resolved = outputText.replace('../supabase/functions/_shared/popcorn-promotion.mjs', new URL('../supabase/functions/_shared/popcorn-promotion.mjs', import.meta.url).href);
+const catalog = await import(`data:text/javascript;base64,${Buffer.from(resolved).toString("base64")}`);
+const { POPCORN, POPCORN_PRICING_GROUPS } = catalog;
+// This suite verifies the permanent price table, independently of temporary offers.
+const popcornPrice = (size, options) => catalog.popcornPrice(size, options, Date.parse('2026-10-12T03:00:00Z'));
 
 test("exactly eight official flavors, groups and descriptions", () => {
   assert.deepEqual(POPCORN.options.map(({ name, pricingGroup }) => [name, pricingGroup]), [
