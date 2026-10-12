@@ -448,11 +448,25 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
                     <p>Origem associada à conversa: <strong>{order.tintim_tracking.source_label} (Tintim)</strong></p>
                   )}
                   {order.tintim_tracking?.campaign_name && (
-                    <p>Campanha registrada no Tintim: <strong>{order.tintim_tracking.campaign_name}</strong></p>
+                    <p>
+                      {order.tintim_tracking.campaign_evidence_kind === "historical_conversation"
+                        ? "Campanha identificada anteriormente na conversa: "
+                        : "Campanha registrada pelo Tintim próxima a este pedido: "}
+                      <strong>{order.tintim_tracking.campaign_name}</strong>
+                    </p>
+                  )}
+                  {order.tintim_tracking?.campaign_evidence_kind === "historical_conversation" &&
+                    order.tintim_tracking.campaign_observed_at && (
+                    <p className="admin-order-attribution-note">
+                      Registrada em {interactionTime(order.tintim_tracking.campaign_observed_at)} — antes deste pedido.
+                    </p>
                   )}
                   {order.tintim_tracking?.click_identifier_matches && (
                     <p className="admin-order-attribution-note">
-                      O mesmo identificador de clique aparece no histórico do pedido e no Tintim.
+                      O identificador de clique deste pedido coincide com o registro da campanha no Tintim.
+                      {order.tintim_tracking?.campaign_evidence_kind === "historical_conversation"
+                        ? " Ele pode ter sido preservado de uma interação anterior."
+                        : ""}
                     </p>
                   )}
                   <p>Origem desta visita ao site: <strong>{visitOrigin(visitParameter(order, "current_visit", "utm_source"), visitParameter(order, "current_visit", "utm_content"))}</strong></p>
@@ -487,7 +501,10 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
                         <p>O número deste pedido foi identificado na mensagem da conversa.</p>
                       )}
                       <small>
-                        A campanha informada pelo Tintim pode representar uma interação anterior, não necessariamente uma nova visita ao anúncio.
+                        Campanha preservada para este pedido: mudanças futuras na conversa não alteram este registro.
+                        {" "}{order.tintim_tracking.match_status === "candidate"
+                          ? "A associação com a conversa é provisória e independente do pagamento."
+                          : "A conversa está associada ao pedido."}
                         {" "}{order.payment_status === "paid"
                           ? "O pagamento está registrado como confirmado no painel."
                           : "O pagamento ainda precisa ser confirmado separadamente no painel."}
