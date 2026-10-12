@@ -427,6 +427,9 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
             const next = nextAction(order);
             const NextIcon = next?.icon;
             const pending = pendingId === order.id;
+            // Registro obtido na visita ao site, independente da campanha armazenada no Tintim.
+            const priorCampaignVisit = marketingHistory(order).filter(touch => Boolean(touch.utm_campaign)).at(-1);
+            const hasCampaignInCurrentVisit = Boolean(visitParameter(order, "current_visit", "utm_campaign"));
             return (
               <article className={`admin-order-card status-${order.order_status}`} key={order.id}>
                 <header className="admin-order-card-heading">
@@ -447,6 +450,12 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
                   ) : order.tintim_tracking?.campaign_name ? (
                     <p className="admin-order-attribution-note">Nenhuma campanha identificada nesta visita ao site.</p>
                   ) : null}
+                  {!hasCampaignInCurrentVisit && priorCampaignVisit?.utm_campaign && (
+                    <p className="admin-order-attribution-note">
+                      Campanha identificada em outra visita: <strong>{priorCampaignVisit.utm_campaign}</strong>
+                      {" "}({interactionTime(priorCampaignVisit.observed_at)}).
+                    </p>
+                  )}
                   {visitParameter(order, "first_touch", "utm_source") &&
                     visitParameter(order, "first_touch", "utm_source") !== visitParameter(order, "current_visit", "utm_source") && (
                     <p>Origem da primeira visita registrada: {readableSource(visitParameter(order, "first_touch", "utm_source"))}</p>
