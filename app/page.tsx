@@ -1592,6 +1592,19 @@ export default function Home() {
                   <div><h3 id="step-flavors">Escolha os sabores da sua pipoca</h3><p>{popcornVariant ? `Combine até ${popcornMaxOptions} sabores neste pote.` : "Primeiro, escolha o tamanho acima."}</p></div>
                   <span className="selection-count" aria-live="polite">{popcornVariant ? `${popcornOptionIds.length}/${popcornMaxOptions}` : "—"}</span>
                 </div>
+                {popcornVariantUsable && popcornVariant && (
+                  <div className="boutique-price-guide" aria-live="polite" aria-atomic="true">
+                    <div className="boutique-price-guide-copy">
+                      <span>Valor atual do pote</span>
+                      <strong>{currency.format(popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime))}</strong>
+                    </div>
+                    <p>
+                      {popcornPromotionActive
+                        ? "Promoção ativa: os sabores não alteram o preço deste tamanho."
+                        : "O sabor mais caro da combinação define o valor. Veja abaixo quanto fica antes de escolher."}
+                    </p>
+                  </div>
+                )}
                 <div className="flavor-grid">
                   {POPCORN.options.filter((option) => popcornFlavorIsVisible(option.id)).map((option) => {
                     const selected = popcornOptionIds.includes(option.id);
@@ -1599,19 +1612,40 @@ export default function Home() {
                     const waitingForSize = !popcornVariantUsable;
                     const available = pipocasAvailable && option.available && popcornFlavorIsAvailable(option.id);
                     const disabled = waitingForSize || (!available && !selected) || limitDisabled;
+                    const currentPotPrice = popcornVariantUsable && popcornVariant
+                      ? popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime) : null;
+                    const potPriceWithOption = popcornVariantUsable && popcornVariant
+                      ? popcornPrice(popcornVariant.id, selected ? popcornOptionIds : [...popcornOptionIds, option.id], promotionTime)
+                      : null;
+                    const priceDifference = currentPotPrice !== null && potPriceWithOption !== null
+                      ? Math.max(0, potPriceWithOption - currentPotPrice) : 0;
                     return (
                       <label className={`flavor-card ${selected ? "is-selected" : ""} ${disabled ? "is-disabled" : ""}`} htmlFor={`flavor-${option.id}`} key={option.id}>
                         <Checkbox id={`flavor-${option.id}`} checked={selected} disabled={disabled} onCheckedChange={() => togglePopcornOption(option)} aria-label={`Selecionar sabor ${option.name}`} />
-                        <span className="flavor-tone" style={{ backgroundColor: option.tone }} aria-hidden="true" />
-                        <span className="flavor-copy">
-                          <strong>{option.name}</strong>
-                          <small>{option.description}</small>
-                          {popcornVariantUsable && popcornVariant && <small>{currency.format(popcornPrice(popcornVariant.id, [option.id], promotionTime))} por pote</small>}
+                        <span className="boutique-flavor-identity">
+                          <span className="flavor-tone" style={{ backgroundColor: option.tone }} aria-hidden="true" />
+                          <span className="flavor-copy">
+                            <strong>{option.name}</strong>
+                            <small>{option.description}</small>
+                          </span>
                         </span>
-                        {selected && <span className="flavor-selected">Selecionado</span>}
-                        {waitingForSize && available && <span className="flavor-status">Escolha o tamanho</span>}
-                        {!available && <span className="flavor-status">Esgotado hoje</span>}
-                        {limitDisabled && available && <span className="flavor-status">Limite atingido</span>}
+                        <span className="boutique-flavor-value">
+                          {potPriceWithOption !== null && (
+                            <span className="boutique-flavor-cost">
+                              <strong>{currency.format(potPriceWithOption)}</strong>
+                              <small>{selected ? "Valor atual" : "Se incluir"}</small>
+                            </span>
+                          )}
+                          {!selected && !disabled && potPriceWithOption !== null && (
+                            <span className={`boutique-flavor-impact ${priceDifference > 0 ? "has-increase" : "is-same"}`}>
+                              {priceDifference > 0 ? `+${currency.format(priceDifference)} no pote` : "Mantém o preço"}
+                            </span>
+                          )}
+                          {selected && <span className="boutique-flavor-picked"><Check size={13} strokeWidth={2.8} aria-hidden="true" /> Escolhido</span>}
+                          {waitingForSize && available && <span className="boutique-flavor-unavailable">Escolha o tamanho</span>}
+                          {!available && <span className="boutique-flavor-unavailable">Esgotado</span>}
+                          {limitDisabled && available && <span className="boutique-flavor-unavailable">Limite atingido</span>}
+                        </span>
                       </label>
                     );
                   })}
@@ -1685,7 +1719,10 @@ export default function Home() {
                   setSelectionMessage("");
                   requestScroll("calda-fatias");
                 }} aria-label="Sabor da fatia artesanal">
-                  {SLICES.filter((slice) => sliceIsVisible(slice.id)).map((slice) => {
+                  {SLICES.filter((slice) => sliceIsVisible(slice.id))
+                    .sort((first, second) => Number(Boolean(fatiasAvailable && second.available && second.variants[0]?.available && sliceIsAvailable(second.id)))
+                      - Number(Boolean(fatiasAvailable && first.available && first.variants[0]?.available && sliceIsAvailable(first.id))))
+                    .map((slice) => {
                     const selected = slice.id === sliceProductId;
                     const variant = slice.variants[0];
                     const available = fatiasAvailable && slice.available && variant.available && sliceIsAvailable(slice.id);
@@ -1696,10 +1733,15 @@ export default function Home() {
                           {slice.image ? <img src={slice.cardImage ?? slice.image} alt={slice.imageAlt} width="640" height="480" loading="lazy" decoding="async" fetchPriority="low" sizes="(max-width: 599px) calc(50vw - 27px), (max-width: 899px) calc(50vw - 36px), 240px" /> : <span className="slice-placeholder"><CakeSlice size={30} strokeWidth={1.4} /><small>Foto em breve</small></span>}
                         </span>
                         <span className="slice-card-copy">
-                          <strong>{slice.name}</strong>
+                          <span className="boutique-slice-card-title">
+                            <strong>{slice.name}</strong>
+                            {selected && available && <span className="boutique-slice-selected-label">Sua escolha</span>}
+                          </span>
                           {slice.subtitle && <em>{slice.subtitle}</em>}
-                          <span className="slice-weight">{SLICE_WEIGHT_GRAMS} g por fatia</span>
-                          <b>{currency.format(variant.price)}</b>
+                          <span className="boutique-slice-card-footer">
+                            <span className="slice-weight">{SLICE_WEIGHT_GRAMS} g por fatia</span>
+                            <b>{currency.format(variant.price)}</b>
+                          </span>
                         </span>
                         {selected && available && <span className="slice-selected"><Check size={14} strokeWidth={3} /></span>}
                         {!available && <span className={`slice-status ${slice.availabilityLabel ? "is-upcoming" : ""}`}>{slice.availabilityLabel ?? "Esgotado hoje"}</span>}
