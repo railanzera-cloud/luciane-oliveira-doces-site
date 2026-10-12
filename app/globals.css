@@ -3795,6 +3795,83 @@ footer {
   margin: 12px 0 0;
 }
 
+/* Mensuração legível no celular: resumo da visita + detalhes sob demanda. */
+.admin-order-attribution {
+  display: grid;
+  gap: 5px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  color: #cfc1b4;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.admin-order-attribution > p,
+.admin-order-attribution-detail-body > p {
+  margin: 0;
+}
+
+.admin-order-attribution-heading {
+  color: #f1dcc4;
+  font-weight: 700;
+}
+
+.admin-order-attribution strong,
+.admin-order-attribution-detail-body strong {
+  color: #f5e4cf;
+  overflow-wrap: anywhere;
+}
+
+.admin-order-attribution-note {
+  color: #a99a8c;
+  font-size: 0.78rem;
+}
+
+.admin-order-attribution-details {
+  margin-top: 8px;
+  color: #c6b4a4;
+  font-size: 0.81rem;
+  line-height: 1.5;
+}
+
+.admin-order-attribution-details > summary {
+  padding: 6px 0;
+  color: #e6c6a0;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.admin-order-attribution-details > summary:focus-visible {
+  outline: 2px solid #f2bf81;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.admin-order-attribution-detail-body {
+  display: grid;
+  gap: 7px;
+  margin: 4px 0 7px;
+  padding-left: 10px;
+  border-left: 2px solid rgba(230, 190, 135, 0.24);
+}
+
+.admin-order-attribution-detail-body ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.admin-order-attribution-detail-body li + li {
+  margin-top: 8px;
+}
+
+.admin-order-attribution-detail-body small {
+  color: #ac9c8c;
+  line-height: 1.5;
+}
+
 .admin-order-total {
   margin-top: 14px;
   padding-top: 13px;
