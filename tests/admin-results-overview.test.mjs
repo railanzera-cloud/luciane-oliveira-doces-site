@@ -75,7 +75,8 @@ test("aba Resultados não altera botões de pedido nem eventos Meta", async () =
   assert.ok(admin.includes('<TabsTrigger value="availability">'));
   assert.ok(ui.includes("loadAdminResults(client, days)"));
   assert.ok(ui.includes("O Tintim continua responsável pelos disparos Purchase"));
-  assert.ok(ui.includes("Podem incluir testes."));
+  assert.ok(ui.includes("podem incluir testes."));
+  assert.ok(ui.includes("O período é definido pela data em que o pedido foi criado."));
   assert.ok(!ui.includes("confirmOfflinePayment("));
   assert.ok(!ui.includes("transitionAdminOrder("));
 });
