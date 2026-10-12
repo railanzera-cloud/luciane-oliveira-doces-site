@@ -581,7 +581,18 @@
   .storefront .flavor-card { padding: 12px 10px; gap: 8px; }
   .storefront .flavor-tone { width: 34px; height: 34px; flex-basis: 34px; }
   .storefront .boutique-cart-image { width: 49px; height: 58px; flex-basis: 49px; }
-  .storefront .cart-item-value { min-width: 66px; }
+  .storefront .cart-item-top { flex-direction: column; }
+  .storefront .boutique-cart-product { width: 100%; }
+  .storefront .cart-item-value {
+    width: 100%;
+    min-width: 0;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(137, 88, 51, .12);
+  }
   .storefront .boutique-checkout-progress button { flex-direction: column; gap: 4px; font-size: .65rem; }
   .storefront .boutique-progress-index { width: 22px; height: 22px; flex-basis: 22px; }
 }
