@@ -187,7 +187,8 @@ export function AdminResultsPanel({ client }: { client: SupabaseClient }) {
           )}
 
           <p className="admin-results-disclaimer">
-            Os indicadores usam exclusivamente os pedidos registrados no Supabase da Luciane. Podem incluir testes.
+            O período é definido pela data em que o pedido foi criado. A situação do pagamento é a registrada hoje para esses pedidos, não a data do recebimento.
+            Os indicadores usam exclusivamente os pedidos registrados no Supabase da Luciane e podem incluir testes.
             Pagamento confirmado significa status “pago” no painel, não depósito conciliado no banco.
             O Tintim continua responsável pelos disparos Purchase para a Meta; este relatório não envia eventos.
             Sem os custos dos anúncios, não é possível calcular ROAS ou lucro.
