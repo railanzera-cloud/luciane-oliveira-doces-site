@@ -1616,6 +1616,17 @@ export default function Home() {
                     );
                   })}
                 </div>
+                {popcornOptionIds.length > 0 && (
+                  <div className="boutique-flavor-summary" aria-live="polite" aria-label="Sabores escolhidos">
+                    <span className="boutique-flavor-summary-title">Sua combinação</span>
+                    <div className="boutique-flavor-tags">
+                      {popcornOptionIds.map(optionId => {
+                        const flavor = POPCORN.options.find(option => option.id === optionId);
+                        return flavor ? <span key={optionId}>{flavor.name}</span> : null;
+                      })}
+                    </div>
+                  </div>
+                )}
                 <div className={`selection-helper ${selectionMessage ? "has-message" : ""}`} aria-live="polite">
                   {selectionMessage || (!popcornVariant
                     ? "Primeiro escolha o tamanho. Depois, os sabores serão liberados."
@@ -1707,6 +1718,16 @@ export default function Home() {
 
               {selectedSlice && <section id="calda-fatias" className={`step-block step-state-${sliceSauceStepState}`} aria-labelledby="step-slice-sauce">
                 <div className="step-heading compact-heading"><StepMarker number={2} state={sliceSauceStepState} /><div><h3 id="step-slice-sauce">Como prefere sua fatia?</h3><p>Escolha o acabamento. Pode mudar de ideia antes de adicionar.</p></div></div>
+                <div className="boutique-slice-preview" aria-label="Fatia escolhida">
+                  {selectedSlice.image && (
+                    <img src={selectedSlice.cardImage ?? selectedSlice.image} alt="" width="72" height="72" loading="lazy" decoding="async" />
+                  )}
+                  <span className="boutique-slice-preview-info">
+                    <small>Sua escolha</small>
+                    <strong>{selectedSlice.name}</strong>
+                  </span>
+                  {selectedSliceVariant && <span className="boutique-slice-preview-price">{currency.format(selectedSliceVariant.price)}</span>}
+                </div>
                 <RadioGroup className="slice-sauce-choice" value={sliceOptionId} onValueChange={value => {
                   setSliceOptionId(value); setSelectionMessage(""); requestScroll("quantidade-fatias");
                 }} aria-labelledby="step-slice-sauce">
