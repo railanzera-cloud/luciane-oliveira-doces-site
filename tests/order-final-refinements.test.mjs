@@ -22,6 +22,7 @@ test('admin refresh queries again, shows loading, ignores stale responses and al
  const reload=extract(admin,'reload',{
   loadSequenceRef:{current:0},setLoading:v=>busy.push(v),setError:()=>{},client:{},searchedNumber:undefined,
   loadAdminOrders:()=>{const d=deferred();requests.push(d);return d.promise;},
+  loadAdminTintimTracking:async()=>new Map(),setTrackingError:()=>{},
   actionable:o=>o.order_status==='new',initializedRef:{current:false},knownActionableRef:{current:new Set()},
   playAlert:()=>alerts++,setOrders:v=>shown=v,printerReady:false,
  });
