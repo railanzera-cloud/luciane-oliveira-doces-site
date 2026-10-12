@@ -59,3 +59,33 @@ test("nenhum componente de pagamento, campanha ou gatilho foi modificado pela et
   assert.ok(pageLines.some(line => line.includes("addOrUpdatePopcorn")));
   assert.ok(pageLines.some(line => line.includes("addOrUpdateSlice")));
 });
+
+test("calda tem contraste explícito em ambos os estados e mantém valores existentes", () => {
+  const original = "#503421";
+  const selector = ".storefront .slice-sauce-choice .slice-sauce-card";
+  const sauceStyle = boutique.slice(boutique.lastIndexOf(selector));
+  assert.ok(sauceStyle.includes("background: #302016"));
+  assert.ok(sauceStyle.includes("color: #fff6e9"));
+  assert.ok(sauceStyle.includes(".slice-sauce-copy strong"));
+  assert.ok(sauceStyle.includes(".slice-sauce-copy small"));
+  assert.ok(sauceStyle.includes(".slice-sauce-card.is-selected"));
+  assert.ok(sauceStyle.includes(":focus-within"));
+  assert.ok(!sauceStyle.includes(`color: ${original}`));
+  assert.ok(home.includes("option.name"));
+  assert.ok(home.includes('option.id === "calda-chocolate"'));
+  assert.ok(home.includes('value={sliceOptionId}'));
+  assert.ok(home.includes('onValueChange={value =>'));
+  assert.ok(home.includes('requestScroll("quantidade-fatias")'));
+});
+
+test("o interior deixa explícitas as opções e o produto selecionado, sem passos extras", () => {
+  assert.ok(home.includes('className="boutique-slice-preview"'));
+  assert.ok(home.includes('className="boutique-flavor-summary"'));
+  assert.ok(home.includes('className="boutique-flavor-tags"'));
+  assert.ok(home.includes('Sem cobertura adicional'));
+  assert.ok(home.includes('Cobertura de chocolate'));
+  assert.ok(home.includes("SLICE_OPTIONS.map(option =>"));
+  assert.ok(boutique.includes(".storefront .slice-card-copy strong"));
+  assert.ok(boutique.includes(".storefront .cart-item-value strong"));
+  assert.ok(boutique.includes(".storefront .summary-card"));
+});
