@@ -1,3 +1,5 @@
+import { promotionalPopcornPriceCents } from "../supabase/functions/_shared/popcorn-promotion.mjs";
+
 export type CategoryId = "pipocas" | "fatias";
 export type ProductKind = "popcorn" | "slice" | "drink";
 
@@ -223,14 +225,14 @@ export const POPCORN = PRODUCTS.find((product) => product.kind === "popcorn")!;
 export const SLICES = PRODUCTS.filter((product) => product.kind === "slice");
 export const DRINKS = PRODUCTS.filter((product) => product.kind === "drink");
 
-export function popcornPrice(size: string, optionIds: readonly string[] = []): number {
+export function popcornPrice(size: string, optionIds: readonly string[] = [], now = Date.now()): number {
   if (!Object.hasOwn(POPCORN_PRICING_GROUPS[1], size)) throw new Error("Escolha um tamanho atual de pipoca.");
   const group = optionIds.reduce<PopcornPricingGroup>((highest, id) => {
     const option = POPCORN.options.find((candidate) => candidate.id === id);
     if (!option?.pricingGroup) throw new Error("Escolha um sabor válido de pipoca.");
     return Math.max(highest, option.pricingGroup) as PopcornPricingGroup;
   }, 1);
-  return POPCORN_PRICING_GROUPS[group][size as PopcornSize];
+  return promotionalPopcornPriceCents(size, POPCORN_PRICING_GROUPS[group][size as PopcornSize] * 100, now) / 100;
 }
 
 // As regiões de R$8 e R$10 aparecem primeiro por serem as mais pedidas.
