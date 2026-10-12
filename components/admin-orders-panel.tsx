@@ -26,6 +26,7 @@ import {
   confirmOfflinePayment,
   createReprint,
   loadAdminOrders,
+  loadAdminTintimTracking,
   requestOrderEffects,
   transitionAdminOrder,
   type AdminOrder,
@@ -121,6 +122,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [trackingError, setTrackingError] = useState("");
   const [pendingId, setPendingId] = useState("");
   const [showHistory, setShowHistory] = useState(false);
   const [realtimeState, setRealtimeState] = useState("Conectando…");
@@ -195,6 +197,15 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     setError("");
     try {
       const nextOrders = await loadAdminOrders(client, searchedNumber);
+      // A mensuração é auxiliar: falha da consulta nunca bloqueia a cozinha.
+      let ordersWithTracking = nextOrders;
+      try {
+        const tracking = await loadAdminTintimTracking(client, nextOrders);
+        ordersWithTracking = nextOrders.map(order => ({ ...order, tintim_tracking: tracking.get(order.id) ?? null }));
+        if (sequence === loadSequenceRef.current) setTrackingError("");
+      } catch {
+        if (sequence === loadSequenceRef.current) setTrackingError("Mensuração do Tintim indisponível; pedidos preservados.");
+      }
       if (sequence !== loadSequenceRef.current) return;
       const actionableIds = nextOrders.filter(actionable).map((order) => order.id);
       if (!initializedRef.current) {
@@ -205,7 +216,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
         actionableIds.forEach((id) => knownActionableRef.current.add(id));
         if (hasNew) playAlert();
       }
-      setOrders(nextOrders);
+      setOrders(ordersWithTracking);
       if (printerReady) window.setTimeout(() => void processPrints(), 0);
     } catch (loadError) {
       if (sequence === loadSequenceRef.current) setError(loadError instanceof Error ? loadError.message : "Não foi possível carregar os pedidos.");
@@ -382,6 +393,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
         <span>Em preparo: <strong>{orders.filter(o => o.order_status === "preparing").length}</strong></span>
         <span>Retirada / entrega: <strong>{orders.filter(o => ["ready", "ready_for_pickup", "out_for_delivery"].includes(o.order_status)).length}</strong></span>
         <small>{searchedNumber !== undefined ? "Resultado da busca" : "Últimos 100 pedidos carregados"}</small>
+        {trackingError && <small role="status">{trackingError}</small>}
       </div>
       <div className="admin-order-filters" role="group" aria-label="Lista de pedidos">
         <Button type="button" variant={!showHistory ? "default" : "ghost"} onClick={() => setShowHistory(false)}>Em andamento</Button>
@@ -407,6 +419,17 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
                 {order.payment_method === "cash" && order.cash_change_for && <p className="admin-order-change">Troco para: <strong>{money.format(Number(order.cash_change_for))}</strong></p>}
                 {order.notes && <p className="admin-order-change"><strong>Observação:</strong> {order.notes}</p>}
                 <p className="admin-order-change">Primeira origem conhecida: {attributionSource(order, "first_touch")} · Visita atual: {attributionSource(order, "current_visit")}. Campanha atual não presumida.</p>
+                {order.tintim_tracking && (
+                  <details className="admin-order-change">
+                    <summary>WhatsApp vinculado ao Tintim — {order.tintim_tracking.match_status === "candidate" ? "associação provisória" : "associação validada"}</summary>
+                    <p>Origem informada pelo Tintim: <strong>{order.tintim_tracking.source_label || "Não identificada"}</strong></p>
+                    {order.tintim_tracking.campaign_name && <p>Campanha registrada: <strong>{order.tintim_tracking.campaign_name}</strong></p>}
+                    {order.tintim_tracking.adset_name && <p>Conjunto: {order.tintim_tracking.adset_name}</p>}
+                    {order.tintim_tracking.ad_name && <p>Anúncio: {order.tintim_tracking.ad_name}</p>}
+                    {!order.tintim_tracking.ad_name && order.tintim_tracking.ad_id && <p>ID do anúncio: {order.tintim_tracking.ad_id}</p>}
+                    <small>Vínculo por referência de pedido, não confirmação de pagamento nem prova de venda causada pelo anúncio.</small>
+                  </details>
+                )}
                 {marketingHistory(order).length > 0 && (
                   <details className="admin-order-change">
                     <summary>Interações rastreáveis anteriores ({marketingHistory(order).length})</summary>
