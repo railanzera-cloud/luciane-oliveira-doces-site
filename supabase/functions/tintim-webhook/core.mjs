@@ -16,11 +16,11 @@ export function parseTintimReportedAmount(value){
   return Math.round((value+Number.EPSILON)*100)/100;
  }
  if(typeof value!=="string")return null;
- let normalized=value.trim().replace(/^R\\$\\s*/i,"").replace(/\\s/g,"");
- if(!/^[0-9]+(?:[.,][0-9]{1,2}|(?:\\.[0-9]{3})+(?:,[0-9]{1,2})?)?$/.test(normalized))return null;
- if(normalized.includes(",")&&normalized.includes("."))normalized=normalized.replace(/\\./g,"").replace(",",".");
+ let normalized=value.trim().replace(/^R\$\s*/i,"").replace(/\s/g,"");
+ if(!/^[0-9]+(?:[.,][0-9]{1,2}|(?:\.[0-9]{3})+(?:,[0-9]{1,2})?)?$/.test(normalized))return null;
+ if(normalized.includes(",")&&normalized.includes("."))normalized=normalized.replace(/\./g,"").replace(",",".");
  else if(normalized.includes(","))normalized=normalized.replace(",",".");
- else if(/^[0-9]{1,3}(?:\\.[0-9]{3})+$/.test(normalized))normalized=normalized.replace(/\\./g,"");
+ else if(/^[0-9]{1,3}(?:\.[0-9]{3})+$/.test(normalized))normalized=normalized.replace(/\./g,"");
  const n=Number(normalized);
  return Number.isFinite(n)&&n>0&&n<=10000000?Math.round(n*100)/100:null;
 }
