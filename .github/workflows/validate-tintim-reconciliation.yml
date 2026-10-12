@@ -20,6 +20,10 @@ jobs:
           cache: npm
       - name: Instalar dependências
         run: npm ci --no-audit --no-fund
+      - name: Tipos Cloudflare para validação isolada
+        run: |
+          npm install --no-save --ignore-scripts --no-audit --no-fund @cloudflare/workers-types@4
+          printf '%s\n' '/// <reference types="@cloudflare/workers-types" />' > cloudflare-ci-types.d.ts
       - name: TypeScript
         run: npx tsc --noEmit
       - name: Testes
