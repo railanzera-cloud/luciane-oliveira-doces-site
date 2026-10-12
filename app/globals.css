@@ -2625,6 +2625,28 @@ footer {
 }
 
 /* Storefront-only refinements: keep other interfaces unchanged. */
+#configurador .popcorn-weekend-offer {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 18px;
+  padding: 16px;
+  border: 1px solid #906337;
+  border-radius: 16px;
+  background: #382416;
+  color: #f7ebdb;
+}
+#configurador .popcorn-weekend-offer > span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ebbd7a;
+  text-transform: uppercase;
+}
+#configurador .popcorn-weekend-offer strong { font-size: 1.45rem; line-height: 1.25; }
+#configurador .popcorn-offer-prices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+#configurador .popcorn-offer-prices > span { display: grid; gap: 3px; font-size: 0.85rem; }
+#configurador .popcorn-weekend-offer p { margin: 0; font-size: 0.88rem; line-height: 1.45; }
+#configurador .popcorn-weekend-offer small { color: #dbc5ac; font-size: 0.78rem; line-height: 1.5; }
+
 #configurador .category-text-link:disabled {
   cursor: not-allowed;
   opacity: 0.6;
