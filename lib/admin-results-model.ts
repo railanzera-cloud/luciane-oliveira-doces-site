@@ -12,6 +12,15 @@ export type ResultsSummary = {
   historical_campaign_orders: number;
   linked_without_campaign: number;
   without_tintim_link: number;
+  tintim_linked_orders: number;
+  orders_with_campaign_or_meta_signal: number;
+  unclassified_orders: number;
+  bio_orders: number;
+  bio_with_fbclid: number;
+  orders_with_fbclid: number;
+  with_tintim_campaign: number;
+  with_saved_utm_campaign: number;
+  with_meta_link_id: number;
 };
 export type ResultsChannel = {
   channel: string; orders: number; paid_orders: number; paid_amount: number;
@@ -21,6 +30,41 @@ export type ResultsEvidence = {
   orders: number; paid_orders: number; paid_amount: number;
 };
 export type ResultsVisit = { source: string; orders: number; paid_orders: number };
+export type TrackingEvidenceKind =
+  | "tintim_campaign"
+  | "saved_utm_campaign"
+  | "meta_link_identifier"
+  | "bio_without_campaign_or_click_id"
+  | "unclassified";
+export type TrackingEvidenceRow = {
+  kind: TrackingEvidenceKind;
+  orders: number;
+  marked_paid_on_site: number;
+  bio_orders: number;
+};
+export type SavedUtmCampaign = {
+  campaign_name: string;
+  orders: number;
+  marked_paid_on_site: number;
+};
+export function trackingEvidenceDescription(kind: TrackingEvidenceKind): string {
+  switch (kind) {
+    case "tintim_campaign": return "Campanha vinculada pelo Tintim";
+    case "saved_utm_campaign": return "Campanha gravada no pedido (UTM)";
+    case "meta_link_identifier": return "Identificador de link Meta, sem campanha identificada";
+    case "bio_without_campaign_or_click_id": return "Link da bio, sem outro sinal identificado";
+    case "unclassified": return "Origem sem evidência suficiente";
+  }
+}
+export function trackingEvidenceExplanation(kind: TrackingEvidenceKind): string {
+  switch (kind) {
+    case "tintim_campaign": return "Conversa ligada ao pedido com campanha preservada no Tintim. Não confirma compra paga.";
+    case "saved_utm_campaign": return "Nome de campanha salvo no pedido. Pode ter vindo de uma visita anterior; não confirma clique novo.";
+    case "meta_link_identifier": return "Há fbclid ou identificador Tintim no pedido. O código não comprova, sozinho, anúncio pago.";
+    case "bio_without_campaign_or_click_id": return "Entrada pelo link da bio, sem nome de campanha nem identificador de clique gravado.";
+    case "unclassified": return "Não sabemos a origem com os dados disponíveis; não significa acesso orgânico.";
+  }
+}
 export type ResultsCampaign = {
   campaign_name: string;
   campaign_id: string | null;
@@ -36,8 +80,11 @@ export type ResultsOverview = {
   generated_at: string;
   summary: ResultsSummary;
   channels: ResultsChannel[];
-  evidence: ResultsEvidence[];
+  tracking_evidence: TrackingEvidenceRow[];
+  utm_campaigns: SavedUtmCampaign[];
   visits: ResultsVisit[];
+  data_scope: "orders_created_in_supabase_only";
+  sales_coverage: "incomplete_tintim_confirmations_not_synced";
   campaigns: ResultsCampaign[];
   daily: ResultsDaily[];
 };
@@ -78,20 +125,46 @@ export function parseResultsOverview(value: unknown): ResultsOverview {
     "orders","paid_orders","paid_amount","pending_orders","pending_amount",
     "cancelled_orders","paid_cancelled_orders","near_campaign_orders",
     "historical_campaign_orders","linked_without_campaign","without_tintim_link",
+    "tintim_linked_orders","orders_with_campaign_or_meta_signal","unclassified_orders",
+    "bio_orders","bio_with_fbclid","orders_with_fbclid","with_tintim_campaign",
+    "with_saved_utm_campaign","with_meta_link_id",
   ];
   if (!mandatory.every(key => validNumber(sourceSummary[key]))
-    || !["channels","evidence","visits","campaigns","daily"].every(key => Array.isArray(value[key]))) {
+    || !["channels","tracking_evidence","utm_campaigns","visits","campaigns","daily"].every(key => Array.isArray(value[key]))
+    || value.data_scope !== "orders_created_in_supabase_only"
+    || value.sales_coverage !== "incomplete_tintim_confirmations_not_synced") {
     throw new Error("Não foi possível validar os indicadores recebidos.");
   }
   const summary = Object.fromEntries(
     mandatory.map(key => [key, Number(sourceSummary[key])]),
   ) as ResultsSummary;
+  const diagnostics = value.tracking_evidence as unknown[];
+  const knownKinds = new Set<TrackingEvidenceKind>([
+    "tintim_campaign","saved_utm_campaign","meta_link_identifier",
+    "bio_without_campaign_or_click_id","unclassified",
+  ]);
+  if (diagnostics.some(item =>
+    !record(item) || !knownKinds.has(item.kind as TrackingEvidenceKind)
+    || !validNumber(item.orders) || !validNumber(item.marked_paid_on_site)
+    || !validNumber(item.bio_orders)
+  ) || diagnostics.reduce((total, item) =>
+    total + Number((item as TrackingEvidenceRow).orders), 0) !== summary.orders
+    || summary.bio_with_fbclid > summary.bio_orders
+    || summary.orders_with_campaign_or_meta_signal > summary.orders
+    || summary.tintim_linked_orders > summary.orders
+    || summary.unclassified_orders > summary.orders
+  ) {
+    throw new Error("Os totais de rastreamento não estão consistentes. Atualize o relatório.");
+  }
   return {
     period_days: Number(value.period_days) as ResultsPeriod,
     generated_at: value.generated_at,
     summary,
     channels: (value.channels as ResultsChannel[]),
-    evidence: (value.evidence as ResultsEvidence[]),
+    tracking_evidence: (value.tracking_evidence as TrackingEvidenceRow[]),
+    utm_campaigns: (value.utm_campaigns as SavedUtmCampaign[]),
+    data_scope: "orders_created_in_supabase_only",
+    sales_coverage: "incomplete_tintim_confirmations_not_synced",
     visits: (value.visits as ResultsVisit[]),
     campaigns: (value.campaigns as ResultsCampaign[]),
     daily: (value.daily as ResultsDaily[]),
