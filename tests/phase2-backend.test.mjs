@@ -9,7 +9,7 @@ import {
   POPCORN_PRICES_CENTS,
   POPCORN_SIZES,
   SLICES,
-  quoteCartItems,
+  quoteCartItems as quoteCartItemsAtTime,
   quoteFulfillment,
 } from "../supabase/functions/_shared/commerce-catalog.mjs";
 
@@ -21,7 +21,9 @@ const frontendSource = await readFile(new URL("../app/catalog.ts", import.meta.u
 const { outputText } = ts.transpileModule(frontendSource, {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
 });
-const frontend = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
+const resolved = outputText.replace('../supabase/functions/_shared/popcorn-promotion.mjs', new URL('../supabase/functions/_shared/popcorn-promotion.mjs', import.meta.url).href);
+const frontend = await import(`data:text/javascript;base64,${Buffer.from(resolved).toString("base64")}`);
+const quoteCartItems = items => quoteCartItemsAtTime(items, Date.parse('2026-10-12T03:00:00Z'));
 
 function popcorn(size, flavors, quantity = 1) {
   return { product_id: "pipoca-gourmet", variant_id: size, option_ids: flavors, quantity };
