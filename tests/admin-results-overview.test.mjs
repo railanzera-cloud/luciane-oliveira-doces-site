@@ -117,7 +117,7 @@ test("interface mostra cobertura parcial sem criar venda ou disparar evento Meta
   assert.ok(ui.includes("Sinais de anúncios"));
   assert.ok(ui.includes("Registros do site"));
   assert.ok(ui.includes("Origem não identificada"));
-  assert.ok(ui.includes("não representa o faturamento total"));
+  assert.ok(ui.includes("Não representa o faturamento total"));
   assert.ok(ui.includes("O Tintim continua responsável pelos disparos Purchase"));
   assert.ok(ui.includes("podem incluir testes."));
   assert.ok(ui.includes("O período é definido pela data em que o pedido foi criado."));
