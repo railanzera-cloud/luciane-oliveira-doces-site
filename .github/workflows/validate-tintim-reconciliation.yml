@@ -1,0 +1,28 @@
+name: Validar rastreamento e promoção
+on:
+  push:
+    branches:
+      - feature/tintim-tracking-bridge-20261012
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Instalar dependências
+        run: npm ci --no-audit --no-fund
+      - name: TypeScript
+        run: npx tsc --noEmit
+      - name: Testes
+        run: node --test tests/*.test.mjs
+      - name: Build de validação sem deploy
+        run: npm run build
