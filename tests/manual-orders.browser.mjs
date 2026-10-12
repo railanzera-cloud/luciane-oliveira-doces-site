@@ -9,7 +9,8 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXE
 const origin=process.env.TEST_ORIGIN || 'http://127.0.0.1:4173';
 const out=new URL('../outputs/validation/',import.meta.url);await mkdir(out,{recursive:true});
 const catalogSource=await readFile(new URL('../app/catalog.ts',import.meta.url),'utf8');
-const catalog=await import(`data:text/javascript;base64,${Buffer.from(ts.transpileModule(catalogSource,{compilerOptions:{module:ts.ModuleKind.ESNext}}).outputText).toString('base64')}`);
+const catalogJs=ts.transpileModule(catalogSource,{compilerOptions:{module:ts.ModuleKind.ESNext}}).outputText.replace('../supabase/functions/_shared/popcorn-promotion.mjs',new URL('../supabase/functions/_shared/popcorn-promotion.mjs',import.meta.url).href);
+const catalog=await import(`data:text/javascript;base64,${Buffer.from(catalogJs).toString('base64')}`);
 const keys=['category_pipocas','category_fatias','popcorn_size_500ml','popcorn_size_750ml','popcorn_size_1l',...catalog.POPCORN.options.map(o=>`popcorn_flavor_${o.id.replaceAll('-','_')}`),...catalog.SLICES.map(s=>`slice_${s.id.replace('fatia-','').replaceAll('-','_')}`)];
 const cart=[{id:'fixture',productId:'pipoca-gourmet',variantId:'500ml',optionIds:['leitinho'],quantity:1}];
 const token='a'.repeat(48);
