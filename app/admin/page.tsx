@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import type { Session } from "@supabase/supabase-js";
 import {
   AlertCircle,
+  BarChart3,
   Check,
   LoaderCircle,
   LockKeyhole,
@@ -25,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminOrdersPanel } from "@/components/admin-orders-panel";
+import { AdminResultsPanel } from "@/components/admin-results-panel";
 import {
   loadRemoteAvailability,
   updateMenuItemStatus,
@@ -276,10 +278,15 @@ export default function AdminPage() {
         <TabsList className="admin-main-tabs" aria-label="Áreas do painel">
           <TabsTrigger value="orders"><ShoppingBag size={17} /> Pedidos</TabsTrigger>
           <TabsTrigger value="availability"><Store size={17} /> Disponibilidade</TabsTrigger>
+          <TabsTrigger value="results"><BarChart3 size={17} /> Resultados</TabsTrigger>
         </TabsList>
 
         <TabsContent value="orders" className="admin-content">
           <AdminOrdersPanel client={supabase!} session={session} />
+        </TabsContent>
+
+        <TabsContent value="results" className="admin-content">
+          <AdminResultsPanel client={supabase!} />
         </TabsContent>
 
         <TabsContent value="availability" className="admin-content">
