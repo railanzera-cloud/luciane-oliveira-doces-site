@@ -4074,3 +4074,45 @@ footer {
   .admin-results-tracking-row { flex-wrap: wrap; }
   .admin-results-campaign-values { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
+
+
+/* Duas leituras diferentes: sinais técnicos e registros financeiros do painel. */
+.admin-results-views {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 7px;
+}
+.admin-results-views button {
+  min-height: 46px;
+  padding: 9px 8px;
+  border: 1px solid rgba(220,170,116,.25);
+  border-radius: 10px;
+  color: #e6cfba;
+  background: #35271e;
+  font-size: .87rem;
+  font-weight: 700;
+}
+.admin-results-views button.is-selected {
+  color: #25170e;
+  background: #d49b5d;
+  border-color: #d49b5d;
+}
+.admin-results-views button:focus-visible {
+  outline: 2px solid #f5c98d;
+  outline-offset: 2px;
+}
+.admin-results-caution {
+  margin: 0;
+  padding: 14px 15px;
+  border-radius: 12px;
+  border: 1px solid #8f653f;
+  color: #ead0b5;
+  background: #3d2a1b;
+  font-size: .86rem;
+  line-height: 1.55;
+}
+.admin-results-caution strong { color: #ffe2ae; }
+.admin-results-more .admin-results-help { margin: 14px 0 8px; }
+@media (max-width: 400px) {
+  .admin-results-views button { font-size: .81rem; }
+}
