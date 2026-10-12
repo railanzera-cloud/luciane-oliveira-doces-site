@@ -147,7 +147,7 @@ export function parseResultsOverview(value: unknown): ResultsOverview {
     !record(item) || !knownKinds.has(item.kind as TrackingEvidenceKind)
     || !validNumber(item.orders) || !validNumber(item.marked_paid_on_site)
     || !validNumber(item.bio_orders)
-  ) || diagnostics.reduce((total, item) =>
+  ) || diagnostics.reduce<number>((total, item) =>
     total + Number((item as TrackingEvidenceRow).orders), 0) !== summary.orders
     || summary.bio_with_fbclid > summary.bio_orders
     || summary.orders_with_campaign_or_meta_signal > summary.orders
