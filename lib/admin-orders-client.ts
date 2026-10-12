@@ -13,6 +13,20 @@ export type AdminOrderItem = {
   line_total: number | string;
 };
 
+export type AdminTintimTracking = {
+  order_uuid: string;
+  match_status: "candidate" | "confirmed";
+  match_basis: "order_reference" | "phone_candidate" | "manual_confirmation";
+  source_label: string | null;
+  campaign_name: string | null;
+  campaign_id: string | null;
+  ad_name: string | null;
+  ad_id: string | null;
+  adset_name: string | null;
+  last_observed_at: string;
+  provisional_identity: boolean;
+};
+
 export type AdminOrder = {
   id: string;
   order_id: string;
@@ -26,6 +40,7 @@ export type AdminOrder = {
   notes: string | null;
   source: string | null;
   attribution_snapshot: Record<string, unknown>;
+  tintim_tracking?: AdminTintimTracking | null;
   customer_email: string | null;
   fulfillment_type: "delivery" | "pickup";
   delivery_zone_id: string | null;
@@ -74,6 +89,28 @@ export async function loadAdminOrders(client: SupabaseClient, orderNumber?: numb
   const { data, error } = await query.order("created_at", { ascending: false }).limit(100);
   if (error) throw new Error(message(error, "Não foi possível carregar os pedidos."));
   return (data ?? []) as unknown as AdminOrder[];
+}
+
+// Consulta protegida por lod_require_authenticated_staff no Supabase.
+// Não inclui telefones, mensagens, nomes ou informações de pagamento do Tintim.
+export async function loadAdminTintimTracking(
+  client: SupabaseClient,
+  orders: readonly AdminOrder[],
+): Promise<Map<string, AdminTintimTracking>> {
+  if (!orders.length) return new Map();
+  const { data, error } = await client.rpc("admin_get_tintim_order_tracking", {
+    p_order_uuids: orders.slice(0, 100).map(order => order.id),
+  });
+  if (error) throw new Error(message(error, "Não foi possível carregar a mensuração do Tintim."));
+  const knownOrderIds = new Set(orders.map(order => order.id));
+  const tracking = new Map<string, AdminTintimTracking>();
+  for (const raw of data ?? []) {
+    const row = raw as AdminTintimTracking;
+    if (knownOrderIds.has(row.order_uuid) && (row.match_status === "candidate" || row.match_status === "confirmed")) {
+      tracking.set(row.order_uuid, row);
+    }
+  }
+  return tracking;
 }
 
 export async function transitionAdminOrder(
