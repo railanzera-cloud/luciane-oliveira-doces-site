@@ -28,6 +28,8 @@ export type AdminTintimTracking = {
   // Coincidência de identificador salvo no pedido e no histórico da conversa.
   // Não informa quando ocorreu o clique nem confirma o pagamento.
   click_identifier_matches: boolean;
+  campaign_evidence_kind: "near_order" | "historical_conversation" | "no_campaign";
+  campaign_observed_at: string | null;
 };
 
 export type AdminOrder = {
@@ -101,7 +103,7 @@ export async function loadAdminTintimTracking(
   orders: readonly AdminOrder[],
 ): Promise<Map<string, AdminTintimTracking>> {
   if (!orders.length) return new Map();
-  const { data, error } = await client.rpc("admin_get_tintim_order_tracking_v2", {
+  const { data, error } = await client.rpc("admin_get_tintim_order_tracking_v3", {
     p_order_uuids: orders.slice(0, 100).map(order => order.id),
   });
   if (error) throw new Error(message(error, "Não foi possível carregar a mensuração do Tintim."));
