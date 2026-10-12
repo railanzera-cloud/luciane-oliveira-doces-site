@@ -34,3 +34,33 @@ export function normalizeTintimPayload(input,nowIso=new Date().toISOString()){
   }
  };
 }
+
+// Reconciliação opcional de pedido: extrai somente uma referência padronizada.
+// Não persiste o texto da conversa, não deduz pagamento nem atribui campanha.
+export function extractOrderReferenceFromTintim(input,nowIso=new Date().toISOString()){
+ if(!input||typeof input!=="object"||Array.isArray(input))return {ignored:true,reason:"invalid_message"};
+ const type=first(input.event_type,input.eventType,input.type,input.event,100).toLowerCase().replaceAll(".","_").replaceAll("-","_");
+ if(type!=="message_create")return {ignored:true,reason:"not_message"};
+ const lead=obj(input.lead),account=obj(input.account),conversation=obj(input.conversation),message=obj(input.message);
+ const fromMe=get(message,"from_me","fromMe") ?? get(input,"from_me","fromMe");
+ // Apenas mensagens recebidas de clientes, e somente quando o webhook confirma a direção.
+ if(fromMe!==false && fromMe!=="false")return {ignored:true,reason:"not_verified_inbound"};
+ const content=typeof input.message==="string"?input.message:first(message.text,message.body,message.message,input.body,input.text,16000);
+ if(!content)return {ignored:true,reason:"no_text"};
+ const normalized=content.replace(/\r\n?/g,"\n").replace(/[\u200b-\u200f\u2060\ufeff]/g,"");
+ const matched=/^Olá! Finalizei meu pedido pelo site da Luciane Oliveira Doces\.\n\n\*PEDIDO #([1-9][0-9]{0,9})\*(?:\n|$)/u.exec(normalized);
+ if(!matched)return {ignored:true,reason:"not_site_order_message"};
+ const orderNumber=Number(matched[1]);
+ if(!Number.isSafeInteger(orderNumber))return {ignored:true,reason:"invalid_order_reference"};
+ const digits=first(lead.phone,conversation.phone,input.phone,input.customer_phone,message.phone,100).replace(/\D/g,"");
+ if(!/^[0-9]{10,15}$/.test(digits))return {ignored:true,reason:"no_reliable_phone"};
+ const leadKey=first(lead.id,lead.uuid,lead.lead_id,input.lead_id,input.lead_uuid,input.leadId,input.conversation_id,conversation.id,conversation.uuid,160);
+ return {
+  ignored:false,event_type:"message_order_reference",
+  account_key:first(account.code,account.id,input.account_code,input.account_id,"luciane-oliveira-doces",100),
+  lead_key:leadKey||null,
+  phone_digits:digits,
+  order_number:orderNumber,
+  observed_at:dateValue(get(message,"created_at","date","timestamp")??get(input,"created_at","date","timestamp"),nowIso)
+ };
+}
