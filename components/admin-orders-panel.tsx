@@ -442,14 +442,23 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
                 {order.fulfillment_type === "delivery" && <div className="admin-order-address"><MapPin size={16} /><span>{order.street}, {order.street_number}{order.complement ? ` — ${order.complement}` : ""}<br />{order.neighborhood}{order.reference ? ` · Ref.: ${order.reference}` : ""}</span></div>}
                 {order.payment_method === "cash" && order.cash_change_for && <p className="admin-order-change">Troco para: <strong>{money.format(Number(order.cash_change_for))}</strong></p>}
                 {order.notes && <p className="admin-order-change"><strong>Observação:</strong> {order.notes}</p>}
-                <section className="admin-order-attribution" aria-label="Origem do pedido">
-                  <p className="admin-order-attribution-heading">Como chegou a este pedido</p>
-                  <p>Origem desta visita: <strong>{visitOrigin(visitParameter(order, "current_visit", "utm_source"), visitParameter(order, "current_visit", "utm_content"))}</strong></p>
-                  {visitParameter(order, "current_visit", "utm_campaign") ? (
+                <section className="admin-order-attribution" aria-label="Rastreamento do pedido">
+                  <p className="admin-order-attribution-heading">Rastreamento deste pedido</p>
+                  {order.tintim_tracking?.source_label && (
+                    <p>Origem associada à conversa: <strong>{order.tintim_tracking.source_label} (Tintim)</strong></p>
+                  )}
+                  {order.tintim_tracking?.campaign_name && (
+                    <p>Campanha registrada no Tintim: <strong>{order.tintim_tracking.campaign_name}</strong></p>
+                  )}
+                  {order.tintim_tracking?.click_identifier_matches && (
+                    <p className="admin-order-attribution-note">
+                      O mesmo identificador de clique aparece no histórico do pedido e no Tintim.
+                    </p>
+                  )}
+                  <p>Origem desta visita ao site: <strong>{visitOrigin(visitParameter(order, "current_visit", "utm_source"), visitParameter(order, "current_visit", "utm_content"))}</strong></p>
+                  {visitParameter(order, "current_visit", "utm_campaign") && (
                     <p>Campanha identificada nesta visita: <strong>{visitParameter(order, "current_visit", "utm_campaign")}</strong></p>
-                  ) : order.tintim_tracking?.campaign_name ? (
-                    <p className="admin-order-attribution-note">Nenhuma campanha identificada nesta visita ao site.</p>
-                  ) : null}
+                  )}
                   {!hasCampaignInCurrentVisit && priorCampaignVisit?.utm_campaign && (
                     <p className="admin-order-attribution-note">
                       Campanha identificada em outra visita: <strong>{priorCampaignVisit.utm_campaign}</strong>
@@ -463,12 +472,8 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
                 </section>
                 {order.tintim_tracking && (
                   <details className="admin-order-attribution-details">
-                    <summary>Conversa vinculada no Tintim</summary>
+                    <summary>Mais informações do Tintim</summary>
                     <div className="admin-order-attribution-detail-body">
-                      <p>Origem registrada na conversa: <strong>{order.tintim_tracking.source_label || "Não identificada"}</strong></p>
-                      {order.tintim_tracking.campaign_name && (
-                        <p>Campanha no histórico da conversa: <strong>{order.tintim_tracking.campaign_name}</strong></p>
-                      )}
                       {order.tintim_tracking.adset_name &&
                         order.tintim_tracking.adset_name !== order.tintim_tracking.campaign_name && (
                         <p>Conjunto de anúncios: {order.tintim_tracking.adset_name}</p>
@@ -478,11 +483,14 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
                         order.tintim_tracking.ad_name !== order.tintim_tracking.adset_name && (
                         <p>Anúncio: {order.tintim_tracking.ad_name}</p>
                       )}
+                      {order.tintim_tracking.match_basis === "order_reference" && (
+                        <p>O número deste pedido foi identificado na mensagem da conversa.</p>
+                      )}
                       <small>
-                        {order.tintim_tracking.match_status === "candidate"
-                          ? "Conversa associada pelo número do pedido. A associação ainda é provisória."
-                          : "Conversa associada ao pedido."}
-                        {" "}A campanha pode ser de uma visita anterior. Isso não confirma pagamento nem uma venda gerada pelo anúncio.
+                        A campanha informada pelo Tintim pode representar uma interação anterior, não necessariamente uma nova visita ao anúncio.
+                        {" "}{order.payment_status === "paid"
+                          ? "O pagamento está registrado como confirmado no painel."
+                          : "O pagamento ainda precisa ser confirmado separadamente no painel."}
                       </small>
                     </div>
                   </details>
