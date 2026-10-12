@@ -1,3 +1,4 @@
+import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
 export const CATALOG_VERSION = "2026-09-29.sauce";
@@ -86,7 +87,7 @@ function quantityOf(value) {
   return value;
 }
 
-export function quoteCartItems(rawItems) {
+export function quoteCartItems(rawItems, now = Date.now()) {
   if (!Array.isArray(rawItems) || rawItems.length === 0 || rawItems.length > 40) {
     throw new Error("Adicione pelo menos um item válido ao pedido.");
   }
@@ -113,7 +114,7 @@ export function quoteCartItems(rawItems) {
         return flavor;
       });
       const pricingGroup = Math.max(...flavors.map((flavor) => flavor.pricingGroup));
-      const unitPriceCents = POPCORN_PRICES_CENTS[pricingGroup][variantId];
+      const unitPriceCents = promotionalPopcornPriceCents(variantId, POPCORN_PRICES_CENTS[pricingGroup][variantId], now);
       const optionItemKeys = flavors.map((flavor) => flavor.itemKey);
       availabilityKeys.add(CATEGORY_ITEM_KEYS.pipocas);
       availabilityKeys.add(size.itemKey);
