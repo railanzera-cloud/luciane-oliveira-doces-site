@@ -1,3 +1,6 @@
+// ID público da conta Tintim da loja, também presente no link rastreável do site.
+// Eventos de mensagem podem omitir a conta; nunca inventar outro tenant nesses casos.
+const DEFAULT_TINTIM_ACCOUNT_KEY="2c956a42-229f-4d21-ade6-4442f8c048ed";
 const obj=x=>x&&typeof x==="object"&&!Array.isArray(x)?x:{};
 const safe=(v,n=160)=>typeof v==="number"&&Number.isFinite(v)?String(v).slice(0,n):typeof v==="string"?v.trim().slice(0,n):"";
 const first=(...v)=>{const n=typeof v.at(-1)==="number"?v.pop():160;return v.map(x=>safe(x,n)).find(Boolean)??"";};
@@ -16,7 +19,7 @@ export function normalizeTintimPayload(input,nowIso=new Date().toISOString()){
  const src=obj(input.source??lead.source);
  return {
   ignored:false,event_type:type,
-  account_key:first(account.code,account.id,input.account_code,input.account_id,"luciane-oliveira-doces",100),
+  account_key:first(account.code,account.id,input.account_code,input.account_id,DEFAULT_TINTIM_ACCOUNT_KEY,100),
   lead_key:externalId||null,
   observed_at:dateValue(get(input,"updated_at","created_at","date","timestamp","datetime")??get(lead,"updated_at","created_at"),nowIso),
   summary:{
@@ -57,7 +60,7 @@ export function extractOrderReferenceFromTintim(input,nowIso=new Date().toISOStr
  const leadKey=first(lead.id,lead.uuid,lead.lead_id,input.lead_id,input.lead_uuid,input.leadId,input.conversation_id,conversation.id,conversation.uuid,160);
  return {
   ignored:false,event_type:"message_order_reference",
-  account_key:first(account.code,account.id,input.account_code,input.account_id,"luciane-oliveira-doces",100),
+  account_key:first(account.code,account.id,input.account_code,input.account_id,DEFAULT_TINTIM_ACCOUNT_KEY,100),
   lead_key:leadKey||null,
   phone_digits:digits,
   order_number:orderNumber,
