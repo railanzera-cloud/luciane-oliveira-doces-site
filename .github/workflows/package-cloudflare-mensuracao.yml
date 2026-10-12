@@ -1,4 +1,4 @@
-name: Empacotar Cloudflare Pages - mensuracao
+name: Empacotar Cloudflare Pages - painel claro
 on:
   push:
     branches:
@@ -51,6 +51,9 @@ jobs:
               js='\n'.join(z.read(n).decode('utf8','replace') for n in names if n.startswith('assets/') and n.endswith('.js'))
               assert 'admin_get_tintim_order_tracking' in js, 'painel Tintim ausente'
               assert 'marketing_interactions' in js, 'historico de campanhas ausente'
+              assert 'Como chegou a este pedido' in js, 'resumo claro de origem ausente'
+              assert 'Conversa vinculada no Tintim' in js, 'bloco Tintim ausente'
+              assert 'Histórico de visitas identificadas' in js, 'rotulo de historico ausente'
               assert 'https://edqiwvccmboyayojvuea.supabase.co' in js, 'Supabase ausente'
               assert 'sb_publishable_' in js, 'chave publica ausente'
               print('ARQUIVOS:',len(names))
@@ -60,7 +63,7 @@ jobs:
       - name: Publicar ZIP de build como artefato do GitHub
         uses: actions/upload-artifact@v4
         with:
-          name: luciane-cloudflare-mensuracao-20261012
+          name: luciane-cloudflare-painel-claro-20261012
           path: outputs/luciane-oliveira-doces-cloudflare-pages.zip
           if-no-files-found: error
           retention-days: 7
