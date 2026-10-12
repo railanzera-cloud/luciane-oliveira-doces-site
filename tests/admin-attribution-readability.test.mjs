@@ -54,11 +54,13 @@ test("visitas sem fonte nao sao inventadas", () => {
 });
 
 test("interface separa pedido, conversa e historico sem inferir pagamento", () => {
-  assert.ok(source.includes("Como chegou a este pedido"));
-  assert.ok(source.includes("Conversa vinculada no Tintim"));
+  assert.ok(source.includes("Rastreamento deste pedido"));
+  assert.ok(source.includes("Origem associada à conversa"));
+  assert.ok(source.includes("Campanha registrada no Tintim"));
+  assert.ok(source.includes("Mais informações do Tintim"));
   assert.ok(source.includes("Histórico de visitas identificadas"));
-  assert.ok(source.includes("A campanha pode ser de uma visita anterior."));
-  assert.ok(source.includes("Isso não confirma pagamento"));
+  assert.ok(source.includes("pode representar uma interação anterior"));
+  assert.ok(source.includes("O pagamento ainda precisa ser confirmado separadamente no painel."));
   assert.ok(!source.includes("Campanha atual não presumida"));
   assert.ok(!source.includes("Interações rastreáveis anteriores"));
   assert.ok(!source.includes("Criativo: {touch.utm_content}"));
@@ -68,4 +70,20 @@ test("detalhes repetidos de campanha e anuncio sao escondidos", () => {
   assert.ok(source.includes("order.tintim_tracking.adset_name !== order.tintim_tracking.campaign_name"));
   assert.ok(source.includes("order.tintim_tracking.ad_name !== order.tintim_tracking.campaign_name"));
   assert.ok(source.includes("order.tintim_tracking.ad_name !== order.tintim_tracking.adset_name"));
+});
+
+test("evidência de clique é mostrada sem inventar novo clique ou venda", () => {
+  assert.ok(source.includes("order.tintim_tracking?.click_identifier_matches"));
+  assert.ok(source.includes("O mesmo identificador de clique aparece no histórico do pedido e no Tintim."));
+  assert.ok(source.includes("não necessariamente uma nova visita ao anúncio"));
+  assert.ok(source.includes('order.payment_status === "paid"'));
+  assert.ok(source.includes("O pagamento está registrado como confirmado no painel."));
+  assert.ok(!source.includes("uma venda gerada pelo anúncio."));
+});
+
+test("a conversa é relacionada pelo número exato do pedido e permanece separada de pagamento", () => {
+  assert.ok(source.includes('order.tintim_tracking.match_basis === "order_reference"'));
+  assert.ok(source.includes("O número deste pedido foi identificado na mensagem da conversa."));
+  assert.ok(source.includes("Origem desta visita ao site:"));
+  assert.ok(source.includes("Campanha registrada no Tintim:"));
 });
