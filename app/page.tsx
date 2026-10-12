@@ -1657,7 +1657,7 @@ export default function Home() {
                           )}
                           {selected && <span className="boutique-flavor-picked"><Check size={13} strokeWidth={2.8} aria-hidden="true" /> Escolhido</span>}
                           {waitingForSize && available && <span className="boutique-flavor-unavailable">Escolha o tamanho</span>}
-                          {!available && <span className="boutique-flavor-unavailable">Esgotado</span>}
+                          {!available && <span className="boutique-flavor-unavailable">Esgotado hoje</span>}
                           {limitDisabled && available && <span className="boutique-flavor-unavailable">Limite atingido</span>}
                         </span>
                       </label>
@@ -2106,17 +2106,16 @@ export default function Home() {
                 </RadioGroup>
               ) : (
                 <RadioGroup className="payment-list" value={payment} onValueChange={choosePayment} aria-label="Forma de pagamento pelo WhatsApp">
-                  {[
-                    { value: "pix", label: "Pix", hint: "Dados para pagar enviados no WhatsApp" },
-                    { value: "dinheiro", label: "Dinheiro", hint: "Pagamento combinado com a loja" },
-                    { value: "credito", label: "Cartão de crédito à vista", hint: "Combine o pagamento com a loja" },
-                    { value: "debito", label: "Cartão de débito", hint: "Combine o pagamento com a loja" },
-                  ].map((method) => (
-                    <label className={`payment-option ${payment === method.value ? "is-selected" : ""}`} htmlFor={`payment-${method.value}`} key={method.value}>
-                      <RadioGroupItem id={`payment-${method.value}`} value={method.value} />
-                      {method.value === "pix" ? <QrCode size={20} aria-hidden="true" /> : method.value === "dinheiro" ? <Banknote size={20} aria-hidden="true" /> : <CreditCard size={20} aria-hidden="true" />}
-                      <span className="boutique-payment-method"><strong>{method.label}</strong><small>{method.hint}</small></span>
-                      {payment === method.value && <Check size={18} aria-hidden="true" />}
+                  {[["pix", "Pix"], ["dinheiro", "Dinheiro"], ["credito", "Cartão de crédito à vista"], ["debito", "Cartão de débito"]].map(([value, label]) => (
+                    <label className={`payment-option ${payment === value ? "is-selected" : ""}`} htmlFor={`payment-${value}`} key={value}>
+                      <RadioGroupItem id={`payment-${value}`} value={value} />
+                      {value === "pix" ? <QrCode size={20} aria-hidden="true" /> : value === "dinheiro" ? <Banknote size={20} aria-hidden="true" /> : <CreditCard size={20} aria-hidden="true" />}
+                      <span className="boutique-payment-method"><strong>{label}</strong><small>{
+                        value === "pix" ? "Dados para pagar enviados no WhatsApp"
+                          : value === "dinheiro" ? "Pagamento combinado com a loja"
+                          : "Combine o pagamento com a loja"
+                      }</small></span>
+                      {payment === value && <Check size={18} aria-hidden="true" />}
                     </label>
                   ))}
                 </RadioGroup>
