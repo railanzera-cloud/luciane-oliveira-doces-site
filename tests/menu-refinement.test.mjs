@@ -725,7 +725,8 @@ test('checkout copy hides technical identity and shortens credit without changin
   const expected=payment==='credito'?`Crédito à vista, na ${fulfillment}`:checkout.paymentDescription(payment,fulfillment);
   assert.equal(actual,expected); assert.doesNotMatch(actual,/\(1x\)/);
  }
- const summary=source.slice(source.indexOf('<aside className="summary-card"'),source.indexOf('</aside>'));
+ const summaryStart=source.indexOf('<aside className="summary-card"');
+ const summary=source.slice(summaryStart,source.indexOf('</aside>',summaryStart));
  assert.match(summary,/Resumo do pedido/); assert.doesNotMatch(summary,/Código do pedido|Gerando código|orderContext\?\.order_id/);
 });
 
