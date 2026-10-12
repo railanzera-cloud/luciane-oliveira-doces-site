@@ -73,10 +73,10 @@ test("checkout só adiciona navegação visual e preserva finalização", () => 
 });
 
 test("pagamentos ganham esclarecimentos sem alteração dos métodos aceitos", () => {
-  for (const id of ["pix","dinheiro","credito","debito"]) {
-    assert.ok(page.includes(`value: "${id}"`));
-  }
-  assert.ok(page.includes("value={method.value}"));
+  assert.ok(page.includes('[["pix", "Pix"], ["dinheiro", "Dinheiro"], ["credito", "Cartão de crédito à vista"], ["debito", "Cartão de débito"]]'));
+  for (const id of ["pix","dinheiro","credito","debito"])
+    assert.ok(page.includes(`value === "${id}"`) || page.includes(`["${id}",`));
+  assert.ok(page.includes("value={value}"));
   assert.ok(page.includes("choosePayment"));
   assert.ok(page.includes("COMMERCE_CONFIG.onlinePaymentsEnabled"));
   assert.ok(page.includes("cardQuote"));
