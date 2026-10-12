@@ -1706,15 +1706,23 @@ export default function Home() {
               </section>
 
               {selectedSlice && <section id="calda-fatias" className={`step-block step-state-${sliceSauceStepState}`} aria-labelledby="step-slice-sauce">
-                <div className="step-heading compact-heading"><StepMarker number={2} state={sliceSauceStepState} /><h3 id="step-slice-sauce">Como prefere sua fatia?</h3></div>
+                <div className="step-heading compact-heading"><StepMarker number={2} state={sliceSauceStepState} /><div><h3 id="step-slice-sauce">Como prefere sua fatia?</h3><p>Escolha o acabamento. Pode mudar de ideia antes de adicionar.</p></div></div>
                 <RadioGroup className="slice-sauce-choice" value={sliceOptionId} onValueChange={value => {
                   setSliceOptionId(value); setSelectionMessage(""); requestScroll("quantidade-fatias");
                 }} aria-labelledby="step-slice-sauce">
-                  {SLICE_OPTIONS.map(option => <label className={`slice-sauce-card ${sliceOptionId === option.id ? "is-selected" : ""}`} key={option.id} htmlFor={`slice-${option.id}`}>
-                    <RadioGroupItem id={`slice-${option.id}`} value={option.id} />
-                    <span>{option.name}</span>
-                    {sliceOptionId === option.id && <Check size={18} aria-hidden="true" />}
-                  </label>)}
+                  {SLICE_OPTIONS.map(option => {
+                    const isSelected = sliceOptionId === option.id;
+                    return (
+                      <label className={`slice-sauce-card ${isSelected ? "is-selected" : ""}`} key={option.id} htmlFor={`slice-${option.id}`}>
+                        <RadioGroupItem id={`slice-${option.id}`} value={option.id} />
+                        <span className="slice-sauce-copy">
+                          <strong>{option.name}</strong>
+                          <small>{option.id === "calda-chocolate" ? "Cobertura de chocolate" : "Sem cobertura adicional"}</small>
+                        </span>
+                        {isSelected && <span className="slice-sauce-check" aria-hidden="true"><Check size={18} strokeWidth={2.6} /></span>}
+                      </label>
+                    );
+                  })}
                 </RadioGroup>
                 {selectionMessage && <p className="selection-helper" role="status">{selectionMessage}</p>}
               </section>}
