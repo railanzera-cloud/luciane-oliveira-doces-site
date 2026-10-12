@@ -399,6 +399,8 @@ export default function Home() {
   const orderContextRef = useRef<OrderContext | null>(null);
   const attributionRef = useRef<OrderAttribution | undefined>(undefined);
   const finalizationLockRef = useRef(false);
+  const inlineFinalActionRef = useRef<HTMLDivElement | null>(null);
+  const [inlineFinalActionVisible, setInlineFinalActionVisible] = useState(false);
   const navigationPendingRef = useRef(false);
   const checkoutFingerprintRef = useRef("");
   const unlockTimerRef = useRef<number | undefined>(undefined);
@@ -407,6 +409,18 @@ export default function Home() {
   const activeCategory = hasResolvedAvailability ? resolveMenuCategory(availability, requestedCategory) : null;
   const checkoutStartedRef = useRef(false);
   const paymentInfoTrackedRef = useRef(false);
+
+  // A barra flutuante não deve concorrer com o botão principal quando ele já está visível.
+  // É uma decisão apenas de apresentação; o comportamento do checkout não muda.
+  useEffect(() => {
+    const target = inlineFinalActionRef.current;
+    if (!target || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver((entries) => {
+      setInlineFinalActionVisible(Boolean(entries[0]?.isIntersecting));
+    }, { threshold: 0.45 });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [activeCategory, cart.length, checkoutChannel]);
 
   const pipocasVisible = STORE_CONFIG.enabledCategories.pipocas
     && isItemVisible(availability, CATEGORY_ITEM_KEYS.pipocas);
@@ -1871,6 +1885,29 @@ export default function Home() {
 
       {(activeCategory || cart.length > 0) && (
       <section className="checkout-section" id="carrinho">
+        <div className="page-shell">
+          <header className="boutique-checkout-intro">
+            <p className="eyebrow">Seu pedido está tomando forma</p>
+            <h2>Agora é só concluir.</h2>
+            <p>Confira suas escolhas e diga como prefere receber. Sem passos desnecessários.</p>
+          </header>
+          {cart.length > 0 && (
+            <nav className="boutique-checkout-progress" aria-label="Navegue pelas etapas do pedido">
+              <button type="button" className="is-current" onClick={() => scrollToSection("carrinho")}>
+                <span className="boutique-progress-index"><ShoppingBag size={16} aria-hidden="true" /></span>
+                <span>Pedido</span>
+              </button>
+              <button type="button" className={fulfillment && addressReady ? "is-complete" : ""} onClick={() => scrollToSection("recebimento")}>
+                <span className="boutique-progress-index">{fulfillment && addressReady ? <Check size={16} aria-hidden="true" /> : "2"}</span>
+                <span>Recebimento</span>
+              </button>
+              <button type="button" className={paymentReady ? "is-complete" : ""} onClick={() => scrollToSection("pagamento")}>
+                <span className="boutique-progress-index">{paymentReady ? <Check size={16} aria-hidden="true" /> : "3"}</span>
+                <span>Pagamento</span>
+              </button>
+            </nav>
+          )}
+        </div>
         <div className="page-shell checkout-grid">
           <div className="checkout-main">
             <section className="order-card" aria-labelledby="cart-title">
@@ -1900,7 +1937,13 @@ export default function Home() {
                     return (
                       <article className={`cart-item ${itemIssue ? "is-unavailable" : ""}`} key={item.id}>
                         <div className="cart-item-top">
-                          <div className="cart-item-info">
+                          <div className="boutique-cart-product">
+                            <span className="boutique-cart-image">
+                              {product.image
+                                ? <img src={product.cardImage ?? product.image} alt="" width="92" height="92" loading="lazy" decoding="async" />
+                                : <CakeSlice size={24} aria-hidden="true" />}
+                            </span>
+                            <div className="cart-item-info">
                             <span className="product-category">{product.category}</span>
                             <h3>{productLabel(product)}</h3>
                             <div className="cart-item-specs">
@@ -1915,6 +1958,7 @@ export default function Home() {
                                 <span><strong>Item indisponível</strong>{itemIssue.reasons.join(" ")} Edite ou remova para continuar.</span>
                               </div>
                             )}
+                            </div>
                           </div>
                           <div className="cart-item-value"><small>Valor</small><strong>{variant.retired ? "Revise o tamanho" : currency.format(unitPrice * item.quantity)}</strong></div>
                         </div>
@@ -2060,9 +2104,17 @@ export default function Home() {
                 </RadioGroup>
               ) : (
                 <RadioGroup className="payment-list" value={payment} onValueChange={choosePayment} aria-label="Forma de pagamento pelo WhatsApp">
-                  {[["pix", "Pix"], ["dinheiro", "Dinheiro"], ["credito", "Cartão de crédito à vista"], ["debito", "Cartão de débito"]].map(([value, label]) => (
-                    <label className={`payment-option ${payment === value ? "is-selected" : ""}`} htmlFor={`payment-${value}`} key={value}>
-                      <RadioGroupItem id={`payment-${value}`} value={value} /><span>{label}</span>{payment === value && <Check size={17} />}
+                  {[
+                    { value: "pix", label: "Pix", hint: "Dados para pagar enviados no WhatsApp" },
+                    { value: "dinheiro", label: "Dinheiro", hint: "Pagamento combinado com a loja" },
+                    { value: "credito", label: "Cartão de crédito à vista", hint: "Combine o pagamento com a loja" },
+                    { value: "debito", label: "Cartão de débito", hint: "Combine o pagamento com a loja" },
+                  ].map((method) => (
+                    <label className={`payment-option ${payment === method.value ? "is-selected" : ""}`} htmlFor={`payment-${method.value}`} key={method.value}>
+                      <RadioGroupItem id={`payment-${method.value}`} value={method.value} />
+                      {method.value === "pix" ? <QrCode size={20} aria-hidden="true" /> : method.value === "dinheiro" ? <Banknote size={20} aria-hidden="true" /> : <CreditCard size={20} aria-hidden="true" />}
+                      <span className="boutique-payment-method"><strong>{method.label}</strong><small>{method.hint}</small></span>
+                      {payment === method.value && <Check size={18} aria-hidden="true" />}
                     </label>
                   ))}
                 </RadioGroup>
@@ -2088,7 +2140,8 @@ export default function Home() {
           </div>
 
           <aside className="summary-card" aria-labelledby="summary-title">
-            <p className="eyebrow">Confira antes de enviar</p><h2 id="summary-title">Resumo do pedido</h2>
+            <p className="eyebrow">Tudo em um só lugar</p><h2 id="summary-title">Confira sua escolha</h2>
+            <p className="boutique-summary-lead">Itens, recebimento e pagamento, antes de finalizar.</p>
             {cart.length > 0 && checkoutChannel !== "whatsapp" && <p className="order-code">O número do pedido será mostrado após a confirmação.</p>}
             <div className="summary-content">
               {cart.length === 0 ? <p className="summary-empty">Os produtos adicionados aparecerão aqui.</p> : cart.map((item, index) => {
@@ -2131,7 +2184,9 @@ export default function Home() {
               <button type="button" className="summary-link" onClick={() => enterCheckout("recebimento")}><span><small>Recebimento</small><strong>{fulfillment === "entrega" ? selectedDeliveryZone ? `Entrega — ${selectedDeliveryZone.id === "cidade" ? "Outro bairro dentro da cidade" : selectedDeliveryZone.label} · ${currency.format(deliveryFee)}` : "Entrega — escolher local" : fulfillment === "retirada" ? "Retirada em Paragominas" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
               <button type="button" className="summary-link" onClick={() => enterCheckout("pagamento")}><span><small>Pagamento</small><strong>{paymentLabel}</strong></span><ChevronRight size={18} /></button>
             </div>
-            <Button type="button" className="whatsapp-button checkout-primary-button" onClick={handleFinalAction} disabled={isFinalizing || (!availability.ordersOpen && orderContext?.handoff_fingerprint !== checkoutFingerprint)} aria-describedby="checkout-status" data-event={checkoutChannel === "whatsapp" ? "whatsapp_checkout" : "site_checkout"}>{isFinalizing ? <LoaderCircle className="admin-spinner" size={20} /> : checkoutChannel === "whatsapp" ? <MessageCircle size={20} /> : payment === "mercado_pago_pix" ? <QrCode size={20} /> : <ShoppingBag size={20} />} {finalButtonLabel}</Button>
+            <div className="boutique-final-action" ref={inlineFinalActionRef}>
+              <Button type="button" className="whatsapp-button checkout-primary-button" onClick={handleFinalAction} disabled={isFinalizing || (!availability.ordersOpen && orderContext?.handoff_fingerprint !== checkoutFingerprint)} aria-describedby="checkout-status" data-event={checkoutChannel === "whatsapp" ? "whatsapp_checkout" : "site_checkout"}>{isFinalizing ? <LoaderCircle className="admin-spinner" size={20} /> : checkoutChannel === "whatsapp" ? <MessageCircle size={20} /> : payment === "mercado_pago_pix" ? <QrCode size={20} /> : <ShoppingBag size={20} />} {finalButtonLabel}</Button>
+            </div>
             {checkoutChannel === "whatsapp" && orderContext?.whatsapp_attempted_at && <div className="whatsapp-return-note" role="status"><strong>Continue no WhatsApp</strong><p>Envie a mensagem por lá para encaminhar o pedido. Seu pedido continua nesta aba para consulta.</p><Button type="button" variant="outline" onClick={clearOrder} disabled={isFinalizing}>Fazer novo pedido</Button></div>}
             {payment === "pix" && <p className="payment-guidance">Depois de finalizar no WhatsApp, faça o Pix com a chave informada na mensagem e envie o comprovante na conversa.</p>}
             <p id="checkout-status" className={checkoutShowsReady ? "ready-status" : "checkout-status"} aria-live="polite">{checkoutShowsReady && <Check size={14} />}{checkoutHint}</p>
@@ -2145,7 +2200,7 @@ export default function Home() {
 
       <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
-      {(activeCategory || cart.length > 0) && (
+      {(activeCategory || cart.length > 0) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && (
       <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
         <div><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></div>
         <Button type="button" onClick={handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
