@@ -90,3 +90,31 @@ test("foco, contraste, toque e redução de movimento permanecem disponíveis", 
   assert.ok(css.includes("@media (max-width: 359px)"));
   assert.ok(css.includes("@media (prefers-reduced-motion: reduce)"));
 });
+
+test("Boutique 3.1 usa foto real do catálogo e mostra preço vivo no estágio de sabores", () => {
+  assert.ok(page.includes('className="boutique-flavor-stage"'));
+  assert.ok(page.includes("POPCORN.cardImage ?? POPCORN.image"));
+  assert.ok(page.includes('className="boutique-flavor-stage-media"'));
+  assert.ok(page.includes("currency.format(popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime))"));
+  assert.ok(css.includes(".storefront .boutique-flavor-stage"));
+  assert.ok(css.includes(".storefront .boutique-slice-preview img"));
+});
+
+test("barra de ação não duplica botão de adicionar visível e preserva o checkout", () => {
+  assert.ok(page.includes("inlineBuilderActionVisible"));
+  assert.ok(page.includes('document.querySelector<HTMLElement>(".storefront .builder-card .add-button")'));
+  assert.ok(page.includes("builderFlowActive && inlineBuilderActionVisible"));
+  assert.ok(page.includes("stickyUsesCheckoutAction && inlineFinalActionVisible"));
+  assert.ok(page.includes("observer.disconnect()"));
+  assert.ok(page.includes("onClick={handleStickyAction}"));
+  assert.ok(page.includes("onClick={handleFinalAction}"));
+});
+
+test("acabamento 3.1 permanece só no storefront e respeita tamanho/toque/movimento", () => {
+  assert.ok(css.includes("Boutique 3.1"));
+  assert.ok(css.includes("@media (max-width: 450px)"));
+  assert.ok(css.includes("@media (max-width: 359px)"));
+  assert.ok(css.includes("@media (prefers-reduced-motion: reduce)"));
+  assert.ok(!css.includes(".admin-"));
+  assert.ok(!css.includes(":root {"));
+});

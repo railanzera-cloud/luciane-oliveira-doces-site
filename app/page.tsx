@@ -401,6 +401,7 @@ export default function Home() {
   const finalizationLockRef = useRef(false);
   const inlineFinalActionRef = useRef<HTMLDivElement | null>(null);
   const [inlineFinalActionVisible, setInlineFinalActionVisible] = useState(false);
+  const [inlineBuilderActionVisible, setInlineBuilderActionVisible] = useState(false);
   const navigationPendingRef = useRef(false);
   const checkoutFingerprintRef = useRef("");
   const unlockTimerRef = useRef<number | undefined>(undefined);
@@ -421,6 +422,19 @@ export default function Home() {
     observer.observe(target);
     return () => observer.disconnect();
   }, [activeCategory, cart.length, checkoutChannel]);
+
+  // Mesmo princípio para o configurador: uma só ação quando o botão de adicionar já aparece.
+  // Observa o botão existente sem alterar suas regras, callbacks ou acessibilidade.
+  useEffect(() => {
+    if (!activeCategory || typeof IntersectionObserver === "undefined") return;
+    const target = document.querySelector<HTMLElement>(".storefront .builder-card .add-button");
+    if (!target) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      setInlineBuilderActionVisible(Boolean(entry?.isIntersecting));
+    }, { threshold: 0.35, rootMargin: "0px 0px -70px 0px" });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [activeCategory]);
 
   const pipocasVisible = STORE_CONFIG.enabledCategories.pipocas
     && isItemVisible(availability, CATEGORY_ITEM_KEYS.pipocas);
@@ -1607,18 +1621,27 @@ export default function Home() {
                   <span className="selection-count" aria-live="polite">{popcornVariant ? `${popcornOptionIds.length}/${popcornMaxOptions}` : "—"}</span>
                 </div>
                 {popcornVariantUsable && popcornVariant && (
-                  <div className="boutique-price-guide" aria-live="polite" aria-atomic="true">
-                    <div className="boutique-price-guide-copy">
-                      <span>{popcornOptionIds.length > 0 ? "Valor da combinação" : "Valor inicial do pote"}</span>
-                      <strong>{currency.format(popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime))}</strong>
+                  <div className="boutique-flavor-stage">
+                    {POPCORN.image && (
+                      <span className="boutique-flavor-stage-media" aria-hidden="true">
+                        <img src={POPCORN.cardImage ?? POPCORN.image} alt="" width="320" height="420" loading="lazy" decoding="async" />
+                      </span>
+                    )}
+                    <div className="boutique-flavor-stage-content">
+                      <span className="boutique-flavor-stage-kicker">Seu pote · {popcornVariant.label}</span>
+                      <div className="boutique-price-guide" aria-live="polite" aria-atomic="true">
+                        <div className="boutique-price-guide-copy">
+                          <span>{popcornOptionIds.length > 0 ? "Valor da combinação" : "Valor inicial"}</span>
+                          <strong>{currency.format(popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime))}</strong>
+                        </div>
+                        <p>{popcornPromotionActive
+                          ? "Promoção: o preço não muda com os sabores."
+                          : "O sabor mais caro define o valor do pote."}</p>
+                      </div>
                     </div>
-                    <p>
-                      {popcornPromotionActive
-                        ? "Promoção ativa: os sabores não alteram o preço deste tamanho."
-                        : "O sabor mais caro da combinação define o valor. Veja abaixo quanto fica antes de escolher."}
-                    </p>
                   </div>
                 )}
+
                 <div className="flavor-grid">
                   {POPCORN.options.filter((option) => popcornFlavorIsVisible(option.id)).map((option) => {
                     const selected = popcornOptionIds.includes(option.id);
@@ -2201,7 +2224,7 @@ export default function Home() {
 
       <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
-      {(activeCategory || cart.length > 0) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && (
+      {(activeCategory || cart.length > 0) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && (
       <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
         <div><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></div>
         <Button type="button" onClick={handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || (builderFlowActive && !categoryIsAvailable(activeCategory))}>

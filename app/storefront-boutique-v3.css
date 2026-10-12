@@ -602,3 +602,420 @@
   .storefront .boutique-checkout-progress button,
   .storefront .payment-option { animation: none !important; transition: none !important; transform: none !important; }
 }
+
+
+/*
+ * Boutique 3.1 — prova visual no iPhone.
+ * Fotografia do produto durante a escolha, menos ruído nas opções e
+ * checkout mais claro. Camada 100% visual: catálogo e cálculos intactos.
+ */
+.storefront .builder-section {
+  background:
+    radial-gradient(ellipse 67% 22% at 50% 4%, rgba(133, 73, 36, .21), transparent 95%),
+    linear-gradient(180deg, #110b07 0%, #1b100c 41%, #120b08 100%);
+}
+.storefront .section-intro {
+  margin-bottom: 25px;
+}
+.storefront .section-intro h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: -.048em;
+  line-height: 1.08;
+}
+.storefront .section-intro > p:not(.eyebrow) {
+  max-width: 44ch;
+  color: #ddc8b1;
+}
+.storefront .builder-card {
+  overflow: hidden;
+  border-color: rgba(233, 179, 112, .30);
+  background: linear-gradient(152deg, #291a12, #180f0b 68%, #1e130d);
+  box-shadow: inset 0 1px rgba(255, 241, 207, .075), 0 24px 72px rgba(0, 0, 0, .24);
+}
+.storefront .step-block {
+  position: relative;
+  scroll-margin-top: 16px;
+}
+.storefront .step-block.step-state-active {
+  background: linear-gradient(100deg, rgba(205, 143, 80, .075), transparent 62%);
+  box-shadow: inset 3px 0 0 rgba(230, 174, 105, .78);
+}
+.storefront .step-heading h3 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.16rem, 4vw, 1.43rem);
+  font-weight: 500;
+  letter-spacing: -.038em;
+  line-height: 1.2;
+}
+.storefront .step-heading p {
+  max-width: 45ch;
+  font-size: .79rem;
+  line-height: 1.45;
+}
+.storefront .size-card {
+  border-radius: 15px;
+  min-height: 104px;
+  background: #302017;
+}
+.storefront .size-card.is-selected {
+  border-color: #f5c88e;
+  background: linear-gradient(145deg, #5a3b24, #322016);
+  box-shadow: inset 0 0 0 1px rgba(249, 212, 164, .23);
+}
+.storefront .size-card:focus-within {
+  outline: 3px solid #ffdba5;
+  outline-offset: 2px;
+}
+/* Hero real, não foto ilustrativa: reutiliza a imagem cadastrada no catálogo. */
+.storefront .boutique-flavor-stage {
+  display: grid;
+  grid-template-columns: minmax(96px, 35%) minmax(0, 1fr);
+  overflow: hidden;
+  margin: 4px 0 18px;
+  min-height: 170px;
+  border: 1px solid rgba(233, 189, 129, .40);
+  border-radius: 20px;
+  background: linear-gradient(136deg, #523421, #241711 75%);
+  box-shadow: inset 0 1px rgba(255, 241, 219, .08), 0 15px 38px rgba(0, 0, 0, .17);
+}
+.storefront .boutique-flavor-stage-media {
+  position: relative;
+  display: block;
+  min-width: 0;
+  min-height: 170px;
+  background: #432d1c;
+}
+.storefront .boutique-flavor-stage-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+  object-position: center;
+}
+.storefront .boutique-flavor-stage-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent 60%, rgba(36, 23, 17, .24));
+}
+.storefront .boutique-flavor-stage-content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 9px;
+  padding: 16px 15px 17px;
+}
+.storefront .boutique-flavor-stage-kicker {
+  color: #f1cca1;
+  font-size: .68rem;
+  font-weight: 780;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+.storefront .boutique-flavor-stage .boutique-price-guide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+}
+.storefront .boutique-flavor-stage .boutique-price-guide-copy { gap: 5px; }
+.storefront .boutique-flavor-stage .boutique-price-guide-copy > span {
+  color: #e9d3bc;
+  font-size: .74rem;
+}
+.storefront .boutique-flavor-stage .boutique-price-guide-copy strong {
+  color: #ffdcaa;
+  font-size: clamp(1.55rem, 6vw, 2rem);
+  line-height: 1.02;
+  letter-spacing: -.045em;
+}
+.storefront .boutique-flavor-stage .boutique-price-guide p {
+  padding: 0;
+  border: 0;
+  color: #dfc5aa;
+  font-size: .72rem;
+  line-height: 1.47;
+}
+/* Cartões de sabor: a decisão e seu efeito no preço aparecem juntos. */
+.storefront .flavor-grid { gap: 9px; }
+.storefront .flavor-card {
+  padding: 13px 14px;
+  min-height: 99px;
+  border-radius: 14px;
+  background: #2c1d14;
+  transition: border-color 170ms ease, background-color 170ms ease, box-shadow 170ms ease;
+}
+.storefront .flavor-card.is-selected {
+  background: linear-gradient(110deg, #583b27, #342116);
+  border-color: #f2c48b;
+  box-shadow: inset 3px 0 #efc18a, inset 0 0 0 1px rgba(242, 191, 129, .12);
+}
+.storefront .flavor-tone {
+  width: 43px;
+  height: 43px;
+  flex: 0 0 43px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 241, 219, .31);
+  box-shadow: 0 0 0 2px rgba(22, 13, 8, .35), inset 0 2px 8px rgba(255,255,255,.12);
+}
+.storefront .flavor-copy strong { font-size: .93rem; letter-spacing: -.016em; }
+.storefront .flavor-copy small { color: #dac7b4; line-height: 1.38; }
+.storefront .boutique-flavor-value {
+  padding-top: 8px;
+  border-top-color: rgba(235, 190, 129, .13);
+}
+.storefront .boutique-flavor-cost {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
+}
+.storefront .boutique-flavor-cost strong { font-size: .98rem; }
+.storefront .boutique-flavor-cost small { color: #dac8b4; font-size: .69rem; }
+.storefront .boutique-flavor-impact,
+.storefront .boutique-flavor-picked,
+.storefront .boutique-flavor-unavailable {
+  font-size: .69rem;
+  padding: 5px 9px;
+}
+.storefront .boutique-flavor-summary {
+  margin-top: 13px;
+  border-radius: 15px;
+  background: linear-gradient(105deg, #453021, #261910);
+}
+.storefront .boutique-flavor-summary-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: .96rem;
+  font-weight: 500;
+  color: #ffe0ad;
+}
+.storefront .boutique-flavor-tags span {
+  background: rgba(245, 208, 158, .09);
+  font-size: .76rem;
+}
+/* Fatias: prova de produto ampliada durante a escolha de acabamento. */
+.storefront .slice-grid { gap: 12px; }
+.storefront .slice-media { aspect-ratio: 1 / 1.16; }
+.storefront .slice-card {
+  border-radius: 19px;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, .19);
+}
+.storefront .slice-card-copy,
+.storefront .slice-card.is-selected .slice-card-copy {
+  padding: 14px 12px 13px;
+  min-height: 142px;
+}
+.storefront .slice-card.is-selected {
+  border-color: #ffcf94;
+  box-shadow: 0 0 0 2px rgba(245, 197, 136, .29), 0 16px 33px rgba(0, 0, 0, .30);
+}
+.storefront .slice-card:focus-within,
+.storefront .slice-sauce-card:focus-within {
+  outline: 3px solid #ffdcaa;
+  outline-offset: 2px;
+}
+.storefront .boutique-slice-preview {
+  display: grid;
+  grid-template-columns: minmax(88px, 34%) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  min-height: 124px;
+  border: 1px solid rgba(240, 191, 125, .37);
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(105deg, #49301e, #241710);
+}
+.storefront .boutique-slice-preview img {
+  width: 100%;
+  height: 100%;
+  min-height: 124px;
+  max-height: 170px;
+  border: 0;
+  border-radius: 0;
+  object-fit: cover;
+}
+.storefront .boutique-slice-preview-info {
+  align-self: center;
+  padding: 15px 15px 9px;
+  gap: 7px;
+}
+.storefront .boutique-slice-preview-info small { font-size: .68rem; }
+.storefront .boutique-slice-preview-info strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+  font-size: clamp(1.08rem, 4.3vw, 1.48rem);
+  line-height: 1.17;
+  letter-spacing: -.025em;
+}
+.storefront .boutique-slice-preview-price {
+  grid-column: 2;
+  justify-self: start;
+  align-self: start;
+  padding: 0 15px 14px;
+  color: #ffda9c;
+  font-size: 1.17rem;
+  font-weight: 790;
+}
+.storefront .slice-sauce-choice .slice-sauce-card {
+  transition: background-color 170ms ease, border-color 170ms ease, box-shadow 170ms ease;
+}
+.storefront .slice-sauce-choice .slice-sauce-card.is-selected {
+  box-shadow: inset 0 0 0 1px rgba(246, 201, 146, .34);
+}
+.storefront .slice-sauce-copy small { color: #e6d1ba; }
+/* Carrinho mais legível em telas com menos espaço, sem perder ações. */
+.storefront .cart-item {
+  background: #fffbf5;
+  border-radius: 18px;
+}
+.storefront .cart-item-info h3 { font-size: 1.05rem; }
+.storefront .boutique-cart-image {
+  flex-basis: 69px;
+  width: 69px;
+  height: 80px;
+  border-radius: 13px;
+}
+.storefront .cart-item-specs span { line-height: 1.3; }
+.storefront .cart-item-actions { justify-content: space-between; }
+/* Checkout: continuidade visual e leitura sem múltiplos blocos competindo. */
+.storefront .checkout-section {
+  background: linear-gradient(180deg, #edddc8 0, #f8f0e6 17%, #f7eddf 100%);
+}
+.storefront .boutique-checkout-intro { margin-bottom: 10px; }
+.storefront .boutique-checkout-intro h2 {
+  max-width: 16ch;
+  letter-spacing: -.054em;
+}
+.storefront .boutique-checkout-progress {
+  position: relative;
+  gap: 6px;
+  margin: 15px 0 20px;
+}
+.storefront .boutique-checkout-progress button {
+  min-height: 53px;
+  border-radius: 12px;
+  background: rgba(255, 251, 245, .53);
+  font-weight: 730;
+}
+.storefront .boutique-checkout-progress button.is-complete,
+.storefront .boutique-checkout-progress button.is-current {
+  background: #f3e3ce;
+  border-color: #bd8c61;
+}
+.storefront .order-card,
+.storefront .summary-card {
+  background: #fffbf6;
+  box-shadow: 0 12px 28px rgba(94, 61, 31, .05);
+}
+.storefront .order-card-heading h2,
+.storefront .summary-card > h2,
+.storefront .checkout-step-heading h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: -.045em;
+  line-height: 1.17;
+}
+.storefront .payment-option {
+  min-height: 62px;
+  background: #fffaf3;
+  border-color: rgba(152, 109, 70, .23);
+}
+.storefront .payment-option.is-selected {
+  border-color: #a86c36;
+  background: #f7e8d3;
+  box-shadow: inset 3px 0 0 #bd814b;
+}
+.storefront .payment-option:focus-within,
+.storefront .choice-card:focus-within {
+  outline: 2px solid #9b6037;
+  outline-offset: 2px;
+}
+.storefront .boutique-payment-method small { font-size: .72rem; }
+.storefront .summary-total {
+  border-color: #d8b990;
+  background: #f2e1c8;
+}
+.storefront .summary-total strong { font-size: clamp(1.5rem, 5.5vw, 2rem); }
+.storefront .boutique-final-action .checkout-primary-button {
+  min-height: 59px;
+  font-weight: 780;
+}
+/* Sticky contextual: acabamento leve, sem cobrir mais tela do que o necessário. */
+.storefront .mobile-sticky-bar {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 15px 38px rgba(0, 0, 0, .30), inset 0 1px rgba(255, 237, 201, .09);
+}
+@media (min-width: 380px) and (max-width: 699px) {
+  .storefront .slice-sauce-choice { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .storefront .slice-sauce-choice .slice-sauce-card {
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 10px;
+    min-height: 112px;
+    padding: 12px;
+  }
+  .storefront .slice-sauce-choice .slice-sauce-card .slice-sauce-copy {
+    flex: 1 0 100%;
+    padding-right: 22px;
+  }
+  .storefront .slice-sauce-choice .slice-sauce-card .slice-sauce-check {
+    position: absolute;
+    right: 9px;
+    top: 9px;
+    width: 24px;
+    height: 24px;
+  }
+  .storefront .slice-sauce-copy strong { font-size: .91rem; }
+  .storefront .slice-sauce-copy small { font-size: .7rem; }
+}
+@media (max-width: 450px) {
+  .storefront .cart-item-top { flex-direction: column; gap: 11px; }
+  .storefront .boutique-cart-product { width: 100%; }
+  .storefront .cart-item-value {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    width: 100%;
+    min-width: 0;
+    padding: 10px 0 0;
+    border-top: 1px solid rgba(137, 88, 51, .11);
+  }
+  .storefront .cart-item-value strong { font-size: 1.12rem; }
+  .storefront .summary-item { padding-block: 14px; }
+}
+@media (max-width: 359px) {
+  .storefront .boutique-flavor-stage { grid-template-columns: 91px minmax(0,1fr); min-height: 156px; }
+  .storefront .boutique-flavor-stage-media { min-height: 156px; }
+  .storefront .boutique-flavor-stage-content { padding: 12px 10px; gap: 5px; }
+  .storefront .boutique-flavor-stage .boutique-price-guide-copy strong { font-size: 1.39rem; }
+  .storefront .boutique-flavor-stage .boutique-price-guide p { font-size: .67rem; }
+  .storefront .flavor-tone { width: 34px; height: 34px; flex-basis: 34px; }
+  .storefront .boutique-slice-preview { grid-template-columns: 87px minmax(0,1fr); }
+  .storefront .boutique-slice-preview img { height: 100%; min-height: 117px; width: 100%; }
+  .storefront .boutique-slice-preview-info { padding: 12px 10px 6px; }
+  .storefront .boutique-slice-preview-price { padding: 0 10px 12px; }
+  .storefront .boutique-cart-image { width: 59px; height: 72px; flex-basis: 59px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront .boutique-flavor-stage-media img,
+  .storefront .boutique-slice-preview img,
+  .storefront .payment-option,
+  .storefront .mobile-sticky-bar {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
