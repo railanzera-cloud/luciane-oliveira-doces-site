@@ -98,7 +98,7 @@ test("RPC nova agrega todos os pedidos do período sem expor dados pessoais", as
   assert.match(sql, /FROM public\.orders o/);
   assert.match(sql, /LEFT JOIN public\.tintim_order_tracking_snapshots s ON s\.order_uuid=o\.id/);
   assert.match(sql, /'tracking_evidence'/);
-  assert.match(sql, /'bio_with_fbclid'/);
+  assert.match(sql, /AS bio_with_fbclid/);
   assert.match(sql, /'incomplete_tintim_confirmations_not_synced'/);
   assert.ok(!/LIMIT\s+100\b/i.test(sql));
   assert.ok(!/SELECT\s+o\.\*/i.test(sql));
