@@ -499,3 +499,263 @@
     transform: none !important;
   }
 }
+
+
+/* Boutique 2.1 — decisões claras dentro do configurador.
+ * Contraste da calda: anteriormente o CSS de um cartão claro mantinha texto
+ * chocolate sobre o fundo chocolate da camada Boutique. Resolvido explicitamente.
+ */
+.storefront .slice-sauce-choice {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 11px;
+  margin-top: 14px;
+}
+.storefront .slice-sauce-choice .slice-sauce-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-height: 77px;
+  padding: 15px 17px;
+  border: 1px solid rgba(229, 188, 137, .38);
+  border-radius: 16px;
+  background: #302016;
+  color: #fff6e9;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .055);
+  cursor: pointer;
+}
+.storefront .slice-sauce-choice .slice-sauce-card:hover {
+  background: #3b291d;
+  border-color: rgba(244, 204, 149, .72);
+}
+.storefront .slice-sauce-choice .slice-sauce-card:focus-within {
+  outline: 3px solid #ffdcaa;
+  outline-offset: 3px;
+}
+.storefront .slice-sauce-choice .slice-sauce-card.is-selected {
+  background: linear-gradient(125deg, #54361f, #3f291b);
+  border-color: #f0c58c;
+  color: #fff9ef;
+  box-shadow: inset 0 0 0 1px rgba(246, 199, 138, .35), 0 10px 22px rgba(0, 0, 0, .20);
+}
+.storefront .slice-sauce-choice .slice-sauce-card button[role="radio"] {
+  flex: 0 0 21px;
+  width: 21px;
+  height: 21px;
+  border: 2px solid #dfbc93;
+  background: #24170f;
+  color: #24170f;
+}
+.storefront .slice-sauce-choice .slice-sauce-card button[role="radio"][data-state="checked"] {
+  border-color: #f4c78b;
+  background: #f4c78b;
+  color: #24170f;
+}
+.storefront .slice-sauce-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  color: #fff6e9;
+}
+.storefront .slice-sauce-copy strong {
+  color: #fff7e8;
+  font-size: clamp(.95rem, 3.4vw, 1.07rem);
+  font-weight: 740;
+  line-height: 1.35;
+}
+.storefront .slice-sauce-copy small {
+  color: #dcc8b3;
+  font-size: .79rem;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+.storefront .slice-sauce-card.is-selected .slice-sauce-copy strong { color: #fff9ef; }
+.storefront .slice-sauce-card.is-selected .slice-sauce-copy small { color: #f2d9bb; }
+.storefront .slice-sauce-check {
+  display: grid;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 50%;
+  background: #f2c689;
+  color: #29190e;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, .21);
+}
+.storefront .boutique-slice-preview {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  padding: 10px;
+  border: 1px solid rgba(224, 174, 116, .20);
+  border-radius: 15px;
+  background: rgba(12, 7, 4, .28);
+}
+.storefront .boutique-slice-preview img {
+  display: block;
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+  border-radius: 11px;
+  object-fit: cover;
+  border: 1px solid rgba(239, 202, 161, .19);
+}
+.storefront .boutique-slice-preview-info {
+  display: grid;
+  gap: 3px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.storefront .boutique-slice-preview-info small {
+  color: #e2bd8e;
+  font-size: .66rem;
+  font-weight: 750;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+.storefront .boutique-slice-preview-info strong {
+  color: #fff6e8;
+  font-size: .92rem;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.storefront .boutique-slice-preview-price {
+  flex: 0 0 auto;
+  color: #f5cb90;
+  font-size: .93rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+/* Os sabores escolhidos se tornam uma combinação identificável. */
+.storefront .boutique-flavor-summary {
+  display: grid;
+  gap: 9px;
+  margin-top: 14px;
+  padding: 13px 14px;
+  border: 1px solid rgba(229, 179, 114, .33);
+  border-radius: 14px;
+  background: linear-gradient(115deg, rgba(118, 70, 37, .19), rgba(28, 16, 11, .38));
+}
+.storefront .boutique-flavor-summary-title {
+  color: #f3c88c;
+  font-size: .75rem;
+  font-weight: 750;
+  letter-spacing: .025em;
+}
+.storefront .boutique-flavor-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+.storefront .boutique-flavor-tags span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 10px;
+  border: 1px solid rgba(236, 188, 130, .35);
+  border-radius: 99px;
+  background: rgba(51, 30, 19, .75);
+  color: #fff1de;
+  font-size: .73rem;
+  line-height: 1.3;
+  font-weight: 650;
+}
+
+/* Evolução editorial dos cartões internos, ainda operáveis com um toque. */
+.storefront .slice-card {
+  border-color: rgba(226, 179, 123, .3);
+  border-radius: 19px;
+  background: #2c1c14;
+}
+.storefront .slice-card-copy {
+  min-height: 136px;
+  padding: 15px 13px 15px;
+  gap: 3px;
+  background: linear-gradient(180deg, #342219, #2a1a13);
+}
+.storefront .slice-card-copy strong {
+  color: #fff6e9;
+  font-size: clamp(.9rem, 3.1vw, 1.09rem);
+  line-height: 1.26;
+  letter-spacing: -.017em;
+}
+.storefront .slice-card-copy em {
+  margin-top: 3px;
+  color: #e2c8ab;
+  font-size: .71rem;
+  line-height: 1.35;
+  letter-spacing: .02em;
+}
+.storefront .slice-card-copy .slice-weight {
+  color: #cdbba7;
+  font-size: .74rem;
+}
+.storefront .slice-card-copy b {
+  padding-top: 9px;
+  color: #f2c68d;
+  font-size: 1.04rem;
+}
+.storefront .slice-card.is-selected .slice-card-copy {
+  background: linear-gradient(180deg, #51351f, #392317);
+}
+.storefront .selection-helper {
+  color: #d1bda6;
+  font-size: .79rem;
+  line-height: 1.5;
+}
+.storefront .selection-helper.has-message { color: #f7ca87; }
+.storefront .flavor-copy small {
+  color: #d2bda6;
+  font-size: .75rem;
+  line-height: 1.45;
+}
+.storefront .flavor-status { color: #e3c9ad; }
+.storefront .flavor-selected {
+  color: #f2cc98;
+  font-size: .67rem;
+}
+
+/* O resumo do carrinho ganha mais hierarquia sem alterar o fluxo de compra. */
+.storefront .cart-item {
+  border-color: rgba(137, 88, 51, .18);
+  background: #fff8ee;
+  border-radius: 16px;
+}
+.storefront .cart-item-info h3 {
+  font-size: clamp(1rem, 3.3vw, 1.25rem);
+  letter-spacing: -.025em;
+}
+.storefront .cart-item-value strong { color: #71401f; }
+.storefront .summary-card {
+  border-top: 3px solid rgba(166, 109, 56, .55);
+}
+.storefront .summary-item {
+  border-color: rgba(140, 95, 55, .15);
+}
+.storefront .summary-total strong { font-size: clamp(1.4rem, 4.3vw, 1.9rem); }
+.storefront .checkout-section .summary-link {
+  border-color: rgba(132, 85, 46, .19);
+}
+
+/* Não quebrar a legibilidade com telas estreitas ou movimento. */
+@media (max-width: 359px) {
+  .storefront .boutique-slice-preview { gap: 8px; padding: 8px; }
+  .storefront .boutique-slice-preview img { width: 44px; height: 44px; flex-basis: 44px; }
+  .storefront .boutique-slice-preview-price { font-size: .83rem; }
+  .storefront .slice-sauce-choice .slice-sauce-card { gap: 10px; padding-inline: 12px; }
+  .storefront .slice-card-copy { padding-inline: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront .slice-sauce-choice .slice-sauce-card,
+  .storefront .boutique-flavor-tags span {
+    transition: none !important;
+    animation: none !important;
+  }
+}
