@@ -42,7 +42,7 @@ jobs:
             fi
             echo "2 erros preexistentes de tipos de binding D1 isolados, sem outros erros TypeScript."
           fi
-      - name: Testes
-        run: node --test tests/*.test.mjs
       - name: Build de validação sem deploy
         run: npm run build
+      - name: Testes
+        run: node --test tests/*.test.mjs
