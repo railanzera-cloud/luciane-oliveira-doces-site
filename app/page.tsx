@@ -520,8 +520,21 @@ export default function Home() {
     }
 
     let priorAttribution = savedOrder?.order?.attribution;
-    try { priorAttribution ??= JSON.parse(window.localStorage.getItem("lod-first-known-attribution") || "null") ?? undefined; } catch { /* Optional attribution history. */ }
-    attributionRef.current = captureOrderAttribution(window.location.href, document.cookie, priorAttribution);
+    try {
+      const stored = JSON.parse(window.localStorage.getItem("lod-first-known-attribution") || "null") as OrderAttribution | null;
+      if (stored) {
+        // O histórico local pode conter visitas posteriores ao rascunho salvo na sessão.
+        const previousInteractions = priorAttribution?.marketing_interactions ?? [];
+        const storedInteractions = stored.marketing_interactions ?? [];
+        priorAttribution = {
+          ...stored,
+          ...priorAttribution,
+          marketing_interactions: storedInteractions.length >= previousInteractions.length
+            ? storedInteractions : previousInteractions,
+        };
+      }
+    } catch { /* Histórico opcional: checkout permanece funcional sem armazenamento. */ }
+    attributionRef.current = captureOrderAttribution(window.location.href, document.cookie, priorAttribution, true);
     try { window.localStorage.setItem("lod-first-known-attribution", JSON.stringify(attributionRef.current)); } catch { /* Keep session data. */ }
     const restoreTimer = window.setTimeout(() => {
       setLastToken(lastOrderToken());
