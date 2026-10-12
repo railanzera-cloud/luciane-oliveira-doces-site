@@ -1609,7 +1609,7 @@ export default function Home() {
                 {popcornVariantUsable && popcornVariant && (
                   <div className="boutique-price-guide" aria-live="polite" aria-atomic="true">
                     <div className="boutique-price-guide-copy">
-                      <span>Valor atual do pote</span>
+                      <span>{popcornOptionIds.length > 0 ? "Valor da combinação" : "Valor inicial do pote"}</span>
                       <strong>{currency.format(popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime))}</strong>
                     </div>
                     <p>
@@ -1888,16 +1888,18 @@ export default function Home() {
         <div className="page-shell">
           <header className="boutique-checkout-intro">
             <p className="eyebrow">Seu pedido está tomando forma</p>
-            <h2>Agora é só concluir.</h2>
-            <p>Confira suas escolhas e diga como prefere receber. Sem passos desnecessários.</p>
+            <h2>{cart.length > 0 ? "Seu pedido, quase pronto." : "Tudo se organiza aqui."}</h2>
+            <p>{cart.length > 0
+              ? "Confira suas escolhas e diga como prefere receber. Sem passos desnecessários."
+              : "Assim que adicionar um produto, você poderá conferir e finalizar seu pedido aqui."}</p>
           </header>
           {cart.length > 0 && (
             <nav className="boutique-checkout-progress" aria-label="Navegue pelas etapas do pedido">
-              <button type="button" className="is-current" onClick={() => scrollToSection("carrinho")}>
+              <button type="button" className="is-complete" onClick={() => scrollToSection("carrinho")}>
                 <span className="boutique-progress-index"><ShoppingBag size={16} aria-hidden="true" /></span>
                 <span>Pedido</span>
               </button>
-              <button type="button" className={fulfillment && addressReady ? "is-complete" : ""} onClick={() => scrollToSection("recebimento")}>
+              <button type="button" className={fulfillment && addressReady ? "is-complete" : "is-current"} onClick={() => scrollToSection("recebimento")}>
                 <span className="boutique-progress-index">{fulfillment && addressReady ? <Check size={16} aria-hidden="true" /> : "2"}</span>
                 <span>Recebimento</span>
               </button>
