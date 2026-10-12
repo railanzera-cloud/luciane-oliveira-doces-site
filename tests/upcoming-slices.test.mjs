@@ -20,7 +20,7 @@ test("prices the four requested slices at R$ 20", () => {
 });
 
 test("keeps slices from R$ 20 while popcorn uses its current pricing table", () => {
-  assert.ok(page.includes('currency.format(popcornPrice("500ml"))'));
+  assert.match(page, /currency\.format\(popcornPrice\("500ml"(?:,\s*\[\],\s*promotionTime)?\)\)/);
   assert.ok(page.includes(': "A partir de R$20"'));
   assert.match(page, /currency\.format\(variant\.price\)/);
 });
