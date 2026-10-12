@@ -70,6 +70,34 @@ function attributionSource(order: AdminOrder, touch: "first_touch" | "current_vi
   return Array.isArray(source) && typeof source[0] === "string" && source[0] ? source[0] : "Não identificada";
 }
 
+type ObservedMarketingInteraction = {
+  observed_at: string;
+  evidence: "url_parameters";
+  utm_source?: string;
+  utm_campaign?: string;
+  utm_content?: string;
+  ad_id?: string;
+  has_fbclid?: boolean;
+};
+function marketingHistory(order: AdminOrder): ObservedMarketingInteraction[] {
+  const raw = order.attribution_snapshot?.marketing_interactions;
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((item): item is ObservedMarketingInteraction =>
+    !!item && typeof item === "object" && item.evidence === "url_parameters"
+    && typeof item.observed_at === "string" && Number.isFinite(Date.parse(item.observed_at)));
+}
+function interactionLabel(item: ObservedMarketingInteraction) {
+  const campaign = item.utm_campaign || "Campanha não identificada";
+  const source = item.utm_source || "Origem não identificada";
+  return `${source} · ${campaign}`;
+}
+function interactionTime(iso: string) {
+  return new Date(iso).toLocaleString("pt-BR", {
+    timeZone: "America/Belem", day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+}
+
 function actionable(order: AdminOrder) {
   return !["payment_pending", "completed", "cancelled"].includes(order.order_status)
     && (!(order.payment_method === "mercado_pago_pix" || order.payment_method === "mercado_pago_card") || order.payment_status === "paid");
@@ -378,7 +406,22 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
                 {order.fulfillment_type === "delivery" && <div className="admin-order-address"><MapPin size={16} /><span>{order.street}, {order.street_number}{order.complement ? ` — ${order.complement}` : ""}<br />{order.neighborhood}{order.reference ? ` · Ref.: ${order.reference}` : ""}</span></div>}
                 {order.payment_method === "cash" && order.cash_change_for && <p className="admin-order-change">Troco para: <strong>{money.format(Number(order.cash_change_for))}</strong></p>}
                 {order.notes && <p className="admin-order-change"><strong>Observação:</strong> {order.notes}</p>}
-                <p className="admin-order-change">Primeira origem conhecida: {attributionSource(order, "first_touch")} · Visita atual: {attributionSource(order, "current_visit")}. Sem inferência de campanha.</p>
+                <p className="admin-order-change">Primeira origem conhecida: {attributionSource(order, "first_touch")} · Visita atual: {attributionSource(order, "current_visit")}. Campanha atual não presumida.</p>
+                {marketingHistory(order).length > 0 && (
+                  <details className="admin-order-change">
+                    <summary>Interações rastreáveis anteriores ({marketingHistory(order).length})</summary>
+                    <ol>
+                      {marketingHistory(order).slice(-8).map((touch, index) => (
+                        <li key={`${touch.observed_at}-${index}`}>
+                          <strong>{interactionTime(touch.observed_at)}</strong> — {interactionLabel(touch)}
+                          {touch.ad_id && <> · Anúncio ID: {touch.ad_id}</>}
+                          {touch.utm_content && <> · Criativo: {touch.utm_content}</>}
+                        </li>
+                      ))}
+                    </ol>
+                    <small>Histórico de parâmetros identificados na URL; não prova visualização, clique pago ou venda causada por anúncio.</small>
+                  </details>
+                )}
                 {order.payment_method === "card_on_delivery" && !order.card_mode && <p className="admin-order-change">Confira com o cliente qualquer acréscimo da maquininha antes de aceitar.</p>}
                 {order.card_mode && <p className="admin-order-change">Acréscimo já incluído: {money.format(Number(order.card_fee))} ({Number(order.card_basis_points) / 100}%). Informe o total em “Valor da cobrança” da maquininha. Não acrescente outra tarifa.</p>}
                 <p className="admin-order-change">Produtos: {money.format(Number(order.subtotal))} · Entrega: {money.format(Number(order.delivery_fee))}</p>
