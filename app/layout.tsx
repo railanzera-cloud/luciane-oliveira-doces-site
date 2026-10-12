@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { STORE_CONFIG } from "@/app/catalog";
 import "./globals.css";
 import "./storefront-boutique.css";
+import "./storefront-boutique-v3.css";
 
 export const metadata: Metadata = {
   title: STORE_CONFIG.enabledCategories.pipocas
