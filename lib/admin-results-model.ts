@@ -73,17 +73,18 @@ export function parseResultsOverview(value: unknown): ResultsOverview {
     || typeof value.generated_at !== "string" || !record(value.summary)) {
     throw new Error("O relatório de resultados veio incompleto. Atualize a página.");
   }
+  const sourceSummary = value.summary as Record<string, unknown>;
   const mandatory = [
     "orders","paid_orders","paid_amount","pending_orders","pending_amount",
     "cancelled_orders","paid_cancelled_orders","near_campaign_orders",
     "historical_campaign_orders","linked_without_campaign","without_tintim_link",
   ];
-  if (!mandatory.every(key => validNumber(value.summary[key]))
+  if (!mandatory.every(key => validNumber(sourceSummary[key]))
     || !["channels","evidence","visits","campaigns","daily"].every(key => Array.isArray(value[key]))) {
     throw new Error("Não foi possível validar os indicadores recebidos.");
   }
   const summary = Object.fromEntries(
-    mandatory.map(key => [key, Number(value.summary[key])]),
+    mandatory.map(key => [key, Number(sourceSummary[key])]),
   ) as ResultsSummary;
   return {
     period_days: Number(value.period_days) as ResultsPeriod,
