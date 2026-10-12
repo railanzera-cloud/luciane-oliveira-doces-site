@@ -24,6 +24,7 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund @cloudflare/workers-types@4
           printf '%s\n' '/// <reference types="@cloudflare/workers-types" />' > cloudflare-ci-types.d.ts
+          printf '%s\n' 'interface Env { DB: D1Database; }' >> cloudflare-ci-types.d.ts
       - name: TypeScript
         run: npx tsc --noEmit
       - name: Testes
