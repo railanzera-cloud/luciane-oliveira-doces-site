@@ -1,4 +1,4 @@
-import { captureMarketingInteractions, type MarketingInteraction } from "./attribution-history";
+import { captureMarketingInteractions, mergeMarketingInteractions, type MarketingInteraction } from "./attribution-history";
 
 // Dados locais do pedido. Não confirma envio, pagamento ou venda.
 export type OrderAttribution = {
@@ -121,7 +121,7 @@ export function captureOrderAttribution(href: string, cookies: string, previous?
     // Somente entrada real na página registra uma interação. Checkout não fabrica novo clique.
     marketing_interactions: recordArrival
       ? captureMarketingInteractions(previous?.marketing_interactions, href)
-      : previous?.marketing_interactions ?? [],
+      : mergeMarketingInteractions(previous?.marketing_interactions, []),
   };
   for (const key of attributionKeys) {
     const value = url.searchParams.get(key) || previous?.[key];
