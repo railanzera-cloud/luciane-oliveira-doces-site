@@ -1,13 +1,15 @@
-name: Preview Boutique Luciane - Cloudflare
+name: Preview Boutique 3.0 Luciane - Cloudflare
 on:
   push:
     branches:
-      - design/luciane-boutique-experience-20261012
+      - design/luciane-boutique-v3-20261012
     paths:
       - app/storefront-boutique.css
+      - app/storefront-boutique-v3.css
       - app/layout.tsx
       - app/page.tsx
       - tests/storefront-boutique-design.test.mjs
+      - tests/storefront-boutique-v3.test.mjs
       - .github/workflows/design-boutique-preview.yml
   workflow_dispatch:
 permissions:
@@ -74,6 +76,12 @@ jobs:
               assert 'sb_publishable_' in js, 'chave publica ausente'
               css='\n'.join(z.read(n).decode('utf8','replace') for n in names if n.startswith('assets/') and n.endswith('.css'))
               assert '--boutique-night' in css, 'paleta boutique nao compilada'
+              assert 'boutique-checkout-progress' in css, 'navegacao de checkout ausente'
+              assert 'boutique-flavor-impact' in css, 'impacto de preco da combinacao ausente'
+              assert 'boutique-slice-card-footer' in css, 'vitrine de fatias ausente'
+              assert 'boutique-cart-image' in css, 'fotografia do carrinho ausente'
+              assert 'Se incluir' in js, 'cotacao dinamica ao escolher sabor ausente'
+              assert 'stickyUsesCheckoutAction' in js, 'comportamento de CTA contextual ausente'
               assert 'category-option-media' in css, 'cartoes fotograficos ausentes'
               assert 'prefers-reduced-motion' in css, 'acessibilidade de movimento ausente'
               assert 'storefront' in css, 'escopo de estilo ausente'
@@ -85,7 +93,7 @@ jobs:
       - name: Publicar ZIP de build como artefato do GitHub
         uses: actions/upload-artifact@v4
         with:
-          name: luciane-cloudflare-preview-boutique-20261012
+          name: luciane-cloudflare-preview-boutique-v3-20261012
           path: outputs/luciane-oliveira-doces-cloudflare-pages.zip
           if-no-files-found: error
           retention-days: 7
