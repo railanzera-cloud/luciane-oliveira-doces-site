@@ -1,7 +1,12 @@
+import { captureMarketingInteractions, type MarketingInteraction } from "./attribution-history";
+
 // Dados locais do pedido. Não confirma envio, pagamento ou venda.
 export type OrderAttribution = {
   first_touch?: { url: string; parameters: Record<string, string[]> };
   current_visit?: { url: string; path: string; parameters: Record<string, string[]> };
+  // Registros de parâmetros efetivamente observados em URLs, com horário.
+  // Histórico não é prova de visualização, venda ou incrementalidade.
+  marketing_interactions?: MarketingInteraction[];
   landing_url: string;
   last_url: string;
   parameters: Record<string, string[]>;
@@ -113,6 +118,7 @@ export function captureOrderAttribution(href: string, cookies: string, previous?
     landing_url: previous?.landing_url || href,
     last_url: href,
     parameters,
+    marketing_interactions: captureMarketingInteractions(previous?.marketing_interactions, href),
   };
   for (const key of attributionKeys) {
     const value = url.searchParams.get(key) || previous?.[key];
