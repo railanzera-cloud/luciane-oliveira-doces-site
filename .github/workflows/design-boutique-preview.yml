@@ -1,0 +1,91 @@
+name: Preview Boutique Luciane - Cloudflare
+on:
+  push:
+    branches:
+      - design/luciane-boutique-experience-20261012
+    paths:
+      - app/storefront-boutique.css
+      - app/layout.tsx
+      - app/page.tsx
+      - tests/storefront-boutique-design.test.mjs
+      - .github/workflows/design-boutique-preview.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SUPABASE_URL: https://edqiwvccmboyayojvuea.supabase.co
+      # Chave PUBLICA extraida do ZIP anteriormente publicado; sem secrets/service_role.
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_69flK5d9m8Oe3HHVnmKWdA_omNIuIcl
+      # Preserva o modo da versao anterior do Cloudflare (WhatsApp).
+      SITE_ORDERING_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Instalar dependencias
+        run: npm ci --no-audit --no-fund
+      - name: Build
+        run: npm run build
+      - name: Suíte completa
+        run: node --test tests/*.test.mjs
+      - name: Gerar ZIP Cloudflare Pages
+        run: node scripts/package-cloudflare.mjs --require-supabase
+      - name: Validar conteudo do ZIP
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib
+          p=Path('outputs/luciane-oliveira-doces-cloudflare-pages.zip')
+          assert p.is_file() and p.stat().st_size > 100000, 'ZIP ausente ou incompleto'
+          with ZipFile(p) as z:
+              assert z.testzip() is None, 'ZIP corrompido'
+              names=set(z.namelist())
+              mandatory={'index.html','admin/index.html','pedido/index.html','404.html','_worker.js','_routes.json','_headers'}
+              assert mandatory <= names, 'faltam paginas/arquivos de deploy'
+              assert len([x for x in names if x.startswith('assets/') and x.endswith('.js')]) > 5
+              assert not any(x.startswith(('.env','supabase/','node_modules/')) for x in names)
+              js='\n'.join(z.read(n).decode('utf8','replace') for n in names if n.startswith('assets/') and n.endswith('.js'))
+              assert 'admin_get_tintim_order_tracking' in js, 'painel Tintim ausente'
+              assert 'marketing_interactions' in js, 'historico de campanhas ausente'
+              assert 'Rastreamento deste pedido' in js, 'resumo claro de rastreamento ausente'
+              assert 'Mais informações do Tintim' in js, 'bloco Tintim ausente'
+              assert 'Histórico de visitas identificadas' in js, 'rotulo de historico ausente'
+              assert 'O identificador de clique deste pedido coincide' in js, 'evidencia de clique ausente'
+              assert 'admin_get_tintim_order_tracking_v3' in js, 'consulta de historico por pedido ausente'
+              assert 'admin_get_results_overview_v2' in js, 'consulta de Resultados v2 ausente'
+              assert 'Marcados como pagos no painel' in js, 'rotulo correto de pagamentos ausente'
+              assert 'Campanhas registradas no Tintim' in js, 'visao de campanhas ausente'
+              assert 'Sinais de anúncios' in js, 'aba de sinais ausente'
+              assert 'Registros do site' in js, 'aba administrativa ausente'
+              assert 'não significa acesso orgânico' in js, 'cautela de origem ausente'
+              assert 'Desses, com identificador fbclid' in js, 'diagnostico link bio ausente'
+              assert 'Sem confirmação de pagamento no site' in js, 'rotulo parcial das pendencias ausente'
+              assert 'Campanha identificada em outra visita' in js, 'referencia de campanha anterior ausente'
+              assert 'marketing_interactions' in js, 'historico nao compilado'
+              assert 'https://edqiwvccmboyayojvuea.supabase.co' in js, 'Supabase ausente'
+              assert 'sb_publishable_' in js, 'chave publica ausente'
+              css='\n'.join(z.read(n).decode('utf8','replace') for n in names if n.startswith('assets/') and n.endswith('.css'))
+              assert '--boutique-night' in css, 'paleta boutique nao compilada'
+              assert 'category-option-media' in css, 'cartoes fotograficos ausentes'
+              assert 'prefers-reduced-motion' in css, 'acessibilidade de movimento ausente'
+              assert 'storefront' in css, 'escopo de estilo ausente'
+              assert 'Sinais de anúncios' in js, 'CRM e rastreamento devem permanecer'
+              print('ARQUIVOS:',len(names))
+          print('SHA256:',hashlib.sha256(p.read_bytes()).hexdigest())
+          print('COMMIT:',Path('.git/HEAD').read_text().strip())
+          PY
+      - name: Publicar ZIP de build como artefato do GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: luciane-cloudflare-preview-boutique-20261012
+          path: outputs/luciane-oliveira-doces-cloudflare-pages.zip
+          if-no-files-found: error
+          retention-days: 7
