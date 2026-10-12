@@ -8,12 +8,28 @@ const get=(o,...keys)=>keys.map(k=>obj(o)[k]).find(x=>x!==undefined&&x!==null);
 const paramNames=["utm_source","utm_medium","utm_campaign","utm_content","utm_term","tintim_fbid","fbclid","ctwa_clid"];
 const params=(visit)=>{const v=obj(visit),p=obj(v.parameters),q=obj(v.params);let url={};const u=first(v.url,v.landing_url,v.link,2048);try{if(u)url=Object.fromEntries(new URL(u).searchParams.entries());}catch{}const out={};for(const k of paramNames){let x=get(p,k)??get(q,k)??get(v,k)??get(url,k);if(Array.isArray(x))x=x[0];const val=safe(x,k==="fbclid"?450:180);if(val)out[k]=val;}return out;};
 function dateValue(x,nowIso){let d=null;if(typeof x==="number")d=new Date(x<1e11?x*1000:x);else if(typeof x==="string"&&x)d=new Date(x);const n=new Date(nowIso);if(!d||!Number.isFinite(d.getTime())||d.getTime()>n.getTime()+300000)return n.toISOString();return d.toISOString();}
+// Apenas o valor estruturado enviado pelo Tintim; nunca extrair cifra da mensagem privada.
+// Aceita formato BRL/numérico explícito e rejeita valores ambíguos ou fora do limite.
+export function parseTintimReportedAmount(value){
+ if(typeof value==="number"){
+  if(!Number.isFinite(value)||value<=0||value>10000000)return null;
+  return Math.round((value+Number.EPSILON)*100)/100;
+ }
+ if(typeof value!=="string")return null;
+ let normalized=value.trim().replace(/^R\\$\\s*/i,"").replace(/\\s/g,"");
+ if(!/^[0-9]+(?:[.,][0-9]{1,2}|(?:\\.[0-9]{3})+(?:,[0-9]{1,2})?)?$/.test(normalized))return null;
+ if(normalized.includes(",")&&normalized.includes("."))normalized=normalized.replace(/\\./g,"").replace(",",".");
+ else if(normalized.includes(","))normalized=normalized.replace(",",".");
+ else if(/^[0-9]{1,3}(?:\\.[0-9]{3})+$/.test(normalized))normalized=normalized.replace(/\\./g,"");
+ const n=Number(normalized);
+ return Number.isFinite(n)&&n>0&&n<=10000000?Math.round(n*100)/100:null;
+}
 export function normalizeTintimPayload(input,nowIso=new Date().toISOString()){
  if(!input||typeof input!=="object"||Array.isArray(input))throw new Error("invalid_payload");
  const type=first(input.event_type,input.eventType,input.type,input.event,100).toLowerCase().replaceAll(".","_").replaceAll("-","_");
  if(type==="message_create")return {ignored:true,reason:"message_disabled"};
  if(!["lead_create","lead_update","lead_source_update"].includes(type))return {ignored:true,reason:"unsupported_event_type"};
- const lead=obj(input.lead),account=obj(input.account),ad=obj(input.ad??lead.ad),camp=obj(ad.campaign),adset=obj(ad.adset??ad.ad_set),stage=obj(input.stage??lead.stage??input.funnel_stage),visit=obj(input.visit??lead.visit);
+ const lead=obj(input.lead),account=obj(input.account),ad=obj(input.ad??lead.ad),camp=obj(ad.campaign),adset=obj(ad.adset??ad.ad_set),stage=obj(input.stage??lead.stage??input.funnel_stage),status=obj(input.status??lead.status),visit=obj(input.visit??lead.visit);
  const phone=first(lead.phone,input.phone,lead.whatsapp,input.customer_phone,100).replace(/\D/g,"");
  const conversation=obj(input.conversation);const externalId=first(lead.id,lead.uuid,lead.lead_id,input.lead_id,input.lead_uuid,input.leadId,input.conversation_id,conversation.id,conversation.uuid,160);
  const src=obj(input.source??lead.source);
@@ -21,12 +37,15 @@ export function normalizeTintimPayload(input,nowIso=new Date().toISOString()){
   ignored:false,event_type:type,
   account_key:first(account.code,account.id,input.account_code,input.account_id,DEFAULT_TINTIM_ACCOUNT_KEY,100),
   lead_key:externalId||null,
-  observed_at:dateValue(get(input,"updated_at","created_at","date","timestamp","datetime")??get(lead,"updated_at","created_at"),nowIso),
+  observed_at:dateValue(get(input,"updated_isoformat","updated_at","updated","created_isoformat","created_at","date","timestamp","datetime")??get(lead,"updated_isoformat","updated_at","updated","created_at"),nowIso),
   summary:{
    contact_name:first(lead.name,input.name,input.customer_name,150),
    phone_digits:phone.length>=10&&phone.length<=15?phone:"",
    source:first(src.name,src.title,input.source,lead.source,input.origin,100),
-   stage:first(stage.name,lead.stage_name,input.stage_name,input.status,100),
+   stage:first(stage.name,status.name,lead.stage_name,input.stage_name,input.stage,input.status,100),
+    stage_id:first(stage.id,status.id,lead.stage_id,input.stage_id,100),
+    sale_amount:parseTintimReportedAmount(get(input,"sale_amount")??get(lead,"sale_amount")),
+    sale_amount_from_message:parseTintimReportedAmount(get(input,"sale_amount_from_message")??get(lead,"sale_amount_from_message")),
    campaign_id:first(ad.campaign_id,camp.id,input.campaign_id,100),
    campaign_name:first(ad.campaign_name,camp.name,input.campaign_name,150),
    adset_id:first(ad.adset_id,ad.ad_set_id,adset.id,input.adset_id,100),
