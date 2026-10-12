@@ -81,7 +81,7 @@ jobs:
               assert 'boutique-slice-card-footer' in css, 'vitrine de fatias ausente'
               assert 'boutique-cart-image' in css, 'fotografia do carrinho ausente'
               assert 'Se incluir' in js, 'cotacao dinamica ao escolher sabor ausente'
-              assert 'stickyUsesCheckoutAction' in js, 'comportamento de CTA contextual ausente'
+              assert 'boutique-final-action' in js, 'regiao de CTA contextual ausente'
               assert 'category-option-media' in css, 'cartoes fotograficos ausentes'
               assert 'prefers-reduced-motion' in css, 'acessibilidade de movimento ausente'
               assert 'storefront' in css, 'escopo de estilo ausente'
