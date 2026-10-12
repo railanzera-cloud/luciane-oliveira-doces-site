@@ -254,6 +254,8 @@ function checkoutHarness(latest, overrides = {}) {
     setWhatsAppResult: value => actions.push(value.whatsappUrl),
     availability: snapshot(), cart, checkoutFormReady: true, finalizationLockRef: lock, navigationPendingRef: navigationPending,
     STORE_CONFIG: catalog.STORE_CONFIG, cartAvailabilityIssues,
+    // O checkout isolado roda após a janela promocional; no componente real esses valores vêm do hook.
+    popcornPromotionActive: false, isPopcornPromotionActive: () => false, refreshPromotionTime: () => {},
     setWhatsAppRetryAvailable: () => {}, setIsFinalizing: () => {}, setOpeningWhatsApp: () => {}, setCheckoutAvailabilityMessage: (value) => messages.push(value),
     scrollToSection: () => {}, refreshAvailability: async () => latest,
     checkoutFingerprint: fingerprint, checkoutFingerprintRef: { current: fingerprint },
