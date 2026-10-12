@@ -2141,7 +2141,7 @@ export default function Home() {
           </div>
 
           <aside className="summary-card" aria-labelledby="summary-title">
-            <p className="eyebrow">Tudo em um só lugar</p><h2 id="summary-title">Confira sua escolha</h2>
+            <p className="eyebrow">Tudo em um só lugar</p><h2 id="summary-title">Resumo do pedido</h2>
             <p className="boutique-summary-lead">Itens, recebimento e pagamento, antes de finalizar.</p>
             {cart.length > 0 && checkoutChannel !== "whatsapp" && <p className="order-code">O número do pedido será mostrado após a confirmação.</p>}
             <div className="summary-content">
