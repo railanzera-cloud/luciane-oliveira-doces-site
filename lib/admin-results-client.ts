@@ -6,7 +6,7 @@ export async function loadAdminResults(
   client: SupabaseClient,
   period: ResultsPeriod,
 ): Promise<ResultsOverview> {
-  const { data, error } = await client.rpc("admin_get_results_overview", { p_days: period });
+  const { data, error } = await client.rpc("admin_get_results_overview_v2", { p_days: period });
   if (error) {
     if (/JWT|authentication_required|permission denied/i.test(error.message ?? "")) {
       throw new Error("Sua sessão expirou ou não tem permissão para ver os resultados.");
