@@ -64,11 +64,31 @@ function paymentLabel(order: AdminOrder) {
   return `Cartão na ${order.fulfillment_type === "pickup" ? "retirada" : "entrega"}`;
 }
 
-function attributionSource(order: AdminOrder, touch: "first_touch" | "current_visit") {
+// Esses dados são observações do site; não presumem campanha publicitária nem venda atribuída.
+function visitParameter(order: AdminOrder, touch: "first_touch" | "current_visit", key: string): string | null {
   const entry = order.attribution_snapshot?.[touch];
-  const parameters = entry && typeof entry === "object" ? (entry as { parameters?: Record<string, unknown> }).parameters : null;
-  const source = parameters?.utm_source;
-  return Array.isArray(source) && typeof source[0] === "string" && source[0] ? source[0] : "Não identificada";
+  if (!entry || typeof entry !== "object" || Array.isArray(entry)) return null;
+  const params = (entry as { parameters?: Record<string, unknown> }).parameters;
+  const value = params?.[key];
+  return Array.isArray(value) && typeof value[0] === "string" && value[0].trim()
+    ? value[0].trim() : null;
+}
+
+function readableSource(source: string | null): string {
+  if (!source) return "Não identificada";
+  switch (source.toLowerCase()) {
+    case "ig": case "instagram": return "Instagram";
+    case "fb": case "facebook": return "Facebook";
+    case "google": return "Google";
+    case "whatsapp": case "wa": return "WhatsApp";
+    default: return source;
+  }
+}
+
+function visitOrigin(source: string | null, content: string | null): string {
+  const label = readableSource(source);
+  if (content?.toLowerCase() === "link_in_bio") return label === "Não identificada" ? "Link da bio" : `${label} (link da bio)`;
+  return label;
 }
 
 type ObservedMarketingInteraction = {
@@ -80,6 +100,7 @@ type ObservedMarketingInteraction = {
   ad_id?: string;
   has_fbclid?: boolean;
 };
+
 function marketingHistory(order: AdminOrder): ObservedMarketingInteraction[] {
   const raw = order.attribution_snapshot?.marketing_interactions;
   if (!Array.isArray(raw)) return [];
@@ -87,11 +108,11 @@ function marketingHistory(order: AdminOrder): ObservedMarketingInteraction[] {
     !!item && typeof item === "object" && item.evidence === "url_parameters"
     && typeof item.observed_at === "string" && Number.isFinite(Date.parse(item.observed_at)));
 }
-function interactionLabel(item: ObservedMarketingInteraction) {
-  const campaign = item.utm_campaign || "Campanha não identificada";
-  const source = item.utm_source || "Origem não identificada";
-  return `${source} · ${campaign}`;
+
+function interactionLabel(item: ObservedMarketingInteraction): string {
+  return visitOrigin(item.utm_source ?? null, item.utm_content ?? null);
 }
+
 function interactionTime(iso: string) {
   return new Date(iso).toLocaleString("pt-BR", {
     timeZone: "America/Belem", day: "2-digit", month: "2-digit", year: "numeric",
@@ -418,31 +439,59 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
                 {order.fulfillment_type === "delivery" && <div className="admin-order-address"><MapPin size={16} /><span>{order.street}, {order.street_number}{order.complement ? ` — ${order.complement}` : ""}<br />{order.neighborhood}{order.reference ? ` · Ref.: ${order.reference}` : ""}</span></div>}
                 {order.payment_method === "cash" && order.cash_change_for && <p className="admin-order-change">Troco para: <strong>{money.format(Number(order.cash_change_for))}</strong></p>}
                 {order.notes && <p className="admin-order-change"><strong>Observação:</strong> {order.notes}</p>}
-                <p className="admin-order-change">Primeira origem conhecida: {attributionSource(order, "first_touch")} · Visita atual: {attributionSource(order, "current_visit")}. Campanha atual não presumida.</p>
+                <section className="admin-order-attribution" aria-label="Origem do pedido">
+                  <p className="admin-order-attribution-heading">Como chegou a este pedido</p>
+                  <p>Origem desta visita: <strong>{visitOrigin(visitParameter(order, "current_visit", "utm_source"), visitParameter(order, "current_visit", "utm_content"))}</strong></p>
+                  {visitParameter(order, "current_visit", "utm_campaign") ? (
+                    <p>Campanha identificada nesta visita: <strong>{visitParameter(order, "current_visit", "utm_campaign")}</strong></p>
+                  ) : order.tintim_tracking?.campaign_name ? (
+                    <p className="admin-order-attribution-note">Nenhuma campanha identificada nesta visita ao site.</p>
+                  ) : null}
+                  {visitParameter(order, "first_touch", "utm_source") &&
+                    visitParameter(order, "first_touch", "utm_source") !== visitParameter(order, "current_visit", "utm_source") && (
+                    <p>Origem da primeira visita registrada: {readableSource(visitParameter(order, "first_touch", "utm_source"))}</p>
+                  )}
+                </section>
                 {order.tintim_tracking && (
-                  <details className="admin-order-change">
-                    <summary>WhatsApp vinculado ao Tintim — {order.tintim_tracking.match_status === "candidate" ? "associação provisória" : "associação validada"}</summary>
-                    <p>Origem informada pelo Tintim: <strong>{order.tintim_tracking.source_label || "Não identificada"}</strong></p>
-                    {order.tintim_tracking.campaign_name && <p>Campanha registrada: <strong>{order.tintim_tracking.campaign_name}</strong></p>}
-                    {order.tintim_tracking.adset_name && <p>Conjunto: {order.tintim_tracking.adset_name}</p>}
-                    {order.tintim_tracking.ad_name && <p>Anúncio: {order.tintim_tracking.ad_name}</p>}
-                    {!order.tintim_tracking.ad_name && order.tintim_tracking.ad_id && <p>ID do anúncio: {order.tintim_tracking.ad_id}</p>}
-                    <small>Vínculo por referência de pedido, não confirmação de pagamento nem prova de venda causada pelo anúncio.</small>
+                  <details className="admin-order-attribution-details">
+                    <summary>Conversa vinculada no Tintim</summary>
+                    <div className="admin-order-attribution-detail-body">
+                      <p>Origem registrada na conversa: <strong>{order.tintim_tracking.source_label || "Não identificada"}</strong></p>
+                      {order.tintim_tracking.campaign_name && (
+                        <p>Campanha no histórico da conversa: <strong>{order.tintim_tracking.campaign_name}</strong></p>
+                      )}
+                      {order.tintim_tracking.adset_name &&
+                        order.tintim_tracking.adset_name !== order.tintim_tracking.campaign_name && (
+                        <p>Conjunto de anúncios: {order.tintim_tracking.adset_name}</p>
+                      )}
+                      {order.tintim_tracking.ad_name &&
+                        order.tintim_tracking.ad_name !== order.tintim_tracking.campaign_name &&
+                        order.tintim_tracking.ad_name !== order.tintim_tracking.adset_name && (
+                        <p>Anúncio: {order.tintim_tracking.ad_name}</p>
+                      )}
+                      <small>
+                        {order.tintim_tracking.match_status === "candidate"
+                          ? "Conversa associada pelo número do pedido. A associação ainda é provisória."
+                          : "Conversa associada ao pedido."}
+                        {" "}A campanha pode ser de uma visita anterior. Isso não confirma pagamento nem uma venda gerada pelo anúncio.
+                      </small>
+                    </div>
                   </details>
                 )}
                 {marketingHistory(order).length > 0 && (
-                  <details className="admin-order-change">
-                    <summary>Interações rastreáveis anteriores ({marketingHistory(order).length})</summary>
-                    <ol>
-                      {marketingHistory(order).slice(-8).map((touch, index) => (
-                        <li key={`${touch.observed_at}-${index}`}>
-                          <strong>{interactionTime(touch.observed_at)}</strong> — {interactionLabel(touch)}
-                          {touch.ad_id && <> · Anúncio ID: {touch.ad_id}</>}
-                          {touch.utm_content && <> · Criativo: {touch.utm_content}</>}
-                        </li>
-                      ))}
-                    </ol>
-                    <small>Histórico de parâmetros identificados na URL; não prova visualização, clique pago ou venda causada por anúncio.</small>
+                  <details className="admin-order-attribution-details">
+                    <summary>Histórico de visitas identificadas ({marketingHistory(order).length})</summary>
+                    <div className="admin-order-attribution-detail-body">
+                      <ol>
+                        {marketingHistory(order).slice(-8).map((touch, index) => (
+                          <li key={`${touch.observed_at}-${index}`}>
+                            <strong>{interactionTime(touch.observed_at)}</strong> — {interactionLabel(touch)}
+                            {touch.utm_campaign && <> · Campanha informada no link: {touch.utm_campaign}</>}
+                          </li>
+                        ))}
+                      </ol>
+                      <small>Inclui a visita atual quando identificada. O histórico não comprova uma compra causada por anúncio.</small>
+                    </div>
                   </details>
                 )}
                 {order.payment_method === "card_on_delivery" && !order.card_mode && <p className="admin-order-change">Confira com o cliente qualquer acréscimo da maquininha antes de aceitar.</p>}
