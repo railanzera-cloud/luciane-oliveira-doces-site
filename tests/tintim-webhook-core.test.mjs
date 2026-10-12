@@ -49,3 +49,16 @@ test('ignores messages unrelated to orders without persisting their content',()=
 test('does not parse lead events as messages',()=>{
  assert.equal(extractOrderReferenceFromTintim({event_type:'lead.update',phone:'91999998888'},t).ignored,true);
 });
+
+test('message without account id uses the same known Tintim tenant as lead events',()=>{
+ const lead=normalizeTintimPayload({
+  event_type:'lead.update',phone:'91999998888',lead:{phone:'91999998888'}
+ },t);
+ const msg=extractOrderReferenceFromTintim(inbound(),t);
+ assert.equal(msg.account_key,lead.account_key);
+ assert.equal(msg.account_key,'2c956a42-229f-4d21-ade6-4442f8c048ed');
+});
+test('explicit account id from Tintim takes precedence',()=>{
+ const msg=extractOrderReferenceFromTintim(inbound({account:{id:'other-tenant-id'}}),t);
+ assert.equal(msg.account_key,'other-tenant-id');
+});
