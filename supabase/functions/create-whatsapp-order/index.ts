@@ -240,6 +240,8 @@ Deno.serve(async (request: Request) => {
       throw new HttpError(400, "invalid_order", quoteError instanceof Error ? quoteError.message : "Pedido inválido.");
     }
     await revalidateAvailability(quote.availabilityKeys);
+    // Availability can cross the promotion boundary: price again before validating/storing.
+    quote = quoteCartItems(input.items);
     const cardQuote = receiptCardQuote(quote.subtotalCents + fulfillment.delivery_fee_cents, cardMode);
     const expected = parseMoneyToCents(input.expected_total);
     if (expected === null || expected !== cardQuote.totalCents) {
