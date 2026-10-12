@@ -1,0 +1,593 @@
+/*
+ * LUCIANE OLIVEIRA DOCES — Boutique 3.0
+ * Segunda camada de direção de arte: seleção, composição e checkout.
+ * Escopo exclusivo do .storefront. Não altera valores ou regras comerciais.
+ */
+
+/* A escolha das fatias vira uma vitrine de produto, não uma tabela de opções. */
+.storefront .slice-grid {
+  gap: 13px;
+  align-items: stretch;
+}
+.storefront .slice-card {
+  border-radius: 20px;
+  border: 1px solid rgba(222, 171, 111, .36);
+  background: #20140e;
+  box-shadow: inset 0 1px rgba(255, 243, 219, .075), 0 12px 30px rgba(0, 0, 0, .18);
+}
+.storefront .slice-card.is-selected {
+  border: 2px solid #f3c991;
+  background: #372215;
+  box-shadow: inset 0 0 0 1px rgba(255, 237, 204, .15), 0 18px 34px rgba(0, 0, 0, .30);
+  transform: none;
+}
+.storefront .slice-media {
+  aspect-ratio: 1 / 1.04;
+  min-height: 0;
+  position: relative;
+  background: #372318;
+}
+.storefront .slice-media > img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center 52%;
+  transition: transform 550ms var(--boutique-ease), filter 300ms ease;
+}
+.storefront .slice-card:hover:not(.is-unavailable) .slice-media > img { transform: scale(1.04); }
+.storefront .slice-card.is-selected .slice-media > img { transform: scale(1.025); }
+.storefront .slice-card-copy,
+.storefront .slice-card.is-selected .slice-card-copy {
+  min-height: 148px;
+  padding: 16px 13px 13px;
+  gap: 7px;
+  background: linear-gradient(150deg, #332016, #1d120d);
+}
+.storefront .slice-card.is-selected .slice-card-copy {
+  background: linear-gradient(145deg, #55351e, #2c1b12);
+}
+.storefront .boutique-slice-card-title {
+  display: flex;
+  align-items: start;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.storefront .boutique-slice-card-title strong {
+  color: #fff8ee;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1rem, 3.5vw, 1.2rem);
+  font-weight: 600;
+  line-height: 1.22;
+  letter-spacing: -.034em;
+  overflow-wrap: anywhere;
+}
+.storefront .boutique-slice-selected-label {
+  display: inline-flex;
+  align-items: center;
+  color: #f6d6a9;
+  font-size: .65rem;
+  font-weight: 800;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+.storefront .slice-card-copy em {
+  margin-top: 0;
+  color: #d9c3a8;
+  font-size: .7rem;
+  line-height: 1.45;
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.storefront .boutique-slice-card-footer {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 7px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(226, 181, 124, .17);
+}
+.storefront .boutique-slice-card-footer .slice-weight {
+  margin: 0;
+  color: #d3bea6;
+  font-size: .69rem;
+  line-height: 1.35;
+}
+.storefront .boutique-slice-card-footer b {
+  padding: 0;
+  margin-left: auto;
+  color: #f7ca88;
+  font-size: clamp(1.05rem, 4vw, 1.2rem);
+  font-weight: 800;
+  letter-spacing: -.03em;
+  white-space: nowrap;
+}
+.storefront .slice-card.is-unavailable {
+  opacity: .66;
+  border-color: rgba(188, 152, 117, .20);
+  background: #1b140f;
+  box-shadow: none;
+}
+.storefront .slice-card.is-unavailable .slice-media img {
+  filter: grayscale(.35) brightness(.8);
+}
+.storefront .slice-card.is-unavailable .slice-card-copy strong { color: #dbcfbf; }
+.storefront .slice-status {
+  top: 12px;
+  left: 12px;
+  max-width: calc(100% - 30px);
+  border: 1px solid rgba(255, 219, 188, .38);
+  border-radius: 999px;
+  background: rgba(53, 26, 22, .94);
+  padding: 7px 10px;
+  color: #ffebd7;
+  font-size: .64rem;
+  line-height: 1.25;
+  letter-spacing: .025em;
+}
+.storefront .slice-status.is-upcoming { color: #ffe0a7; background: #2b1a10; }
+
+/* Um orçamento visível antes de incluir sabores, sempre usando a lógica existente. */
+.storefront .boutique-price-guide {
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr);
+  gap: 14px;
+  align-items: center;
+  margin: 0 0 14px;
+  padding: 16px;
+  border: 1px solid rgba(239, 192, 129, .38);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(205, 137, 65, .21), transparent 45%),
+    linear-gradient(110deg, #382419, #26170f);
+  box-shadow: inset 0 1px rgba(255, 236, 196, .06);
+}
+.storefront .boutique-price-guide-copy { display: flex; flex-direction: column; gap: 5px; }
+.storefront .boutique-price-guide-copy > span {
+  color: #e2c3a0;
+  font-size: .72rem;
+  letter-spacing: .015em;
+}
+.storefront .boutique-price-guide-copy strong {
+  color: #ffda9e;
+  font-size: clamp(1.48rem, 5.2vw, 1.9rem);
+  line-height: 1;
+  letter-spacing: -.05em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.storefront .boutique-price-guide p {
+  margin: 0;
+  padding-left: 14px;
+  border-left: 1px solid rgba(223, 177, 124, .3);
+  color: #f0ddc5;
+  font-size: .78rem;
+  line-height: 1.55;
+}
+.storefront .flavor-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.storefront .flavor-card {
+  display: grid;
+  grid-template-columns: 21px minmax(0,1fr);
+  align-items: center;
+  gap: 9px 12px;
+  min-height: 116px;
+  padding: 15px;
+  border: 1px solid rgba(223, 177, 123, .27);
+  border-radius: 17px;
+  background: linear-gradient(130deg, #382318, #24160f);
+  transform: none;
+}
+.storefront .flavor-card.is-selected {
+  border-color: #e9b779;
+  background: linear-gradient(130deg, #55351e, #332016);
+  box-shadow: inset 0 0 0 1px rgba(237, 185, 117, .18), 0 10px 24px rgba(0, 0, 0, .21);
+  transform: none;
+}
+.storefront .flavor-card.is-disabled:not(.is-selected) { opacity: .53; }
+.storefront .flavor-card button[role="checkbox"] {
+  width: 21px;
+  height: 21px;
+  border-radius: 7px;
+  border-color: #d9b891;
+  flex: 0 0 21px;
+}
+.storefront .flavor-card button[role="checkbox"][data-state="checked"] {
+  background: #f0c58e;
+  border-color: #f0c58e;
+}
+.storefront .boutique-flavor-identity {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+.storefront .flavor-tone {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border: 2px solid rgba(255, 236, 208, .21);
+  border-radius: 12px;
+  box-shadow: inset 0 1px rgba(255,255,255,.14), 0 5px 13px rgba(0,0,0,.15);
+}
+.storefront .flavor-copy { min-width: 0; padding-right: 0; }
+.storefront .flavor-copy strong {
+  color: #fff7ed;
+  font-size: .92rem;
+  line-height: 1.3;
+}
+.storefront .flavor-copy small {
+  color: #d6c1ac;
+  font-size: .75rem;
+  line-height: 1.42;
+}
+.storefront .boutique-flavor-value {
+  grid-column: 2;
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 12px;
+  border-top: 1px solid rgba(227, 178, 118, .15);
+  padding-top: 9px;
+}
+.storefront .boutique-flavor-cost {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.storefront .boutique-flavor-cost strong {
+  color: #f7d4a4;
+  font-size: .96rem;
+  line-height: 1.15;
+  font-weight: 790;
+  font-variant-numeric: tabular-nums;
+}
+.storefront .boutique-flavor-cost small {
+  color: #cbb59b;
+  font-size: .65rem;
+}
+.storefront .boutique-flavor-impact,
+.storefront .boutique-flavor-picked,
+.storefront .boutique-flavor-unavailable {
+  margin-left: auto;
+  border-radius: 999px;
+  padding: 6px 9px;
+  color: #dfcfb9;
+  background: rgba(255, 240, 209, .07);
+  font-size: .68rem;
+  font-weight: 730;
+  line-height: 1.3;
+  text-align: right;
+}
+.storefront .boutique-flavor-impact.has-increase {
+  color: #1f1208;
+  background: #f0c68e;
+}
+.storefront .boutique-flavor-impact.is-same {
+  color: #c7ead3;
+  background: rgba(48, 127, 86, .25);
+}
+.storefront .boutique-flavor-picked {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #ffdeb0;
+  background: rgba(173, 111, 56, .24);
+}
+.storefront .boutique-flavor-unavailable { color: #d4bb9e; }
+.storefront .flavor-card:focus-within { outline: 2px solid #ffdcaa; outline-offset: 2px; }
+
+/* O carrinho vira um retrato real da combinação escolhida. */
+.storefront .cart-list { margin-top: 17px; }
+.storefront .cart-item {
+  padding: 15px 14px;
+  margin-top: 10px;
+  border: 1px solid rgba(137, 88, 51, .17);
+  border-radius: 18px;
+  background: #fffaf4;
+  box-shadow: 0 6px 20px rgba(67, 35, 15, .04);
+}
+.storefront .cart-item:first-child { border-top: 1px solid rgba(137, 88, 51, .17); }
+.storefront .cart-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 9px;
+}
+.storefront .boutique-cart-product {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.storefront .boutique-cart-image {
+  display: grid;
+  flex: 0 0 62px;
+  width: 62px;
+  height: 68px;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid rgba(139, 86, 51, .19);
+  background: #ead9c6;
+  color: #8b603a;
+}
+.storefront .boutique-cart-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.storefront .cart-item h3 {
+  margin: 4px 0;
+  color: #382215;
+  font-size: 1rem;
+  line-height: 1.27;
+  letter-spacing: -.025em;
+}
+.storefront .cart-item-info { flex: 1 1 auto; min-width: 0; }
+.storefront .product-category { letter-spacing: .06em; }
+.storefront .cart-item-specs { gap: 4px 5px; }
+.storefront .cart-item-specs span {
+  min-height: 24px;
+  padding: 3px 7px;
+  border-color: rgba(130, 80, 39, .13);
+  background: #f3e6d6;
+  color: #705039;
+  font-size: .68rem;
+}
+.storefront .cart-item-value {
+  flex: 0 0 auto;
+  min-width: 76px;
+  align-items: flex-end;
+}
+.storefront .cart-item-value small { color: #887361; font-size: .66rem; }
+.storefront .cart-item-value strong {
+  color: #75421d;
+  font-size: clamp(.9rem,3vw,1.08rem);
+  white-space: nowrap;
+}
+.storefront .cart-item-actions {
+  gap: 9px 12px;
+  margin-top: 14px;
+  border-top: 1px solid rgba(137, 88, 51, .12);
+  padding-top: 11px;
+}
+.storefront .cart-item-actions .mini-quantity button { min-width: 39px; min-height: 42px; }
+.storefront .cart-item-actions .text-action { min-height: 42px; color: #795131; }
+.storefront .cart-item-actions .destructive-action { color: #9c5147; }
+.storefront .cart-subtotal {
+  border-radius: 12px;
+  background: #f6ecdf;
+  border: 1px solid rgba(139, 87, 48, .11);
+  padding: 14px;
+}
+.storefront .cart-subtotal strong { color: #57331c; font-size: 1.15rem; }
+
+/* A conclusão tem a mesma linguagem premium do produto, sem acrescentar etapas. */
+.storefront .checkout-section {
+  padding-top: 38px;
+  background: linear-gradient(180deg, #efe0ce, #f8f1e8 15%, #f5eadb 100%);
+}
+.storefront .boutique-checkout-intro { margin: 0 0 15px; }
+.storefront .boutique-checkout-intro .eyebrow {
+  color: #90603d;
+  letter-spacing: .13em;
+  font-size: .7rem;
+}
+.storefront .boutique-checkout-intro h2 {
+  margin: 8px 0 7px;
+  color: #352013;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.1rem, 8vw, 3.8rem);
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -.045em;
+}
+.storefront .boutique-checkout-intro > p:last-child {
+  max-width: 535px;
+  color: #725744;
+  font-size: .89rem;
+  line-height: 1.57;
+  margin: 0;
+}
+.storefront .boutique-checkout-progress {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 7px;
+  margin: 18px 0 23px;
+}
+.storefront .boutique-checkout-progress button {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 55px;
+  padding: 9px 7px;
+  border: 1px solid rgba(151, 107, 70, .23);
+  border-radius: 13px;
+  background: rgba(255, 253, 248, .65);
+  color: #755843;
+  font-size: .73rem;
+  font-weight: 680;
+  cursor: pointer;
+  transition: background 190ms ease, border-color 190ms ease;
+}
+.storefront .boutique-checkout-progress button:hover { background: #fffaf0; border-color: rgba(143,90,44,.5); }
+.storefront .boutique-checkout-progress button:focus-visible { outline: 2px solid #8b5429; outline-offset: 2px; }
+.storefront .boutique-progress-index {
+  display: grid;
+  flex: 0 0 25px;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border-radius: 50%;
+  background: #efe0ce;
+  color: #80502d;
+  font-size: .75rem;
+  font-weight: 800;
+}
+.storefront .boutique-checkout-progress button.is-complete {
+  color: #51351e;
+  background: #f2e3ce;
+  border-color: rgba(156, 102, 55, .42);
+}
+.storefront .boutique-checkout-progress .is-complete .boutique-progress-index {
+  color: #f9e8cc;
+  background: #80512c;
+}
+.storefront .boutique-checkout-progress button.is-current {
+  color: #382315;
+  border-color: #bd8b58;
+  background: #f8ead5;
+}
+.storefront .order-card,
+.storefront .summary-card {
+  border-radius: 22px;
+  border-color: rgba(140, 90, 48, .20);
+  box-shadow: 0 12px 32px rgba(83, 52, 30, .045);
+}
+.storefront .order-card-heading h2 { letter-spacing: -.04em; }
+.storefront .order-card-heading .eyebrow { letter-spacing: .13em; }
+.storefront .field-group input,
+.storefront .field-group textarea,
+.storefront .delivery-select-trigger {
+  border-color: rgba(119, 81, 46, .27);
+  background: #fffdf9;
+  color: #392517;
+}
+.storefront .field-group input:focus-visible,
+.storefront .field-group textarea:focus-visible,
+.storefront .delivery-select-trigger:focus-visible {
+  border-color: #a87343;
+  outline: 2px solid rgba(161, 105, 58, .36);
+  outline-offset: 1px;
+}
+.storefront .choice-card.is-selected {
+  border-color: #9f6d3c;
+  background: #f2e3cd;
+}
+.storefront .payment-option,
+.storefront .payment-option > span:not([data-slot]) { color: #3b2718; }
+.storefront .payment-option {
+  gap: 12px;
+  border-radius: 13px;
+  min-height: 63px;
+  padding-block: 10px;
+  border-color: rgba(137, 96, 60, .22);
+  background: #fbf5ec;
+}
+.storefront .payment-option > svg { color: #9b6b43; flex: 0 0 20px; }
+.storefront .payment-option.is-selected {
+  border-color: #a47143;
+  background: #f5e5cf;
+}
+.storefront .boutique-payment-method {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+}
+.storefront .boutique-payment-method strong { font-size: .91rem; color: #372316; }
+.storefront .boutique-payment-method small {
+  color: #7c624e;
+  font-size: .7rem;
+  line-height: 1.35;
+}
+.storefront .boutique-summary-lead {
+  color: #82654e;
+  font-size: .82rem;
+  line-height: 1.55;
+  margin: 7px 0 0;
+}
+.storefront .summary-card { border-top: 3px solid #c28a50; }
+.storefront .summary-item {
+  padding: 17px 0;
+  border-color: rgba(141, 93, 53, .16);
+}
+.storefront .summary-item-main strong { color: #3c2718; font-size: .84rem; }
+.storefront .summary-item-side > strong { color: #7a4521; font-size: .85rem; }
+.storefront .summary-item-side button { font-size: .76rem; min-height: 39px; }
+.storefront .summary-total {
+  margin-top: 12px;
+  padding: 18px 13px;
+  border: 1px solid #dcc1a0;
+  border-radius: 15px;
+  background: linear-gradient(120deg, #f3e4cd, #f8ebd9);
+}
+.storefront .summary-total span {
+  color: #4c311e;
+  font-size: .91rem;
+}
+.storefront .summary-total strong {
+  color: #246442;
+  font-size: clamp(1.45rem, 5.2vw, 1.95rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.04em;
+}
+.storefront .boutique-final-action { margin-top: 17px; }
+.storefront .boutique-final-action .checkout-primary-button {
+  width: 100%;
+  min-height: 57px;
+  border-radius: 15px;
+  box-shadow: 0 10px 27px rgba(26, 85, 57, .18);
+}
+.storefront .checkout-status { line-height: 1.55; }
+.storefront .mobile-sticky-bar { max-width: 560px; margin-inline: auto; }
+@media (min-width: 700px) {
+  .storefront .flavor-card {
+    grid-template-columns: 21px minmax(0,1fr) minmax(95px,120px);
+    min-height: 89px;
+    gap: 12px;
+  }
+  .storefront .boutique-flavor-value {
+    grid-column: auto;
+    flex-direction: column;
+    align-items: flex-end;
+    border-top: 0;
+    padding-top: 0;
+  }
+  .storefront .boutique-flavor-cost { align-items: flex-end; }
+  .storefront .boutique-flavor-cost strong { font-size: 1rem; }
+  .storefront .boutique-flavor-impact,
+  .storefront .boutique-flavor-picked,
+  .storefront .boutique-flavor-unavailable { margin-left: 0; }
+  .storefront .slice-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .storefront .boutique-checkout-progress { max-width: 730px; gap: 11px; }
+  .storefront .boutique-checkout-progress button { font-size: .86rem; }
+}
+@media (max-width: 359px) {
+  .storefront .boutique-price-guide {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 13px;
+  }
+  .storefront .boutique-price-guide p { border-left: 0; padding: 0; }
+  .storefront .slice-card-copy { padding: 12px 9px; }
+  .storefront .boutique-slice-card-title strong { font-size: .91rem; }
+  .storefront .boutique-slice-card-footer b { font-size: 1rem; }
+  .storefront .flavor-card { padding: 12px 10px; gap: 8px; }
+  .storefront .flavor-tone { width: 34px; height: 34px; flex-basis: 34px; }
+  .storefront .boutique-cart-image { width: 49px; height: 58px; flex-basis: 49px; }
+  .storefront .cart-item-value { min-width: 66px; }
+  .storefront .boutique-checkout-progress button { flex-direction: column; gap: 4px; font-size: .65rem; }
+  .storefront .boutique-progress-index { width: 22px; height: 22px; flex-basis: 22px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront .flavor-card,
+  .storefront .slice-card,
+  .storefront .boutique-checkout-progress button,
+  .storefront .payment-option { animation: none !important; transition: none !important; transform: none !important; }
+}
