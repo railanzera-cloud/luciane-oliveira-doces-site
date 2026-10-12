@@ -51,8 +51,8 @@ function fromSaved(value: unknown, nowMs: number): MarketingInteraction | null {
     const value = sanitize(entry[key], key === "tintim_fbid" ? 300 : 180);
     if (value) result[key] = value;
   }
-  if (entry.has_fbclid === true) result.has_fbclid = true;
-  if (entry.has_gclid === true) result.has_gclid = true;
+  result.has_fbclid = entry.has_fbclid === true;
+  result.has_gclid = entry.has_gclid === true;
   return fields.some(key => result[key]) || result.has_fbclid || result.has_gclid ? result : null;
 }
 
@@ -110,8 +110,8 @@ export function captureMarketingInteractions(
     const value = sanitize(url.searchParams.get(key), key === "tintim_fbid" ? 300 : 180);
     if (value) entry[key] = value;
   }
-  if (url.searchParams.has("fbclid") && sanitize(url.searchParams.get("fbclid"), 450)) entry.has_fbclid = true;
-  if (url.searchParams.has("gclid") && sanitize(url.searchParams.get("gclid"), 450)) entry.has_gclid = true;
+  entry.has_fbclid = Boolean(sanitize(url.searchParams.get("fbclid"), 450));
+  entry.has_gclid = Boolean(sanitize(url.searchParams.get("gclid"), 450));
   // Compatibilidade com links Tintim que embutem o ID do anúncio.
   if (!entry.ad_id && entry.tintim_fbid) {
     const id = /^([0-9]{8,25})(?:_|$)/.exec(entry.tintim_fbid)?.[1];
