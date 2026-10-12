@@ -63,7 +63,7 @@ test("nenhum componente de pagamento, campanha ou gatilho foi modificado pela et
 test("calda tem contraste explícito em ambos os estados e mantém valores existentes", () => {
   const original = "#503421";
   const selector = ".storefront .slice-sauce-choice .slice-sauce-card";
-  const sauceStyle = boutique.slice(boutique.lastIndexOf(selector));
+  const sauceStyle = boutique.slice(boutique.indexOf("/* Boutique 2.1"));
   assert.ok(sauceStyle.includes("background: #302016"));
   assert.ok(sauceStyle.includes("color: #fff6e9"));
   assert.ok(sauceStyle.includes(".slice-sauce-copy strong"));
