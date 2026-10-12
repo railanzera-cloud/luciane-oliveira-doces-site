@@ -74,6 +74,7 @@ import {
   parseCashCents, paymentDescription, restoreOrderContext,
   type CheckoutDetails, type OrderAttribution, type OrderContext,
 } from "@/app/order-checkout";
+import { mergeMarketingInteractions } from "@/app/attribution-history";
 import { MercadoPagoCardForm } from "@/components/mercado-pago-card-form";
 import { WhatsAppOrderResultView, type RegisteredWhatsAppOrder } from "@/components/whatsapp-order-result";
 import { tintimWhatsAppUrl } from "@/lib/tintim";
@@ -528,13 +529,13 @@ export default function Home() {
       const stored = JSON.parse(window.localStorage.getItem("lod-first-known-attribution") || "null") as OrderAttribution | null;
       if (stored) {
         // O histórico local pode conter visitas posteriores ao rascunho salvo na sessão.
-        const previousInteractions = priorAttribution?.marketing_interactions ?? [];
-        const storedInteractions = stored.marketing_interactions ?? [];
         priorAttribution = {
           ...stored,
           ...priorAttribution,
-          marketing_interactions: storedInteractions.length >= previousInteractions.length
-            ? storedInteractions : previousInteractions,
+          marketing_interactions: mergeMarketingInteractions(
+            stored.marketing_interactions,
+            priorAttribution?.marketing_interactions,
+          ),
         };
       }
     } catch { /* Histórico opcional: checkout permanece funcional sem armazenamento. */ }
