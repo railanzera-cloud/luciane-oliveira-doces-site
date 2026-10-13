@@ -261,3 +261,11 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - ZIP construído do CI compilado, com cinco fotografias WebP conservadas da versão v6: duas categorias, Ninho, Chocolate e textura. CRC, entradas únicas, decode das imagens e textos do bundle conferidos. Novo nome **Pipocas Crocantes** aparece no bundle; antigo título não aparece.
 - **Homologação visual em Safari e teste real do histórico continuam pendentes.** Corrigimos o contorno programático do título em CSS, sem eliminar foco visual dos botões.
 - **Importante:** os WebPs da campanha ainda estão no ZIP Preview, mas não todos versionados na branch GitHub. Builds limpos não são reproduzíveis até subir esses binários. Não publicar produção automaticamente, não mesclar Boutique 4.6.
+
+### V8 — correção do foco e viewport Instagram (13/10/2026)
+- Com base em gravação no Instagram in-app browser, refino exclusivamente da vitrine experimental, sem mudar carrinho, disponibilidade, produtos nem interações do checkout.
+- Ao saltar para `#tamanhos` ou `#edicao-crocante`, o heading segue recebendo foco acessível, agora marcado por `data-editorial-navigation-focus` com origem teclado/ponteiro; apenas o foco programático **por ponteiro** deixa de mostrar o contorno azul do iOS. O atributo e tabindex são restaurados no blur. Foco de botões pelo teclado segue visível.
+- Redução moderada do topo, entremeios e altura das fotos para telas móveis até 699px; ajuste extra em viewport interno baixo, sem alterar proporção do copo nem miniaturizar a embalagem excessivamente.
+- Navegação dos potes: **Categorias** visualmente secundário e **Ver edição limitada** menos destacado; mantidos os dois caminhos, a troca para Fatias e o histórico existente.
+- Validar fisicamente no navegador do Instagram (e no Safari normal): contorno azul inexistente no passo 1, título legível, duas fotos com rótulos visíveis, preço e aviso acessíveis por rolagem, botão voltar preservado.
+- Bloqueios: não publicar produção automaticamente; não acessar Boutique 4.6, backend, Supabase nem regras de pagamento.

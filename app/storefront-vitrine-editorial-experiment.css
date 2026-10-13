@@ -1031,10 +1031,63 @@
   border-bottom: 1px solid rgba(180, 127, 77, .27);
 }
 .storefront .v7-navigation-slices { padding: 3px 0 10px; }
-.storefront .limited-cup-story-heading h2[tabindex="-1"]:focus {
+.storefront .limited-cup-story-heading h2[data-editorial-navigation-focus="pointer"]:focus {
   outline: none;
 }
 @media (max-width: 359px) {
   .storefront .v7-navigation { gap: 2px 5px; padding-inline: 5px; }
   .storefront .v7-navigation button { font-size: .7rem; padding: 6px 4px; }
+}
+
+/* V8 — acabamento para o navegador interno do Instagram no iPhone.
+   Reduz espaços periféricos; as fotos continuam lado a lado e reconhecíveis. */
+.storefront #step-size[data-editorial-navigation-focus="pointer"]:focus {
+  outline: none;
+  box-shadow: none;
+}
+.storefront .v7-navigation-pipocas button:first-child {
+  color: #dcc0a2;
+}
+.storefront .v7-navigation-pipocas button:last-child {
+  color: #ebc197;
+  background: rgba(169, 102, 57, .09);
+  border-color: rgba(208, 149, 94, .30);
+  box-shadow: none;
+}
+.storefront .v7-navigation-pipocas button:last-child:hover {
+  background: rgba(200, 140, 79, .14);
+  border-color: rgba(223, 166, 111, .48);
+}
+@media (max-width: 699px) {
+  .storefront .v7-navigation-edition {
+    padding: 5px 10px 0;
+  }
+  .storefront .v7-navigation-edition button {
+    min-height: 32px;
+  }
+  .storefront .limited-cup-story-heading {
+    padding: 15px 17px 13px;
+  }
+  .storefront .limited-cup-story-heading h2 {
+    margin: 5px 0 4px;
+    font-size: clamp(1.83rem, 6.3vw, 2.48rem);
+  }
+  .storefront .limited-cup-story-heading p {
+    margin-top: 5px;
+    line-height: 1.42;
+  }
+  .storefront .limited-cup-duo-item {
+    height: clamp(214px, 58vw, 308px);
+  }
+  .storefront .limited-cup-duo {
+    padding: 5px 7px 7px;
+  }
+}
+@media (max-width: 699px) and (max-height: 700px) {
+  .storefront .limited-cup-duo-item {
+    height: clamp(208px, 55vw, 268px);
+  }
+  .storefront .limited-cup-story-bottom {
+    padding-top: 11px;
+  }
 }

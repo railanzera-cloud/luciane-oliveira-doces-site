@@ -227,7 +227,14 @@ function jumpToEditorialSection(id: "tamanhos" | "edicao-crocante") {
     ? document.getElementById("step-size")
     : target.querySelector<HTMLElement>("h2");
   if (heading) {
+    const previousTabIndex = heading.getAttribute("tabindex");
     heading.setAttribute("tabindex", "-1");
+    heading.setAttribute("data-editorial-navigation-focus", navigationByKeyboard ? "keyboard" : "pointer");
+    heading.addEventListener("blur", () => {
+      heading.removeAttribute("data-editorial-navigation-focus");
+      if (previousTabIndex === null) heading.removeAttribute("tabindex");
+      else heading.setAttribute("tabindex", previousTabIndex);
+    }, { once: true });
     heading.focus({ preventScroll: true });
   }
 }

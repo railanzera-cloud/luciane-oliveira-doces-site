@@ -188,6 +188,23 @@ test("barra móvel respeita digitação e telas estreitas sem modificar a ação
   assert.ok(page.includes("inlineBuilderActionVisible"));
 });
 
+test("v8 remove foco azul programático apenas dos títulos e acomoda viewport compacto", () => {
+  assert.ok(page.includes('heading.setAttribute("data-editorial-navigation-focus", navigationByKeyboard ? "keyboard" : "pointer")'));
+  assert.ok(page.includes('heading.removeAttribute("data-editorial-navigation-focus")'));
+  assert.ok(page.includes('heading.focus({ preventScroll: true })'));
+  assert.ok(page.includes('window.scrollTo({ top, behavior: "instant" })'));
+  assert.ok(css.includes('#step-size[data-editorial-navigation-focus="pointer"]:focus'));
+  assert.ok(css.includes('h2[data-editorial-navigation-focus="pointer"]:focus'));
+  assert.ok(css.includes('.v7-navigation button:focus-visible'));
+  assert.ok(!css.includes('#step-size:focus-visible { outline: none; }'));
+  assert.ok(css.includes('@media (max-width: 699px) and (max-height: 700px)'));
+  assert.ok(css.includes('height: clamp(214px, 58vw, 308px)'));
+  assert.ok(css.includes('border-color: rgba(208, 149, 94, .30)'));
+  assert.ok(page.includes('onClick={returnToCategories}'));
+  assert.ok(page.includes('onClick={openLimitedCupEdition}>Ver edição limitada'));
+  assert.ok(page.includes('R$ 15,90'));
+});
+
 test("v7 nomeia lançamento Pipocas Crocantes e dá saída clara em todos os caminhos", () => {
   assert.ok(page.includes('<strong>Pipocas <em>Crocantes</em></strong>'));
   assert.ok(page.includes('<h2>Pipocas <em>Crocantes</em></h2>'));
