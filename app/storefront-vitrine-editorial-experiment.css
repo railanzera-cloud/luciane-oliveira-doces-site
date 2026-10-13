@@ -373,3 +373,32 @@
     padding: 11px 22px 11px 11px;
   }
 }
+
+
+/* Editorial v6 — imagens fornecidas pelo proprietário.
+ * Apenas apresentação na página inicial. Sem retoque, máscaras,
+ * filtros ou alteração das imagens originais dos produtos.
+ * Pipoca: enquadramento integral (inclui mão e pote completo).
+ * Fatia: preservar o formato e recheios, sem calda adicionada. */
+.storefront .menu-entry.is-neutral .category-option-media img {
+  filter: none;
+  object-position: center center;
+}
+.storefront .menu-entry.is-neutral .category-option:first-child .category-option-media {
+  background: #8d898a;
+}
+.storefront .menu-entry.is-neutral .category-option:first-child .category-option-media img {
+  object-fit: contain;
+  transform: none;
+}
+.storefront .menu-entry.is-neutral .category-option:nth-child(2) .category-option-media {
+  background: #b39069;
+}
+.storefront .menu-entry.is-neutral .category-option:nth-child(2) .category-option-media img {
+  object-fit: cover;
+  object-position: center center;
+  transform: none;
+}
+.storefront .menu-entry.is-neutral .category-option:hover:not(:disabled) .category-option-media img {
+  transform: none;
+}
