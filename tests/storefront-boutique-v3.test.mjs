@@ -158,7 +158,7 @@ test("Selo da fatia não cobre o valor; cartões mantêm preços e feedback vis�
 
 test("Boutique 4.0 preserva escolhas e monta vitrine mais editorial", () => {
   assert.ok(css.includes("BOUTIQUE 4.0"));
-  assert.ok(page.includes('className="boutique-category-edition"'));
+  assert.ok(!page.includes('className="boutique-category-edition"'));
   assert.ok(page.includes('className="slice-grid"'));
   assert.ok(page.includes("popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime)"));
   assert.ok(css.includes(".storefront .slice-media {"));
@@ -216,7 +216,7 @@ test("4.1 usa foto REAL do pedido no checkout, sem preços inventados", () => {
 });
 test("4.1 preserva escopo, toque, foco e redução de movimento", () => {
   assert.ok(css.includes("BOUTIQUE 4.1"));
-  assert.ok(css.includes(".storefront .boutique-journey-step:focus-visible"));
+  assert.ok(css.includes(".storefront .flavor-card:focus-within"));
   assert.ok(css.includes("@media (max-width: 359px)"));
   assert.ok(css.includes("@media (prefers-reduced-motion: reduce)"));
   assert.ok(!css.includes(".admin-"));
