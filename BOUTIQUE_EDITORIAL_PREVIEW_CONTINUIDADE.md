@@ -54,3 +54,17 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 **Sincronização de binários pendente no GitHub:** o conector disponível consegue gravar textos, mas não publicou os dois WebP binários. `public/images/categoria-pipocas-editorial.webp` continua ausente; `public/images/categoria-fatias-editorial.webp` continua com uma versão antiga. O ZIP experimental acima **contém os dois arquivos novos corretamente**, mas um rebuild do repositório sem sincronização das fotos NÃO reproduz o Preview. Não declarar essa sincronização como concluída. A próxima ação de GitHub deve adicionar/substituir EXATAMENTE esses arquivos com os hashes indicados; depois repetir build/testes.
 
 **Próxima homologação:** fazer deploy apenas de Preview Cloudflare após autorização operacional; comparar composição inteira no Safari iPhone com o print aprovado, confirmar legibilidade, cortes, ações e ausência de faixa cinza. **Não publicar produção nem mesclar.**
+
+
+## Vitrine editorial v7 — checkpoint visual, 13/10/2026
+
+- Branch exclusiva: `design/luciane-editorial-vitrine-experiment-20261013`. Nunca misturar com Boutique 4.6 nem publicar produção sem autorização.
+- Implementação CSS registrada no commit `dd5866f41f10367cf49a01d5c9ca881e479b3c07` (base da v7); execução GitHub Actions **38395752275** concluída com sucesso.
+- A versão v7 aproxima o segundo print de referência: cards mobile com altura de **180px** (190px em telas <=359px), fotografia **49%** / legenda **51%**, intervalo de 10px, painéis chocolate mais profundos, produtos à esquerda e CTA legível à direita.
+- CSS v7 é o último bloco em `app/storefront-vitrine-editorial-experiment.css` e prevalece sobre o histórico v6. Pipoca agora usa `object-fit: cover` e filtro discreto para integrar o fundo quente; fatia usa `cover` sem filtros.
+- As duas fotos fornecidas pelo usuário são as definitivas desta etapa. Pipoca: pote real com dois recheios e mão, ambiente quente. Fatia: formato real no prato branco, morangos, **sem calda adicional por cima**.
+- Fotos foram otimizadas em WebP, sem inventar ou redesenhar produtos; o ZIP experimental montado **a partir do build CI v7** contém `images/categoria-pipocas-editorial.webp` (53.154 bytes, SHA-256 `afd6c925dc273ffc9b5ab04713af10154cc905b1932315494608ee50e57cb8df`) e `images/categoria-fatias-editorial.webp` (93.846 bytes, SHA-256 `83ae67d03cf683a62a000b812cc3ff4f22571bca84707a4af84ba3269bcc2286`).
+- Pacote de homologação: `Luciane_Editorial_v7_Preview_iPhone_Cloudflare.zip`; **50 arquivos**, ZIP íntegro, SHA-256 `a13b4ae3b3fa234a3e42420fa68d300d74fe2d03daeb89796fd23ef5f127c662`. Todos os outros 48 arquivos são idênticos, byte a byte, ao artefato de build v7 do GitHub.
+- Teste visual isolado executado com CSS compilado em larguras 320, 375, 390 e 430px, sem extravasamento dos títulos. Isso **não substitui** homologação da página inteira no Safari.
+- **PENDÊNCIA CRÍTICA**: os dois novos arquivos WebP ainda **não foram sincronizados** no repositório. O GitHub conserva a foto anterior da fatia e não possui a foto nova da pipoca, apesar de ambos estarem corretos no ZIP acima. O próximo build CI, até essa sincronização, não reproduzirá a prévia com as fotos corretas.
+- Próxima ação exata: sincronizar os **binários correspondentes aos hashes** no caminho `public/images/` da branch experimental, rodar workflow/build e confirmar os dois arquivos no ZIP do CI; então homologar a apresentação no Safari do iPhone. Não promova produção automaticamente.
