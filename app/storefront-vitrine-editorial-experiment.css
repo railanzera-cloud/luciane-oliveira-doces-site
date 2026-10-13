@@ -1009,7 +1009,14 @@
   color: #d9b898;
   max-width: 38ch;
 }
-.storefront .limited-cup-story-footer a {
+.storefront .limited-cup-story-footer button {
+  -webkit-appearance: none;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 2px 0;
+  cursor: pointer;
+  touch-action: manipulation;
   color: #ffd09a;
   font-size: .72rem;
   font-weight: 700;
@@ -1020,7 +1027,7 @@
   align-items: center;
   gap: 3px;
 }
-.storefront .limited-cup-story-footer a:focus-visible {
+.storefront .limited-cup-story-footer button:focus-visible {
   outline: 2px solid #f8d09f;
   outline-offset: 4px;
 }

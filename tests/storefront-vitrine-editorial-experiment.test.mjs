@@ -208,12 +208,17 @@ test("v4 de lançamento usa as duas fotos de sabores como hero sem venda antecip
   assert.ok(!page.includes("edicao-crocante-copos-reais.webp"));
   assert.ok(!page.includes("Foto ilustrativa de copos maiores"));
   assert.ok(!page.includes("Ainda não há foto do sabor chocolate"));
-  assert.ok(page.includes('href="#potes-recheados"'));
+  assert.ok(page.includes('onClick={jumpToFilledPopcornBuilder}'));
+  assert.ok(page.includes('document.getElementById("tamanhos")'));
+  assert.ok(page.includes('window.scrollTo({ top, behavior: "instant" })'));
+  assert.ok(page.includes('heading.focus({ preventScroll: true })'));
+  assert.ok(!page.includes('href="#potes-recheados"'));
   assert.ok(page.includes('id="potes-recheados"'));
   assert.ok(!page.includes('selectCategory("copo")'));
   assert.ok(css.includes(".limited-cup-teaser:focus-visible"));
   assert.ok(css.includes(".limited-cup-duo-item::after"));
-  assert.ok(css.includes(".limited-cup-story-footer a:focus-visible"));
+  assert.ok(css.includes(".limited-cup-story-footer button:focus-visible"));
+  assert.ok(css.includes("touch-action: manipulation"));
 });
 
 test("v2 de lançamento exige três condições para anunciar disponibilidade", async () => {

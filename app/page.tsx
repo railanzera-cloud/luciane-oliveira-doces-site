@@ -216,6 +216,20 @@ function scrollToSection(id: string) {
   target.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
 }
 
+// Atalho da edição limitada para o primeiro passo real do configurador.
+// Evita hash anchors + rolagem suave global no Safari iOS.
+function jumpToFilledPopcornBuilder() {
+  const target = document.getElementById("tamanhos");
+  if (!target) return;
+  const top = Math.max(0, window.scrollY + target.getBoundingClientRect().top - 16);
+  window.scrollTo({ top, behavior: "instant" });
+  const heading = document.getElementById("step-size");
+  if (heading) {
+    heading.setAttribute("tabindex", "-1");
+    heading.focus({ preventScroll: true });
+  }
+}
+
 function makeCartId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
@@ -1670,7 +1684,7 @@ export default function Home() {
                 </div>
                 <div className="limited-cup-story-footer">
                   <span>{cupLaunchCopy.description}</span>
-                  <a href="#potes-recheados">Ver potes recheados <ChevronDown size={15} aria-hidden="true" /></a>
+                  <button type="button" onClick={jumpToFilledPopcornBuilder}>Ver potes recheados <ChevronDown size={15} aria-hidden="true" /></button>
                 </div>
               </div>
             </aside>

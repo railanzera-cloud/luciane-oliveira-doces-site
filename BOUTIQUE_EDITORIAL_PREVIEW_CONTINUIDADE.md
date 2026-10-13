@@ -210,3 +210,9 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - Arquivos binários dos produtos ainda **não estão commitados no GitHub** e precisam ser sincronizados antes de depender de builds novos da branch; o Preview ZIP contém as imagens definitivas.
 - Tentativa de inspeção por Chromium local travou/bloqueou no ambiente e não produziu screenshot. O resultado visual final depende da homologação no Safari; nenhum deploy de produção executado.
 - Ainda não foi integrado o produto temporário ao carrinho nem ao estoque real. A campanha continua informativa, sem vendas antecipadas. Manter bloqueio até autorização e validação. Boutique 4.6 intocada.
+
+### Correção direcionada do atalho “Ver potes recheados” (13/10/2026)
+- Vídeo Safari 14:48: o link de hash em `#potes-recheados` aparentava parar no título e competia com `html{scroll-behavior:smooth}`, deixando o usuário sem avanço fluido.
+- Sem alterar fluxos comerciais, substituímos a âncora nativa por botão sem navegação/hash que usa `window.scrollTo({behavior:"instant"})` até o bloco real `#tamanhos`, com foco sem rolagem na etapa `#step-size`.
+- Correção localizada: mantém título e âncoras do restante do site, sem mudanças em carrinho, cálculo, disponibilidade ou checkout.
+- Hipótese técnica parcialmente fundamentada; **reteste manual no Safari ainda obrigatório** para afirmar que o congelamento do gesto de rolagem foi eliminado.
