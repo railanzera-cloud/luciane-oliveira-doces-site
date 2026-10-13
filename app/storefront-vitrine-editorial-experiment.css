@@ -840,3 +840,90 @@
   .storefront .limited-cup-teaser { padding: 9px 11px; }
   .storefront .limited-cup-story-flavors { grid-template-columns: 1fr; }
 }
+
+
+/* Edição crocante v2 — teaser com foto real e história fotográfica.
+ * A altura pequena evita empurrar as categorias principais no iPhone. */
+.storefront .limited-cup-teaser {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 75px;
+  align-items: stretch;
+  gap: 9px;
+  padding: 0 0 0 12px;
+  overflow: hidden;
+  min-height: 73px;
+  max-height: 93px;
+}
+.storefront .limited-cup-teaser-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  justify-content: center;
+  gap: 3px;
+  padding: 8px 0;
+}
+.storefront .limited-cup-teaser-content strong {
+  font-family: Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(.95rem, 3.45vw, 1.2rem);
+  line-height: 1.04;
+}
+.storefront .limited-cup-teaser-action {
+  color: #efc89e;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: .69rem;
+}
+.storefront .limited-cup-teaser-photo {
+  display: block;
+  width: 75px;
+  height: 100%;
+  max-height: 93px;
+  object-fit: cover;
+  object-position: 50% 42%;
+  border-radius: 0 15px 15px 0;
+}
+.storefront .limited-cup-teaser-photo[hidden], .storefront .limited-cup-story-texture[hidden] { display: none; }
+.storefront .limited-cup-story-layout {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(110px,33%);
+  align-items: stretch;
+  gap: 14px;
+}
+.storefront .limited-cup-story-main { min-width: 0; }
+.storefront .limited-cup-story-media {
+  display: block;
+  overflow: hidden;
+  border-radius: 12px;
+  min-height: 155px;
+  background: radial-gradient(circle at 42% 26%, #765038, #311e17 78%);
+}
+.storefront .limited-cup-story-texture {
+  width: 100%; height: 100%; object-fit: cover;
+  object-position: 50% 38%;
+}
+.storefront .limited-cup-story-flavors { margin-top: 12px; }
+.storefront .limited-cup-story-flavors > div { position: relative; padding-left: 12px; }
+.storefront .limited-cup-flavor-dot {
+  width: 15px;
+  height: 15px;
+  display: block;
+  border: 1px solid #d5a673;
+  border-radius: 50%;
+  margin-bottom: 4px;
+}
+.storefront .limited-cup-flavor-dot.is-ninho { background: #f8dfb0; }
+.storefront .limited-cup-flavor-dot.is-chocolate { background: #49251a; }
+.storefront .limited-cup-story-photo-note {
+  font-size: .65rem;
+  line-height: 1.45;
+  color: #c3a58a;
+  margin-top: 7px;
+}
+@media (max-width: 359px) {
+  .storefront .limited-cup-teaser { grid-template-columns: minmax(0,1fr) 62px; }
+  .storefront .limited-cup-teaser-photo { width: 62px; }
+  .storefront .limited-cup-story-layout { grid-template-columns: minmax(0,1fr) minmax(86px,30%); gap: 8px; }
+  .storefront .limited-cup-story h2 { font-size: 1.4rem; }
+}

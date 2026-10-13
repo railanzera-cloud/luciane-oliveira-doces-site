@@ -197,6 +197,22 @@ test("lançamento crocante aparece sem venda antecipada ou terceira categoria", 
   assert.ok(page.includes("Caramelo com Chocolate"));
   assert.ok(page.includes("R$ 15,90 por copo"));
   assert.ok(page.includes("Os pedidos ainda não estão liberados."));
+  assert.ok(page.includes("getLimitedCupPhase(Date.now())"));
+  assert.ok(page.includes("/images/edicao-crocante-copos-reais.webp"));
+  assert.ok(page.includes("/images/edicao-crocante-textura.webp"));
   assert.ok(!page.includes('selectCategory("copo")'));
   assert.ok(css.includes(".limited-cup-teaser:focus-visible"));
+});
+
+test("v2 de lançamento exige três condições para anunciar disponibilidade", () => {
+  const cfg = readFileSync(resolve(process.cwd(), "app/limited-cup-release.ts"), "utf8");
+  assert.ok(cfg.includes("orderingIntegrated: false"));
+  assert.ok(cfg.includes("salesApprovedByStore: false"));
+  assert.ok(cfg.includes("inventoryVerifiedAvailable: false"));
+  assert.ok(cfg.includes("soldOutConfirmed: false"));
+  assert.ok(cfg.includes("nowMs < Date.parse(cfg.launchDayStart)"));
+  assert.ok(cfg.includes("cfg.orderingIntegrated && cfg.salesApprovedByStore && cfg.inventoryVerifiedAvailable"));
+  assert.ok(cfg.includes('return "awaiting-release"'));
+  assert.ok(page.includes("Ainda não há foto do sabor chocolate"));
+  assert.ok(page.includes("Foto ilustrativa de copos maiores"));
 });

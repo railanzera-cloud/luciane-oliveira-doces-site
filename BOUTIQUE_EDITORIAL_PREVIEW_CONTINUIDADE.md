@@ -153,3 +153,11 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - Conteúdo somente de divulgação. **Não há produto novo no carrinho, botão Adicionar, pedido antecipado ou estoque prometido**.
 - Arte final fotográfica dos copos ainda pendente de inclusão na branch: manter a simulação fora do site até confirmar foto real ou representação revisada. Foto macro da pipoca servirá de apoio secundário.
 - Antes de publicar: confirmar disponibilidade verdadeira por sabor, integração com carrinho/checkout/estoque, e comportamento visual no Safari; nunca publicar automaticamente. Preservar Boutique 4.6.
+
+### Edição crocante v2 — material fotográfico e regra de disponibilidade
+- Home ganhou teaser compacto com foto real dos copos, na área editorial antes das duas categorias, sem alterar os cartões aprovados.
+- A seção de Pipocas Gourmet apresenta a foto macro da pipoca crocante (textura aprovada), os dois sabores sem fotografia inventada para chocolate e nota de imagem ilustrativa: a fotografia retrata copos maiores, enquanto o produto de venda será 400 ml / 190 g.
+- Arquivos fotográficos do Preview: `/images/edicao-crocante-copos-reais.webp` e `/images/edicao-crocante-textura.webp`, a serem adicionados ao ZIP para homologação. O GitHub **ainda não contém esses binários**; imagens ausentes ficam escondidas sem quebrar o layout.
+- Máquina de estados pura em `app/limited-cup-release.ts`: antes de 16/10 aparece prelaunch, após a data passa a “aguardando liberação”; somente integração completa + aprovação da loja + estoque confirmado permitem “disponível”. Esgotado apenas se confirmado. Nada ativa vendas automaticamente.
+- Fotografia sintética do copo com chocolate falhou na ferramenta de geração; não tentar reaproveitar falsa fotografia como produto real sem revisão.
+- Bloqueios: cadastro real dos dois sabores, estoque e fluxo de pedido permanecem pendentes. **Não publicar em produção** nem misturar com Boutique 4.6.
