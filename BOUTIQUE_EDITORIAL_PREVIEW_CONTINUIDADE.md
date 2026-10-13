@@ -99,3 +99,13 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - Arquivos alterados: app/page.tsx, app/storefront-vitrine-editorial-experiment.css, tests/storefront-vitrine-editorial-experiment.test.mjs e este documento.
 - Segurança: não publicar produção nem alterar Boutique 4.6, carrinho, checkout, Supabase, pagamentos ou rastreamento.
 - Pendência: sincronizar os dois WebP definitivos no GitHub (continuam corretos apenas no ZIP de Preview), validar CI deste commit e homologar no Safari do iPhone.
+
+
+### CI e Preview v9 — validação final do pacote
+
+- Commit de implementação: `8c27bf80afc25f4ca4cd2c356b68153186ce52e5`.
+- CI GitHub Actions: execução **38401287839**, **success**; artefato de build **11815356399**.
+- Arquivo para homologação: `Luciane_Editorial_v9_Preview_iPhone_Cloudflare.zip`, 50 entradas, 2.664.062 bytes, SHA-256 **1326b0488c8e7726f2e71208c0ff79f228c84cfcec5b0f0e5a6ac5018a101546**.
+- Comparação byte a byte com build CI: somente `images/categoria-pipocas-editorial.webp` e `images/categoria-fatias-editorial.webp` adicionada/substituída pelas fotografias aprovadas; CSS/JS/HTML/admin e demais arquivos idênticos aos do build aprovado. Fotos com os hashes registrados acima.
+- Teste Chromium de composição isolada em **320, 375, 390 e 430px**: relógio alinhado; texto complementar na linha seguinte; nenhuma rolagem horizontal; CTAs contidos dentro dos cartões. Isto não substitui a conferência da página completa no Safari/iPhone.
+- **Pendência:** sincronização binária das duas imagens WebP no repositório, mantendo os hashes; somente depois builds completos serão reproduzíveis sem montagem de Preview. Não publicar produção e não alterar Boutique 4.6.
