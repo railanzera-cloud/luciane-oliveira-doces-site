@@ -118,3 +118,13 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - Nenhuma alteração em handlers, carrinho, checkout, regras comerciais, fotos ou Boutique 4.6.
 - Requer conferir teclado aberto e fechado no Safari, em Preview; não publicar em produção automaticamente.
 
+
+### Build de proteção mobile — 13/10/2026
+
+- Implementação: commit `b384e60e4e29cdd514b9959e2a3e68b6a17b21dc` apenas CSS, teste estático e documentação.
+- CI GitHub Actions **38403894544**: **success** (build, tipagem, testes e ZIP).
+- Artefato CI **11815794186**. ZIP de Preview: `Luciane_Editorial_v9_Mobile_Safari_Preview_Cloudflare.zip`, 55 arquivos, 2.664.672 bytes, SHA-256 `37b1fb5b577c15313139185532cf626867d9ddb5d446a82d2c2c37e24a8a0687`.
+- ZIP contém foto da pipoca (SHA-256 `afd6c925dc273ffc9b5ab04713af10154cc905b1932315494608ee50e57cb8df`) e fatia aprovada (SHA-256 `83ae67d03cf683a62a000b812cc3ff4f22571bca84707a4af84ba3269bcc2286`). Nenhum outro arquivo do CI foi modificado para montar o Preview; somente imagem da fatia substituída e imagem da pipoca adicionada.
+- Barra inferior: ocultação durante foco em entrada de texto em dispositivo touch, sem alterar campos rádio, handlers, checkout ou imagem da vitrine; otimização horizontal para até 359px.
+- O navegador isolado do ambiente não concluiu o teste de foco no teclado; **homologação no Safari com teclado é obrigatória**. O CI não comprova comportamento do teclado iOS.
+- Não publicar produção automaticamente. Sincronização dos dois WebP originais com GitHub ainda pendente; arquivo definitivo correto já está no ZIP.
