@@ -181,3 +181,13 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - Pré-venda ainda bloqueada. `limited-cup-release.ts`, carrinho, preços, Supabase, disponibilidade, estoque e checkout **não foram alterados**. Nenhum deploy automático.
 - Imagens do Preview: `edicao-crocante-copos-reais.webp` e `edicao-crocante-textura.webp`, junto com as duas fotos editoriais já aprovadas. Os WebP definitivos precisam continuar incluídos no ZIP enquanto não sincronizados no GitHub.
 - Precisa CI, revisão visual em Safari e integração real dos produtos antes da estreia; Boutique 4.6 intocada.
+
+
+### Validação e pacote do redesign v3 — 13/10/2026
+- GitHub Actions [38434020596](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/38434020596): **success** em build, TypeScript, testes, empacotamento e verificação de conteúdo.
+- Artefato CI: **11831209445**, contém ZIP aninhado `luciane-oliveira-doces-cloudflare-pages.zip`.
+- Preview: `Luciane_Edicao_Crocante_v3_Preview_Cloudflare.zip`, **57 entradas**, **2.808.996 bytes**, SHA-256 `606348f99734be1c22820db2f13030026123d8d506e5a6b3906bd6752e27cbd6`.
+- Comparação com ZIP do CI: apenas o WebP aprovado da fatia foi substituído; foram adicionados três WebPs (pipoca da vitrine e duas fotos crocantes); todo o restante preservou os bytes do CI.
+- Inspeção ZIP: CRC íntegro; arquivos de imagem decodificáveis; as frases rejeitadas “Foto ilustrativa de copos maiores” e “Ainda não há foto do sabor chocolate” não aparecem no JavaScript compilado.
+- Tentativa de navegador local (Chromium/Playwright) bloqueada pelo ambiente (ERR_BLOCKED_BY_ADMINISTRATOR tanto localhost quanto file://). Portanto, **layout v3 não foi homologado visualmente** em navegador real; comparar em Safari no Preview antes de produção.
+- Não foram alterados preços, produtos disponíveis, carrinho, checkout, Supabase ou Boutique 4.6. Loja não pode vender a edição crocante antes do cadastro/estoque real.
