@@ -11,6 +11,9 @@ on:
       - app/page.tsx
       - tests/storefront-boutique-design.test.mjs
       - tests/storefront-boutique-v3.test.mjs
+      - tests/menu-refinement.test.mjs
+      - tests/order-building-ux.test.mjs
+      - tsconfig.boutique.json
       - .github/workflows/design-boutique-preview.yml
   workflow_dispatch:
 permissions:
