@@ -1102,3 +1102,23 @@
   object-position: 50% 48%;
   filter: none;
 }
+
+/* Cartoes editoriais v10 — profundidade localizada, sem escurecer as fotografias.
+   A foto da pipoca permanece em tamanho de impacto, mas com respiro acima da tampa. */
+.storefront .menu-entry.is-neutral .category-option {
+  border-color: rgba(198, 141, 88, .69);
+  box-shadow: 0 1px 0 rgba(255, 221, 176, .12), 0 22px 39px rgba(0, 0, 0, .43), 0 5px 12px rgba(0, 0, 0, .24);
+}
+.storefront .menu-entry.is-neutral .category-option-copy {
+  background: radial-gradient(ellipse 109% 87% at 10% -16%, rgba(182, 111, 70, .12), transparent 73%),
+    linear-gradient(145deg, #482d22 0%, #352117 56%, #24140f 100%);
+  border-left-color: rgba(220, 162, 103, .22);
+}
+.storefront .menu-entry.is-neutral .category-option:first-child .category-option-media img {
+  object-fit: cover;
+  object-position: 50% 12%;
+  filter: none;
+}
+.storefront .menu-entry.is-neutral .category-option:nth-child(2) .category-option-media img {
+  filter: none;
+}
