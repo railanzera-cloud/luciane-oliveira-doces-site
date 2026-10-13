@@ -161,3 +161,14 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - Máquina de estados pura em `app/limited-cup-release.ts`: antes de 16/10 aparece prelaunch, após a data passa a “aguardando liberação”; somente integração completa + aprovação da loja + estoque confirmado permitem “disponível”. Esgotado apenas se confirmado. Nada ativa vendas automaticamente.
 - Fotografia sintética do copo com chocolate falhou na ferramenta de geração; não tentar reaproveitar falsa fotografia como produto real sem revisão.
 - Bloqueios: cadastro real dos dois sabores, estoque e fluxo de pedido permanecem pendentes. **Não publicar em produção** nem misturar com Boutique 4.6.
+
+
+### Edição crocante v2 — build e pacote de homologação (13/10/2026)
+
+- Commit de implementação das fotos e estados: `4e86d09436828243e559f80f84e73cdc7aa52369`. Correção de teste: `60732fcb876d1688911e5cc657345cc6b58696b5`.
+- GitHub Actions **38431530974**, status **success**: build, TypeScript, suíte completa, geração e validação do ZIP. Artefato `11831655629`.
+- ZIP pronto: `Luciane_Edicao_Crocante_v2_Preview_Cloudflare.zip` com **52 entradas**, **2.808.303 bytes**, SHA-256 `13a8fb0ff56357b0a107a127f433db5a0c200ce87c12de081edd954c42f33bca`.
+- O pacote derivou exclusivamente do build CI; somente 4 fotos (duas categorias já aprovadas, foto real dos copos, macro da pipoca) foram inseridas/substituídas. Os outros **48 arquivos** mantiveram os mesmos bytes do CI. Testes ZIP CRC, WebP decodificável e presença de index/admin/pedido aprovados.
+- Origem das fotos adicionais: `edicao-crocante-copos-reais.webp` (recorte otimizado da fotografia real dos **copos de 600 ml**, 777×760, SHA-256 `75efd7d1da0fa5c1180b8bdda853133527b7c9815fd2d12b11c2d6f853f88355`); `edicao-crocante-textura.webp` (macro aprovada, 670×837, SHA-256 `13216c98042e5847853cf71f9b0fffacfb715d0c04b1cda1133e7247855c23c7`). Há nota explícita de que a foto de copos maiores é ilustrativa do produto de 400 ml / 190 g.
+- Status de campanha: data não abre vendas automaticamente. `app/limited-cup-release.ts` requer que integração do pedido, aprovação da loja e estoque tenham sido confirmados. Sem isso, após 16/10 aparecerá **aguardando liberação**, nunca disponibilidade fictícia.
+- **PENDÊNCIAS:** integrar os dois novos sabores ao carrinho/checkout/estoque com controles comerciais reais e homologar antes de liberação; imagens WebP finais ainda não estão sincronizadas no repositório (estão no ZIP correto). Confirmar no Safari mobile visual, foco e uso dos dois cartões principais. Não publicar produção automaticamente.
