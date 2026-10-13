@@ -1070,9 +1070,10 @@ test('direct category navigation isolates the cup campaign, rejects unavailable 
   for(const allowed of [false,true]) {
    const select=pageFunction('selectCategory',{
     categoryIsAvailable:()=>allowed,setRequestedCategory:value=>selected=value,setShowLimitedCupView:value=>isCupPreview=value,
+    categoryFromUrl:navigation.categoryFromUrl,
     setEditingId:()=>{},setSelectionMessage:()=>{},setAddedNotice:()=>{},setBuilderEngaged:()=>{},
     setCart:()=>assert.fail('Category navigation must not change saved cart items'),
-    window:{history:{state:null,replaceState(){}},location:{href:'https://example.test/?utm_source=instagram'}},
+    window:{history:{state:null,replaceState(){},pushState(){}},location:{href:'https://example.test/?utm_source=instagram'}},
     categoryUrl:navigation.categoryUrl,requestScroll:id=>scheduled=id,requestEditorialScroll:id=>scheduled=id,
    });
    scheduled=null;selected='pipocas';isCupPreview=true;
@@ -1095,14 +1096,30 @@ test('limited campaign opens in discovery, without altering saved cart', () => {
   let category=null,preview=false,engaged=true,scroll=null;
   const open=pageFunction('openLimitedCupEdition',{
     categoryIsAvailable:()=>true,setShowLimitedCupView:value=>preview=value,setCupFlavorPreview:()=>{},
+    categoryFromUrl:navigation.categoryFromUrl,
     setRequestedCategory:value=>category=value,setEditingId:()=>{},setSelectionMessage:()=>{},setAddedNotice:()=>{},
     setBuilderEngaged:value=>engaged=value,setCart:()=>assert.fail('Preview must preserve cart'),
-    window:{history:{state:null,replaceState(){}},location:{href:'https://example.test/?utm_source=instagram'}},
+    window:{history:{state:null,replaceState(){},pushState(){}},location:{href:'https://example.test/?utm_source=instagram'}},
     categoryUrl:navigation.categoryUrl,requestEditorialScroll:id=>scroll=id,
   });
   open();assert.equal(category,'pipocas');assert.equal(preview,true);assert.equal(engaged,false);assert.equal(scroll,'edicao-crocante');
   assert.match(source,/!showLimitedCupView && !\(stickyUsesCheckoutAction/);
   assert.match(source,/activeCategory === "pipocas" && showLimitedCupView/);
+});
+
+test('return to categories preserves the order while restoring the launch teaser', () => {
+  let category='pipocas',preview=true,engaged=true,scrollArgs=null,historyUrl='';
+  const returnHome=pageFunction('returnToCategories',{
+    setShowLimitedCupView:value=>preview=value,setCupFlavorPreview:()=>{},
+    setRequestedCategory:value=>category=value,setEditingId:()=>{},setSelectionMessage:()=>{},setAddedNotice:()=>{},
+    setBuilderEngaged:value=>engaged=value,setCart:()=>assert.fail('Return must preserve cart'),
+    window:{history:{state:{},pushState:(_state,_title,url)=>{historyUrl=url;}},location:{href:'https://example.test/?categoria=pipocas&utm_source=ig'},scrollTo:value=>{scrollArgs=value;}},
+    categoryUrl:navigation.categoryUrl,
+  });
+  returnHome();
+  assert.equal(category,null);assert.equal(preview,false);assert.equal(engaged,false);
+  assert.equal(historyUrl,'/?utm_source=ig');
+  assert.deepEqual(scrollArgs,{top:0,behavior:'instant'});
 });
 
 test('real delivery JSX keeps required city neighborhood, hides it for specific places and shows accessible conflict guidance', () => {

@@ -982,3 +982,59 @@
 .storefront #configurador.is-cup-discovery .limited-cup-story {
   margin-bottom: 0;
 }
+
+/* V7 da campanha: orientação persistente ao chegar na seção de cada produto. */
+.storefront .v7-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 7px 12px;
+  padding: 12px 14px;
+  color: #e9c5a1;
+}
+.storefront .v7-navigation button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #f0c999;
+  font: inherit;
+  font-size: .75rem;
+  font-weight: 690;
+  line-height: 1.3;
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.storefront .v7-navigation button:focus-visible {
+  outline: 2px solid #ffd49f;
+  outline-offset: 2px;
+}
+.storefront .v7-navigation button:hover {
+  background: rgba(203, 143, 81, .12);
+  border-color: rgba(219, 161, 99, .32);
+}
+.storefront .v7-navigation-edition {
+  padding: 8px 12px 0;
+  background: linear-gradient(115deg,#40271b,#291811 70%,#23140f);
+}
+.storefront .v7-navigation-edition button { min-height: 35px; }
+.storefront .v7-navigation-pipocas {
+  padding: 0 0 13px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(180, 127, 77, .27);
+}
+.storefront .v7-navigation-slices { padding: 3px 0 10px; }
+.storefront .limited-cup-story-heading h2[tabindex="-1"]:focus {
+  outline: none;
+}
+@media (max-width: 359px) {
+  .storefront .v7-navigation { gap: 2px 5px; padding-inline: 5px; }
+  .storefront .v7-navigation button { font-size: .7rem; padding: 6px 4px; }
+}

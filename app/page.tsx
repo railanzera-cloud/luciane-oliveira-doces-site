@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
+  ArrowLeft,
   Banknote,
   CakeSlice,
   Check,
@@ -667,8 +668,19 @@ export default function Home() {
     }, 0);
 
     const followHistory = () => {
-      setShowLimitedCupView(false);
-      setRequestedCategory(categoryFromUrl(window.location.href));
+      const category = categoryFromUrl(window.location.href);
+      const isEdition = category === "pipocas" && window.history.state?.lucianeCrocante === true;
+      setShowLimitedCupView(isEdition);
+      setRequestedCategory(category);
+      if (!category) {
+        window.scrollTo({ top: 0, behavior: "instant" });
+      } else if (isEdition) {
+        setScrollRequest({ id: "edicao-crocante", editorial: true });
+      } else if (category === "pipocas") {
+        setScrollRequest({ id: "tamanhos", editorial: true });
+      } else {
+        setScrollRequest({ id: "configurador" });
+      }
     };
     window.addEventListener("popstate", followHistory);
     return () => {
@@ -936,7 +948,10 @@ export default function Home() {
     setSelectionMessage("");
     setAddedNotice(null);
     setBuilderEngaged(true);
-    window.history.replaceState(window.history.state, "", categoryUrl(window.location.href, category));
+    const historyState = window.history.state ?? {};
+    if (categoryFromUrl(window.location.href) !== category || historyState.lucianeCrocante === true) {
+      window.history.pushState({ ...historyState, lucianeCrocante: false }, "", categoryUrl(window.location.href, category));
+    }
     if (shouldScroll) {
       if (category === "pipocas") requestEditorialScroll("tamanhos");
       else requestScroll("configurador");
@@ -952,8 +967,23 @@ export default function Home() {
     setSelectionMessage("");
     setAddedNotice(null);
     setBuilderEngaged(false);
-    window.history.replaceState(window.history.state, "", categoryUrl(window.location.href, "pipocas"));
+    const historyState = window.history.state ?? {};
+    if (categoryFromUrl(window.location.href) !== "pipocas" || historyState.lucianeCrocante !== true) {
+      window.history.pushState({ ...historyState, lucianeCrocante: true }, "", categoryUrl(window.location.href, "pipocas"));
+    }
     requestEditorialScroll("edicao-crocante");
+  }
+
+  function returnToCategories() {
+    setShowLimitedCupView(false);
+    setCupFlavorPreview(null);
+    setRequestedCategory(null);
+    setEditingId(null);
+    setSelectionMessage("");
+    setAddedNotice(null);
+    setBuilderEngaged(false);
+    window.history.pushState({ ...(window.history.state ?? {}), lucianeCrocante: false }, "", categoryUrl(window.location.href, null));
+    window.scrollTo({ top: 0, behavior: "instant" });
   }
 
   function choosePopcornVariant(nextId: string) {
@@ -1577,7 +1607,7 @@ export default function Home() {
   return (
     <main className="storefront" inert={isFinalizing} aria-busy={isFinalizing}>
       <header className="brand-bar">
-        <a className="brand-lockup" href="#inicio" aria-label="Voltar ao início">
+        <a className="brand-lockup" href="#inicio" aria-label="Voltar às categorias" onClick={(event) => { event.preventDefault(); returnToCategories(); }}>
           <span className="brand-crown" aria-hidden="true"><Crown size={17} strokeWidth={1.7} /></span>
           <span><strong>Luciane</strong><small>Oliveira Doces</small></span>
         </a>
@@ -1611,7 +1641,7 @@ export default function Home() {
           )}
           <div className="entry-heading">
             <p className="eyebrow">Luciane Oliveira Doces</p>
-            <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Edição Crocante" : "Pipocas Gourmet" : activeCategory === "fatias" ? "Fatias Artesanais" : "Escolha o que deseja pedir"}</h1>
+            <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Crocantes" : "Pipocas Gourmet" : activeCategory === "fatias" ? "Fatias Artesanais" : "Escolha o que deseja pedir"}</h1>
             <p className="entry-copy">{activeCategory === "pipocas"
               ? showLimitedCupView ? "Conheça os dois sabores da edição limitada." : "Escolha o tamanho e combine seus sabores."
               : activeCategory === "fatias"
@@ -1634,7 +1664,7 @@ export default function Home() {
             <button className="limited-cup-teaser" type="button" onClick={openLimitedCupEdition} disabled={!categoryIsAvailable("pipocas")} aria-label="Conhecer a edição limitada de pipocas crocantes, Ninho e Chocolate, R$ 15,90">
               <span className="limited-cup-teaser-content">
                 <span className="limited-cup-teaser-mark"><span aria-hidden="true">✦</span> {cupLaunchCopy.eyebrow}</span>
-                <strong>O lado <em>crocante</em> da Luciane.</strong>
+                <strong>Pipocas <em>Crocantes</em></strong>
                 <span className="limited-cup-teaser-price">2 sabores especiais <span aria-hidden="true">·</span> <b>R$ 15,90</b></span>
                 <span className="limited-cup-teaser-cta">Conhecer a edição <ChevronRight size={16} aria-hidden="true" /></span>
               </span>
@@ -1699,9 +1729,12 @@ export default function Home() {
         <div className="page-shell builder-shell">
           {activeCategory === "pipocas" && showLimitedCupView && (
             <section className="limited-cup-story" id="edicao-crocante" aria-label="Edição limitada de pipocas crocantes no copo">
+              <nav className="v7-navigation v7-navigation-edition" aria-label="Navegação da edição">
+                <button type="button" onClick={returnToCategories}><ArrowLeft size={15} aria-hidden="true" /> Voltar às categorias</button>
+              </nav>
               <div className="limited-cup-story-heading">
                 <span className="limited-cup-story-kicker">{cupLaunchCopy.eyebrow}</span>
-                <h2>O lado <em>crocante</em> da Luciane.</h2>
+                <h2>Pipocas <em>Crocantes</em></h2>
                 <p>Pipocas redondinhas, caramelizadas e finalizadas em dois sabores.</p>
               </div>
               <div className="limited-cup-duo" aria-label="Sabores da edição limitada">
@@ -1735,6 +1768,11 @@ export default function Home() {
               </div>
             </section>
           )}
+          {activeCategory === "fatias" && (
+            <nav className="v7-navigation v7-navigation-slices" aria-label="Navegação das fatias">
+              <button type="button" onClick={returnToCategories}><ArrowLeft size={15} aria-hidden="true" /> Voltar às categorias</button>
+            </nav>
+          )}
           <div className="section-intro" id="potes-recheados">
             <p className="eyebrow">Seu pedido, do seu jeito</p>
             <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : "Sua vitrine de sabores."}</h2>
@@ -1762,6 +1800,10 @@ export default function Home() {
           {activeCategory === "pipocas" && pipocasVisible ? (
             <div className="builder-card">
               <section className={`step-block step-state-${popcornSizeStepState}`} id="tamanhos" aria-labelledby="step-size" aria-current={popcornSizeStepState === "active" ? "step" : undefined}>
+                <nav className="v7-navigation v7-navigation-pipocas" aria-label="Navegação das pipocas">
+                  <button type="button" onClick={returnToCategories}><ArrowLeft size={15} aria-hidden="true" /> Categorias</button>
+                  <button type="button" onClick={openLimitedCupEdition}>Ver edição limitada <ChevronRight size={15} aria-hidden="true" /></button>
+                </nav>
                 <div className="step-heading"><StepMarker number={1} state={popcornSizeStepState} /><div><h3 id="step-size">Escolha o tamanho</h3><p>O preço e o limite de sabores mudam conforme o pote.</p></div></div>
                 {popcornPromotionActive && pipocasAvailable && POPCORN.variants.some(variant => popcornSizeIsAvailable(variant.id)) && (
                   <aside className="popcorn-weekend-offer" aria-label="Promoção de fim de semana">

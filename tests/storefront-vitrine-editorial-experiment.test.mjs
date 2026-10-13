@@ -188,6 +188,25 @@ test("barra móvel respeita digitação e telas estreitas sem modificar a ação
   assert.ok(page.includes("inlineBuilderActionVisible"));
 });
 
+test("v7 nomeia lançamento Pipocas Crocantes e dá saída clara em todos os caminhos", () => {
+  assert.ok(page.includes('<strong>Pipocas <em>Crocantes</em></strong>'));
+  assert.ok(page.includes('<h2>Pipocas <em>Crocantes</em></h2>'));
+  assert.ok(page.includes('showLimitedCupView ? "Pipocas Crocantes"'));
+  assert.ok(!page.includes("O lado crocante da Luciane"));
+  assert.ok(page.includes('function returnToCategories()'));
+  assert.ok(page.includes('onClick={returnToCategories}'));
+  assert.ok(page.includes('onClick={openLimitedCupEdition}>Ver edição limitada'));
+  assert.ok(page.includes('aria-label="Navegação da edição"'));
+  assert.ok(page.includes('aria-label="Navegação das pipocas"'));
+  assert.ok(page.includes('aria-label="Navegação das fatias"'));
+  assert.ok(page.includes('window.history.pushState'));
+  assert.ok(page.includes('window.history.state?.lucianeCrocante === true'));
+  assert.ok(page.includes('window.scrollTo({ top: 0, behavior: "instant" })'));
+  assert.ok(css.includes('.limited-cup-story-heading h2[tabindex="-1"]:focus'));
+  assert.ok(css.includes('.v7-navigation button:focus-visible'));
+  assert.ok(!css.includes('.limited-cup-story-heading h2:focus-visible {outline:none}'));
+});
+
 test("v6 separa lançamento e compra tradicional sem afetar os outros produtos", () => {
   assert.ok(page.includes("const [showLimitedCupView, setShowLimitedCupView] = useState(false)"));
   assert.ok(page.includes("function openLimitedCupEdition()"));

@@ -244,3 +244,11 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - A edição em copo continua sem reserva/venda: integração comercial ainda pendente, requer aprovação da loja e confirmação do estoque antes de anunciar disponibilidade.
 - Mantidas fotografias da v5, valores e cards da home, sem alteração de código backend nem de Boutique 4.6; não publicar produção automaticamente.
 - Aperfeiçoamento: na experiência de descoberta, quando o carrinho está vazio, o configurador tradicional fica fora da visualização e da navegação por teclado até o visitante escolher **Ver potes recheados → Escolher tamanho**. Se já houver itens no carrinho, a estrutura comercial permanece presente para preservar a continuidade do pedido.
+
+## Vitrine v7 — navegação, novo nome e foco Safari (13/10/2026)
+- Nome aprovado: **Pipocas Crocantes**. Substitui apenas o título editorial antigo na chamada da home, título da campanha e cabeçalho quando campanha está selecionada. Fotografia, preço e produtos preservados.
+- Correção do contorno azul do Safari: o foco programático no `h2[tabindex="-1"]` permanece acessível ao leitor de tela, mas não desenha um círculo/contorno visível nesse elemento não-tabável. Foco de botões mantém contorno visível.
+- Navegação: botão **Voltar às categorias** na edição e nas fatias; na etapa 1 de pipocas tradicionais, **Categorias** e **Ver edição limitada**. A marca no cabeçalho também abre a home. A visita à vitrine não remove carrinho nem rascunho.
+- Histórico de navegação: `history.pushState` preserva entradas entre categorias e edição, marcando `lucianeCrocante` no estado; `popstate` restaura o modo e solicita salto para a seção. Não criar links externos, reservas ou pedidos antecipados.
+- Mantida a experiência v6: card tradicional vai direto a tamanhos, lançamento isolado do configurador, botão secundário da campanha vai para escolha de tamanho, barra flutuante fica fora da edição.
+- Validar no Safari especialmente navegação Voltar do navegador, preservação do carrinho e foco do título. Não alterar produção, backend, Supabase, pagamentos ou Boutique 4.6.
