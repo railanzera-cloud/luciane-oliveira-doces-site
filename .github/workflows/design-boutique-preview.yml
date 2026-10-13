@@ -7,6 +7,7 @@ on:
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
+      - app/catalog.ts
       - app/layout.tsx
       - app/page.tsx
       - tests/storefront-boutique-design.test.mjs

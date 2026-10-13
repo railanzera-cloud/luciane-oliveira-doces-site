@@ -134,11 +134,11 @@ test("Boutique 3.2 usa fontes originais e exige novo build, sem reaproveitar ass
 });
 test("Cores visuais são indicativas, mantêm catálogo e regras de preço intocados", () => {
   for (const [id, tone] of [
-    ["leitinho", "#f4e4c3"],
-    ["kinder-bueno", "#dcb084"],
-    ["choco-cookies-branco", "#e8dbc8"],
-    ["choco-cookies-leite", "#875338"],
-    ["nutella", "#6c381f"],
+    ["leitinho", "#f2e3c8"],
+    ["kinder-bueno", "#d6ae88"],
+    ["choco-cookies-branco", "#e5d7c8"],
+    ["choco-cookies-leite", "#563126"],
+    ["nutella", "#45281f"],
   ]) {
     assert.match(catalog, new RegExp('id: "' + id + '"[^\\n]*tone: "' + tone + '"'));
   }
@@ -250,4 +250,30 @@ test("4.2 mostra confirmação compacta e mais produtos na mesma área das escol
   assert.ok(page.includes('id="receive-pickup"'));
   assert.ok(css.includes(".storefront .boutique-added-other-actions button:focus-visible"));
   assert.ok(css.includes("@media (max-width: 359px)"));
+});
+
+
+test("4.2.2: todas as amostras têm cor completa, sem anel ou halo", () => {
+  const lastRule = css.lastIndexOf(".storefront .flavor-tone {");
+  assert.ok(lastRule >= 0, "Regra final das amostras ausente");
+  const block = css.slice(lastRule, css.indexOf("}", lastRule) + 1);
+  assert.match(block, /border:\s*0\s*;/);
+  assert.match(block, /box-shadow:\s*none\s*;/);
+  assert.match(block, /background-clip:\s*border-box\s*;/);
+  assert.ok(css.includes("BOUTIQUE 4.2.2"));
+});
+test("4.2.2: amostras contrastam sem alterar valores ou nomes", () => {
+  for (const [id, tone] of [
+    ["leitinho", "#f2e3c8"],
+    ["choco-nute", "#7a432a"],
+    ["ovomaltine", "#8a5232"],
+    ["kinder-bueno", "#d6ae88"],
+    ["choco-cookies-branco", "#e5d7c8"],
+    ["choco-cookies-leite", "#563126"],
+    ["kinder-bueno-crisp", "#c88752"],
+    ["nutella", "#45281f"],
+  ]) {
+    assert.match(catalog, new RegExp('id: "' + id + '"[^\\n]*tone: "' + tone + '"'));
+  }
+  assert.ok(page.includes("currency.format(popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime))"));
 });
