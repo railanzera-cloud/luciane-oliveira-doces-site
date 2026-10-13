@@ -24,7 +24,8 @@ test("fotografias e legendas são elementos independentes e a ação é explíci
   assert.ok(css.includes(".category-option-media img"));
 });
 test("informações e regras operacionais continuam acessíveis",()=>{
-  assert.ok(page.includes("{DELIVERY_TIME_ESTIMATE} O prazo começa após a confirmação da loja."));
+  assert.ok(page.includes('className="delivery-time-main">{DELIVERY_TIME_ESTIMATE}</span>'));
+  assert.ok(page.includes('className="delivery-time-detail">O prazo começa após a confirmação da loja.</span>'));
   assert.ok(page.includes("Entrega a partir de R$8 ou retirada em Paragominas"));
   assert.ok(page.includes("visibleCategories.map((category)"));
   assert.ok(page.includes("categoryIsAvailable(category.id)"));
@@ -150,3 +151,23 @@ test("v8 apresenta relógio e refina a hierarquia da entrada sem mudar pedidos",
   assert.ok(!v8.includes(".menu-entry.has-category"));
 });
 
+test("v9 preserva o título, coloca o complemento do prazo abaixo e mantém fotos e cliques", () => {
+  const v9 = css.slice(css.lastIndexOf("Editorial v9"));
+  assert.ok(v9.startsWith("Editorial v9"));
+  for (const rule of [
+    ".delivery-time-main,",
+    ".delivery-time-detail {",
+    "display: block;",
+    "margin-top: 2px;",
+    "linear-gradient(145deg, #53372a 0%, #402920 56%, #291913 100%)",
+    "font-size: clamp(1.12rem, 4.9vw, 1.34rem)"
+  ]) assert.ok(v9.includes(rule), rule);
+  assert.ok(page.includes("Escolha o que deseja pedir"));
+  assert.ok(page.includes('className="delivery-time-main">{DELIVERY_TIME_ESTIMATE}</span>'));
+  assert.ok(page.includes('className="delivery-time-detail">O prazo começa após a confirmação da loja.</span>'));
+  assert.ok(page.includes('!activeCategory && <Clock3 className="delivery-time-clock"'));
+  assert.ok(page.includes("onClick={() => selectCategory(category.id)}"));
+  assert.ok(page.includes("event.currentTarget.src = cover.cardImage ?? cover.image"));
+  assert.ok(!v9.includes(".checkout-"));
+  assert.ok(!v9.includes(".menu-entry.has-category"));
+});

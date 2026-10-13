@@ -89,3 +89,13 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - Verificações extras: integridade do ZIP, presença de `index.html`, `admin/index.html`, `pedido/index.html` e recursos esperados, CSS v8 e relógio compilados, imagens WebP decodificáveis, nenhum arquivo do CI alterado fora das duas fotografias. Teste Chromium em composição isolada com larguras **320, 375, 390 e 430 px**, sem rolagem horizontal e com ações visíveis. **A página inteira ainda depende de homologação Safari no iPhone.**
 - **Ainda pendente:** sincronizar as duas imagens binárias com GitHub. O ZIP atual serve para Preview, mas o build puro do CI não reproduz as imagens definitivas.
 - **Não publicar produção**. Não alterar Boutique 4.6, checkout, Supabase, pagamentos ou rastreamento.
+
+## Editorial v9 — acabamento fiel à referência (13/10/2026)
+
+- Base: v8 aprovada no Safari. Alteração exclusivamente visual da entrada neutra.
+- Bloco de preparo: manter relógio discreto e separar a estimativa do complemento “O prazo começa após a confirmação da loja.” em linhas consecutivas, com o texto alinhado após o ícone. Não alterar o prazo real nem o texto do catálogo.
+- Título “Escolha o que deseja pedir” preservado no mesmo bloco editorial de duas linhas.
+- Painéis: refinamento tonal sutil do chocolate, detalhes cobre, contraste dos títulos/descrições/CTAs; manter as duas fotos definitivas, enquadramento e tamanho dos cartões.
+- Arquivos alterados: app/page.tsx, app/storefront-vitrine-editorial-experiment.css, tests/storefront-vitrine-editorial-experiment.test.mjs e este documento.
+- Segurança: não publicar produção nem alterar Boutique 4.6, carrinho, checkout, Supabase, pagamentos ou rastreamento.
+- Pendência: sincronizar os dois WebP definitivos no GitHub (continuam corretos apenas no ZIP de Preview), validar CI deste commit e homologar no Safari do iPhone.

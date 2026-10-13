@@ -1554,7 +1554,13 @@ export default function Home() {
                   ? "Monte seu pedido e escolha se prefere concluir no site ou pelo WhatsApp."
                   : "Monte seu pedido pelo site e envie pelo WhatsApp."}</p>
             {hasResolvedAvailability && availability.ordersOpen && visibleCategories.length > 0 && (
-              <p className="delivery-time-estimate">{!activeCategory && <Clock3 className="delivery-time-clock" size={18} strokeWidth={1.8} aria-hidden="true" />}<span>{DELIVERY_TIME_ESTIMATE} O prazo começa após a confirmação da loja.</span></p>
+              <p className="delivery-time-estimate">
+                {!activeCategory && <Clock3 className="delivery-time-clock" size={18} strokeWidth={1.8} aria-hidden="true" />}
+                <span className="delivery-time-copy">
+                  <span className="delivery-time-main">{DELIVERY_TIME_ESTIMATE}</span>{" "}
+                  <span className="delivery-time-detail">O prazo começa após a confirmação da loja.</span>
+                </span>
+              </p>
             )}
           </div>
           {!activeCategory && <p className="delivery-note"><Truck size={16} aria-hidden="true" /> Entrega a partir de R$8 ou retirada em Paragominas</p>}
