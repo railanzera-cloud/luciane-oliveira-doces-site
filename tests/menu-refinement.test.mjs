@@ -1054,7 +1054,7 @@ test('adding popcorn goes directly to receiving while editing still returns to c
   assert.equal(items[0].quantity,2);
   assert.deepEqual(items[0].optionIds,['leitinho']);
   assert.equal(events,editingId?0:1);
-  if(!editingId){assert.equal(notice.productId,catalog.POPCORN.id);assert.match(notice.description,/500ml/);}
+  if(!editingId){assert.equal(notice.productId,catalog.POPCORN.id);assert.match(notice.description,/500 ml/);}
  }
 });
 
