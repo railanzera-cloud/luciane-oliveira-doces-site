@@ -1,17 +1,20 @@
-name: Preview Boutique 4.0 Luciane - Cloudflare
+name: Preview Vitrine Editorial Experimental - Cloudflare
 on:
   push:
     branches:
       - design/luciane-boutique-v3-20261012
       - design/luciane-boutique-v4-20261013
+      - design/luciane-editorial-vitrine-experiment-20261013
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
+      - app/storefront-vitrine-editorial-experiment.css
       - app/catalog.ts
       - app/layout.tsx
       - app/page.tsx
       - tests/storefront-boutique-design.test.mjs
       - tests/storefront-boutique-v3.test.mjs
+      - tests/storefront-vitrine-editorial-experiment.test.mjs
       - tests/menu-refinement.test.mjs
       - tests/order-building-ux.test.mjs
       - tsconfig.boutique.json
@@ -100,7 +103,7 @@ jobs:
       - name: Publicar ZIP de build como artefato do GitHub
         uses: actions/upload-artifact@v4
         with:
-          name: luciane-cloudflare-preview-boutique-v4-20261013
+          name: luciane-cloudflare-preview-vitrine-editorial-experiment
           path: outputs/luciane-oliveira-doces-cloudflare-pages.zip
           if-no-files-found: error
           retention-days: 7
