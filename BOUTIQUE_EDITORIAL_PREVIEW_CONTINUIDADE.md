@@ -136,3 +136,13 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - A imagem interna usa `/images/categoria-pipocas-editorial.webp`, com fallback para foto do catálogo. Para manter a imagem aprovada no Preview, sobrepor o WebP do ZIP v9 anterior; sincronização de imagens binárias no GitHub segue pendente.
 - Realce visual da seleção do sabor e legibilidade dos valores; botão flutuante e fluxo comercial preservados.
 - Testes / CI e homologação Safari são necessários antes de promover. Manter distância da Boutique 4.6 e não publicar produção automaticamente.
+
+
+### Testes, CI e Preview do configurador — 13/10/2026
+
+- Commit corrigido: `1309bd3fa4e1995b13ea3c199c0740294afa5428` (tipagem do fallback e verificador de textos do ZIP).
+- GitHub Actions: **38419071993**, concluído com **success** em build, TypeScript, suíte completa, empacotamento e integridade do ZIP. Artefato `11826020850`.
+- Pacote montado: `Luciane_Pipocas_Clareza_Preview_Cloudflare.zip`, **50 arquivos**, **2.664.635 bytes**, SHA-256 `2c78a47c8979e8b4206dcec73e975c015d901ee4e4adc0aa65a080061e0e0d9b`.
+- Foi sobreposto ao build CI somente o WebP de fatias (93.846 bytes) e acrescentado o WebP de pipocas (53.154 bytes), ambos vindos do Preview v9 aprovado e conferidos por SHA-256.
+- Os valores, promoções e limitações comerciais são os originais; teste visual final deve ocorrer no Safari do iPhone, conferindo exemplos de 500 ml e combinações como Leitinho + Nutella. O ZIP foi **preparado, não publicado em produção**.
+- Ainda pendente sincronizar os dois WebP binários definitivos no GitHub; até lá o CI limpo usa foto original do catálogo via fallback e requer montagem de ZIP para a aparência aprovada.
