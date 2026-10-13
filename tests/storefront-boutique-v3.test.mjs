@@ -186,3 +186,31 @@ test("Design de atelier não toca admin, catalogo, checkout comercial ou rastrea
   assert.ok(page.includes("checkoutFingerprint"));
   assert.ok(page.includes("onClick={() => removeItem(item.id)}"));
 });
+
+
+test("4.1 conecta etapas sem alterar rolagem automática ou bloquear escolhas anteriores", () => {
+  assert.ok(page.includes('className="boutique-journey"'));
+  assert.ok(page.includes('aria-label="Etapas da personalização"'));
+  for (const id of ["tamanhos", "sabores", "quantidade-pipocas", "fatias", "calda-fatias", "quantidade-fatias"]) {
+    assert.ok(page.includes('id: "' + id + '"'));
+  }
+  assert.ok(page.includes('disabled={step.state === "locked"}'));
+  assert.ok(page.includes('onClick={() => requestScroll(step.id)}'));
+  assert.ok(page.includes('requestScroll("calda-fatias")'));
+  assert.ok(page.includes('requestScroll("quantidade-fatias")'));
+});
+test("4.1 usa foto REAL do pedido no checkout, sem preços inventados", () => {
+  assert.ok(page.includes("const showcaseProduct = cart.length > 0"));
+  assert.ok(page.includes('className="boutique-checkout-showcase"'));
+  assert.ok(page.includes("showcaseProduct.cardImage ?? showcaseProduct.image"));
+  assert.ok(page.includes("currency.format(cartSubtotal)"));
+  assert.ok(page.includes("cartNeedsSizeReview"));
+  assert.ok(page.includes('className="summary-row summary-total"'));
+});
+test("4.1 preserva escopo, toque, foco e redução de movimento", () => {
+  assert.ok(css.includes("BOUTIQUE 4.1"));
+  assert.ok(css.includes(".storefront .boutique-journey-step:focus-visible"));
+  assert.ok(css.includes("@media (max-width: 359px)"));
+  assert.ok(css.includes("@media (prefers-reduced-motion: reduce)"));
+  assert.ok(!css.includes(".admin-"));
+});
