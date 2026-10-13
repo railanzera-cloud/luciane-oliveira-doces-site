@@ -193,3 +193,24 @@
   .storefront .menu-entry.is-neutral .category-option,
   .storefront .menu-entry.is-neutral .category-option-media img {transition:none!important;animation:none!important;transform:none!important}
 }
+
+/* Rótulo da ação pertence à legenda, não à fotografia. */
+.storefront .menu-entry.is-neutral .category-option-copy > .category-option-action {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  margin-top: 13px;
+  padding-right: 18px;
+  color: #704023;
+  font-size: .76rem;
+  line-height: 1.28;
+  letter-spacing: .005em;
+  font-weight: 770;
+  text-shadow: none;
+}
+@media(max-width:359px) {
+  .storefront .menu-entry.is-neutral .category-option-copy > .category-option-action {
+    margin-top: 10px;
+    font-size: .70rem;
+  }
+}
