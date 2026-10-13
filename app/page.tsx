@@ -222,7 +222,12 @@ function jumpToEditorialSection(id: "tamanhos" | "edicao-crocante") {
   const target = document.getElementById(id);
   if (!target) return;
   const top = Math.max(0, window.scrollY + target.getBoundingClientRect().top - 16);
-  window.scrollTo({ top, behavior: "instant" });
+  // A categoria tradicional rola suavemente como Fatias; a edicao preserva o salto seguro.
+  if (id === "tamanhos" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    window.scrollTo({ top, behavior: "smooth" });
+  } else {
+    window.scrollTo({ top, behavior: "instant" });
+  }
   const heading = id === "tamanhos"
     ? document.getElementById("step-size")
     : target.querySelector<HTMLElement>("h2");
@@ -1677,8 +1682,8 @@ export default function Home() {
                 <span className="limited-cup-teaser-cta">Conhecer a edição <ChevronRight size={16} aria-hidden="true" /></span>
               </span>
               <span className="limited-cup-teaser-visual" aria-hidden="true">
-                <span className="limited-cup-teaser-shot is-ninho"><img src="/images/edicao-crocante-ninho.webp" alt="" width="840" height="1260" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} /></span>
-                <span className="limited-cup-teaser-shot is-chocolate"><img src="/images/edicao-crocante-chocolate.webp" alt="" width="840" height="1260" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} /></span>
+                <span className="limited-cup-teaser-shot is-ninho"><img src="/images/edicao-crocante-ninho.webp" alt="" width="840" height="1260" loading="eager" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} /></span>
+                <span className="limited-cup-teaser-shot is-chocolate"><img src="/images/edicao-crocante-chocolate.webp" alt="" width="840" height="1260" loading="eager" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} /></span>
               </span>
             </button>
           )}
