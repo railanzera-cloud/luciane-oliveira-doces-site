@@ -664,6 +664,7 @@ export default function Home() {
         setRestoredOrderNotice(savedCart.length > 0);
       }
       setRequestedCategory(requestedCategory);
+      setShowLimitedCupView(requestedCategory === "pipocas" && window.history.state?.lucianeCrocante === true);
       setStorageReady(true);
     }, 0);
 

@@ -231,7 +231,9 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes('!showLimitedCupView && !(stickyUsesCheckoutAction'));
   assert.ok(page.includes('setShowLimitedCupView(false);\n    setBuilderEngaged(true);'));
   assert.ok(page.includes('window.scrollTo({ top, behavior: "instant" })'));
-  assert.ok(page.includes('setShowLimitedCupView(false);\n      setRequestedCategory(categoryFromUrl'));
+  assert.ok(page.includes('setShowLimitedCupView(isEdition)'));
+  assert.ok(page.includes('setRequestedCategory(category);'));
+  assert.ok(page.includes('setShowLimitedCupView(requestedCategory === "pipocas" && window.history.state?.lucianeCrocante === true)'));
   assert.ok(!page.includes('href="#potes-recheados"'));
   assert.ok(page.includes("R$ 15,90"));
   assert.ok(page.includes("400 ml"));
