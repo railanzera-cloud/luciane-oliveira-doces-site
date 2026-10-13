@@ -214,3 +214,31 @@
     font-size: .70rem;
   }
 }
+
+
+/* Experimental v2 — fotografias com proporções diferentes não ditam a altura do cartão.
+   O grid mantém 2 vitrines equivalentes no iPhone; sem mudança de comportamento. */
+.storefront .menu-entry.is-neutral .category-option-media img {
+  position: absolute;
+  inset: 0;
+}
+@media (max-width: 599px) {
+  .storefront .menu-entry.is-neutral .category-option {
+    height: 194px;
+    min-height: 194px;
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .storefront .menu-entry.is-neutral .category-option-media {
+    height: 100%;
+    min-height: 0;
+  }
+  .storefront .menu-entry.is-neutral .category-option:nth-child(1) .category-option-media img {
+    object-position: 52% 44%;
+  }
+}
+@media (max-width: 359px) {
+  .storefront .menu-entry.is-neutral .category-option {
+    height: 205px;
+    min-height: 205px;
+  }
+}
