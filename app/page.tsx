@@ -2134,9 +2134,10 @@ export default function Home() {
                       <RadioGroupItem id={`payment-${value}`} value={value} />
                       {value === "pix" ? <QrCode size={20} aria-hidden="true" /> : value === "dinheiro" ? <Banknote size={20} aria-hidden="true" /> : <CreditCard size={20} aria-hidden="true" />}
                       <span className="boutique-payment-method"><strong>{label}</strong><small>{
-                        value === "pix" ? "Dados para pagar enviados no WhatsApp"
-                          : value === "dinheiro" ? "Pagamento combinado com a loja"
-                          : "Combine o pagamento com a loja"
+                        value === "pix" ? "Chave enviada no WhatsApp após finalizar"
+                          : value === "dinheiro"
+                            ? fulfillment === "retirada" ? "Pague em dinheiro na retirada" : fulfillment === "entrega" ? "Pague em dinheiro na entrega" : "Pague em dinheiro na entrega ou retirada"
+                            : fulfillment === "retirada" ? "Na maquininha, na retirada" : fulfillment === "entrega" ? "Na maquininha, na entrega" : "Na maquininha, na entrega ou retirada"
                       }</small></span>
                       {payment === value && <Check size={18} aria-hidden="true" />}
                     </label>
@@ -2156,7 +2157,7 @@ export default function Home() {
                     <Button type="button" variant={!needsChange ? "default" : "ghost"} onClick={() => setNeedsChange(false)}>Não</Button>
                     <Button type="button" variant={needsChange ? "default" : "ghost"} onClick={() => setNeedsChange(true)}>Sim</Button>
                   </div></div>
-                  {needsChange && <div className="field-group"><label htmlFor="change-for">Troco para quanto?</label><Input id="change-for" value={changeFor} onChange={(event) => setChangeFor(event.target.value)} placeholder="Ex.: 50,00" inputMode="decimal" aria-invalid={Boolean(changeError)} aria-describedby="change-help" /><p id="change-help" className={changeError ? "field-error" : "field-note"} aria-live="polite">{cartNeedsSizeReview ? "Corrija o tamanho da pipoca para calcular o troco." : changeError || `Troco necessário: ${formatOrderMoney((cashReceivedCents! - Math.round(orderTotal * 100)) / 100)}`}</p></div>}
+                  {needsChange && <div className="field-group"><label htmlFor="change-for">Troco para</label><Input id="change-for" value={changeFor} onChange={(event) => setChangeFor(event.target.value)} placeholder="Ex.: 50,00" inputMode="decimal" aria-invalid={Boolean(changeError)} aria-describedby="change-help" /><p id="change-help" className={changeError ? "field-error" : "field-note"} aria-live="polite">{cartNeedsSizeReview ? "Corrija o tamanho da pipoca para calcular o troco." : changeError || `Seu troco será ${formatOrderMoney((cashReceivedCents! - Math.round(orderTotal * 100)) / 100)}`}</p></div>}
                   <p className="field-note">{fulfillment === "retirada" ? "Pagamento em dinheiro no momento da retirada." : fulfillment === "entrega" ? "Pagamento em dinheiro no momento da entrega." : "Pagamento em dinheiro na entrega ou retirada."}</p>
                 </div>
               )}
@@ -2203,7 +2204,11 @@ export default function Home() {
                 <div className="summary-row summary-total"><span>Total a pagar</span><strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(orderTotal)}</strong></div></>
               )}
               {fulfillment === "entrega" && <div className="summary-address"><strong>Endereço de entrega</strong><p>{[address, addressNumber].filter(Boolean).join(", ") || "Informe a rua e o número"}</p>{complement && <p>{complement}</p>}<p>{deliveryNeighborhood || "Informe o bairro"}</p>{reference && <p>Referência: {reference}</p>}</div>}
-              {isCashPayment && needsChange && !changeError && !cartNeedsSizeReview && <div className="summary-address"><p>Troco para: {formatOrderMoney(cashReceivedCents! / 100)}</p><p>Troco necessário: {formatOrderMoney((cashReceivedCents! - Math.round(orderTotal * 100)) / 100)}</p></div>}
+              {isCashPayment && needsChange && !changeError && !cartNeedsSizeReview && <div className="summary-address boutique-change-summary">
+                <strong>Troco</strong>
+                <div className="boutique-change-row"><span>Troco para</span><b>{formatOrderMoney(cashReceivedCents! / 100)}</b></div>
+                <div className="boutique-change-row"><span>Seu troco</span><b>{formatOrderMoney((cashReceivedCents! - Math.round(orderTotal * 100)) / 100)}</b></div>
+              </div>}
               {<div className="summary-address"><strong>Cliente</strong><p>{customerName.trim() || "Informe seu nome"}</p>{checkoutChannel === "site" && <p>{customerPhone.trim() || "Informe seu celular"}</p>}{payment === "mercado_pago_pix" && <p>{customerEmail.trim() || "Informe seu e-mail"}</p>}</div>}
               <button type="button" className="summary-link" onClick={() => enterCheckout("recebimento")}><span><small>Recebimento</small><strong>{fulfillment === "entrega" ? selectedDeliveryZone ? `Entrega — ${selectedDeliveryZone.id === "cidade" ? "Outro bairro dentro da cidade" : selectedDeliveryZone.label} · ${currency.format(deliveryFee)}` : "Entrega — escolher local" : fulfillment === "retirada" ? "Retirada em Paragominas" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
               <button type="button" className="summary-link" onClick={() => enterCheckout("pagamento")}><span><small>Pagamento</small><strong>{paymentLabel}</strong></span><ChevronRight size={18} /></button>

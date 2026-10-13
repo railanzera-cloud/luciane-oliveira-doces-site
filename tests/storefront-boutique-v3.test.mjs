@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 const css = await readFile(new URL("../app/storefront-boutique-v3.css", import.meta.url), "utf8");
 const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
+const catalog = await readFile(new URL("../app/catalog.ts", import.meta.url), "utf8");
 
 test("v3 é camada isolada e posterior à boutique 2.1", () => {
   const oldIndex = layout.indexOf('import "./storefront-boutique.css";');
@@ -117,4 +118,39 @@ test("acabamento 3.1 permanece só no storefront e respeita tamanho/toque/movime
   assert.ok(css.includes("@media (prefers-reduced-motion: reduce)"));
   assert.ok(!css.includes(".admin-"));
   assert.ok(!css.includes(":root {"));
+});
+
+
+test("Boutique 3.2 usa fontes originais e exige novo build, sem reaproveitar assets compilados", () => {
+  assert.ok(css.includes("Boutique 3.2 — acabamento"));
+  assert.ok(page.includes("Chave enviada no WhatsApp após finalizar"));
+  assert.ok(!page.includes("Pagamento combinado com a loja"));
+  assert.ok(!page.includes("Combine o pagamento com a loja"));
+  assert.ok(page.includes("Na maquininha, na retirada"));
+  assert.ok(page.includes("Na maquininha, na entrega"));
+  assert.ok(page.includes("Seu troco será"));
+  assert.ok(page.includes('className="summary-address boutique-change-summary"'));
+  assert.ok(css.includes(".storefront .change-box .segmented-control button[data-variant=\"default\"]"));
+});
+test("Cores visuais são indicativas, mantêm catálogo e regras de preço intocados", () => {
+  for (const [id, tone] of [
+    ["leitinho", "#f4e4c3"],
+    ["kinder-bueno", "#dcb084"],
+    ["choco-cookies-branco", "#e8dbc8"],
+    ["choco-cookies-leite", "#875338"],
+    ["nutella", "#6c381f"],
+  ]) {
+    assert.match(catalog, new RegExp('id: "' + id + '"[^\\n]*tone: "' + tone + '"'));
+  }
+  assert.ok(page.includes("popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime)"));
+  assert.ok(page.includes("itemUnitPrice(product, variant, item.optionIds, promotionTime)"));
+});
+test("Selo da fatia não cobre o valor; cartões mantêm preços e feedback visíveis", () => {
+  assert.ok(css.includes(".storefront .slice-card.is-selected .slice-selected"));
+  assert.ok(css.includes("top: 12px;"));
+  assert.ok(css.includes("left: 12px;"));
+  assert.ok(css.includes("bottom: auto;"));
+  assert.ok(page.includes('className="boutique-slice-card-footer"'));
+  assert.ok(page.includes('className="boutique-flavor-value"'));
+  assert.ok(css.includes("@media (max-width: 430px)"));
 });
