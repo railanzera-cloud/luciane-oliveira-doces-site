@@ -35,6 +35,8 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Build
         run: npm run build
+      - name: Verificar tipos TypeScript
+        run: npx tsc --noEmit
       - name: Suíte completa
         run: node --test tests/*.test.mjs
       - name: Gerar ZIP Cloudflare Pages

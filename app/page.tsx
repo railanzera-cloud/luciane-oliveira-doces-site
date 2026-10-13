@@ -6,6 +6,7 @@ import {
   Banknote,
   CakeSlice,
   Check,
+  ChevronDown,
   ChevronRight,
   CreditCard,
   Crown,
@@ -1525,7 +1526,6 @@ export default function Home() {
                   const cover = category.id === "pipocas" ? POPCORN : SLICES.find((slice) => sliceIsVisible(slice.id));
                   return (
                     <button type="button" className="category-option" disabled={!available} key={category.id} onClick={() => selectCategory(category.id)} aria-label={`${category.name}${available ? "" : " — Esgotado"}`}>
-                      <span className="boutique-category-edition" aria-hidden="true">{category.id === "pipocas" ? "01 · Atelier Gourmet" : "02 · Fatias da Casa"}</span>
                       <span className="category-option-media">
                         {cover?.image && <img src={cover.cardImage ?? cover.image} alt="" width="640" height="480" loading="eager" decoding="async" fetchPriority={category.id === "pipocas" ? "high" : "auto"} />}
                       </span>
@@ -1567,29 +1567,6 @@ export default function Home() {
               </button>
             ))}
           </div>
-          <nav className="boutique-journey" aria-label="Etapas da personalização">
-            {(activeCategory === "pipocas" ? [
-              { id: "tamanhos", label: "Tamanho", state: popcornSizeStepState },
-              { id: "sabores", label: "Sabores", state: popcornFlavorStepState },
-              { id: "quantidade-pipocas", label: "Quantidade", state: popcornQuantityStepState },
-            ] : [
-              { id: "fatias", label: "Fatia", state: sliceProductStepState },
-              { id: "calda-fatias", label: "Calda", state: sliceSauceStepState },
-              { id: "quantidade-fatias", label: "Quantidade", state: sliceQuantityStepState },
-            ]).map((step, index) => (
-              <button
-                type="button"
-                key={step.id}
-                className={`boutique-journey-step is-${step.state}`}
-                aria-current={step.state === "active" ? "step" : undefined}
-                disabled={step.state === "locked"}
-                onClick={() => requestScroll(step.id)}
-              >
-                <span className="boutique-journey-symbol" aria-hidden="true">{step.state === "complete" ? <Check size={14} strokeWidth={2.6} /> : String(index + 1).padStart(2, "0")}</span>
-                <span className="boutique-journey-name">{step.label}</span>
-              </button>
-            ))}
-          </nav>
 
           {((activeCategory === "pipocas" && (!pipocasAvailable || !POPCORN.available))
             || (activeCategory === "fatias" && (!fatiasAvailable || !SLICES.some((slice) => (
@@ -1943,7 +1920,7 @@ export default function Home() {
               </span>
             )}
             <div className="boutique-checkout-intro-copy">
-              <p className="eyebrow">Seu pedido, do ateliê até você</p>
+              <p className="eyebrow">Seu pedido, do jeito que você gosta</p>
               <h2>{cart.length > 0 ? "Escolhas feitas. Falta pouco." : "Sua escolha começa aqui."}</h2>
               <p>{cart.length > 0
                 ? "Confirme os detalhes e escolha como receber."

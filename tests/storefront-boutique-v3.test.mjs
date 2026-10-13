@@ -188,16 +188,23 @@ test("Design de atelier não toca admin, catalogo, checkout comercial ou rastrea
 });
 
 
-test("4.1 conecta etapas sem alterar rolagem automática ou bloquear escolhas anteriores", () => {
-  assert.ok(page.includes('className="boutique-journey"'));
-  assert.ok(page.includes('aria-label="Etapas da personalização"'));
-  for (const id of ["tamanhos", "sabores", "quantidade-pipocas", "fatias", "calda-fatias", "quantidade-fatias"]) {
-    assert.ok(page.includes('id: "' + id + '"'));
-  }
-  assert.ok(page.includes('disabled={step.state === "locked"}'));
-  assert.ok(page.includes('onClick={() => requestScroll(step.id)}'));
+test("4.1 mantém navegação direta sem introduzir passos duplicados", () => {
+  assert.ok(!page.includes('className="boutique-journey"'));
+  assert.ok(!page.includes('className="boutique-category-edition"'));
+  assert.ok(!page.includes("Atelier Gourmet"));
+  assert.ok(!page.includes("Fatias da Casa"));
+  assert.ok(page.includes('id="tamanhos"'));
+  assert.ok(page.includes('id="sabores"'));
+  assert.ok(page.includes('id="quantidade-pipocas"'));
   assert.ok(page.includes('requestScroll("calda-fatias")'));
   assert.ok(page.includes('requestScroll("quantidade-fatias")'));
+});
+
+test("checkout ao adicionar itens não referencia ícone inexistente", () => {
+  assert.ok(page.includes("  ChevronDown,"));
+  assert.ok(page.includes("<ChevronDown size={18}"));
+  assert.ok(page.includes('className="boutique-order-recap"'));
+  assert.ok(page.includes("cart.map((item, index) =>"));
 });
 test("4.1 usa foto REAL do pedido no checkout, sem preços inventados", () => {
   assert.ok(page.includes("const showcaseProduct = cart.length > 0"));

@@ -1605,81 +1605,6 @@
  * Progressão visível e contextual, passagem fotográfica para o checkout.
  * Visual somente, todas as chamadas comerciais permanecem no fluxo original.
  */
-.storefront .boutique-journey {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
-  margin: 6px 0 20px;
-  padding: 5px;
-  background: rgba(243, 191, 126, .055);
-  border: 1px solid rgba(229, 177, 112, .23);
-  border-radius: 16px;
-}
-.storefront .boutique-journey-step {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 7px;
-  min-height: 65px;
-  min-width: 0;
-  padding: 9px 5px;
-  border: 0;
-  border-radius: 11px;
-  background: transparent;
-  color: #b9a089;
-  cursor: pointer;
-  transition: background-color 200ms ease, color 200ms ease, box-shadow 200ms ease;
-}
-.storefront .boutique-journey-step + .boutique-journey-step::before {
-  position: absolute;
-  left: 0;
-  top: 25%;
-  bottom: 25%;
-  width: 1px;
-  content: "";
-  background: rgba(234, 190, 134, .16);
-}
-.storefront .boutique-journey-step:disabled {
-  cursor: not-allowed;
-  color: #937d68;
-}
-.storefront .boutique-journey-step.is-active {
-  background: linear-gradient(135deg, #66452d, #3f291b);
-  color: #fff1d9;
-  box-shadow: inset 0 1px rgba(251, 222, 178, .23), 0 7px 17px rgba(0, 0, 0, .16);
-}
-.storefront .boutique-journey-step.is-complete { color: #f4cca0; }
-.storefront .boutique-journey-step.is-complete .boutique-journey-symbol {
-  background: rgba(113, 153, 104, .19);
-  border-color: #a9c493;
-  color: #d8efca;
-}
-.storefront .boutique-journey-symbol {
-  display: grid;
-  width: 26px;
-  height: 26px;
-  place-items: center;
-  border: 1px solid rgba(238, 193, 139, .32);
-  border-radius: 50%;
-  color: inherit;
-  font-size: .68rem;
-  font-weight: 780;
-  font-variant-numeric: tabular-nums;
-}
-.storefront .boutique-journey-name {
-  font-size: .72rem;
-  font-weight: 720;
-  line-height: 1.15;
-  white-space: normal;
-  text-align: center;
-}
-.storefront .boutique-journey-step:focus-visible {
-  outline: 2px solid #f9d39f;
-  outline-offset: 2px;
-}
-.storefront .boutique-journey-step:not(:disabled):hover { color: #fff2dc; }
 /* A vitrine acompanha a pessoa até a finalização sem repetir um cartão inteiro. */
 .storefront .boutique-checkout-intro.has-cart {
   display: grid;
@@ -1768,12 +1693,12 @@
   .storefront .boutique-checkout-intro.has-cart .boutique-checkout-intro-copy { padding: 13px 10px; }
   .storefront .boutique-checkout-intro.has-cart h2 { font-size: 1.25rem; }
   .storefront .boutique-checkout-mini-receipt { font-size: .68rem; }
-  .storefront .boutique-journey-name { font-size: .67rem; }
+
 }
 @media (min-width: 700px) {
   .storefront .boutique-journey { max-width: 780px; }
-  .storefront .boutique-journey-step { flex-direction: row; min-height: 58px; gap: 11px; }
-  .storefront .boutique-journey-name { font-size: .86rem; }
+
+
   .storefront .boutique-checkout-intro.has-cart { min-height: 228px; grid-template-columns: minmax(210px, 28%) minmax(0, 1fr); }
   .storefront .boutique-checkout-showcase { min-height: 228px; }
   .storefront .boutique-checkout-intro.has-cart .boutique-checkout-intro-copy { padding: 23px 33px; }
