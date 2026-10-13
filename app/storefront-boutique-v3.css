@@ -1853,3 +1853,50 @@
 @media (prefers-reduced-motion: reduce) {
   .storefront .boutique-notes-toggle > svg, .storefront .boutique-cart-details > summary > svg { transition: none !important; }
 }
+
+
+/* BOUTIQUE 4.5 — composição compacta apenas depois da escolha da categoria.
+ * A vitrine inicial, os dois locais de adicionar produtos e o percurso automático
+ * ficam intactos. Nenhuma regra comercial depende desta camada.
+ */
+@media (max-width: 599px) {
+  .storefront .menu-entry.has-category {
+    padding-top: 19px;
+    padding-bottom: 17px;
+  }
+  .storefront .menu-entry.has-category .entry-heading h1 {
+    font-size: clamp(2.05rem, 7vw, 2.85rem);
+    margin-block: 7px 7px;
+  }
+  .storefront .menu-entry.has-category .entry-copy {
+    line-height: 1.42;
+  }
+  .storefront .menu-entry.has-category .delivery-time-estimate {
+    margin-top: 11px;
+    line-height: 1.43;
+  }
+  .storefront .menu-entry.has-category .delivery-note {
+    margin-top: 10px;
+    line-height: 1.35;
+  }
+  .storefront .builder-section {
+    padding-top: 23px;
+  }
+  .storefront .builder-section .section-intro {
+    padding-bottom: 14px;
+    margin-bottom: 12px;
+  }
+  .storefront .builder-section .section-intro h2 {
+    font-size: clamp(1.93rem, 7.3vw, 2.55rem);
+    line-height: 1.08;
+    margin-top: 7px;
+  }
+  .storefront .builder-section .section-intro > p:not(.eyebrow) {
+    margin-top: 5px;
+    line-height: 1.40;
+    font-size: .84rem;
+  }
+  .storefront .builder-section .section-intro .category-text-link {
+    margin-top: 8px;
+  }
+}

@@ -329,3 +329,28 @@ test("4.4 agrupa avisos, mas preserva preço, alerta e finalização", () => {
   assert.ok(css.includes(".storefront .boutique-notes-content[hidden]"));
   assert.ok(!css.includes(".admin-"));
 });
+
+
+test("4.5 mostra o próximo passo no botão do resumo antes da finalização", () => {
+  assert.ok(page.includes("const summaryActionLabel = isFinalizing"));
+  assert.ok(page.includes("checkoutReady ?"));
+  assert.ok(page.includes(": checkoutNextActionLabel;"));
+  assert.ok(page.includes("Revisar itens do pedido"));
+  assert.ok(page.includes("Informar e-mail"));
+  assert.ok(page.includes('id="summary-title">{checkoutReady ? "Pronto para finalizar?" : "Confira seu pedido"}'));
+  assert.ok(page.includes('{summaryActionLabel}</Button>'));
+  assert.ok(page.includes('!checkoutReady ? <ChevronRight size={20} />'));
+  assert.ok(page.includes('onClick={handleFinalAction}'));
+  assert.ok(page.includes('data-event={checkoutChannel === "whatsapp" ? "whatsapp_checkout" : "site_checkout"}'));
+});
+test("4.5 mantém as duas entradas de adicionar produtos para momentos distintos", () => {
+  assert.ok(page.includes('className="cart-add-more"'));
+  assert.ok(page.includes('className="boutique-added-other"'));
+  assert.ok(page.includes("onClick={() => startAnother(\"fatias\")}"));
+  assert.ok(page.includes("onClick={() => startAnother(\"pipocas\")}"));
+  assert.ok(page.includes("onClick={() => startAnother(category)}"));
+  assert.ok(page.includes('const destination = wasEditing ? "carrinho" : "recebimento"'));
+  assert.ok(css.includes(".storefront .menu-entry.has-category"));
+  assert.ok(css.includes(".storefront .builder-section .section-intro h2"));
+  assert.ok(!css.includes(".admin-"));
+});

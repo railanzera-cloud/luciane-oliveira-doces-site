@@ -782,9 +782,20 @@ export default function Home() {
           ? "Informar celular"
           : isCashPayment && needsChange && Boolean(changeError)
             ? "Conferir troco"
-            : !paymentReady
-              ? "Escolher pagamento"
-              : "Conferir pedido";
+            : checkoutChannel === "site" && payment === "mercado_pago_pix" && !customerEmailReady
+              ? "Informar e-mail"
+              : !paymentReady
+                ? "Escolher pagamento"
+                : "Conferir pedido";
+  const summaryActionLabel = isFinalizing
+    ? finalButtonLabel
+    : !availability.ordersOpen
+      ? "Pedidos fechados"
+      : cartIssues.length > 0
+        ? "Revisar itens do pedido"
+        : checkoutReady
+          ? finalButtonLabel
+          : checkoutNextActionLabel;
   const stickyButtonLabel = isFinalizing ? finalButtonLabel : !availability.ordersOpen
     ? "Pedidos fechados"
     : !categoryIsAvailable(activeCategory) && builderFlowActive
@@ -2216,8 +2227,8 @@ export default function Home() {
           </div>
 
           <aside className="summary-card" aria-labelledby="summary-title">
-            <p className="eyebrow">Resumo do pedido</p><h2 id="summary-title">Pronto para finalizar?</h2>
-            <p className="boutique-summary-lead">Confira o total e os detalhes antes de enviar.</p>
+            <p className="eyebrow">Resumo do pedido</p><h2 id="summary-title">{checkoutReady ? "Pronto para finalizar?" : "Confira seu pedido"}</h2>
+            <p className="boutique-summary-lead">{checkoutReady ? "Tudo certo. Confira o total antes de enviar." : "Veja o total e complete as informações pendentes."}</p>
             {cart.length > 0 && checkoutChannel !== "whatsapp" && <p className="order-code">O número do pedido será mostrado após a confirmação.</p>}
             <div className="summary-content">
               {cart.length === 0 ? <p className="summary-empty">Os produtos adicionados aparecerão aqui.</p> : (
@@ -2276,7 +2287,7 @@ export default function Home() {
               <button type="button" className="summary-link" onClick={() => enterCheckout("pagamento")}><span><small>Pagamento</small><strong>{paymentLabel}</strong></span><ChevronRight size={18} /></button>
             </div>
             <div className="boutique-final-action" ref={inlineFinalActionRef}>
-              <Button type="button" className="whatsapp-button checkout-primary-button" onClick={handleFinalAction} disabled={isFinalizing || (!availability.ordersOpen && orderContext?.handoff_fingerprint !== checkoutFingerprint)} aria-describedby="checkout-status" data-event={checkoutChannel === "whatsapp" ? "whatsapp_checkout" : "site_checkout"}>{isFinalizing ? <LoaderCircle className="admin-spinner" size={20} /> : checkoutChannel === "whatsapp" ? <MessageCircle size={20} /> : payment === "mercado_pago_pix" ? <QrCode size={20} /> : <ShoppingBag size={20} />} {finalButtonLabel}</Button>
+              <Button type="button" className="whatsapp-button checkout-primary-button" onClick={handleFinalAction} disabled={isFinalizing || (!availability.ordersOpen && orderContext?.handoff_fingerprint !== checkoutFingerprint)} aria-describedby="checkout-status" data-event={checkoutChannel === "whatsapp" ? "whatsapp_checkout" : "site_checkout"}>{isFinalizing ? <LoaderCircle className="admin-spinner" size={20} /> : !checkoutReady ? <ChevronRight size={20} /> : checkoutChannel === "whatsapp" ? <MessageCircle size={20} /> : payment === "mercado_pago_pix" ? <QrCode size={20} /> : <ShoppingBag size={20} />} {summaryActionLabel}</Button>
             </div>
             {checkoutChannel === "whatsapp" && orderContext?.whatsapp_attempted_at && <div className="whatsapp-return-note" role="status"><strong>Continue no WhatsApp</strong><p>Envie a mensagem por lá para encaminhar o pedido. Seu pedido continua nesta aba para consulta.</p><Button type="button" variant="outline" onClick={clearOrder} disabled={isFinalizing}>Fazer novo pedido</Button></div>}
             {payment === "pix" && <p className="payment-guidance">Depois de finalizar no WhatsApp, faça o Pix com a chave informada na mensagem e envie o comprovante na conversa.</p>}
