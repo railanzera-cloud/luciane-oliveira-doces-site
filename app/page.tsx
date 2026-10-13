@@ -419,12 +419,12 @@ export default function Home() {
     return () => window.clearInterval(timer);
   }, []);
   const cupLaunchCopy = cupPhase === "prelaunch"
-    ? { eyebrow: "EDIÇÃO LIMITADA · ESTREIA SEXTA, 16/10", teaser: "Dois sabores · Conhecer", description: "Estreia na sexta-feira, 16/10. Os pedidos ainda não estão liberados." }
+    ? { eyebrow: "EDIÇÃO LIMITADA · 16/10", teaser: "Descobrir", description: "Estreia sexta, 16/10 · enquanto durarem os copos." }
     : cupPhase === "awaiting-release"
-      ? { eyebrow: "EDIÇÃO LIMITADA · AGUARDANDO LIBERAÇÃO", teaser: "Conhecer a novidade", description: "Aguardando confirmação de disponibilidade pela loja. Os pedidos ainda não estão liberados." }
+      ? { eyebrow: "EDIÇÃO LIMITADA · EM BREVE", teaser: "Descobrir", description: "Aguardando liberação da loja. Edição sem reposição." }
       : cupPhase === "sold-out"
-        ? { eyebrow: "EDIÇÃO LIMITADA · ESGOTADA", teaser: "Conhecer a edição", description: "Essa edição em copo chegou ao fim. Obrigado por experimentar!" }
-        : { eyebrow: "EDIÇÃO LIMITADA · DISPONÍVEL", teaser: "Conhecer os sabores", description: "Disponibilidade limitada ao estoque confirmado pela loja." };
+        ? { eyebrow: "EDIÇÃO LIMITADA · ESGOTADA", teaser: "Conhecer", description: "Essa edição especial em copo chegou ao fim." }
+        : { eyebrow: "EDIÇÃO LIMITADA · DISPONÍVEL", teaser: "Conhecer", description: "Edição limitada · disponibilidade sujeita ao estoque confirmado." };
   const visibleCategories = publicCategories(availability);
   const activeCategory = hasResolvedAvailability ? resolveMenuCategory(availability, requestedCategory) : null;
   const checkoutStartedRef = useRef(false);
@@ -1582,11 +1582,13 @@ export default function Home() {
           {!activeCategory && hasResolvedAvailability && (
             <button className="limited-cup-teaser" type="button" onClick={() => selectCategory("pipocas")} disabled={!categoryIsAvailable("pipocas")}>
               <span className="limited-cup-teaser-content">
-                <span className="limited-cup-teaser-mark">{cupLaunchCopy.eyebrow}</span>
-                <strong>O lado crocante da Luciane.</strong>
-                <span className="limited-cup-teaser-action">{cupLaunchCopy.teaser} <ChevronRight size={15} aria-hidden="true" /></span>
+                <span className="limited-cup-teaser-mark"><span aria-hidden="true">✦</span> {cupLaunchCopy.eyebrow}</span>
+                <strong>O lado <em>crocante</em> da Luciane.</strong>
+                <span className="limited-cup-teaser-action">Dois sabores · R$ 15,90 <span>{cupLaunchCopy.teaser} <ChevronRight size={14} aria-hidden="true" /></span></span>
               </span>
-              <img className="limited-cup-teaser-photo" src="/images/edicao-crocante-copos-reais.webp" alt="" width="180" height="200" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
+              <span className="limited-cup-teaser-visual" aria-hidden="true">
+                <img className="limited-cup-teaser-photo" src="/images/edicao-crocante-copos-reais.webp" alt="" width="210" height="210" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
+              </span>
             </button>
           )}
           {!hasResolvedAvailability ? (
@@ -1643,27 +1645,32 @@ export default function Home() {
       <section className="builder-section" id="configurador">
         <div className="page-shell builder-shell">
           {activeCategory === "pipocas" && (
-            <aside className="limited-cup-story" aria-label="Edição limitada de pipocas no copo">
-              <div className="limited-cup-story-layout">
+            <aside className="limited-cup-story" aria-label="Edição limitada de pipocas crocantes no copo">
+              <div className="limited-cup-story-hero">
+                <div className="limited-cup-story-photo" aria-hidden="true">
+                  <img src="/images/edicao-crocante-textura.webp" alt="" width="670" height="837" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
+                </div>
                 <div className="limited-cup-story-main">
                   <span className="limited-cup-story-kicker">{cupLaunchCopy.eyebrow}</span>
-                  <h2>O lado crocante da Luciane.</h2>
-                  <p>Pipocas redondinhas, caramelizadas até ficarem crocantes e finalizadas com sabores especiais.</p>
-                  <div className="limited-cup-story-facts"><span>400 ml · 190 g</span><span>R$ 15,90 por copo</span></div>
-                </div>
-                <div className="limited-cup-story-media">
-                  <img className="limited-cup-story-texture" src="/images/edicao-crocante-textura.webp" alt="Detalhe da textura das pipocas caramelizadas" width="360" height="400" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
+                  <h2>O lado <em>crocante</em> da Luciane.</h2>
+                  <p>Caramelizadas até o ponto perfeito. Finalizadas com Ninho ou chocolate.</p>
+                  <div className="limited-cup-story-value">
+                    <strong>R$ 15,90</strong>
+                    <span>400 ml <span aria-hidden="true">·</span> 190 g</span>
+                  </div>
                 </div>
               </div>
-              <div className="limited-cup-story-flavors">
-                <div><span className="limited-cup-flavor-dot is-ninho" aria-hidden="true" /><strong>Caramelo com Leite Ninho</strong><span>Caramelo crocante, finalizado com leite em pó.</span></div>
-                <div><span className="limited-cup-flavor-dot is-chocolate" aria-hidden="true" /><strong>Caramelo com Chocolate</strong><span>Caramelo crocante com cobertura de chocolate.</span></div>
+              <div className="limited-cup-story-flavors" aria-label="Sabores desta edição">
+                <div><span className="limited-cup-flavor-number" aria-hidden="true">01</span><strong>Caramelo com Leite Ninho</strong></div>
+                <div><span className="limited-cup-flavor-number" aria-hidden="true">02</span><strong>Caramelo com Chocolate</strong></div>
               </div>
-              <p className="limited-cup-story-note">{cupLaunchCopy.description} Esta apresentação em copo não terá reposição.</p>
-              <p className="limited-cup-story-photo-note">Foto ilustrativa de copos maiores na chamada do lançamento. Produto anunciado: 400 ml · 190 g. Ainda não há foto do sabor chocolate.</p>
+              <div className="limited-cup-story-footer">
+                <p>{cupLaunchCopy.description}</p>
+                <a href="#potes-recheados">Ver potes recheados <ChevronDown size={15} aria-hidden="true" /></a>
+              </div>
             </aside>
           )}
-          <div className="section-intro">
+          <div className="section-intro" id="potes-recheados">
             <p className="eyebrow">Seu pedido, do seu jeito</p>
             <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : "Sua vitrine de sabores."}</h2>
             <p>{activeCategory === "pipocas"

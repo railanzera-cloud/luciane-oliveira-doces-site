@@ -188,20 +188,30 @@ test("barra móvel respeita digitação e telas estreitas sem modificar a ação
   assert.ok(page.includes("inlineBuilderActionVisible"));
 });
 
-test("lançamento crocante aparece sem venda antecipada ou terceira categoria", () => {
+test("v3 editorial preserva navegação e não oferece compra antecipada da edição", () => {
   assert.ok(page.includes('className="limited-cup-teaser"'));
   assert.ok(page.includes('onClick={() => selectCategory("pipocas")}'));
   assert.ok(page.includes('activeCategory === "pipocas" && ('));
   assert.ok(page.includes('className="limited-cup-story"'));
+  assert.ok(page.includes('className="limited-cup-story-hero"'));
+  assert.ok(page.includes('className="limited-cup-story-value"'));
+  assert.ok(page.includes('className="limited-cup-story-flavors"'));
   assert.ok(page.includes("Caramelo com Leite Ninho"));
   assert.ok(page.includes("Caramelo com Chocolate"));
-  assert.ok(page.includes("R$ 15,90 por copo"));
-  assert.ok(page.includes("Os pedidos ainda não estão liberados."));
+  assert.ok(page.includes("R$ 15,90"));
+  assert.ok(page.includes("400 ml"));
+  assert.ok(page.includes("190 g"));
   assert.ok(page.includes("getLimitedCupPhase(Date.now())"));
   assert.ok(page.includes("/images/edicao-crocante-copos-reais.webp"));
   assert.ok(page.includes("/images/edicao-crocante-textura.webp"));
+  assert.ok(!page.includes("Foto ilustrativa de copos maiores"));
+  assert.ok(!page.includes("Ainda não há foto do sabor chocolate"));
+  assert.ok(page.includes('href="#potes-recheados"'));
+  assert.ok(page.includes('id="potes-recheados"'));
   assert.ok(!page.includes('selectCategory("copo")'));
   assert.ok(css.includes(".limited-cup-teaser:focus-visible"));
+  assert.ok(css.includes(".limited-cup-story-hero::after"));
+  assert.ok(css.includes(".limited-cup-story-footer a:focus-visible"));
 });
 
 test("v2 de lançamento exige três condições para anunciar disponibilidade", async () => {
@@ -213,6 +223,6 @@ test("v2 de lançamento exige três condições para anunciar disponibilidade", 
   assert.ok(cfg.includes("nowMs < Date.parse(cfg.launchDayStart)"));
   assert.ok(cfg.includes("cfg.orderingIntegrated && cfg.salesApprovedByStore && cfg.inventoryVerifiedAvailable"));
   assert.ok(cfg.includes('return "awaiting-release"'));
-  assert.ok(page.includes("Ainda não há foto do sabor chocolate"));
-  assert.ok(page.includes("Foto ilustrativa de copos maiores"));
+  assert.ok(!page.includes("Ainda não há foto do sabor chocolate"));
+  assert.ok(!page.includes("Foto ilustrativa de copos maiores"));
 });
