@@ -354,3 +354,19 @@ test("4.5 mantém as duas entradas de adicionar produtos para momentos distintos
   assert.ok(css.includes(".storefront .builder-section .section-intro h2"));
   assert.ok(!css.includes(".admin-"));
 });
+
+
+test("4.5.1 não apresenta a privacidade como bloco visual independente", () => {
+  const phrase = 'Usaremos seus dados somente para processar e acompanhar este pedido.';
+  assert.ok(page.includes('<p className="field-note">' + phrase + '</p>'));
+  assert.ok(page.includes('<section className="order-card customer-card" id="identificacao"'));
+  const selector = ".storefront .customer-card > .field-note";
+  assert.ok(css.includes(selector));
+  const rule = css.slice(css.lastIndexOf(selector));
+  for (const property of ["padding: 0 2px;", "border: 0;", "border-radius: 0;", "background: transparent;", "box-shadow: none;"]) {
+    assert.ok(rule.includes(property), property);
+  }
+  assert.ok(!css.includes(".admin-"));
+  assert.ok(page.includes('aria-expanded={notesExpanded}'));
+  assert.ok(page.includes('id="pagamento"'));
+});

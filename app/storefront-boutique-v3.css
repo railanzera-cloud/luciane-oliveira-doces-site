@@ -1900,3 +1900,19 @@
     margin-top: 8px;
   }
 }
+
+
+/* BOUTIQUE 4.5.1 — aviso de privacidade discreto na identificação.
+   Não modifica avisos de entrega, regras de pedido, identificação ou checkout. */
+.storefront .customer-card > .field-note {
+  display: block;
+  margin: 7px 0 0;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #715a47;
+  font-size: .75rem;
+  line-height: 1.4;
+}
