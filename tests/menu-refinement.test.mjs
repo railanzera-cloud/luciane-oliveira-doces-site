@@ -651,7 +651,7 @@ test('slice add without sauce guides the choice and never mutates cart',()=>{
 test('slice add preserves customization, goes to receiving and edit returns to cart',()=>{
  for(const editingId of [null,'existing']) {
   let items=editingId?[{id:editingId,optionIds:['sem-calda']}]:[];let target;
-  const add=pageFunction('addOrUpdateSlice',{categoryIsVisible:()=>true,availability:{ordersOpen:true},categoryIsAvailable:()=>true,selectedSlice:catalog.SLICES[0],selectedSliceVariant:catalog.SLICES[0].variants[0],sliceReady:true,sliceOptionId:'calda-chocolate',sliceQuantity:1,editingId,setCheckoutAvailabilityMessage:()=>{},setCart:fn=>items=fn(items),makeCartId:()=> 'new',trackMetaEvent:()=>{},metaProductPayload:()=>({}),setAddedNotice:()=>{},productLabel:()=> 'Fatia',nextCheckoutSection:()=> 'recebimento',clearDraft:()=>{},setBuilderEngaged:()=>{},requestScroll:id=>target=id});
+  const add=pageFunction('addOrUpdateSlice',{categoryIsVisible:()=>true,availability:{ordersOpen:true},categoryIsAvailable:()=>true,selectedSlice:catalog.SLICES[0],selectedSliceVariant:catalog.SLICES[0].variants[0],sliceReady:true,sliceOptionId:'calda-chocolate',sliceQuantity:1,editingId,setCheckoutAvailabilityMessage:()=>{},setCart:fn=>items=fn(items),makeCartId:()=> 'new',trackMetaEvent:()=>{},metaProductPayload:()=>({}),setAddedNotice:()=>{},productLabel:()=> 'Fatia',SLICE_OPTIONS:catalog.SLICE_OPTIONS,clearDraft:()=>{},setBuilderEngaged:()=>{},requestScroll:id=>target=id});
   add();assert.deepEqual(items[0].optionIds,['calda-chocolate']);assert.equal(target,editingId?'carrinho':'recebimento');
  }
 });
@@ -1022,14 +1022,46 @@ test('valid fewer-flavor selections can continue; empty, full and unavailable se
  }
 });
 
-test('continue after adding follows the next pending section without finalizing or clearing the cart', () => {
- for(const target of ['recebimento','delivery-fields','identificacao','pagamento']) {
-  let destination,engaged=true;
-  const control=storefrontControl('Continuar pedido <ChevronRight',{
-   setBuilderEngaged:value=>engaged=value,requestScroll:id=>destination=id,nextCheckoutSection:()=>target,
+test('adding popcorn goes directly to receiving while editing still returns to cart', () => {
+ for (const editingId of [null,'existing']) {
+  let items=editingId?[{id:editingId,productId:catalog.POPCORN.id,variantId:'500ml',optionIds:['leitinho'],quantity:1}]:[];
+  let target,notice=null,engaged=true,events=0;
+  const add=pageFunction('addOrUpdatePopcorn',{
+   categoryIsVisible:()=>true,
+   availability:{ordersOpen:true},
+   categoryIsAvailable:()=>true,
+   popcornVariant:catalog.POPCORN.variants.find(v=>v.id==='500ml'),
+   popcornVariantUsable:true,
+   popcornReady:true,
+   POPCORN:catalog.POPCORN,
+   popcornVariantId:'500ml',
+   popcornOptionIds:['leitinho'],
+   popcornQuantity:2,
+   editingId,
+   setCheckoutAvailabilityMessage:()=>{},
+   setCart:fn=>items=fn(items),
+   makeCartId:()=> 'new',
+   trackMetaEvent:()=>events++,
+   metaProductPayload:()=>({}),
+   setAddedNotice:value=>notice=value,
+   clearDraft:()=>{},
+   setBuilderEngaged:value=>engaged=value,
+   requestScroll:id=>target=id,
   });
-  control.props.onClick();assert.equal(destination,target);assert.equal(engaged,false);
+  add();
+  assert.equal(target,editingId?'carrinho':'recebimento');
+  assert.equal(engaged,false);
+  assert.equal(items[0].quantity,2);
+  assert.deepEqual(items[0].optionIds,['leitinho']);
+  assert.equal(events,editingId?0:1);
+  if(!editingId){assert.equal(notice.productId,catalog.POPCORN.id);assert.match(notice.description,/500ml/);}
  }
+});
+
+test('receiving continues to next incomplete field without a mandatory Continue click', () => {
+ assert.match(source,/id="recebimento"[\s\S]*?boutique-added-continuity/); 
+ assert.doesNotMatch(source,/id="item-adicionado"/);
+ assert.match(source,/chooseFulfillment[\s\S]*?setAddedNotice\(null\)/);
 });
 
 test('direct category navigation rejects unavailable categories and preserves saved items', () => {

@@ -111,6 +111,7 @@ type MetaEventName = "ViewContent" | "AddToCart" | "InitiateCheckout" | "AddPaym
 type StepState = "active" | "complete" | "locked";
 type AddedNotice = {
   category: CategoryId;
+  productId: string;
   description: string;
 };
 
@@ -652,6 +653,12 @@ export default function Home() {
   const showcaseProduct = cart.length > 0
     ? PRODUCTS.find((product) => product.id === cart[cart.length - 1].productId)
     : null;
+  const justAddedProduct = addedNotice
+    ? PRODUCTS.find((product) => product.id === addedNotice.productId)
+    : null;
+  const addMoreCategories: readonly CategoryId[] = addedNotice?.category === "pipocas"
+    ? ["pipocas", "fatias"]
+    : ["fatias", "pipocas"];
   const cartIssues = useMemo(
     () => cartAvailabilityIssues(cart, availability),
     [availability, cart],
@@ -1003,6 +1010,7 @@ export default function Home() {
 
   function chooseFulfillment(value: string) {
     trackCheckoutStart();
+    setAddedNotice(null);
     setFulfillment(value as Fulfillment);
     setBuilderEngaged(false);
     requestScroll(nextCheckoutSection(value as Fulfillment));
@@ -1067,12 +1075,14 @@ export default function Home() {
         .join(" + ");
       setAddedNotice({
         category: "pipocas",
+        productId: POPCORN.id,
         description: `${popcornQuantity}x Pipoca Gourmet ${popcornVariant.label} · ${flavorNames}`,
       });
     }
-    const destination = wasEditing ? "carrinho" : "item-adicionado";
+    const destination = wasEditing ? "carrinho" : "recebimento";
     clearDraft();
-    window.setTimeout(() => scrollToSection(destination), 50);
+    setBuilderEngaged(false);
+    requestScroll(destination);
   }
 
   function addOrUpdateSlice() {
@@ -1107,10 +1117,11 @@ export default function Home() {
       trackMetaEvent("AddToCart", metaProductPayload(selectedSlice, selectedSliceVariant, sliceQuantity));
       setAddedNotice({
         category: "fatias",
-        description: `${sliceQuantity}x ${productLabel(selectedSlice)}`,
+        productId: selectedSlice.id,
+        description: `${sliceQuantity}x ${productLabel(selectedSlice)} · ${SLICE_OPTIONS.find((option) => option.id === sliceOptionId)?.name ?? "Personalizada"}`,
       });
     }
-    const destination = wasEditing ? "carrinho" : nextCheckoutSection();
+    const destination = wasEditing ? "carrinho" : "recebimento";
     clearDraft();
     setBuilderEngaged(false);
     requestScroll(destination);
@@ -1858,26 +1869,6 @@ export default function Home() {
             </div>
           )}
 
-          {addedNotice && (
-            <div className="added-panel" id="item-adicionado" role="status" aria-live="polite">
-              <span className="added-panel-icon" aria-hidden="true"><Check size={18} strokeWidth={3} /></span>
-              <div className="added-panel-copy">
-                <strong>Adicionado ao pedido</strong>
-                <p>{addedNotice.description}</p>
-              </div>
-              <div className="added-panel-actions">
-                <Button type="button" variant="outline" onClick={() => {
-                  setBuilderEngaged(false);
-                  requestScroll(nextCheckoutSection());
-                }}>Continuar pedido <ChevronRight size={16} aria-hidden="true" /></Button>
-                {categoryIsAvailable(addedNotice.category) && (
-                  <Button type="button" variant="outline" onClick={() => startAnother(addedNotice.category)}>
-                    <Plus size={16} /> {addedNotice.category === "fatias" ? "Adicionar outra fatia" : "Adicionar outra pipoca"}
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       </section>
 
@@ -2031,6 +2022,32 @@ export default function Home() {
             </section>
 
             <section className={`order-card checkout-flow-card step-state-${receivingStepState}`} id="recebimento" aria-labelledby="receiving-title" aria-current={receivingStepState === "active" ? "step" : undefined}>
+              {addedNotice && (
+                <div className="boutique-added-continuity" aria-label="Produto adicionado ao pedido">
+                  <div className="boutique-added-confirmation">
+                    <span className="boutique-added-photo" aria-hidden="true">
+                      {justAddedProduct?.image
+                        ? <img src={justAddedProduct.cardImage ?? justAddedProduct.image} alt="" width="104" height="104" loading="lazy" decoding="async" />
+                        : <ShoppingBag size={24} />}
+                    </span>
+                    <div className="boutique-added-message">
+                      <strong role="status"><Check size={16} aria-hidden="true" /> Adicionado ao pedido</strong>
+                      <p>{addedNotice.description}</p>
+                    </div>
+                  </div>
+                  <div className="boutique-added-other">
+                    <span>Quer adicionar mais alguma coisa?</span>
+                    <div className="boutique-added-other-actions">
+                      {addMoreCategories.filter((category) => categoryIsAvailable(category)).map((category) => (
+                        <Button type="button" key={category} variant="outline" onClick={() => startAnother(category)}>
+                          {category === "pipocas" ? <Plus size={15} aria-hidden="true" /> : <CakeSlice size={15} aria-hidden="true" />}
+                          {category === "pipocas" ? "Outra pipoca" : "Outra fatia"}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="step-heading checkout-step-heading"><StepMarker number={4} state={receivingStepState} /><div><h2 id="receiving-title">Como deseja receber?</h2><p>Escolha a opção mais conveniente.</p></div></div>
               <RadioGroup className="choice-grid" value={fulfillment} onValueChange={chooseFulfillment} aria-label="Forma de recebimento">
                 <label className={`choice-card ${fulfillment === "entrega" ? "is-selected" : ""}`} htmlFor="receive-delivery">

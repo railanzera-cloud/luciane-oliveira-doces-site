@@ -229,3 +229,25 @@ test("Checkout vazio fica visualmente oculto sem remover controle de finalizaç�
   assert.ok(page.includes("finishOnWhatsApp()"));
   assert.ok(page.includes("finishOnSite()"));
 });
+
+
+test("4.2 unifica o pós-adicionar de fatias e pipocas diretamente no recebimento", () => {
+  assert.ok(page.includes('const destination = wasEditing ? "carrinho" : "recebimento";'));
+  assert.equal(page.split('const destination = wasEditing ? "carrinho" : "recebimento";').length - 1, 2);
+  assert.ok(!page.includes('scrollToSection("item-adicionado")'));
+  assert.ok(!page.includes('id="item-adicionado"'));
+  assert.ok(!page.includes('className="added-panel"'));
+  assert.ok(page.includes('requestScroll(destination);'));
+});
+test("4.2 mostra confirmação compacta e mais produtos na mesma área das escolhas de recebimento", () => {
+  assert.ok(page.includes('className="boutique-added-continuity"'));
+  assert.ok(page.includes('className="boutique-added-photo"'));
+  assert.ok(page.includes("justAddedProduct.cardImage ?? justAddedProduct.image"));
+  assert.ok(page.includes("Quer adicionar mais alguma coisa?"));
+  assert.ok(page.includes('onClick={() => startAnother(category)}'));
+  assert.ok(page.includes('id="recebimento"'));
+  assert.ok(page.includes('id="receive-delivery"'));
+  assert.ok(page.includes('id="receive-pickup"'));
+  assert.ok(css.includes(".storefront .boutique-added-other-actions button:focus-visible"));
+  assert.ok(css.includes("@media (max-width: 359px)"));
+});

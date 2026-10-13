@@ -1715,3 +1715,121 @@
 
 /* Só revelar visualmente o checkout após o primeiro item; manter as proteções em DOM. */
 .storefront .checkout-section.is-empty-cart { display: none; }
+
+
+/* Boutique 4.2 — continuação natural da compra: confirma, permite acrescentar e já mostra recebimento. */
+.storefront .boutique-added-continuity {
+  margin: 0 0 21px;
+  padding: 0 0 17px;
+  border-bottom: 1px solid rgba(141, 100, 60, .20);
+}
+.storefront .boutique-added-confirmation {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+.storefront .boutique-added-photo {
+  display: grid;
+  flex: 0 0 56px;
+  width: 56px;
+  height: 60px;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 11px;
+  background: #e6d4bd;
+  color: #775134;
+}
+.storefront .boutique-added-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.storefront .boutique-added-message {
+  min-width: 0;
+  flex: 1;
+}
+.storefront .boutique-added-message > strong {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #276747;
+  font-size: .83rem;
+  font-weight: 780;
+  line-height: 1.3;
+}
+.storefront .boutique-added-message > strong svg { flex: 0 0 16px; }
+.storefront .boutique-added-message p {
+  display: -webkit-box;
+  margin: 4px 0 0;
+  overflow: hidden;
+  color: #725340;
+  font-size: .74rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.storefront .boutique-added-other {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding-top: 13px;
+}
+.storefront .boutique-added-other > span {
+  color: #6c4d35;
+  font-size: .78rem;
+  line-height: 1.3;
+  font-weight: 650;
+}
+.storefront .boutique-added-other-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-left: auto;
+}
+.storefront .boutique-added-other-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 42px;
+  padding: 8px 11px;
+  border: 1px solid #c9a47e;
+  border-radius: 10px;
+  background: #fffcf7;
+  color: #68432b;
+  font-size: .75rem;
+  font-weight: 750;
+  box-shadow: none;
+  white-space: nowrap;
+}
+.storefront .boutique-added-other-actions button:hover {
+  background: #f4e5d1;
+  border-color: #a8774d;
+}
+.storefront .boutique-added-other-actions button:focus-visible {
+  outline: 2px solid #955e36;
+  outline-offset: 2px;
+}
+.storefront #recebimento .checkout-step-heading {
+  margin-top: 0;
+}
+@media (max-width: 479px) {
+  .storefront .boutique-added-other { align-items: flex-start; }
+  .storefront .boutique-added-other-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+  .storefront .boutique-added-other-actions button { flex: 1 1 126px; }
+}
+@media (max-width: 359px) {
+  .storefront .boutique-added-photo { flex-basis: 48px; width: 48px; height: 56px; }
+  .storefront .boutique-added-message p { font-size: .7rem; }
+  .storefront .boutique-added-other-actions button { font-size: .70rem; padding-inline: 7px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront .boutique-added-other-actions button { transition: none !important; animation: none !important; }
+}
