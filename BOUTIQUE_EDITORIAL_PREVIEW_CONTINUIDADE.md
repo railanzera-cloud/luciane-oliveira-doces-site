@@ -34,3 +34,23 @@ O usuário escolheu duas **fotografias específicas**, sem novas gerações nem 
 ZIP de Preview local entregue ao usuário: `Luciane_Vitrine_Fotos_Selecionadas_Preview_Cloudflare.zip`, SHA-256 `757ecbad494e9eaae8b947593449e2c97c9c761f3ad72473bc4d281222476d62`, 55 arquivos, ZIP íntegro.
 
 A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`. Validar a composição no Safari iPhone antes de publicar produção. Não alterar compras, checkout, Supabase, pagamentos, rastreamento ou Boutique 4.6 do Work.
+
+
+## Editorial v7 — cards compactos e fotografias definitivas (13/10/2026)
+
+**Implementação de CSS:** commit `dd5866f41f10367cf49a01d5c9ca881e479b3c07` na branch experimental. CI `38395752275` aprovado (build, TypeScript e testes). Único arquivo de código alterado: `app/storefront-vitrine-editorial-experiment.css`. Nenhuma mudança nas regras comerciais, Boutique 4.6, Supabase ou produção.
+
+**Direção visual da referência aprovada:**
+- Reduzir altura mobile dos cards de 190px para 180px (190px nas telas até 359px), gap de 10px; fotografia à esquerda 49%, legenda à direita 51% no mobile padrão.
+- Manter cores da marca; superfície de legenda um pouco mais profunda, textos creme/cobre e ações originais.
+- Pipoca em `object-fit:cover` com ajuste delicado de intensidade para remover barras cinzas e integração artificial; fatia em `cover`, sem retoque.
+- Fotos **definitivas enviadas pelo usuário**: pote com dois recheios e mão segurando, em cenário quente; fatia de chocolate com creme e morangos no prato branco, sem calda adicional por cima. Não substituir por imagens geradas.
+- Verificação visual isolada de card com Chromium local (`page.set_content`, viewports 320, 375, 390 e 430 CSS px) verificou dimensões e títulos sem overflow. Não equivale a homologação do site real no Safari; navegação HTTP local segue bloqueada pelo ambiente.
+
+**Artefato Preview Cloudflare pronto no container:** `Luciane_Editorial_v7_Preview_iPhone_Cloudflare.zip` extraído do build aprovado no commit `dd5866f` (apenas os dois arquivos binários finalizados substituídos/adicionados, sem alterações nos demais arquivos compilados). ZIP testado com sucesso; 50 arquivos, SHA-256 `693835d8268027fc5fce27b25a52454a650540713a242364be25e63fb5181f93`.
+- `images/categoria-pipocas-editorial.webp`: WebP 1000x750, 53.154 bytes, SHA-256 `afd6c925dc273ffc9b5ab04713af10154cc905b1932315494608ee50e57cb8df`.
+- `images/categoria-fatias-editorial.webp`: WebP 900x900, 93.846 bytes, SHA-256 `83ae67d03cf683a62a000b812cc3ff4f22571bca84707a4af84ba3269bcc2286`.
+
+**Sincronização de binários pendente no GitHub:** o conector disponível consegue gravar textos, mas não publicou os dois WebP binários. `public/images/categoria-pipocas-editorial.webp` continua ausente; `public/images/categoria-fatias-editorial.webp` continua com uma versão antiga. O ZIP experimental acima **contém os dois arquivos novos corretamente**, mas um rebuild do repositório sem sincronização das fotos NÃO reproduz o Preview. Não declarar essa sincronização como concluída. A próxima ação de GitHub deve adicionar/substituir EXATAMENTE esses arquivos com os hashes indicados; depois repetir build/testes.
+
+**Próxima homologação:** fazer deploy apenas de Preview Cloudflare após autorização operacional; comparar composição inteira no Safari iPhone com o print aprovado, confirmar legibilidade, cortes, ações e ausência de faixa cinza. **Não publicar produção nem mesclar.**
