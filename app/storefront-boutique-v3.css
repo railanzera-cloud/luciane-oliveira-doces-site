@@ -1848,7 +1848,3 @@
   background-clip: border-box;
   border-radius: 50%;
 }
-/* A amostra continua visualmente circular mesmo em listas compactas. */
-@media (max-width: 359px) {
-  .storefront .flavor-tone { border: 0; box-shadow: none; }
-}
