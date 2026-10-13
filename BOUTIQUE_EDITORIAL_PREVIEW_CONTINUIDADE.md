@@ -198,3 +198,15 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - As imagens `edicao-crocante-ninho.webp` e `edicao-crocante-chocolate.webp` vieram dos dois arquivos fornecidos nesta conversa, sem regeneração. Usar no Preview. Arquivos binários ainda exigem sincronização GitHub; não contar com o build puro para imagens sem os assets.
 - A campanha continua **sem pedido antecipado** e sem integração dos copos ao carrinho. O relógio de campanha não libera vendas por data: integrar comercialmente, confirmar estoque e homologar no Safari antes da disponibilidade.
 - Não alterar preço/catálogo existente, pagamentos, WhatsApp, Supabase, outra branch Boutique 4.6, ou produção.
+
+
+### Edição crocante v4 — CI e imagens duplas (13/10/2026)
+
+- Commit principal: `736db0ceb37a5f88c2875c3850617081cb947290`.
+- GitHub Actions **38440433448**, resultado **success** em build, TypeScript, suíte completa e ZIP. Artefato de CI **11835445901**.
+- ZIP de teste: `Luciane_Edicao_Crocante_v4_Preview_Cloudflare.zip`, **53 arquivos**, **2.933.309 bytes**, SHA-256 `942693b77fc4c093226d693a842d53f2c18493711350bb9d26611bf2ebb5b2c5`. CRC íntegro; imagens WebP decodificáveis.
+- Imagens da v4: `edicao-crocante-ninho.webp` e `edicao-crocante-chocolate.webp` (ambas fornecidas pelo cliente, redimensionadas a 540×960); `edicao-crocante-textura.webp` virou miniatura secundária. Home mostra Ninho/Chocolate simultaneamente e ação sublinhada com seta. Retirados os antigos três copos do teaser.
+- O ZIP foi montado sobre o artefato de CI acrescentando as duas novas fotos e três WebP editoriais já aprovados. **Todos os demais arquivos de build permaneceram byte a byte idênticos ao CI.**
+- Arquivos binários dos produtos ainda **não estão commitados no GitHub** e precisam ser sincronizados antes de depender de builds novos da branch; o Preview ZIP contém as imagens definitivas.
+- Tentativa de inspeção por Chromium local travou/bloqueou no ambiente e não produziu screenshot. O resultado visual final depende da homologação no Safari; nenhum deploy de produção executado.
+- Ainda não foi integrado o produto temporário ao carrinho nem ao estoque real. A campanha continua informativa, sem vendas antecipadas. Manter bloqueio até autorização e validação. Boutique 4.6 intocada.
