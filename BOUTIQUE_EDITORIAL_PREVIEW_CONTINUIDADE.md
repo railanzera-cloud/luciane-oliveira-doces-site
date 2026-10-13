@@ -252,3 +252,12 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - Histórico de navegação: `history.pushState` preserva entradas entre categorias e edição, marcando `lucianeCrocante` no estado; `popstate` restaura o modo e solicita salto para a seção. Não criar links externos, reservas ou pedidos antecipados.
 - Mantida a experiência v6: card tradicional vai direto a tamanhos, lançamento isolado do configurador, botão secundário da campanha vai para escolha de tamanho, barra flutuante fica fora da edição.
 - Validar no Safari especialmente navegação Voltar do navegador, preservação do carrinho e foco do título. Não alterar produção, backend, Supabase, pagamentos ou Boutique 4.6.
+
+
+### V7 — pacote de homologação Safari e CI aprovado (13/10/2026)
+- Commit de implementação testado: `e22633a0e235026197f91c856c653f520927c669`.
+- GitHub Actions [38462236177](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/38462236177): **success**, incluindo build, TypeScript, suíte completa e empacotamento.
+- Artefato CI `11846735861`; pacote Preview `Luciane_Pipocas_Crocantes_v7_Preview_Safari_Cloudflare.zip`, **53 arquivos**, **3.108.355 bytes** e SHA-256 `64be93b65d89eac03d6f0b5207aa73c03c834f2e06410c77f7858826437bb9d8`.
+- ZIP construído do CI compilado, com cinco fotografias WebP conservadas da versão v6: duas categorias, Ninho, Chocolate e textura. CRC, entradas únicas, decode das imagens e textos do bundle conferidos. Novo nome **Pipocas Crocantes** aparece no bundle; antigo título não aparece.
+- **Homologação visual em Safari e teste real do histórico continuam pendentes.** Corrigimos o contorno programático do título em CSS, sem eliminar foco visual dos botões.
+- **Importante:** os WebPs da campanha ainda estão no ZIP Preview, mas não todos versionados na branch GitHub. Builds limpos não são reproduzíveis até subir esses binários. Não publicar produção automaticamente, não mesclar Boutique 4.6.
