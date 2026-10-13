@@ -154,3 +154,35 @@ test("Selo da fatia não cobre o valor; cartões mantêm preços e feedback vis�
   assert.ok(page.includes('className="boutique-flavor-value"'));
   assert.ok(css.includes("@media (max-width: 430px)"));
 });
+
+
+test("Boutique 4.0 preserva escolhas e monta vitrine mais editorial", () => {
+  assert.ok(css.includes("BOUTIQUE 4.0"));
+  assert.ok(page.includes('className="boutique-category-edition"'));
+  assert.ok(page.includes('className="slice-grid"'));
+  assert.ok(page.includes("popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime)"));
+  assert.ok(css.includes(".storefront .slice-media {"));
+  assert.ok(css.includes("aspect-ratio: 1 / .92"));
+  assert.ok(css.includes(".storefront .flavor-card.is-selected"));
+  assert.ok(css.includes(".storefront .flavor-card:focus-within"));
+  assert.ok(css.includes("@media (prefers-reduced-motion: reduce)"));
+});
+test("Boutique 4.0 resume detalhes sem esconder totais nem perder edicao", () => {
+  assert.ok(page.includes('className="boutique-order-recap" open={cartIssues.length > 0}'));
+  assert.ok(page.includes("Toque para conferir ou editar"));
+  assert.ok(page.includes("cart.map((item, index) =>"));
+  assert.ok(page.includes("editItem(item)"));
+  assert.ok(page.includes('className="summary-row summary-total"'));
+  assert.ok(page.includes("cardQuote.feeCents / 100"));
+  assert.ok(page.includes("onClick={handleFinalAction}"));
+  assert.ok(page.includes("onClick={handleStickyAction}"));
+});
+test("Design de atelier não toca admin, catalogo, checkout comercial ou rastreamento", () => {
+  assert.ok(!css.includes(".admin-"));
+  assert.ok(!css.includes(":root {"));
+  assert.ok(!css.includes("@import"));
+  assert.ok(page.includes("finishOnWhatsApp()"));
+  assert.ok(page.includes("finishOnSite()"));
+  assert.ok(page.includes("checkoutFingerprint"));
+  assert.ok(page.includes("onClick={() => removeItem(item.id)}"));
+});

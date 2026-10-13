@@ -1522,6 +1522,7 @@ export default function Home() {
                   const cover = category.id === "pipocas" ? POPCORN : SLICES.find((slice) => sliceIsVisible(slice.id));
                   return (
                     <button type="button" className="category-option" disabled={!available} key={category.id} onClick={() => selectCategory(category.id)} aria-label={`${category.name}${available ? "" : " — Esgotado"}`}>
+                      <span className="boutique-category-edition" aria-hidden="true">{category.id === "pipocas" ? "01 · Atelier Gourmet" : "02 · Fatias da Casa"}</span>
                       <span className="category-option-media">
                         {cover?.image && <img src={cover.cardImage ?? cover.image} alt="" width="640" height="480" loading="eager" decoding="async" fetchPriority={category.id === "pipocas" ? "high" : "auto"} />}
                       </span>
@@ -1552,10 +1553,10 @@ export default function Home() {
         <div className="page-shell builder-shell">
           <div className="section-intro">
             <p className="eyebrow">Seu pedido, do seu jeito</p>
-            <h2>{activeCategory === "pipocas" ? "Monte em poucos passos" : "Escolha sua fatia"}</h2>
+            <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : "Sua vitrine de sabores."}</h2>
             <p>{activeCategory === "pipocas"
-              ? "Escolha o tamanho, os sabores da sua pipoca e a quantidade."
-              : "Monte uma combinação por vez. Depois, você pode adicionar outra fatia com um sabor diferente."}</p>
+              ? "Um tamanho, seus sabores favoritos. Tudo do seu jeito."
+              : "Escolha sua fatia favorita. Depois, você pode adicionar outras."}</p>
             {visibleCategories.filter((category) => category.id !== activeCategory).map((category) => (
               <button type="button" className="category-text-link" key={category.id}
                 disabled={!categoryIsAvailable(category.id)} onClick={() => selectCategory(category.id)}>
@@ -1772,7 +1773,7 @@ export default function Home() {
                         <span className="slice-card-copy">
                           <span className="boutique-slice-card-title">
                             <strong>{slice.name}</strong>
-                            {selected && available && <span className="boutique-slice-selected-label">Sua escolha</span>}
+                            {selected && available && <span className="boutique-slice-selected-label">Selecionada</span>}
                           </span>
                           {slice.subtitle && <em>{slice.subtitle}</em>}
                           <span className="boutique-slice-card-footer">
@@ -1910,11 +1911,11 @@ export default function Home() {
       <section className="checkout-section" id="carrinho">
         <div className="page-shell">
           <header className="boutique-checkout-intro">
-            <p className="eyebrow">Seu pedido está tomando forma</p>
-            <h2>{cart.length > 0 ? "Seu pedido, quase pronto." : "Tudo se organiza aqui."}</h2>
+            <p className="eyebrow">Mais perto do seu momento doce</p>
+            <h2>{cart.length > 0 ? "Agora, os últimos detalhes." : "Sua escolha começa aqui."}</h2>
             <p>{cart.length > 0
-              ? "Confira suas escolhas e diga como prefere receber. Sem passos desnecessários."
-              : "Assim que adicionar um produto, você poderá conferir e finalizar seu pedido aqui."}</p>
+              ? "Confira, escolha como receber e finalize."
+              : "Adicione um produto para montar seu pedido."}</p>
           </header>
           {cart.length > 0 && (
             <nav className="boutique-checkout-progress" aria-label="Navegue pelas etapas do pedido">
@@ -1937,7 +1938,7 @@ export default function Home() {
           <div className="checkout-main">
             <section className="order-card" aria-labelledby="cart-title">
               <div className="order-card-heading">
-                <div><p className="eyebrow">Carrinho</p><h2 id="cart-title">Seu pedido</h2></div>
+                <div><p className="eyebrow">01 · Suas escolhas</p><h2 id="cart-title">O que vai no pedido</h2></div>
                 {cart.length > 0 && <span className="cart-count">{cartItemCount} {cartItemCount === 1 ? "item" : "itens"}</span>}
               </div>
               {cart.length === 0 ? (
@@ -2165,11 +2166,19 @@ export default function Home() {
           </div>
 
           <aside className="summary-card" aria-labelledby="summary-title">
-            <p className="eyebrow">Tudo em um só lugar</p><h2 id="summary-title">Resumo do pedido</h2>
-            <p className="boutique-summary-lead">Itens, recebimento e pagamento, antes de finalizar.</p>
+            <p className="eyebrow">Sua conferência final</p><h2 id="summary-title">Pronto para finalizar?</h2>
+            <p className="boutique-summary-lead">Confira o total e os detalhes antes de enviar.</p>
             {cart.length > 0 && checkoutChannel !== "whatsapp" && <p className="order-code">O número do pedido será mostrado após a confirmação.</p>}
             <div className="summary-content">
-              {cart.length === 0 ? <p className="summary-empty">Os produtos adicionados aparecerão aqui.</p> : cart.map((item, index) => {
+              {cart.length === 0 ? <p className="summary-empty">Os produtos adicionados aparecerão aqui.</p> : (
+                <details className="boutique-order-recap" open={cartIssues.length > 0}>
+                  <summary>
+                    <span className="boutique-recap-symbol" aria-hidden="true"><ShoppingBag size={17} /></span>
+                    <span className="boutique-recap-label"><strong>{cartItemCount} {cartItemCount === 1 ? "item escolhido" : "itens escolhidos"}</strong><small>Toque para conferir ou editar</small></span>
+                    <ChevronDown size={18} aria-hidden="true" />
+                  </summary>
+                  <div className="boutique-recap-items">
+                    {cart.map((item, index) => {
                 const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
                 const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
                 const itemIssue = cartIssues.find((issue) => issue.cartItemId === item.id);
@@ -2193,7 +2202,10 @@ export default function Home() {
                     </div>
                   </div>
                 );
-              })}
+                    })}
+                  </div>
+                </details>
+              )}
               <div className="summary-row"><span>Produtos</span><strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(cartSubtotal)}</strong></div>
               {fulfillment === "entrega" && selectedDeliveryZone && (
                 <div className="summary-row summary-delivery"><span>Taxa de entrega</span><strong>{currency.format(deliveryFee)}</strong></div>
