@@ -285,3 +285,18 @@ test("foto clara das Pipocas Gourmet fica restrita à vitrine inicial", async ()
   assert.ok(page.includes('category.id === "fatias" ? "/images/categoria-fatias-editorial.webp"'));
   assert.ok(css.includes('background: #d4a988;'));
 });
+
+test("cartoes v10: pote enquadrado com respiro e painel chocolate profundo", () => {
+  const v10 = css.slice(css.lastIndexOf("Cartoes editoriais v10"));
+  assert.ok(v10.includes("object-position: 50% 12%"));
+  assert.ok(v10.includes("linear-gradient(145deg, #482d22"));
+  assert.ok(v10.includes("filter: none"));
+  assert.ok(!v10.includes(".menu-entry.has-category"));
+});
+
+test("pipocas usam rolagem suave com respeito ao movimento reduzido; crocantes mantem salto", () => {
+  assert.ok(page.includes('if (id === "tamanhos" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches)'));
+  assert.ok(page.includes('window.scrollTo({ top, behavior: "smooth" })'));
+  assert.ok(page.includes('window.scrollTo({ top, behavior: "instant" })'));
+  assert.ok(page.includes('className="limited-cup-teaser-shot is-ninho"'));
+});
