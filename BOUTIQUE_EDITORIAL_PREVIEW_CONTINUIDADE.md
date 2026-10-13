@@ -77,3 +77,15 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - Pendência: dois WebP definitivos continuam apenas no ZIP de Preview; antes de declarar que o GitHub está reproduzível, comparar hashes e sincronizar os arquivos.
 - Aprovação visual completa só após Safari no iPhone. Não publicar produção.
 
+
+### Build e Preview v8 validados
+
+- Commit de implementação: `ce678fa00ccebe2dfd8f07e95f1e1998656acbd3`.
+- GitHub Actions: execução **38398886837**, status **success** (build, TypeScript, testes e pacote Cloudflare).
+- Artefato CI: `11814881448`. O ZIP de homologação foi reempacotado a partir deste build, substituindo exclusivamente as duas imagens da categoria já escolhidas.
+- Pacote Preview: `Luciane_Editorial_v8_Preview_iPhone_Cloudflare.zip`, **50 arquivos**, 2.663.846 bytes, SHA-256 **c19f51fada251927032ec700c270a484e28f0fcb201ca1626c84307b74c84528**.
+- WebP pipoca: 1000x750, SHA-256 `afd6c925dc273ffc9b5ab04713af10154cc905b1932315494608ee50e57cb8df`.
+- WebP fatia: 900x900, SHA-256 `83ae67d03cf683a62a000b812cc3ff4f22571bca84707a4af84ba3269bcc2286`.
+- Verificações extras: integridade do ZIP, presença de `index.html`, `admin/index.html`, `pedido/index.html` e recursos esperados, CSS v8 e relógio compilados, imagens WebP decodificáveis, nenhum arquivo do CI alterado fora das duas fotografias. Teste Chromium em composição isolada com larguras **320, 375, 390 e 430 px**, sem rolagem horizontal e com ações visíveis. **A página inteira ainda depende de homologação Safari no iPhone.**
+- **Ainda pendente:** sincronizar as duas imagens binárias com GitHub. O ZIP atual serve para Preview, mas o build puro do CI não reproduz as imagens definitivas.
+- **Não publicar produção**. Não alterar Boutique 4.6, checkout, Supabase, pagamentos ou rastreamento.
