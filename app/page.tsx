@@ -1691,7 +1691,7 @@ export default function Home() {
                   <div className="boutique-flavor-stage">
                     {POPCORN.image && (
                       <span className="boutique-flavor-stage-media" aria-hidden="true">
-                        <img src="/images/categoria-pipocas-editorial.webp" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = POPCORN.cardImage ?? POPCORN.image; }} alt="" width="1000" height="750" loading="lazy" decoding="async" />
+                        <img src="/images/categoria-pipocas-editorial.webp" onError={(event) => { event.currentTarget.onerror = null; const fallback = POPCORN.cardImage ?? POPCORN.image; if (fallback) event.currentTarget.src = fallback; }} alt="" width="1000" height="750" loading="lazy" decoding="async" />
                       </span>
                     )}
                     <div className="boutique-flavor-stage-content">
