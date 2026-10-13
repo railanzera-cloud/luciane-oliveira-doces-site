@@ -1564,6 +1564,12 @@ export default function Home() {
             )}
           </div>
           {!activeCategory && <p className="delivery-note"><Truck size={16} aria-hidden="true" /> Entrega a partir de R$8 ou retirada em Paragominas</p>}
+          {!activeCategory && hasResolvedAvailability && (
+            <button className="limited-cup-teaser" type="button" onClick={() => selectCategory("pipocas")} disabled={!categoryIsAvailable("pipocas")}>
+              <span className="limited-cup-teaser-mark">EDIÇÃO LIMITADA · ESTREIA 16/10</span>
+              <span className="limited-cup-teaser-copy"><strong>O lado crocante da Luciane.</strong><span>Dois sabores especiais em copo · Conhecer <ChevronRight size={15} aria-hidden="true" /></span></span>
+            </button>
+          )}
           {!hasResolvedAvailability ? (
             <div className="entry-loading" role="status">Carregando cardápio…</div>
           ) : !activeCategory && (
@@ -1617,6 +1623,21 @@ export default function Home() {
       {activeCategory && (
       <section className="builder-section" id="configurador">
         <div className="page-shell builder-shell">
+          {activeCategory === "pipocas" && (
+            <aside className="limited-cup-story" aria-label="Prévia da edição limitada de pipocas no copo">
+              <div className="limited-cup-story-head">
+                <span className="limited-cup-story-kicker">EDIÇÃO LIMITADA · SEXTA, 16/10</span>
+                <h2>O lado crocante da Luciane.</h2>
+                <p>Pipocas redondinhas, caramelizadas até ficarem crocantes e finalizadas com sabores especiais.</p>
+              </div>
+              <div className="limited-cup-story-facts"><span>400 ml · 190 g</span><span>R$ 15,90 por copo</span></div>
+              <div className="limited-cup-story-flavors">
+                <div><strong>Caramelo com Leite Ninho</strong><span>Caramelo crocante, finalizado com leite em pó.</span></div>
+                <div><strong>Caramelo com Chocolate</strong><span>Caramelo crocante com cobertura de chocolate.</span></div>
+              </div>
+              <p className="limited-cup-story-note">Prévia de lançamento. Esta edição em copo não terá reposição após o fim do estoque. Os pedidos ainda não estão liberados.</p>
+            </aside>
+          )}
           <div className="section-intro">
             <p className="eyebrow">Seu pedido, do seu jeito</p>
             <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : "Sua vitrine de sabores."}</h2>

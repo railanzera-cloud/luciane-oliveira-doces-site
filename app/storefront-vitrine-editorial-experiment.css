@@ -755,3 +755,88 @@
   .storefront #sabores .boutique-flavor-impact { font-size: .65rem; padding: 5px 7px; }
   .storefront #sabores .boutique-flavor-value { gap: 6px 8px; }
 }
+
+
+/* Pré-lançamento da edição crocante: anúncio editorial, sem compra antecipada.
+ * Somente tela inicial e topo de Pipocas; não toca carrinho, checkout ou preços. */
+.storefront .limited-cup-teaser {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  margin: 8px 0 12px;
+  padding: 10px 14px;
+  text-align: left;
+  color: #f6e5cc;
+  border: 1px solid rgba(221,164,106,.55);
+  border-radius: 16px;
+  background: linear-gradient(105deg,#4b3023 0%,#352118 64%,#261813 100%);
+  box-shadow: 0 8px 22px rgba(0,0,0,.22);
+  cursor: pointer;
+}
+.storefront .limited-cup-teaser-mark, .storefront .limited-cup-story-kicker {
+  color: #f2bf81;
+  letter-spacing: .12em;
+  font-size: .6rem;
+  font-weight: 750;
+}
+.storefront .limited-cup-teaser-copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.storefront .limited-cup-teaser-copy strong {
+  font-family: Georgia,serif;
+  font-weight: 500;
+  font-size: clamp(.98rem,3.2vw,1.24rem);
+}
+.storefront .limited-cup-teaser-copy > span {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  color: #e5c4a5;
+  font-size: .7rem;
+}
+.storefront .limited-cup-teaser:focus-visible { outline: 3px solid #edc28e; outline-offset: 3px; }
+.storefront .limited-cup-teaser:disabled { cursor: not-allowed; opacity: .6; }
+.storefront .limited-cup-story {
+  margin: 0 0 24px;
+  padding: clamp(16px,4vw,28px);
+  border: 1px solid rgba(225,173,111,.48);
+  border-radius: 21px;
+  color: #f6e6d3;
+  background: radial-gradient(ellipse at 95% 0%, rgba(177,112,64,.18), transparent 55%), linear-gradient(150deg,#482c20,#251710);
+  box-shadow: 0 18px 32px rgba(0,0,0,.25);
+}
+.storefront .limited-cup-story h2 {
+  margin: 7px 0 8px;
+  font-family: Georgia,serif;
+  font-size: clamp(1.6rem,6vw,2.4rem);
+  font-weight: 500;
+  line-height: 1.08;
+}
+.storefront .limited-cup-story-head p { max-width: 55ch; color: #e8d4bd; line-height: 1.5; }
+.storefront .limited-cup-story-facts {
+  display:flex; flex-wrap:wrap; gap:8px; margin: 15px 0;
+}
+.storefront .limited-cup-story-facts span {
+  border: 1px solid rgba(235,178,121,.46);
+  border-radius: 999px; padding: 7px 11px; font-size: .8rem;
+}
+.storefront .limited-cup-story-flavors {
+  display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px;
+}
+.storefront .limited-cup-story-flavors > div {
+  display:flex; flex-direction:column; gap: 5px;
+  border: 1px solid rgba(219,163,115,.25); border-radius: 13px;
+  background: rgba(55,32,23,.8); padding: 12px;
+}
+.storefront .limited-cup-story-flavors strong { font-weight: 650; color: #ffe4c0; }
+.storefront .limited-cup-story-flavors span { font-size: .8rem; line-height:1.4; color:#e2c9b0; }
+.storefront .limited-cup-story-note { margin: 14px 0 0; color: #dcbf9f; font-size: .79rem; line-height: 1.5; }
+@media (max-width: 359px) {
+  .storefront .limited-cup-teaser { padding: 9px 11px; }
+  .storefront .limited-cup-story-flavors { grid-template-columns: 1fr; }
+}

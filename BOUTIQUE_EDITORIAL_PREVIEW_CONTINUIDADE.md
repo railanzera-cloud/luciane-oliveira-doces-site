@@ -146,3 +146,10 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - Foi sobreposto ao build CI somente o WebP de fatias (93.846 bytes) e acrescentado o WebP de pipocas (53.154 bytes), ambos vindos do Preview v9 aprovado e conferidos por SHA-256.
 - Os valores, promoções e limitações comerciais são os originais; teste visual final deve ocorrer no Safari do iPhone, conferindo exemplos de 500 ml e combinações como Leitinho + Nutella. O ZIP foi **preparado, não publicado em produção**.
 - Ainda pendente sincronizar os dois WebP binários definitivos no GitHub; até lá o CI limpo usa foto original do catálogo via fallback e requer montagem de ZIP para a aparência aprovada.
+
+## Campanha "O lado crocante da Luciane" — prévia técnica 13/10/2026
+- Destaque compacto na home que leva a Pipocas Gourmet; bloco editorial interno para explicar os dois sabores.
+- Edição limitada em copo: 400 ml, 190 g, R$ 15,90, estreia planejada para sexta 16/10/2026.
+- Conteúdo somente de divulgação. **Não há produto novo no carrinho, botão Adicionar, pedido antecipado ou estoque prometido**.
+- Arte final fotográfica dos copos ainda pendente de inclusão na branch: manter a simulação fora do site até confirmar foto real ou representação revisada. Foto macro da pipoca servirá de apoio secundário.
+- Antes de publicar: confirmar disponibilidade verdadeira por sabor, integração com carrinho/checkout/estoque, e comportamento visual no Safari; nunca publicar automaticamente. Preservar Boutique 4.6.

@@ -188,3 +188,15 @@ test("barra móvel respeita digitação e telas estreitas sem modificar a ação
   assert.ok(page.includes("inlineBuilderActionVisible"));
 });
 
+test("lançamento crocante aparece sem venda antecipada ou terceira categoria", () => {
+  assert.ok(page.includes('className="limited-cup-teaser"'));
+  assert.ok(page.includes('onClick={() => selectCategory("pipocas")}'));
+  assert.ok(page.includes('activeCategory === "pipocas" && ('));
+  assert.ok(page.includes('className="limited-cup-story"'));
+  assert.ok(page.includes("Caramelo com Leite Ninho"));
+  assert.ok(page.includes("Caramelo com Chocolate"));
+  assert.ok(page.includes("R$ 15,90 por copo"));
+  assert.ok(page.includes("Os pedidos ainda não estão liberados."));
+  assert.ok(!page.includes('selectCategory("copo")'));
+  assert.ok(css.includes(".limited-cup-teaser:focus-visible"));
+});
