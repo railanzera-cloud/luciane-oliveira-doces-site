@@ -204,8 +204,8 @@ test("lançamento crocante aparece sem venda antecipada ou terceira categoria", 
   assert.ok(css.includes(".limited-cup-teaser:focus-visible"));
 });
 
-test("v2 de lançamento exige três condições para anunciar disponibilidade", () => {
-  const cfg = readFileSync(resolve(process.cwd(), "app/limited-cup-release.ts"), "utf8");
+test("v2 de lançamento exige três condições para anunciar disponibilidade", async () => {
+  const cfg = await readFile(new URL("../app/limited-cup-release.ts", import.meta.url), "utf8");
   assert.ok(cfg.includes("orderingIntegrated: false"));
   assert.ok(cfg.includes("salesApprovedByStore: false"));
   assert.ok(cfg.includes("inventoryVerifiedAvailable: false"));
