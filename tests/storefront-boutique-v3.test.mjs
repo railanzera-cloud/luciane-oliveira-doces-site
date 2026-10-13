@@ -32,16 +32,15 @@ test("grade de fatias valoriza foto e coloca indisponíveis depois sem alterar c
   assert.ok(css.includes(".storefront .slice-card.is-unavailable"));
 });
 
-test("preço do sabor é o do pote COM a combinação atual e não um sabor isolado", () => {
+test("preços do pote por sabor e da combinação ficam claros sem alterar pricing", () => {
   assert.ok(page.includes("const currentPotPrice = popcornVariantUsable && popcornVariant"));
-  assert.ok(page.includes("popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime)"));
   assert.ok(page.includes("selected ? popcornOptionIds : [...popcornOptionIds, option.id]"));
+  assert.ok(page.includes("const flavorPotPrice = popcornVariantUsable && popcornVariant"));
+  assert.ok(page.includes("popcornPrice(popcornVariant.id, [option.id], promotionTime)"));
   assert.ok(page.includes("const priceDifference = currentPotPrice !== null && potPriceWithOption !== null"));
-  assert.ok(page.includes("currency.format(potPriceWithOption)"));
-  assert.ok(page.includes("priceDifference > 0 ?"));
-  assert.ok(page.includes("Mantém o preço"));
-  assert.ok(page.includes("Se incluir"));
-  assert.ok(!page.includes('popcornPrice(popcornVariant.id, [option.id], promotionTime)'));
+  assert.ok(page.includes("currency.format(flavorPotPrice ?? potPriceWithOption)"));
+  for (const phrase of ["Preço base do pote","Preço atual do pote","Preço do pote com este sabor","Pote fica ","Total não muda","Mesmo preço na promoção"]) assert.ok(page.includes(phrase));
+  assert.ok(!page.includes("Se incluir"));
   assert.ok(page.includes("togglePopcornOption(option)"));
   assert.ok(page.includes("popcornPromotionActive"));
 });
@@ -96,6 +95,8 @@ test("Boutique 3.1 usa foto real do catálogo e mostra preço vivo no estágio d
   assert.ok(page.includes('className="boutique-flavor-stage"'));
   assert.ok(page.includes("POPCORN.cardImage ?? POPCORN.image"));
   assert.ok(page.includes('className="boutique-flavor-stage-media"'));
+  assert.ok(page.includes('src="/images/categoria-pipocas-editorial.webp"'));
+  assert.ok(page.includes("event.currentTarget.onerror = null"));
   assert.ok(page.includes("currency.format(popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime))"));
   assert.ok(css.includes(".storefront .boutique-flavor-stage"));
   assert.ok(css.includes(".storefront .boutique-slice-preview img"));

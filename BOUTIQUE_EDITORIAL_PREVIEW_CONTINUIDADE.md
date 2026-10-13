@@ -128,3 +128,11 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - Barra inferior: ocultação durante foco em entrada de texto em dispositivo touch, sem alterar campos rádio, handlers, checkout ou imagem da vitrine; otimização horizontal para até 359px.
 - O navegador isolado do ambiente não concluiu o teste de foco no teclado; **homologação no Safari com teclado é obrigatória**. O CI não comprova comportamento do teclado iOS.
 - Não publicar produção automaticamente. Sincronização dos dois WebP originais com GitHub ainda pendente; arquivo definitivo correto já está no ZIP.
+
+## Configurador de pipoca — clareza comercial (13/10/2026)
+
+- Reforça preço base versus preço atual do pote; em cada sabor mostra valor do pote com aquele sabor, e distintivo mostra efeito da combinação. Removidos símbolos +R$ que pareciam taxa extra.
+- Fonte única de valores permanece `popcornPrice`, dinâmica para 500/750/1L, promoções e limites. Nenhum produto, regra, pagamento, pedido ou Supabase foi alterado.
+- A imagem interna usa `/images/categoria-pipocas-editorial.webp`, com fallback para foto do catálogo. Para manter a imagem aprovada no Preview, sobrepor o WebP do ZIP v9 anterior; sincronização de imagens binárias no GitHub segue pendente.
+- Realce visual da seleção do sabor e legibilidade dos valores; botão flutuante e fluxo comercial preservados.
+- Testes / CI e homologação Safari são necessários antes de promover. Manter distância da Boutique 4.6 e não publicar produção automaticamente.

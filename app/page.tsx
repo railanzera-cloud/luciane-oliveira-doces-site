@@ -1691,19 +1691,19 @@ export default function Home() {
                   <div className="boutique-flavor-stage">
                     {POPCORN.image && (
                       <span className="boutique-flavor-stage-media" aria-hidden="true">
-                        <img src={POPCORN.cardImage ?? POPCORN.image} alt="" width="320" height="420" loading="lazy" decoding="async" />
+                        <img src="/images/categoria-pipocas-editorial.webp" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = POPCORN.cardImage ?? POPCORN.image; }} alt="" width="1000" height="750" loading="lazy" decoding="async" />
                       </span>
                     )}
                     <div className="boutique-flavor-stage-content">
                       <span className="boutique-flavor-stage-kicker">Seu pote · {popcornVariant.label}</span>
                       <div className="boutique-price-guide" aria-live="polite" aria-atomic="true">
                         <div className="boutique-price-guide-copy">
-                          <span>{popcornOptionIds.length > 0 ? "Valor da combinação" : "Valor inicial"}</span>
+                          <span>{popcornOptionIds.length > 0 ? "Preço atual do pote" : "Preço base do pote"}</span>
                           <strong>{currency.format(popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime))}</strong>
                         </div>
                         <p>{popcornPromotionActive
-                          ? "Promoção: o preço não muda com os sabores."
-                          : "O sabor mais caro define o valor do pote."}</p>
+                          ? "Na promoção, a combinação mantém o mesmo preço."
+                          : "O preço varia por sabor. Ao combinar, vale o sabor de maior valor."}</p>
                       </div>
                     </div>
                   </div>
@@ -1721,6 +1721,8 @@ export default function Home() {
                     const potPriceWithOption = popcornVariantUsable && popcornVariant
                       ? popcornPrice(popcornVariant.id, selected ? popcornOptionIds : [...popcornOptionIds, option.id], promotionTime)
                       : null;
+                    const flavorPotPrice = popcornVariantUsable && popcornVariant
+                      ? popcornPrice(popcornVariant.id, [option.id], promotionTime) : null;
                     const priceDifference = currentPotPrice !== null && potPriceWithOption !== null
                       ? Math.max(0, potPriceWithOption - currentPotPrice) : 0;
                     return (
@@ -1736,13 +1738,19 @@ export default function Home() {
                         <span className="boutique-flavor-value">
                           {potPriceWithOption !== null && (
                             <span className="boutique-flavor-cost">
-                              <strong>{currency.format(potPriceWithOption)}</strong>
-                              <small>{selected ? "Valor atual" : "Se incluir"}</small>
+                              <strong>{currency.format(flavorPotPrice ?? potPriceWithOption)}</strong>
+                              <small>Preço do pote com este sabor</small>
                             </span>
                           )}
                           {!selected && !disabled && potPriceWithOption !== null && (
                             <span className={`boutique-flavor-impact ${priceDifference > 0 ? "has-increase" : "is-same"}`}>
-                              {priceDifference > 0 ? `+${currency.format(priceDifference)} no pote` : "Mantém o preço"}
+                              {priceDifference > 0
+                                ? `Pote fica ${currency.format(potPriceWithOption)}`
+                                : popcornPromotionActive
+                                  ? "Mesmo preço na promoção"
+                                  : !popcornOptionIds.length
+                                    ? "Preço base"
+                                    : "Total não muda"}
                             </span>
                           )}
                           {selected && <span className="boutique-flavor-picked"><Check size={13} strokeWidth={2.8} aria-hidden="true" /> Escolhido</span>}
