@@ -219,7 +219,7 @@ test("v7 nomeia lançamento Pipocas Crocantes e dá saída clara em todos os cam
   assert.ok(page.includes('window.history.pushState'));
   assert.ok(page.includes('window.history.state?.lucianeCrocante === true'));
   assert.ok(page.includes('window.scrollTo({ top: 0, behavior: "instant" })'));
-  assert.ok(css.includes('.limited-cup-story-heading h2[tabindex="-1"]:focus'));
+  assert.ok(css.includes('.limited-cup-story-heading h2[data-editorial-navigation-focus="pointer"]:focus'));
   assert.ok(css.includes('.v7-navigation button:focus-visible'));
   assert.ok(!css.includes('.limited-cup-story-heading h2:focus-visible {outline:none}'));
 });
