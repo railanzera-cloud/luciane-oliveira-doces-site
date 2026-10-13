@@ -650,9 +650,6 @@ export default function Home() {
 
   const cartNeedsSizeReview = cart.some((item) => PRODUCTS.find((product) => product.id === item.productId)?.variants.find((variant) => variant.id === item.variantId)?.retired);
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
-  const showcaseProduct = cart.length > 0
-    ? PRODUCTS.find((product) => product.id === cart[cart.length - 1].productId)
-    : null;
   const justAddedProduct = addedNotice
     ? PRODUCTS.find((product) => product.id === addedNotice.productId)
     : null;
@@ -768,6 +765,21 @@ export default function Home() {
         : payment === "mercado_pago_card" ? "Preencher e pagar com cartão"
           : "Confirmar pedido"
       : whatsAppRetryAvailable ? "Tentar novamente" : "Finalizar pedido no WhatsApp";
+  // A ação flutuante informa exatamente o que ainda falta preencher.
+  // Não muda a função acionada: checkout incompleto continua rolando para o próximo campo.
+  const checkoutNextActionLabel = !fulfillment
+    ? "Entrega ou retirada"
+    : fulfillment === "entrega" && !addressReady
+      ? "Completar entrega"
+      : !customerNameReady
+        ? "Informar seu nome"
+        : checkoutChannel === "site" && !customerPhoneReady
+          ? "Informar celular"
+          : isCashPayment && needsChange && Boolean(changeError)
+            ? "Conferir troco"
+            : !paymentReady
+              ? "Escolher pagamento"
+              : "Conferir pedido";
   const stickyButtonLabel = isFinalizing ? finalButtonLabel : !availability.ordersOpen
     ? "Pedidos fechados"
     : !categoryIsAvailable(activeCategory) && builderFlowActive
@@ -784,7 +796,7 @@ export default function Home() {
         ? activeCategory === "pipocas"
           ? popcornVariant ? "Escolher meus sabores" : "Escolher tamanho"
           : "Escolher minha fatia"
-          : checkoutReady ? finalButtonLabel : "Continuar pedido";
+          : checkoutReady ? finalButtonLabel : checkoutNextActionLabel;
 
   const checkoutDetails: CheckoutDetails = {
     customer_name: customerName.trim(), notes: notes.trim(),
@@ -1904,24 +1916,10 @@ export default function Home() {
       {(activeCategory || cart.length > 0) && (
       <section className={`checkout-section ${cart.length === 0 ? "is-empty-cart" : ""}`} id="carrinho">
         <div className="page-shell">
-          <header className={`boutique-checkout-intro ${cart.length > 0 ? "has-cart" : ""}`}>
-            {cart.length > 0 && showcaseProduct?.image && (
-              <span className="boutique-checkout-showcase" aria-hidden="true">
-                <img src={showcaseProduct.cardImage ?? showcaseProduct.image} alt="" width="320" height="360" loading="lazy" decoding="async" />
-              </span>
-            )}
-            <div className="boutique-checkout-intro-copy">
-              <p className="eyebrow">Seu pedido, do jeito que você gosta</p>
-              <h2>{cart.length > 0 ? "Escolhas feitas. Falta pouco." : "Sua escolha começa aqui."}</h2>
-              <p>{cart.length > 0
-                ? "Confirme os detalhes e escolha como receber."
-                : "Adicione um produto para montar seu pedido."}</p>
-              {cart.length > 0 && <span className="boutique-checkout-mini-receipt">
-                <ShoppingBag size={15} aria-hidden="true" />
-                {cartItemCount} {cartItemCount === 1 ? "item" : "itens"} <span aria-hidden="true">·</span>
-                <strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(cartSubtotal)}</strong>
-              </span>}
-            </div>
+          <header className="boutique-checkout-brief">
+            <p className="eyebrow">Finalização do pedido</p>
+            <h2>Falta pouco para finalizar.</h2>
+            <p>Confira suas escolhas e informe como deseja receber.</p>
           </header>
           {cart.length > 0 && (
             <nav className="boutique-checkout-progress" aria-label="Navegue pelas etapas do pedido">

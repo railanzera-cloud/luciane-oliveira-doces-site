@@ -206,16 +206,18 @@ test("checkout ao adicionar itens não referencia ícone inexistente", () => {
   assert.ok(page.includes('className="boutique-order-recap"'));
   assert.ok(page.includes("cart.map((item, index) =>"));
 });
-test("4.1 usa foto REAL do pedido no checkout, sem preços inventados", () => {
-  assert.ok(page.includes("const showcaseProduct = cart.length > 0"));
-  assert.ok(page.includes('className="boutique-checkout-showcase"'));
-  assert.ok(page.includes("showcaseProduct.cardImage ?? showcaseProduct.image"));
-  assert.ok(page.includes("currency.format(cartSubtotal)"));
-  assert.ok(page.includes("cartNeedsSizeReview"));
+test("4.3 mantém fotos no carrinho e confirmação, sem terceiro painel fotográfico", () => {
+  assert.ok(!page.includes("const showcaseProduct = cart.length > 0"));
+  assert.ok(!page.includes('className="boutique-checkout-showcase"'));
+  assert.ok(page.includes('className="boutique-checkout-brief"'));
+  assert.ok(page.includes('className="boutique-cart-image"'));
+  assert.ok(page.includes('className="boutique-added-photo"'));
   assert.ok(page.includes('className="summary-row summary-total"'));
+  assert.ok(page.includes("currency.format(cartSubtotal)"));
+  assert.ok(page.includes("currency.format(orderTotal)"));
 });
 test("4.1 preserva escopo, toque, foco e redução de movimento", () => {
-  assert.ok(css.includes("BOUTIQUE 4.1"));
+  assert.ok(css.includes("BOUTIQUE 4.3"));
   assert.ok(css.includes(".storefront .flavor-card:focus-within"));
   assert.ok(css.includes("@media (max-width: 359px)"));
   assert.ok(css.includes("@media (prefers-reduced-motion: reduce)"));
@@ -276,4 +278,29 @@ test("4.2.2: amostras contrastam sem alterar valores ou nomes", () => {
     assert.match(catalog, new RegExp('id: "' + id + '"[^\\n]*tone: "' + tone + '"'));
   }
   assert.ok(page.includes("currency.format(popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime))"));
+});
+
+
+test("4.3 botão flutuante indica o próximo dado sem adicionar etapas", () => {
+  assert.ok(page.includes("const checkoutNextActionLabel = !fulfillment"));
+  for (const label of ["Entrega ou retirada", "Completar entrega", "Informar seu nome",
+      "Informar celular", "Conferir troco", "Escolher pagamento"]) {
+    assert.ok(page.includes('"' + label + '"'), label);
+  }
+  assert.ok(page.includes("checkoutReady ? finalButtonLabel : checkoutNextActionLabel"));
+  assert.ok(page.includes("if (stickyUsesCheckoutAction) handleFinalAction();"));
+  assert.ok(page.includes("requestScroll(cart.length ? nextCheckoutSection() : \"carrinho\")"));
+  assert.ok(page.includes("checkoutFingerprint"));
+});
+test("4.3 refinamento mantém miniaturas, etapa de recebimento e finalizações", () => {
+  assert.ok(!css.includes(".boutique-checkout-showcase"));
+  assert.ok(css.includes(".storefront .boutique-checkout-brief h2"));
+  assert.ok(css.includes(".storefront .checkout-main"));
+  assert.ok(css.includes("@media (min-width: 700px)"));
+  assert.ok(css.includes("@media (prefers-reduced-motion: reduce)"));
+  assert.ok(page.includes('id="recebimento"'));
+  assert.ok(page.includes('id="pagamento"'));
+  assert.ok(page.includes("finishOnWhatsApp()"));
+  assert.ok(page.includes("finishOnSite()"));
+  assert.ok(!css.includes(".admin-"));
 });
