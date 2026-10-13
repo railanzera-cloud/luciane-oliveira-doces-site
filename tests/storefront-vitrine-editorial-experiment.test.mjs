@@ -274,3 +274,14 @@ test("v2 de lançamento exige três condições para anunciar disponibilidade", 
   assert.ok(!page.includes("Ainda não há foto do sabor chocolate"));
   assert.ok(!page.includes("Foto ilustrativa de copos maiores"));
 });
+
+test("foto clara das Pipocas Gourmet fica restrita à vitrine inicial", async () => {
+  const photo = await readFile(new URL("../public/images/categoria-pipocas-editorial-clara.webp", import.meta.url));
+  assert.ok(photo.length > 20000 && photo.length < 130000, "WebP leve para iPhone");
+  assert.equal(photo.toString("ascii", 0, 4), "RIFF");
+  assert.equal(photo.toString("ascii", 8, 12), "WEBP");
+  assert.ok(page.includes('category.id === "pipocas" ? "/images/categoria-pipocas-editorial-clara.webp"'));
+  assert.ok(page.includes('<img src="/images/categoria-pipocas-editorial.webp" onError='));
+  assert.ok(page.includes('category.id === "fatias" ? "/images/categoria-fatias-editorial.webp"'));
+  assert.ok(css.includes('background: #d4a988;'));
+});

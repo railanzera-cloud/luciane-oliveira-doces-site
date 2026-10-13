@@ -1091,3 +1091,14 @@
     padding-top: 11px;
   }
 }
+
+/* Foto aprovada para a vitrine inicial: fundo cappuccino sem barras e cores naturais.
+   Não modifica a fotografia dentro do configurador nem outras categorias. */
+.storefront .menu-entry.is-neutral .category-option:first-child .category-option-media {
+  background: #d4a988;
+}
+.storefront .menu-entry.is-neutral .category-option:first-child .category-option-media img {
+  object-fit: cover;
+  object-position: 50% 48%;
+  filter: none;
+}
