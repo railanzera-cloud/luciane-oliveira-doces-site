@@ -1568,7 +1568,21 @@ export default function Home() {
                   return (
                     <button type="button" className="category-option" disabled={!available} key={category.id} onClick={() => selectCategory(category.id)} aria-label={`${category.name}${available ? "" : " — Esgotado"}`}>
                       <span className="category-option-media">
-                        {cover?.image && <img src={cover.cardImage ?? cover.image} alt="" width="640" height="480" loading="eager" decoding="async" fetchPriority={category.id === "pipocas" ? "high" : "auto"} />}
+                        {cover?.image && <img
+                          src={category.id === "fatias" ? "/images/categoria-fatias-editorial.webp" : cover.cardImage ?? cover.image}
+                          alt=""
+                          width="640"
+                          height="480"
+                          loading="eager"
+                          decoding="async"
+                          fetchPriority={category.id === "pipocas" ? "high" : "auto"}
+                          onError={(event) => {
+                            // A imagem original do catálogo permanece como fallback seguro.
+                            if (category.id === "fatias" && event.currentTarget.getAttribute("src")?.includes("categoria-fatias-editorial.webp")) {
+                              event.currentTarget.src = cover.cardImage ?? cover.image;
+                            }
+                          }}
+                        />}
                       </span>
                       <span className="category-option-copy">
                         <strong>{category.name}</strong>
