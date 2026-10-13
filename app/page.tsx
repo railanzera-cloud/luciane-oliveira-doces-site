@@ -1556,6 +1556,7 @@ export default function Home() {
               <p className="delivery-time-estimate">{DELIVERY_TIME_ESTIMATE} O prazo começa após a confirmação da loja.</p>
             )}
           </div>
+          {!activeCategory && <p className="delivery-note"><Truck size={16} aria-hidden="true" /> Entrega a partir de R$8 ou retirada em Paragominas</p>}
           {!hasResolvedAvailability ? (
             <div className="entry-loading" role="status">Carregando cardápio…</div>
           ) : !activeCategory && (
@@ -1572,6 +1573,7 @@ export default function Home() {
                       <span className="category-option-copy">
                         <strong>{category.name}</strong>
                         <span>{category.description}</span>
+                        {available && <span className="category-option-action" aria-hidden="true">{category.id === "pipocas" ? "Escolher pipocas" : "Ver as fatias"}</span>}
                         {!available && <em>Esgotado</em>}
                       </span>
                       {available && <ChevronRight className="category-option-arrow" size={20} aria-hidden="true" />}
@@ -1587,7 +1589,7 @@ export default function Home() {
               </div>
             )
           )}
-          <p className="delivery-note"><Truck size={16} aria-hidden="true" /> Entrega a partir de R$8 ou retirada em Paragominas</p>
+          {activeCategory && <p className="delivery-note"><Truck size={16} aria-hidden="true" /> Entrega a partir de R$8 ou retirada em Paragominas</p>}
         </div>
       </section>
 
