@@ -1,5 +1,19 @@
 # Vitrine Editorial Experimental — continuidade
 
+## Vitrine editorial v10 — cartões profundos, fotos e navegação (13/10/2026)
+
+- Último checkpoint funcional: `803045361e429f622ed6e331b712c97a621b51c2`. Alterações de código apenas em `app/page.tsx`, `app/storefront-vitrine-editorial-experiment.css` e teste específico.
+- Entrada Pipocas Gourmet: rolagem nativa suave até `#tamanhos` com respeito a `prefers-reduced-motion`; a edição limitada conserva o salto instantâneo estabilizado no Safari.
+- Painéis **dos dois cartões**, apenas na entrada neutra: gradiente chocolate mais profundo, sombra e cobre discretos; fotografias sem filtros.
+- Pote cappuccino: proporção e escala originais; `object-position: 50% 12%` abre respiro acima do aro no recorte mobile. Fatia: fotografia real original enviada pelo usuário, sincronizada em `public/images/categoria-fatias-editorial.webp`.
+- Duas fotos do teaser Crocantes agora usam `loading="eager"` para reduzir atraso na primeira tela. Nada foi alterado no carrinho, Supabase, compras, disponibilidade ou pagamentos.
+- CI aprovado para o código: workflow `38479491492`, commit `3010456052a790fc2af604681adb056540064281`. O commit seguinte `8030453` sincronizou a fotografia da fatia, sem novas modificações no JavaScript/CSS.
+- ZIP de Preview validado **sem publicação**: `Luciane_Editorial_v10_Cartoes_Profundos_Fotos_Recuperadas_Cloudflare.zip`, 54 arquivos, SHA256 `e04af8611338cf11dd0885f61b568168640ef45b0d93795c14eb800123b70c96`. Composto do build de CI aprovado, trocando apenas a fatia pelo WebP aprovado e recuperando do último Preview v8 as fotografias já escolhidas de pipoca interna e Pipocas Crocantes.
+- **Pendência de sincronização binária no GitHub**: `public/images/categoria-pipocas-editorial.webp`, `edicao-crocante-ninho.webp`, `edicao-crocante-chocolate.webp` e `edicao-crocante-textura.webp` continuam ausentes no repositório e **estão no ZIP validado**. Um próximo ZIP compilado somente do GitHub voltaria a omiti-las até sincronizar essas quatro imagens. Não substituir por imagens geradas nem ignorar essa pendência.
+- Validado: testes CI, conteúdo e CRC do ZIP, decodificação das fotos WebP, 0 URLs fotográficas literais ausentes no JavaScript final e simulação local do recorte do pote. **Pendente:** homologação do resultado em Safari/iPhone. Não publicar produção automaticamente; não acessar Boutique 4.6.
+
+
+
 - Branch: `design/luciane-editorial-vitrine-experiment-20261013`.
 - Último commit de implementação verificado antes deste documento: `85ffd3ecde48594c95647f8d9fba9870d6431208`.
 - GitHub Actions validado: execução `38383520819`, concluída com sucesso.
