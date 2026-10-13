@@ -1813,3 +1813,43 @@
     animation: none !important;
   }
 }
+
+
+/* Boutique 4.4: disclosures informativos, sem alterar caminhos de compra. */
+.storefront .boutique-cart-details {
+  margin: 10px 0 13px; padding: 0 12px;
+  background: #f9f1e7;
+  border: 1px solid rgba(145,102,66,.16);
+  border-radius: 11px;
+}
+.storefront .boutique-cart-details > summary {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; min-height: 44px; padding: 9px 0;
+  list-style: none; cursor: pointer;
+  color: #79583f; font-size: .76rem; font-weight: 630;
+}
+.storefront .boutique-cart-details > summary::-webkit-details-marker { display: none; }
+.storefront .boutique-cart-details > summary > svg { flex: 0 0 17px; transition: transform .18s ease; }
+.storefront .boutique-cart-details[open] > summary > svg { transform: rotate(180deg); }
+.storefront .boutique-cart-details > summary:focus-visible { outline: 2px solid #a06a41; outline-offset: 2px; border-radius: 5px; }
+.storefront .boutique-cart-details-content { border-top: 1px solid rgba(145,102,66,.14); padding: 5px 0 10px; }
+.storefront .boutique-cart-details-content .cart-save-note { margin: 8px 0 0; line-height: 1.45; font-size: .72rem; }
+.storefront .boutique-notes { min-width: 0; padding: 0; }
+.storefront .boutique-notes-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; width: 100%; min-height: 45px;
+  padding: 10px 13px; text-align: left;
+  color: #76503a; background: #f9f0e6;
+  border: 1px solid rgba(143,95,57,.24); border-radius: 11px;
+  font-size: .81rem; font-weight: 670; cursor: pointer;
+}
+.storefront .boutique-notes-toggle > svg { flex: 0 0 17px; transition: transform .18s ease; }
+.storefront .boutique-notes-toggle[aria-expanded="true"] > svg { transform: rotate(180deg); }
+.storefront .boutique-notes-toggle:focus-visible { outline: 2px solid #985f38; outline-offset: 3px; }
+.storefront .boutique-notes-saved { display: block; padding: 7px 2px 0; color: #346f4a; font-size: .72rem; font-weight: 650; }
+.storefront .boutique-notes-content { padding-top: 12px; }
+.storefront .boutique-notes-content[hidden] { display: none !important; }
+.storefront .boutique-notes-content textarea { min-height: 96px; resize: vertical; }
+@media (prefers-reduced-motion: reduce) {
+  .storefront .boutique-notes-toggle > svg, .storefront .boutique-cart-details > summary > svg { transition: none !important; }
+}

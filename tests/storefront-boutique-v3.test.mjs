@@ -304,3 +304,28 @@ test("4.3 refinamento mantém miniaturas, etapa de recebimento e finalizações"
   assert.ok(page.includes("finishOnSite()"));
   assert.ok(!css.includes(".admin-"));
 });
+
+
+test("4.4 observação é opcional, salva e se abre ao restaurar texto preenchido", () => {
+  assert.ok(page.includes("const [notesExpanded, setNotesExpanded] = useState(false)"));
+  assert.ok(page.includes("setNotesExpanded(Boolean(restoredNotes.trim()))"));
+  assert.ok(page.includes("setNotesExpanded(false)"));
+  assert.ok(page.includes('aria-expanded={notesExpanded} aria-controls="order-notes-content"'));
+  assert.ok(page.includes('hidden={!notesExpanded}'));
+  assert.ok(page.includes('value={notes} onChange={event => setNotes(event.target.value)}'));
+  assert.ok(page.includes("notes: notes.trim()"));
+  assert.ok(page.includes("Observação adicionada ao pedido"));
+});
+test("4.4 agrupa avisos, mas preserva preço, alerta e finalização", () => {
+  for (const fragment of ['className="boutique-cart-details"', "Informações sobre o pedido",
+    "Pipocas calculadas pela tabela atual", "Pedido mantido somente nesta aba",
+    'className="checkout-availability-alert"', 'className="cart-subtotal"',
+    'className="cart-add-more"', 'className="summary-row summary-total"']) {
+    assert.ok(page.includes(fragment), fragment);
+  }
+  assert.ok(page.includes("finishOnWhatsApp()"));
+  assert.ok(page.includes("finishOnSite()"));
+  assert.ok(css.includes(".storefront .boutique-cart-details > summary:focus-visible"));
+  assert.ok(css.includes(".storefront .boutique-notes-content[hidden]"));
+  assert.ok(!css.includes(".admin-"));
+});

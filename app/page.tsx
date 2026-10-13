@@ -380,6 +380,7 @@ export default function Home() {
   const [payment, setPayment] = useState<Payment>("");
   const [checkoutChannel, setCheckoutChannel] = useState<CheckoutChannel>(COMMERCE_CONFIG.siteOrderingEnabled ? "site" : "whatsapp");
   const [notes, setNotes] = useState("");
+  const [notesExpanded, setNotesExpanded] = useState(false);
   const [whatsappResult, setWhatsAppResult] = useState<RegisteredWhatsAppOrder | null>(null);
   const [lastToken, setLastToken] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -601,7 +602,11 @@ export default function Home() {
         if (knownPayments.includes(savedOrder.payment as Payment)) setPayment(savedOrder.payment === "cartao" && !savedOrder.whatsappResult ? "" : savedOrder.payment as Payment);
         if (savedOrder.checkoutChannel === "site" && COMMERCE_CONFIG.siteOrderingEnabled) setCheckoutChannel("site");
         else if (savedOrder.checkoutChannel === "whatsapp") setCheckoutChannel("whatsapp");
-        if (typeof savedOrder.notes === "string") setNotes(savedOrder.notes.slice(0, 500));
+        if (typeof savedOrder.notes === "string") {
+          const restoredNotes = savedOrder.notes.slice(0, 500);
+          setNotes(restoredNotes);
+          setNotesExpanded(Boolean(restoredNotes.trim()));
+        }
         if (savedOrder.whatsappResult?.result?.order?.tracking_token) setWhatsAppResult(savedOrder.whatsappResult);
         if (typeof savedOrder.customerName === "string") setCustomerName(savedOrder.customerName);
         if (typeof savedOrder.customerPhone === "string") setCustomerPhone(savedOrder.customerPhone);
@@ -943,6 +948,7 @@ export default function Home() {
     setCheckoutChannel(COMMERCE_CONFIG.siteOrderingEnabled ? "site" : "whatsapp");
     setCustomerName("");
     setNotes("");
+    setNotesExpanded(false);
     setWhatsAppResult(null);
     setCustomerPhone("");
     setCustomerEmail("");
@@ -2005,8 +2011,13 @@ export default function Home() {
                     );
                   })}
                   <div className="cart-subtotal"><span>Subtotal dos produtos</span><strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(cartSubtotal)}</strong></div>
-                  {cart.some((item) => item.productId === POPCORN.id) && <p className="cart-save-note">Pipocas calculadas pela tabela atual: tamanho e conjunto mais caro dos sabores escolhidos. Confira os valores antes de enviar.</p>}
-                  <p className="cart-save-note"><Check size={14} /> Pedido mantido somente nesta aba. Ao fechá-la, ele é limpo.</p>
+                  <details className="boutique-cart-details">
+                    <summary><span>Informações sobre o pedido</span><ChevronDown size={17} aria-hidden="true" /></summary>
+                    <div className="boutique-cart-details-content">
+                      {cart.some((item) => item.productId === POPCORN.id) && <p className="cart-save-note">Pipocas calculadas pela tabela atual: tamanho e conjunto mais caro dos sabores escolhidos. Confira os valores antes de enviar.</p>}
+                      <p className="cart-save-note"><Check size={14} aria-hidden="true" /> Pedido mantido somente nesta aba. Ao fechá-la, ele é limpo.</p>
+                    </div>
+                  </details>
                   <div className="cart-add-more">
                     <strong>Adicionar mais itens</strong>
                     <div className={`cart-add-options ${STORE_CONFIG.enabledExtras.drinks ? "" : "without-drinks"}`}>
@@ -2130,7 +2141,16 @@ export default function Home() {
                 <div className="customer-fields">
                   <div className="field-group"><label htmlFor="customer-name"><UserRound size={15} aria-hidden="true" /> Nome do cliente</label><Input required id="customer-name" value={customerName} onChange={(event) => setCustomerName(event.target.value)} placeholder="Seu nome" autoComplete="name" maxLength={100} aria-invalid={Boolean(customerName && !customerNameReady)} /></div>
                   {checkoutChannel === "site" && <div className="field-group"><label htmlFor="customer-phone"><Phone size={15} aria-hidden="true" /> Celular com DDD</label><Input id="customer-phone" value={customerPhone} onChange={(event) => setCustomerPhone(event.target.value)} placeholder="(91) 99999-9999" inputMode="tel" autoComplete="tel" maxLength={24} aria-invalid={Boolean(customerPhone && !customerPhoneReady)} /></div>}
-                  <div className="field-group"><label htmlFor="order-notes">Alguma observação para seu pedido?</label><textarea id="order-notes" value={notes} onChange={event => setNotes(event.target.value)} maxLength={500} placeholder="Ex.: Entregar na portaria." rows={3} /><small>{notes.length}/500 · Opcional</small></div>
+                  <div className="boutique-notes">
+                    <button type="button" className="boutique-notes-toggle" aria-expanded={notesExpanded} aria-controls="order-notes-content" onClick={() => setNotesExpanded((current) => !current)}>
+                      <span>{notesExpanded ? "Ocultar observação" : notes.trim() ? "Editar observação" : "Adicionar observação (opcional)"}</span>
+                      <ChevronDown size={17} aria-hidden="true" />
+                    </button>
+                    {!notesExpanded && notes.trim() && <span className="boutique-notes-saved">Observação adicionada ao pedido</span>}
+                    <div id="order-notes-content" className="boutique-notes-content" hidden={!notesExpanded}>
+                      <div className="field-group"><label htmlFor="order-notes">Observação para o pedido (opcional)</label><textarea id="order-notes" value={notes} onChange={event => setNotes(event.target.value)} maxLength={500} placeholder="Ex.: Entregar na portaria." rows={3} /><small>{notes.length}/500</small></div>
+                    </div>
+                  </div>
                 </div>
                 <p className="field-note">Usaremos seus dados somente para processar e acompanhar este pedido.</p>
               </section>
