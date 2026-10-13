@@ -109,3 +109,12 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - Comparação byte a byte com build CI: somente `images/categoria-pipocas-editorial.webp` e `images/categoria-fatias-editorial.webp` adicionada/substituída pelas fotografias aprovadas; CSS/JS/HTML/admin e demais arquivos idênticos aos do build aprovado. Fotos com os hashes registrados acima.
 - Teste Chromium de composição isolada em **320, 375, 390 e 430px**: relógio alinhado; texto complementar na linha seguinte; nenhuma rolagem horizontal; CTAs contidos dentro dos cartões. Isto não substitui a conferência da página completa no Safari/iPhone.
 - **Pendência:** sincronização binária das duas imagens WebP no repositório, mantendo os hashes; somente depois builds completos serão reproduzíveis sem montagem de Preview. Não publicar produção e não alterar Boutique 4.6.
+ 
+## Ajuste pontual pós-homologação v9 — barra móvel
+
+- Avaliação da gravação Safari: o botão contextual executa seu papel e já respeita o safe area inferior, além de sumir quando sua ação inline está visível. Não reduzir arbitrariamente a altura geral.
+- Aperfeiçoamento preventivo e isolado no CSS experimental: esconder temporariamente a barra durante foco de campos de digitação em dispositivos touch até 699px, evitando disputa de espaço com teclado virtual. Radios e checkboxes continuam sem esconder a barra.
+- Em viewport até 359px: margens/padding horizontais mais econômicos; alvo mínimo do botão permanece 46px.
+- Nenhuma alteração em handlers, carrinho, checkout, regras comerciais, fotos ou Boutique 4.6.
+- Requer conferir teclado aberto e fechado no Safari, em Preview; não publicar em produção automaticamente.
+

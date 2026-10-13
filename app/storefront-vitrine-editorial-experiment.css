@@ -664,3 +664,35 @@
   .storefront .menu-entry.is-neutral .category-option-copy > span:not(.category-option-action) { font-size: .705rem; }
   .storefront .menu-entry.is-neutral .category-option-copy > .category-option-action { font-size: .715rem; }
 }
+
+/* Resguardo do teclado — somente barra de ação do site comercial.
+ * Ao digitar, liberar a área visual e evitar sobrepor campos no Safari.
+ * Radio/checkbox não escondem a ação; botão e fluxo permanecem originais. */
+@media (max-width: 699px) and (pointer: coarse) {
+  .storefront:has(
+    input:not([type]):focus,
+    input:is([type="text"], [type="tel"], [type="email"], [type="search"], [type="number"], [type="password"]):focus,
+    textarea:focus
+  ) .mobile-sticky-bar {
+    display: none;
+  }
+}
+/* Equipamentos de 320–359px: melhor distribuição horizontal sem
+ * comprometer a área mínima de toque de 44px. */
+@media (max-width: 359px) {
+  .storefront .mobile-sticky-bar {
+    left: 8px;
+    right: 8px;
+    gap: 8px;
+    padding: 8px 8px 8px 10px;
+  }
+  .storefront .mobile-sticky-bar > div {
+    min-width: 80px;
+  }
+  .storefront .mobile-sticky-bar button {
+    min-height: 46px;
+    font-size: .80rem;
+    padding: 10px 8px;
+  }
+}
+

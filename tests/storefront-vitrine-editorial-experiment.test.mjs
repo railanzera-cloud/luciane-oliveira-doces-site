@@ -171,3 +171,20 @@ test("v9 preserva o título, coloca o complemento do prazo abaixo e mantém foto
   assert.ok(!v9.includes(".checkout-"));
   assert.ok(!v9.includes(".menu-entry.has-category"));
 });
+
+test("barra móvel respeita digitação e telas estreitas sem modificar a ação original", () => {
+  const adjustment = css.slice(css.lastIndexOf("Resguardo do teclado"));
+  assert.ok(adjustment.startsWith("Resguardo do teclado"));
+  assert.ok(adjustment.includes("(pointer: coarse)"));
+  assert.ok(adjustment.includes(".storefront:has("));
+  assert.ok(adjustment.includes("textarea:focus"));
+  assert.ok(adjustment.includes("type=\"tel\""));
+  assert.ok(adjustment.includes("type=\"email\""));
+  assert.ok(adjustment.includes(".mobile-sticky-bar {\n    display: none;"));
+  assert.ok(adjustment.includes("@media (max-width: 359px)"));
+  assert.ok(adjustment.includes("min-height: 46px"));
+  assert.ok(page.includes("handleStickyAction"));
+  assert.ok(page.includes("inlineFinalActionVisible"));
+  assert.ok(page.includes("inlineBuilderActionVisible"));
+});
+
