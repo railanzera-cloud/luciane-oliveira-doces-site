@@ -1712,3 +1712,6 @@
     animation: none !important;
   }
 }
+
+/* Só revelar visualmente o checkout após o primeiro item; manter as proteções em DOM. */
+.storefront .checkout-section.is-empty-cart { display: none; }

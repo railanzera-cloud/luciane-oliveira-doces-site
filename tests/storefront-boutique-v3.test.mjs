@@ -222,9 +222,10 @@ test("4.1 preserva escopo, toque, foco e redução de movimento", () => {
   assert.ok(!css.includes(".admin-"));
 });
 
-test("A finalização só aparece quando existir produto e mantém personalização limpa", () => {
-  assert.ok(page.includes('cart.length > 0 && (\n      <section className="checkout-section"'));
-  assert.ok(!page.includes('(activeCategory || cart.length > 0) && (\n      <section className="checkout-section"'));
+test("Checkout vazio fica visualmente oculto sem remover controle de finalização", () => {
+  assert.ok(page.includes('(activeCategory || cart.length > 0) && ('));
+  assert.ok(page.includes('className={`checkout-section ${cart.length === 0 ? "is-empty-cart" : ""}`}'));
+  assert.ok(css.includes('.storefront .checkout-section.is-empty-cart { display: none; }'));
   assert.ok(page.includes("finishOnWhatsApp()"));
   assert.ok(page.includes("finishOnSite()"));
 });
