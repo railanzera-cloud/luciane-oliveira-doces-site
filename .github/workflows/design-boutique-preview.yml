@@ -1,8 +1,9 @@
-name: Preview Boutique 3.0 Luciane - Cloudflare
+name: Preview Boutique 4.0 Luciane - Cloudflare
 on:
   push:
     branches:
       - design/luciane-boutique-v3-20261012
+      - design/luciane-boutique-v4-20261013
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -93,7 +94,7 @@ jobs:
       - name: Publicar ZIP de build como artefato do GitHub
         uses: actions/upload-artifact@v4
         with:
-          name: luciane-cloudflare-preview-boutique-v3-20261012
+          name: luciane-cloudflare-preview-boutique-v4-20261013
           path: outputs/luciane-oliveira-doces-cloudflare-pages.zip
           if-no-files-found: error
           retention-days: 7
