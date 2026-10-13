@@ -300,3 +300,25 @@ test("pipocas usam rolagem suave com respeito ao movimento reduzido; crocantes m
   assert.ok(page.includes('window.scrollTo({ top, behavior: "instant" })'));
   assert.ok(page.includes('className="limited-cup-teaser-shot is-ninho"'));
 });
+
+test("fotografias comerciais aprovadas sempre acompanham o codigo e o ZIP do Cloudflare", async () => {
+  const names = [
+    "categoria-fatias-editorial.webp",
+    "categoria-pipocas-editorial-clara.webp",
+    "categoria-pipocas-editorial.webp",
+    "edicao-crocante-ninho.webp",
+    "edicao-crocante-chocolate.webp",
+    "edicao-crocante-textura.webp",
+  ];
+  for (const name of names) {
+    const data = await readFile(new URL(`../public/images/${name}`, import.meta.url));
+    assert.ok(data.length >= 18000, `Foto ausente ou incompleta: ${name}`);
+    assert.equal(data.toString("ascii", 0, 4), "RIFF", `Formato incorreto: ${name}`);
+    assert.equal(data.toString("ascii", 8, 12), "WEBP", `Formato incorreto: ${name}`);
+  }
+  assert.ok(page.includes("/images/categoria-fatias-editorial.webp"));
+  assert.ok(page.includes("/images/categoria-pipocas-editorial-clara.webp"));
+  assert.ok(page.includes("/images/categoria-pipocas-editorial.webp"));
+  assert.ok(page.includes("/images/edicao-crocante-ninho.webp"));
+  assert.ok(page.includes("/images/edicao-crocante-chocolate.webp"));
+});
