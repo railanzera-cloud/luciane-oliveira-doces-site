@@ -99,3 +99,15 @@ test("imagem real otimizada está incluída no próprio repositório e no build 
   assert.ok(page.includes('category.id === "fatias" ? "/images/categoria-fatias-editorial.webp"'));
   assert.ok(page.includes("event.currentTarget.src = cover.cardImage ?? cover.image"));
 });
+
+test("v6 mantém os dois arquivos escolhidos com fallback seguro e foto da pipoca inteira",()=>{
+  assert.ok(page.includes('"/images/categoria-pipocas-editorial.webp"'));
+  assert.ok(page.includes('"/images/categoria-fatias-editorial.webp"'));
+  assert.ok(page.includes('categoria-${category.id}-editorial.webp'));
+  const v6 = css.slice(css.indexOf("Editorial v6"));
+  assert.ok(v6.includes("object-fit: contain;"));
+  assert.ok(v6.includes("object-fit: cover;"));
+  assert.ok(v6.includes("filter: none;"));
+  assert.ok(v6.includes("transform: none;"));
+  assert.ok(page.includes("event.currentTarget.src = cover.cardImage ?? cover.image"));
+});
