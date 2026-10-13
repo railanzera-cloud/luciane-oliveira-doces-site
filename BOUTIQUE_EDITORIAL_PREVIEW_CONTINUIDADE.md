@@ -224,3 +224,13 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - Sem reserva; sem simular compras, sem nova categoria permanente, sem alterar operação, produto/preço ou estoque existente. A mudança para “disponível” segue bloqueada pela flag de integração comercial e aprovação da loja.
 - Para Preview, incluir WebP das fotos do Ninho e Chocolate da conversa (verdadeiros produtos fornecidos) e as duas imagens originais editoriais aprovadas. Sincronização dos binários no Github segue pendente, verificada separadamente.
 - Homologar visual/navegação no Safari iPhone antes de produção; não mexer na Boutique 4.6 nem em Supabase/Luciane Gestão.
+
+
+### V5: validação e entrega — 13/10/2026
+- Commit funcional: `89646e1220669c370d3d9b52a354587b84aa6333`.
+- GitHub Actions: [38449453902](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/38449453902) **success** (build, TypeScript, suíte completa, ZIP e validação).
+- Artefato CI: `11839333238`; Preview pronto `Luciane_Edicao_Crocante_v5_Preview_Cloudflare.zip` com 53 entradas, 3.107.429 bytes, SHA-256 `fac803897c15c71779aec526ec9eb11ee98c31e1a388e7a44330ab66a6319de5`.
+- Montagem controlada: 48 entradas compiladas idênticas ao CI e cinco WebPs para a vitrine: `categoria-fatias-editorial.webp`, `categoria-pipocas-editorial.webp`, `edicao-crocante-textura.webp` preservados do Preview anterior; `edicao-crocante-ninho.webp` (155.370 bytes) e `edicao-crocante-chocolate.webp` (205.350 bytes) otimizados das fotografias reais fornecidas, sem recriar o produto.
+- ZIP verificado por CRC, unicidade de entradas, dimensões/decode das imagens, integridade dos arquivos compilados e presença das chamadas/CTAs. **Sem homologação visual Safari ainda.**
+- Aviso importante: esses WebPs definitivos **ainda não estão versionados como blobs na branch do GitHub**. O ZIP de homologação é completo, mas builds limpos do GitHub não mostrarão todos esses arquivos até sincronização dos binários.
+- Compra edição de copos não integrada: não existe reserva/pré-venda, sem alterações no carrinho, catálogo original, estoque ou pagamentos. Separar homologação visual de homologação comercial e não publicar produção automaticamente.
