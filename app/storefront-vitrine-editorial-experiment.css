@@ -3,7 +3,7 @@
  * Ramo isolado da Boutique 4.6 do Work. Somente tela inicial (.is-neutral).
  */
 .storefront .menu-entry.is-neutral {
-  padding: 23px 0 30px;
+  padding: 22px 0 27px;
   background: radial-gradient(ellipse 80% 45% at 100% 0%,rgba(134,79,42,.20),transparent 78%),linear-gradient(160deg,#160e0a,#1e110c 53%,#100907);
 }
 .storefront .menu-entry.is-neutral .entry-heading h1 {
@@ -21,18 +21,18 @@
   line-height: 1.46;
 }
 .storefront .menu-entry.is-neutral .delivery-time-estimate {
-  margin: 14px 0 0;
-  padding: 8px 11px;
-  border: 1px solid rgba(223,172,113,.20);
-  border-left: 2px solid #c48a53;
-  border-radius: 0 9px 9px 0;
-  background: rgba(204,136,72,.07);
+  margin: 12px 0 0;
+  padding: 2px 0 2px 13px;
+  border: 0;
+  border-left: 2px solid rgba(216,161,100,.78);
+  border-radius: 0;
+  background: transparent;
   color: #f0cda8;
   font-size: .76rem;
   line-height: 1.44;
 }
 .storefront .menu-entry.is-neutral .delivery-note {
-  margin-top: 13px;
+  margin-top: 10px;
   color: #d9bc99;
   font-size: .76rem;
   line-height: 1.42;
@@ -42,7 +42,7 @@
   grid-template-columns: minmax(0,1fr);
   gap: 13px;
   max-width: 1020px;
-  margin: 21px 0 12px;
+  margin: 17px 0 12px;
 }
 .storefront .menu-entry.is-neutral .category-option {
   display: grid;
@@ -55,10 +55,10 @@
   border-radius: 17px;
   overflow: hidden;
   isolation: isolate;
-  background: #d3b18d;
-  color: #392418;
-  border: 1px solid rgba(189,130,78,.77);
-  box-shadow: 0 17px 32px rgba(0,0,0,.29),inset 0 1px rgba(255,242,218,.38);
+  background: #ab8061;
+  color: #23160e;
+  border: 1px solid rgba(220,170,111,.74);
+  box-shadow: 0 18px 37px rgba(0,0,0,.39), 0 3px 9px rgba(0,0,0,.17), inset 0 1px rgba(250,220,175,.32);
   text-align: left;
   cursor: pointer;
   transition: box-shadow .26s ease,transform .24s ease,border-color .24s ease;
@@ -84,14 +84,14 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(90deg,rgba(34,19,11,.10),transparent 50%),linear-gradient(0deg,rgba(39,25,15,.08),transparent 70%);
+  background: linear-gradient(90deg,rgba(34,19,11,.05),transparent 40%),linear-gradient(0deg,rgba(39,25,15,.11),transparent 74%);
 }
 .storefront .menu-entry.is-neutral .category-option-media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: 52% 49%;
-  filter: saturate(1.065) contrast(1.045) brightness(1.025);
+  filter: saturate(1.04) contrast(1.055) brightness(1.025);
   transform: scale(1.006);
   transition: transform .5s cubic-bezier(.22,1,.36,1);
 }
@@ -107,18 +107,18 @@
   min-width: 0;
   gap: 0;
   padding: 16px 28px 15px 15px;
-  background: radial-gradient(ellipse at 98% 4%,rgba(255,247,223,.48),transparent 57%),linear-gradient(143deg,#ddbc97 0%,#d3ab84 42%,#cba17c 100%);
-  box-shadow: inset 1px 0 0 rgba(255,239,206,.45),inset 0 1px 0 rgba(255,255,255,.20);
+  background: radial-gradient(ellipse 120% 89% at 100% 0%,rgba(248,217,172,.24),transparent 72%),linear-gradient(145deg,#bd9675 0%,#b38b6c 49%,#ab8064 100%);
+  box-shadow: inset 1px 0 0 rgba(255,224,182,.23),inset 0 1px 0 rgba(255,255,255,.14);
 }
 .storefront .menu-entry.is-neutral .category-option-copy::before {
   content: "";
   width: 27px;
   height: 1px;
   margin-bottom: 10px;
-  background: #794a2a;
+  background: #694021;
 }
 .storefront .menu-entry.is-neutral .category-option-copy strong {
-  color: #352016;
+  color: #23150d;
   font-size: clamp(1.39rem,4.5vw,2rem);
   font-weight: 500;
   line-height: 1.035;
@@ -127,7 +127,7 @@
 }
 .storefront .menu-entry.is-neutral .category-option-copy > span {
   margin-top: 9px;
-  color: #513422;
+  color: #2b1a10;
   font-size: clamp(.7rem,2.5vw,.84rem);
   line-height: 1.35;
   text-shadow: none;
@@ -142,16 +142,16 @@
   padding: 5px;
   border: 1px solid rgba(143,96,55,.42);
   border-radius: 50%;
-  background: rgba(175,120,62,.1);
-  color: #66391d;
+  background: rgba(87,45,21,.10);
+  color: #2b190f;
 }
 .storefront .menu-entry.is-neutral .category-option:focus-visible {
   outline: 3px solid #ffdbab;
   outline-offset: 3px;
 }
 .storefront .menu-entry.is-neutral .category-option:hover:not(:disabled) {
-  background: #f0e0cc;
-  border-color: #dcb079;
+  background: #ab8061;
+  border-color: #edbc86;
   box-shadow: 0 19px 43px rgba(0,0,0,.37);
 }
 .storefront .menu-entry.is-neutral .category-option:hover:not(:disabled) .category-option-media img {
@@ -202,7 +202,7 @@
   max-width: 100%;
   margin-top: 13px;
   padding-right: 18px;
-  color: #572e1b;
+  color: #23150e;
   font-size: .76rem;
   line-height: 1.28;
   letter-spacing: .005em;
@@ -241,5 +241,55 @@
   .storefront .menu-entry.is-neutral .category-option {
     height: 204px;
     min-height: 204px;
+  }
+}
+
+
+/* Editorial v4: transição fotográfica e acabamento chocolate-cobre.
+ * O véu lateral fica somente na junção com a legenda, nunca sobre o produto inteiro. */
+.storefront .menu-entry.is-neutral .category-option-media {
+  z-index: 1;
+}
+.storefront .menu-entry.is-neutral .category-option-copy {
+  isolation: isolate;
+}
+.storefront .menu-entry.is-neutral .category-option-copy::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  top: 0;
+  bottom: 0;
+  left: -14px;
+  width: 15px;
+  background: linear-gradient(90deg, rgba(181,139,108,0),rgba(181,139,108,.94));
+}
+.storefront .menu-entry.is-neutral .category-option-copy > * {
+  position: relative;
+  z-index: 1;
+}
+.storefront .menu-entry.is-neutral .category-option-copy strong {
+  text-shadow: 0 1px 0 rgba(251,213,171,.12);
+}
+.storefront .menu-entry.is-neutral .category-option-copy > .category-option-action {
+  color: #23150e;
+}
+.storefront .menu-entry.is-neutral .category-option-arrow {
+  border-color: rgba(62,33,16,.48);
+  box-shadow: inset 0 1px 0 rgba(255,233,200,.28);
+}
+@media (max-width: 359px) {
+  .storefront .menu-entry.is-neutral .category-option-copy::after { left: -9px; width: 10px; }
+}
+@media (min-width: 980px) {
+  /* No desktop a legenda fica abaixo da foto. */
+  .storefront .menu-entry.is-neutral .category-option-copy::after {
+    top: -13px;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    width: auto;
+    height: 14px;
+    background: linear-gradient(180deg, rgba(181,139,108,0), rgba(181,139,108,.94));
   }
 }
