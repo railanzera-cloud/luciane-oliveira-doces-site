@@ -55,10 +55,10 @@
   border-radius: 17px;
   overflow: hidden;
   isolation: isolate;
-  background: #efdfc9;
-  color: #422b1b;
-  border: 1px solid rgba(232,190,141,.56);
-  box-shadow: 0 16px 32px rgba(0,0,0,.27),inset 0 1px rgba(255,238,204,.28);
+  background: #d3b18d;
+  color: #392418;
+  border: 1px solid rgba(189,130,78,.77);
+  box-shadow: 0 17px 32px rgba(0,0,0,.29),inset 0 1px rgba(255,242,218,.38);
   text-align: left;
   cursor: pointer;
   transition: box-shadow .26s ease,transform .24s ease,border-color .24s ease;
@@ -91,7 +91,7 @@
   height: 100%;
   object-fit: cover;
   object-position: 52% 49%;
-  filter: saturate(1.03) contrast(1.035) brightness(1.045);
+  filter: saturate(1.065) contrast(1.045) brightness(1.025);
   transform: scale(1.006);
   transition: transform .5s cubic-bezier(.22,1,.36,1);
 }
@@ -106,18 +106,19 @@
   max-width: none;
   min-width: 0;
   gap: 0;
-  padding: 18px 30px 15px 16px;
-  background: radial-gradient(circle at 100% 0%,rgba(255,250,242,.82),transparent 62%),linear-gradient(135deg,#f9eddb,#ead4b9);
+  padding: 16px 28px 15px 15px;
+  background: radial-gradient(ellipse at 98% 4%,rgba(255,247,223,.48),transparent 57%),linear-gradient(143deg,#ddbc97 0%,#d3ab84 42%,#cba17c 100%);
+  box-shadow: inset 1px 0 0 rgba(255,239,206,.45),inset 0 1px 0 rgba(255,255,255,.20);
 }
 .storefront .menu-entry.is-neutral .category-option-copy::before {
   content: "";
   width: 27px;
   height: 1px;
   margin-bottom: 10px;
-  background: #a56b40;
+  background: #794a2a;
 }
 .storefront .menu-entry.is-neutral .category-option-copy strong {
-  color: #3e2718;
+  color: #352016;
   font-size: clamp(1.39rem,4.5vw,2rem);
   font-weight: 500;
   line-height: 1.035;
@@ -126,7 +127,7 @@
 }
 .storefront .menu-entry.is-neutral .category-option-copy > span {
   margin-top: 9px;
-  color: #775a41;
+  color: #513422;
   font-size: clamp(.7rem,2.5vw,.84rem);
   line-height: 1.35;
   text-shadow: none;
@@ -142,7 +143,7 @@
   border: 1px solid rgba(143,96,55,.42);
   border-radius: 50%;
   background: rgba(175,120,62,.1);
-  color: #8e5730;
+  color: #66391d;
 }
 .storefront .menu-entry.is-neutral .category-option:focus-visible {
   outline: 3px solid #ffdbab;
@@ -201,7 +202,7 @@
   max-width: 100%;
   margin-top: 13px;
   padding-right: 18px;
-  color: #704023;
+  color: #572e1b;
   font-size: .76rem;
   line-height: 1.28;
   letter-spacing: .005em;
@@ -216,7 +217,7 @@
 }
 
 
-/* Experimental v2 — fotografias com proporções diferentes não ditam a altura do cartão.
+/* Experimental v3 — fotografias com proporções diferentes não ditam a altura do cartão.
    O grid mantém 2 vitrines equivalentes no iPhone; sem mudança de comportamento. */
 .storefront .menu-entry.is-neutral .category-option-media img {
   position: absolute;
@@ -224,8 +225,8 @@
 }
 @media (max-width: 599px) {
   .storefront .menu-entry.is-neutral .category-option {
-    height: 194px;
-    min-height: 194px;
+    height: 190px;
+    min-height: 190px;
     grid-template-rows: minmax(0, 1fr);
   }
   .storefront .menu-entry.is-neutral .category-option-media {
@@ -238,7 +239,7 @@
 }
 @media (max-width: 359px) {
   .storefront .menu-entry.is-neutral .category-option {
-    height: 205px;
-    min-height: 205px;
+    height: 204px;
+    min-height: 204px;
   }
 }
