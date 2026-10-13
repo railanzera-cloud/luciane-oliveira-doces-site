@@ -44,11 +44,31 @@ test("mobile mantém as duas vitrines com igual altura e evita crescimento pela 
   assert.ok(css.includes("position: absolute;"));
   assert.ok(css.includes(".category-option-media img"));
 });
-test("paleta cobre-creme mantém o texto escuro e a foto livre de máscara preta pesada",()=>{
-  assert.ok(css.includes("#ddbc97"));
-  assert.ok(css.includes("#d3ab84"));
-  assert.ok(css.includes("#cba17c"));
-  assert.ok(css.includes("color: #352016"));
-  assert.ok(css.includes("color: #513422"));
+test("v4 usa chocolate-cobre mais profundo, sem apagar as fotografias",()=>{
+  for(const value of ["#bd9675","#b38b6c","#ab8064","color: #23150d","color: #2b1a10"]){
+    assert.ok(css.includes(value),value);
+  }
+  assert.ok(css.includes("category-option-copy::after"));
+  assert.ok(css.includes("linear-gradient(90deg, rgba(181,139,108,0),rgba(181,139,108,.94))"));
+  assert.ok(css.includes("background: transparent;"));
   assert.ok(css.includes("content: none"));
+});
+test("contraste de legenda com todos os tons cobre no mínimo 4.5:1",()=>{
+  const rgb = (hex) => [0,2,4].map(i => parseInt(hex.slice(i,i+2),16)/255);
+  const luminance = hex => rgb(hex).map(c => c<=0.04045?c/12.92:Math.pow((c+.055)/1.055,2.4))
+    .reduce((sum,c,i)=>sum+c*[.2126,.7152,.0722][i],0);
+  const ratio = (x,y) => {
+    const a=luminance(x),b=luminance(y);
+    return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+  };
+  for(const bg of ["bd9675","b38b6c","ab8064"]){
+    for(const fg of ["23150d","2b1a10","23150e"]){
+      assert.ok(ratio(bg,fg)>=4.5, bg+" x "+fg+": "+ratio(bg,fg).toFixed(2));
+    }
+  }
+});
+test("o bloco operacional fica discreto e não perde informações",()=>{
+  assert.ok(css.includes("border-left: 2px solid rgba(216,161,100,.78)"));
+  assert.ok(css.includes("background: transparent;"));
+  assert.ok(page.includes("O prazo começa após a confirmação da loja."));
 });
