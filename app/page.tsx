@@ -6,6 +6,7 @@ import {
   Banknote,
   CakeSlice,
   Check,
+  Clock3,
   ChevronDown,
   ChevronRight,
   CreditCard,
@@ -1553,7 +1554,7 @@ export default function Home() {
                   ? "Monte seu pedido e escolha se prefere concluir no site ou pelo WhatsApp."
                   : "Monte seu pedido pelo site e envie pelo WhatsApp."}</p>
             {hasResolvedAvailability && availability.ordersOpen && visibleCategories.length > 0 && (
-              <p className="delivery-time-estimate">{DELIVERY_TIME_ESTIMATE} O prazo começa após a confirmação da loja.</p>
+              <p className="delivery-time-estimate">{!activeCategory && <Clock3 className="delivery-time-clock" size={18} strokeWidth={1.8} aria-hidden="true" />}<span>{DELIVERY_TIME_ESTIMATE} O prazo começa após a confirmação da loja.</span></p>
             )}
           </div>
           {!activeCategory && <p className="delivery-note"><Truck size={16} aria-hidden="true" /> Entrega a partir de R$8 ou retirada em Paragominas</p>}

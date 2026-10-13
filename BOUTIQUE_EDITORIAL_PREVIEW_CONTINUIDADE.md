@@ -68,3 +68,12 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - Teste visual isolado executado com CSS compilado em larguras 320, 375, 390 e 430px, sem extravasamento dos títulos. Isso **não substitui** homologação da página inteira no Safari.
 - **PENDÊNCIA CRÍTICA**: os dois novos arquivos WebP ainda **não foram sincronizados** no repositório. O GitHub conserva a foto anterior da fatia e não possui a foto nova da pipoca, apesar de ambos estarem corretos no ZIP acima. O próximo build CI, até essa sincronização, não reproduzirá a prévia com as fotos corretas.
 - Próxima ação exata: sincronizar os **binários correspondentes aos hashes** no caminho `public/images/` da branch experimental, rodar workflow/build e confirmar os dois arquivos no ZIP do CI; então homologar a apresentação no Safari do iPhone. Não promova produção automaticamente.
+## Vitrine editorial v8 — refinamento do acabamento (13/10/2026)
+
+- Referência aprovada: segundo print do usuário, especialmente tipografia editorial, profundidade chocolate e relógio junto ao prazo.
+- Mudanças somente na entrada neutra: contraste dos títulos, descrições e CTAs; gradiente chocolate acetinado; relevo suave; ícone Clock3 no prazo de preparo.
+- Tamanho dos cartões e fotografia da v7 ficam exatamente iguais. Não alterar fluxos comerciais nem a Boutique 4.6.
+- Testes específicos incluídos para ícone, textos, fotos e navegação.
+- Pendência: dois WebP definitivos continuam apenas no ZIP de Preview; antes de declarar que o GitHub está reproduzível, comparar hashes e sincronizar os arquivos.
+- Aprovação visual completa só após Safari no iPhone. Não publicar produção.
+

@@ -128,3 +128,25 @@ test("v7 aproxima a referência aprovada: cartões compactos, fundo chocolate e 
   assert.ok(page.includes("onClick={() => selectCategory(category.id)}"));
   assert.ok(page.includes("event.currentTarget.src = cover.cardImage ?? cover.image"));
 });
+
+test("v8 apresenta relógio e refina a hierarquia da entrada sem mudar pedidos", () => {
+  const v8 = css.slice(css.lastIndexOf("Editorial v8"));
+  assert.ok(v8.startsWith("Editorial v8"));
+  for (const detail of [
+    ".delivery-time-clock",
+    "display: flex;",
+    "linear-gradient(145deg, #54372a 0%, #402920 55%, #291912 100%)",
+    "color: #fff1e3;",
+    "color: #efdbc7;",
+    "color: #f3bb83;",
+    "font-size: clamp(1.11rem, 4.95vw, 1.34rem);"
+  ]) assert.ok(v8.includes(detail), detail);
+  assert.ok(page.includes('!activeCategory && <Clock3 className="delivery-time-clock"'));
+  assert.ok(page.includes("{DELIVERY_TIME_ESTIMATE} O prazo começa após a confirmação da loja."));
+  assert.ok(page.includes("onClick={() => selectCategory(category.id)}"));
+  assert.ok(page.includes('disabled={!available}'));
+  assert.ok(page.includes("/images/categoria-pipocas-editorial.webp"));
+  assert.ok(page.includes("/images/categoria-fatias-editorial.webp"));
+  assert.ok(!v8.includes(".menu-entry.has-category"));
+});
+
