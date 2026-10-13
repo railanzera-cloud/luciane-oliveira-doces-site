@@ -197,6 +197,9 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes('if (category === "pipocas") requestEditorialScroll("tamanhos")'));
   assert.ok(page.includes('requestEditorialScroll("edicao-crocante")'));
   assert.ok(page.includes('activeCategory === "pipocas" && showLimitedCupView'));
+  assert.ok(page.includes('showLimitedCupView && cart.length === 0 ? "builder-section is-cup-discovery"'));
+  assert.ok(css.includes('.builder-section.is-cup-discovery > .builder-shell > :not(.limited-cup-story)'));
+
   assert.ok(page.includes('id="edicao-crocante"'));
   assert.ok(page.includes('id="tamanhos"'));
   assert.ok(page.includes('onClick={() => selectCategory("pipocas")}>Prefere os potes recheados?'));

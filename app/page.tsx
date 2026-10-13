@@ -1695,7 +1695,7 @@ export default function Home() {
       </section>
 
       {activeCategory && (
-      <section className="builder-section" id="configurador">
+      <section className={showLimitedCupView && cart.length === 0 ? "builder-section is-cup-discovery" : "builder-section"} id="configurador">
         <div className="page-shell builder-shell">
           {activeCategory === "pipocas" && showLimitedCupView && (
             <section className="limited-cup-story" id="edicao-crocante" aria-label="Edição limitada de pipocas crocantes no copo">

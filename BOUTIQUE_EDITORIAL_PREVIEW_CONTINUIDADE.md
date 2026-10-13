@@ -243,3 +243,4 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - Mecanismo de salto via `requestAnimationFrame` após a renderização e `window.scrollTo({behavior:"instant"})`, sem animar scroll no Safari. **Validar manualmente no Safari** e no modo pedidos fechados.
 - A edição em copo continua sem reserva/venda: integração comercial ainda pendente, requer aprovação da loja e confirmação do estoque antes de anunciar disponibilidade.
 - Mantidas fotografias da v5, valores e cards da home, sem alteração de código backend nem de Boutique 4.6; não publicar produção automaticamente.
+- Aperfeiçoamento: na experiência de descoberta, quando o carrinho está vazio, o configurador tradicional fica fora da visualização e da navegação por teclado até o visitante escolher **Ver potes recheados → Escolher tamanho**. Se já houver itens no carrinho, a estrutura comercial permanece presente para preservar a continuidade do pedido.
