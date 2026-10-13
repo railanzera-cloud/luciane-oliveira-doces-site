@@ -89,3 +89,13 @@ test("nova imagem da fatia só afeta a vitrine e tem fallback do catálogo",()=>
   assert.ok(page.includes('alt=""'));
   assert.ok(page.includes('disabled={!available}'));
 });
+
+
+test("imagem real otimizada está incluída no próprio repositório e no build Cloudflare", async()=>{
+  const photo=await readFile(new URL("../public/images/categoria-fatias-editorial.webp", import.meta.url));
+  assert.ok(photo.length >= 20000 && photo.length < 130000, "fotografia otimizada para mobile");
+  assert.equal(photo.toString("ascii",0,4),"RIFF");
+  assert.equal(photo.toString("ascii",8,12),"WEBP");
+  assert.ok(page.includes('category.id === "fatias" ? "/images/categoria-fatias-editorial.webp"'));
+  assert.ok(page.includes("event.currentTarget.src = cover.cardImage ?? cover.image"));
+});
