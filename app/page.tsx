@@ -1580,14 +1580,15 @@ export default function Home() {
           </div>
           {!activeCategory && <p className="delivery-note"><Truck size={16} aria-hidden="true" /> Entrega a partir de R$8 ou retirada em Paragominas</p>}
           {!activeCategory && hasResolvedAvailability && (
-            <button className="limited-cup-teaser" type="button" onClick={() => selectCategory("pipocas")} disabled={!categoryIsAvailable("pipocas")}>
+            <button className="limited-cup-teaser" type="button" onClick={() => selectCategory("pipocas")} disabled={!categoryIsAvailable("pipocas")} aria-label="Conhecer a edição limitada O lado crocante da Luciane, com sabores Ninho e Chocolate">
               <span className="limited-cup-teaser-content">
                 <span className="limited-cup-teaser-mark"><span aria-hidden="true">✦</span> {cupLaunchCopy.eyebrow}</span>
                 <strong>O lado <em>crocante</em> da Luciane.</strong>
-                <span className="limited-cup-teaser-action">Dois sabores · R$ 15,90 <span>{cupLaunchCopy.teaser} <ChevronRight size={14} aria-hidden="true" /></span></span>
+                <span className="limited-cup-teaser-action"><span>2 sabores · R$ 15,90</span><span className="limited-cup-teaser-cta">{cupLaunchCopy.teaser}<ChevronRight size={15} aria-hidden="true" /></span></span>
               </span>
               <span className="limited-cup-teaser-visual" aria-hidden="true">
-                <img className="limited-cup-teaser-photo" src="/images/edicao-crocante-copos-reais.webp" alt="" width="210" height="210" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
+                <span className="limited-cup-teaser-shot is-ninho"><img src="/images/edicao-crocante-ninho.webp" alt="" width="540" height="960" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} /></span>
+                <span className="limited-cup-teaser-shot is-chocolate"><img src="/images/edicao-crocante-chocolate.webp" alt="" width="540" height="960" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} /></span>
               </span>
             </button>
           )}
@@ -1646,27 +1647,31 @@ export default function Home() {
         <div className="page-shell builder-shell">
           {activeCategory === "pipocas" && (
             <aside className="limited-cup-story" aria-label="Edição limitada de pipocas crocantes no copo">
-              <div className="limited-cup-story-hero">
-                <div className="limited-cup-story-photo" aria-hidden="true">
-                  <img src="/images/edicao-crocante-textura.webp" alt="" width="670" height="837" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
-                </div>
-                <div className="limited-cup-story-main">
-                  <span className="limited-cup-story-kicker">{cupLaunchCopy.eyebrow}</span>
-                  <h2>O lado <em>crocante</em> da Luciane.</h2>
-                  <p>Caramelizadas até o ponto perfeito. Finalizadas com Ninho ou chocolate.</p>
-                  <div className="limited-cup-story-value">
-                    <strong>R$ 15,90</strong>
-                    <span>400 ml <span aria-hidden="true">·</span> 190 g</span>
-                  </div>
-                </div>
+              <div className="limited-cup-story-heading">
+                <span className="limited-cup-story-kicker">{cupLaunchCopy.eyebrow}</span>
+                <h2>O lado <em>crocante</em> da Luciane.</h2>
+                <p>Caramelizadas no ponto. Finalizadas com Ninho ou chocolate.</p>
               </div>
-              <div className="limited-cup-story-flavors" aria-label="Sabores desta edição">
-                <div><span className="limited-cup-flavor-number" aria-hidden="true">01</span><strong>Caramelo com Leite Ninho</strong></div>
-                <div><span className="limited-cup-flavor-number" aria-hidden="true">02</span><strong>Caramelo com Chocolate</strong></div>
+              <div className="limited-cup-duo" aria-label="Os dois sabores da edição limitada">
+                <figure className="limited-cup-duo-item is-ninho">
+                  <img src="/images/edicao-crocante-ninho.webp" alt="Pipocas crocantes de caramelo com Leite Ninho em copo" width="540" height="960" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
+                  <figcaption><span>01 · NINHO</span><strong>Caramelo com Leite Ninho</strong></figcaption>
+                </figure>
+                <figure className="limited-cup-duo-item is-chocolate">
+                  <img src="/images/edicao-crocante-chocolate.webp" alt="Pipocas crocantes de caramelo com chocolate em copo" width="540" height="960" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
+                  <figcaption><span>02 · CHOCOLATE</span><strong>Caramelo com Chocolate</strong></figcaption>
+                </figure>
               </div>
-              <div className="limited-cup-story-footer">
-                <p>{cupLaunchCopy.description}</p>
-                <a href="#potes-recheados">Ver potes recheados <ChevronDown size={15} aria-hidden="true" /></a>
+              <div className="limited-cup-story-bottom">
+                <div className="limited-cup-story-price"><strong>R$ 15,90</strong><span>por copo · 400 ml · 190 g</span></div>
+                <div className="limited-cup-story-detail">
+                  <img src="/images/edicao-crocante-textura.webp" alt="" width="70" height="70" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
+                  <span>Redondinhas, caramelizadas e crocantes.</span>
+                </div>
+                <div className="limited-cup-story-footer">
+                  <span>{cupLaunchCopy.description}</span>
+                  <a href="#potes-recheados">Ver potes recheados <ChevronDown size={15} aria-hidden="true" /></a>
+                </div>
               </div>
             </aside>
           )}

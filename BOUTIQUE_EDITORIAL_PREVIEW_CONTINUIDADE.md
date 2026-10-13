@@ -191,3 +191,10 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - Inspeção ZIP: CRC íntegro; arquivos de imagem decodificáveis; as frases rejeitadas “Foto ilustrativa de copos maiores” e “Ainda não há foto do sabor chocolate” não aparecem no JavaScript compilado.
 - Tentativa de navegador local (Chromium/Playwright) bloqueada pelo ambiente (ERR_BLOCKED_BY_ADMINISTRATOR tanto localhost quanto file://). Portanto, **layout v3 não foi homologado visualmente** em navegador real; comparar em Safari no Preview antes de produção.
 - Não foram alterados preços, produtos disponíveis, carrinho, checkout, Supabase ou Boutique 4.6. Loja não pode vender a edição crocante antes do cadastro/estoque real.
+
+## Edição crocante v4 — imagens dos dois sabores (13/10/2026)
+- Feedback do cliente: teaser com três copos não despertava interesse e parecia pouco clicável; fotografia da pipoca pura era forte, mas não mostrava o produto acabado. A v4 apresenta **Ninho e Chocolate juntos** na home, cada um com miniatura fotográfica; chamada recebe CTA sublinhado e seta.
+- Seção interna: hero editorial dividido em duas fotografias, títulos de sabores integrados às imagens, informação de 400 ml / 190 g / R$ 15,90, macro fotográfica em miniatura secundária e retorno direto aos potes recheados.
+- As imagens `edicao-crocante-ninho.webp` e `edicao-crocante-chocolate.webp` vieram dos dois arquivos fornecidos nesta conversa, sem regeneração. Usar no Preview. Arquivos binários ainda exigem sincronização GitHub; não contar com o build puro para imagens sem os assets.
+- A campanha continua **sem pedido antecipado** e sem integração dos copos ao carrinho. O relógio de campanha não libera vendas por data: integrar comercialmente, confirmar estoque e homologar no Safari antes da disponibilidade.
+- Não alterar preço/catálogo existente, pagamentos, WhatsApp, Supabase, outra branch Boutique 4.6, ou produção.
