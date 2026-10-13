@@ -234,3 +234,12 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - ZIP verificado por CRC, unicidade de entradas, dimensões/decode das imagens, integridade dos arquivos compilados e presença das chamadas/CTAs. **Sem homologação visual Safari ainda.**
 - Aviso importante: esses WebPs definitivos **ainda não estão versionados como blobs na branch do GitHub**. O ZIP de homologação é completo, mas builds limpos do GitHub não mostrarão todos esses arquivos até sincronização dos binários.
 - Compra edição de copos não integrada: não existe reserva/pré-venda, sem alterações no carrinho, catálogo original, estoque ou pagamentos. Separar homologação visual de homologação comercial e não publicar produção automaticamente.
+
+## V6 — Navegação independente (13/10/2026)
+- Reclamação de UX comprovada: clicar em **Pipocas Gourmet** da home levava primeiro à edição limitada, bloqueando a compreensão do configurador do pote.
+- Mudança localizada: `selectCategory("pipocas")` agora oculta a edição e solicita salto imediato ao passo 1 `#tamanhos`. **Fatias** preservam seu caminho original. A chamada “Conhecer a edição” aciona `openLimitedCupEdition()`, mostra somente a vitrine da campanha e leva o viewport diretamente ao cartão `#edicao-crocante`, sem mudar carrinho, preços ou estoque.
+- A página na experiência de descoberta distingue o título “Edição Crocante” de “Pipocas Gourmet”; botão redundante “Conhecer os sabores” retirado. As imagens dos sabores seguem clicáveis com detalhes informativos; há caminho secundário com texto **Prefere os potes recheados? Escolher tamanho**.
+- Mobile sticky de checkout/configurador oculta-se durante a experiência de descoberta; reaparece no pedido tradicional. A restauração da URL e edição de itens limpam o modo de lançamento; fechamento de loja ainda respeitado.
+- Mecanismo de salto via `requestAnimationFrame` após a renderização e `window.scrollTo({behavior:"instant"})`, sem animar scroll no Safari. **Validar manualmente no Safari** e no modo pedidos fechados.
+- A edição em copo continua sem reserva/venda: integração comercial ainda pendente, requer aprovação da loja e confirmação do estoque antes de anunciar disponibilidade.
+- Mantidas fotografias da v5, valores e cards da home, sem alteração de código backend nem de Boutique 4.6; não publicar produção automaticamente.

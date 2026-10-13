@@ -188,32 +188,37 @@ test("barra móvel respeita digitação e telas estreitas sem modificar a ação
   assert.ok(page.includes("inlineBuilderActionVisible"));
 });
 
-test("v5: lançamento editorial com fotos reais, botões de exploração e comércio bloqueado", () => {
-  assert.ok(page.includes('className="limited-cup-teaser"'));
-  assert.ok(page.includes('onClick={() => selectCategory("pipocas")}'));
-  assert.ok(page.includes('className="limited-cup-teaser-cta"'));
-  assert.ok(page.includes("Caramelo com Leite Ninho"));
-  assert.ok(page.includes("Caramelo com Chocolate"));
-  assert.ok(page.includes('className="limited-cup-story-primary"'));
-  assert.ok(page.includes('aria-expanded={cupFlavorPreview !== null}'));
+test("v6 separa lançamento e compra tradicional sem afetar os outros produtos", () => {
+  assert.ok(page.includes("const [showLimitedCupView, setShowLimitedCupView] = useState(false)"));
+  assert.ok(page.includes("function openLimitedCupEdition()"));
+  assert.ok(page.includes('onClick={openLimitedCupEdition}'));
+  assert.ok(page.includes('onClick={() => selectCategory(category.id)}'));
+  assert.ok(page.includes('setShowLimitedCupView(false);\n    setRequestedCategory(category);'));
+  assert.ok(page.includes('if (category === "pipocas") requestEditorialScroll("tamanhos")'));
+  assert.ok(page.includes('requestEditorialScroll("edicao-crocante")'));
+  assert.ok(page.includes('activeCategory === "pipocas" && showLimitedCupView'));
+  assert.ok(page.includes('id="edicao-crocante"'));
+  assert.ok(page.includes('id="tamanhos"'));
+  assert.ok(page.includes('onClick={() => selectCategory("pipocas")}>Prefere os potes recheados?'));
+  assert.ok(page.includes('Toque em Ninho ou Chocolate para conhecer cada sabor.'));
+  assert.ok(!page.includes("Conhecer os sabores"));
+  assert.ok(!page.includes('className="limited-cup-story-primary"'));
   assert.ok(page.includes('aria-pressed={cupFlavorPreview === "ninho"}'));
   assert.ok(page.includes('aria-pressed={cupFlavorPreview === "chocolate"}'));
-  assert.ok(page.includes('role="status"'));
-  assert.ok(page.includes('onClick={jumpToFilledPopcornBuilder}'));
-  assert.ok(page.includes('document.getElementById("tamanhos")'));
+  assert.ok(page.includes('className="limited-cup-teaser-cta"'));
+  assert.ok(page.includes('!showLimitedCupView && !(stickyUsesCheckoutAction'));
+  assert.ok(page.includes('setShowLimitedCupView(false);\n    setBuilderEngaged(true);'));
   assert.ok(page.includes('window.scrollTo({ top, behavior: "instant" })'));
+  assert.ok(page.includes('setShowLimitedCupView(false);\n      setRequestedCategory(categoryFromUrl'));
   assert.ok(!page.includes('href="#potes-recheados"'));
-  assert.ok(!page.includes('selectCategory("copo")'));
   assert.ok(page.includes("R$ 15,90"));
   assert.ok(page.includes("400 ml"));
   assert.ok(page.includes("190 g"));
   assert.ok(page.includes("/images/edicao-crocante-ninho.webp"));
   assert.ok(page.includes("/images/edicao-crocante-chocolate.webp"));
   assert.ok(!page.includes("edicao-crocante-copos-reais.webp"));
-  assert.ok(!page.includes("Foto ilustrativa"));
-  assert.ok(css.includes(".limited-cup-story-primary:focus-visible"));
-  assert.ok(css.includes(".limited-cup-duo-item.is-selected"));
-  assert.ok(css.includes("touch-action:manipulation"));
+  assert.ok(css.includes(".limited-cup-flavor-hint"));
+  assert.ok(css.includes(".limited-cup-story-footer > button:focus-visible"));
 });
 
 test("v2 de lançamento exige três condições para anunciar disponibilidade", async () => {

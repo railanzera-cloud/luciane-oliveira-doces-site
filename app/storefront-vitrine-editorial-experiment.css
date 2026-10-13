@@ -932,3 +932,44 @@
  .storefront .limited-cup-teaser,.storefront .limited-cup-duo-item {transition:border-color .15s ease,box-shadow .15s ease;}
  .storefront .limited-cup-teaser:hover,.storefront .limited-cup-duo-item:hover {border-color:#f0c38d;box-shadow:0 12px 28px rgba(0,0,0,.32);}
 }
+
+/* V6: entradas independentes para compra tradicional e descoberta da edição. */
+.storefront .limited-cup-story .limited-cup-flavor-hint {
+  margin: 12px 0 0;
+  text-align: center;
+  color: #dbc0a3;
+  font-size: .72rem;
+  line-height: 1.45;
+}
+.storefront .limited-cup-story .limited-cup-story-footer {
+  align-items: stretch;
+  gap: 11px;
+}
+.storefront .limited-cup-story .limited-cup-story-footer > button {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(219,163,103,.49);
+  border-radius: 12px;
+  background: rgba(31,18,12,.44);
+  text-decoration: none;
+  text-align: left;
+  font-size: .76rem;
+  color: #f1d3b1;
+}
+.storefront .limited-cup-story .limited-cup-story-footer > button strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  color: #ffce91;
+  font-size: .8rem;
+}
+.storefront .limited-cup-story .limited-cup-story-footer > button:focus-visible {
+  outline: 2px solid #ffe0ac;
+  outline-offset: 3px;
+}

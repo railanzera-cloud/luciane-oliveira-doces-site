@@ -216,14 +216,15 @@ function scrollToSection(id: string) {
   target.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
 }
 
-// Atalho da edição limitada para o primeiro passo real do configurador.
-// Evita hash anchors + rolagem suave global no Safari iOS.
-function jumpToFilledPopcornBuilder() {
-  const target = document.getElementById("tamanhos");
+// Navegação previsível entre a edição e o pedido tradicional no Safari.
+function jumpToEditorialSection(id: "tamanhos" | "edicao-crocante") {
+  const target = document.getElementById(id);
   if (!target) return;
   const top = Math.max(0, window.scrollY + target.getBoundingClientRect().top - 16);
   window.scrollTo({ top, behavior: "instant" });
-  const heading = document.getElementById("step-size");
+  const heading = id === "tamanhos"
+    ? document.getElementById("step-size")
+    : target.querySelector<HTMLElement>("h2");
   if (heading) {
     heading.setAttribute("tabindex", "-1");
     heading.focus({ preventScroll: true });
@@ -368,14 +369,26 @@ export default function Home() {
   const { promotionTime, refreshPromotionTime } = usePopcornPromotion();
   const popcornPromotionActive = isPopcornPromotionActive(promotionTime);
   const [requestedCategory, setRequestedCategory] = useState<CategoryId | null>(null);
+  // Edição limitada é uma experiência de descoberta, não um passo obrigatório do pedido.
+  const [showLimitedCupView, setShowLimitedCupView] = useState(false);
   const [popcornVariantId, setPopcornVariantId] = useState("");
   const [popcornOptionIds, setPopcornOptionIds] = useState<string[]>([]);
   const [popcornQuantity, setPopcornQuantity] = useState(1);
-  const [scrollRequest, setScrollRequest] = useState<{ id: string } | null>(null);
+  const [scrollRequest, setScrollRequest] = useState<{ id: string; editorial?: boolean } | null>(null);
   function requestScroll(id: string) { setScrollRequest({ id }); }
+  function requestEditorialScroll(id: "tamanhos" | "edicao-crocante") {
+    setScrollRequest({ id, editorial: true });
+  }
   useEffect(() => {
     if (!scrollRequest) return;
-    const frame = window.requestAnimationFrame(() => { scrollToSection(scrollRequest.id); setScrollRequest(null); });
+    const frame = window.requestAnimationFrame(() => {
+      if (scrollRequest.editorial && (scrollRequest.id === "tamanhos" || scrollRequest.id === "edicao-crocante")) {
+        jumpToEditorialSection(scrollRequest.id);
+      } else {
+        scrollToSection(scrollRequest.id);
+      }
+      setScrollRequest(null);
+    });
     return () => window.cancelAnimationFrame(frame);
   }, [scrollRequest]);
   const [sliceProductId, setSliceProductId] = useState("");
@@ -653,7 +666,10 @@ export default function Home() {
       setStorageReady(true);
     }, 0);
 
-    const followHistory = () => setRequestedCategory(categoryFromUrl(window.location.href));
+    const followHistory = () => {
+      setShowLimitedCupView(false);
+      setRequestedCategory(categoryFromUrl(window.location.href));
+    };
     window.addEventListener("popstate", followHistory);
     return () => {
       window.clearTimeout(restoreTimer);
@@ -914,13 +930,30 @@ export default function Home() {
 
   function selectCategory(category: CategoryId, shouldScroll = true) {
     if (!categoryIsAvailable(category)) return;
+    setShowLimitedCupView(false);
     setRequestedCategory(category);
     setEditingId(null);
     setSelectionMessage("");
     setAddedNotice(null);
     setBuilderEngaged(true);
     window.history.replaceState(window.history.state, "", categoryUrl(window.location.href, category));
-    if (shouldScroll) window.setTimeout(() => scrollToSection("configurador"), 30);
+    if (shouldScroll) {
+      if (category === "pipocas") requestEditorialScroll("tamanhos");
+      else requestScroll("configurador");
+    }
+  }
+
+  function openLimitedCupEdition() {
+    if (!categoryIsAvailable("pipocas")) return;
+    setShowLimitedCupView(true);
+    setCupFlavorPreview(null);
+    setRequestedCategory("pipocas");
+    setEditingId(null);
+    setSelectionMessage("");
+    setAddedNotice(null);
+    setBuilderEngaged(false);
+    window.history.replaceState(window.history.state, "", categoryUrl(window.location.href, "pipocas"));
+    requestEditorialScroll("edicao-crocante");
   }
 
   function choosePopcornVariant(nextId: string) {
@@ -1217,6 +1250,7 @@ export default function Home() {
     }
     window.history.replaceState(window.history.state, "", categoryUrl(window.location.href, itemCategory));
     setEditingId(item.id);
+    setShowLimitedCupView(false);
     setBuilderEngaged(true);
     setSelectionMessage("");
     setAddedNotice(null);
@@ -1489,8 +1523,10 @@ export default function Home() {
   }
 
   function beginBuilding() {
+    setShowLimitedCupView(false);
     setBuilderEngaged(true);
-    scrollToSection(activeCategory ? "configurador" : "inicio");
+    if (activeCategory === "pipocas") requestEditorialScroll("tamanhos");
+    else scrollToSection(activeCategory ? "configurador" : "inicio");
   }
 
   // Generic form feedback follows the current missing field instead of staying stale.
@@ -1575,9 +1611,9 @@ export default function Home() {
           )}
           <div className="entry-heading">
             <p className="eyebrow">Luciane Oliveira Doces</p>
-            <h1>{activeCategory === "pipocas" ? "Pipocas Gourmet" : activeCategory === "fatias" ? "Fatias Artesanais" : "Escolha o que deseja pedir"}</h1>
+            <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Edição Crocante" : "Pipocas Gourmet" : activeCategory === "fatias" ? "Fatias Artesanais" : "Escolha o que deseja pedir"}</h1>
             <p className="entry-copy">{activeCategory === "pipocas"
-              ? "Escolha o tamanho e combine seus sabores."
+              ? showLimitedCupView ? "Conheça os dois sabores da edição limitada." : "Escolha o tamanho e combine seus sabores."
               : activeCategory === "fatias"
                 ? "Sabores disponíveis"
                 : COMMERCE_CONFIG.siteOrderingEnabled
@@ -1595,7 +1631,7 @@ export default function Home() {
           </div>
           {!activeCategory && <p className="delivery-note"><Truck size={16} aria-hidden="true" /> Entrega a partir de R$8 ou retirada em Paragominas</p>}
           {!activeCategory && hasResolvedAvailability && (
-            <button className="limited-cup-teaser" type="button" onClick={() => selectCategory("pipocas")} disabled={!categoryIsAvailable("pipocas")} aria-label="Conhecer a edição limitada de pipocas crocantes, Ninho e Chocolate, R$ 15,90">
+            <button className="limited-cup-teaser" type="button" onClick={openLimitedCupEdition} disabled={!categoryIsAvailable("pipocas")} aria-label="Conhecer a edição limitada de pipocas crocantes, Ninho e Chocolate, R$ 15,90">
               <span className="limited-cup-teaser-content">
                 <span className="limited-cup-teaser-mark"><span aria-hidden="true">✦</span> {cupLaunchCopy.eyebrow}</span>
                 <strong>O lado <em>crocante</em> da Luciane.</strong>
@@ -1661,8 +1697,8 @@ export default function Home() {
       {activeCategory && (
       <section className="builder-section" id="configurador">
         <div className="page-shell builder-shell">
-          {activeCategory === "pipocas" && (
-            <section className="limited-cup-story" aria-label="Edição limitada de pipocas crocantes no copo">
+          {activeCategory === "pipocas" && showLimitedCupView && (
+            <section className="limited-cup-story" id="edicao-crocante" aria-label="Edição limitada de pipocas crocantes no copo">
               <div className="limited-cup-story-heading">
                 <span className="limited-cup-story-kicker">{cupLaunchCopy.eyebrow}</span>
                 <h2>O lado <em>crocante</em> da Luciane.</h2>
@@ -1690,14 +1726,11 @@ export default function Home() {
                     <small>Prévia do sabor. O pedido desta edição ainda não está liberado.</small>
                   </div>
                 )}
-                <button type="button" className="limited-cup-story-primary" onClick={() => setCupFlavorPreview((current) => current === null ? "ninho" : null)} aria-expanded={cupFlavorPreview !== null}>
-                  {cupFlavorPreview ? "Ocultar detalhes" : "Conhecer os sabores"}
-                  <ChevronRight size={19} aria-hidden="true" />
-                </button>
+                <p className="limited-cup-flavor-hint">{cupFlavorPreview ? "Selecione o outro copo para comparar os sabores." : "Toque em Ninho ou Chocolate para conhecer cada sabor."}</p>
                 <p className="limited-cup-story-availability">{cupLaunchCopy.description}</p>
                 <div className="limited-cup-story-footer">
-                  <span>Uma edição em copo, sem reposição após o fim do estoque.</span>
-                  <button type="button" onClick={jumpToFilledPopcornBuilder}>Ver potes recheados <ChevronDown size={15} aria-hidden="true" /></button>
+                  <span>Esta edição em copo não terá reposição após o fim do estoque.</span>
+                  <button type="button" onClick={() => selectCategory("pipocas")}>Prefere os potes recheados? <strong>Escolher tamanho <ChevronRight size={15} aria-hidden="true" /></strong></button>
                 </div>
               </div>
             </section>
@@ -2418,7 +2451,7 @@ export default function Home() {
 
       <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
-      {(activeCategory || cart.length > 0) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && (
+      {(activeCategory || cart.length > 0) && !showLimitedCupView && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && (
       <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
         <div><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></div>
         <Button type="button" onClick={handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
