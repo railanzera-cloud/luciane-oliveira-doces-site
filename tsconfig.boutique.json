@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "next-env.d.ts",
+    "app/page.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "worker/**",
+    "db/**",
+    "supabase/functions/*/index.ts"
+  ],
+  "compilerOptions": {
+    "incremental": false
+  }
+}

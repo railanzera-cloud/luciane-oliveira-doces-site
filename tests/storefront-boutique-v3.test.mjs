@@ -221,3 +221,10 @@ test("4.1 preserva escopo, toque, foco e redução de movimento", () => {
   assert.ok(css.includes("@media (prefers-reduced-motion: reduce)"));
   assert.ok(!css.includes(".admin-"));
 });
+
+test("A finalização só aparece quando existir produto e mantém personalização limpa", () => {
+  assert.ok(page.includes('cart.length > 0 && (\n      <section className="checkout-section"'));
+  assert.ok(!page.includes('(activeCategory || cart.length > 0) && (\n      <section className="checkout-section"'));
+  assert.ok(page.includes("finishOnWhatsApp()"));
+  assert.ok(page.includes("finishOnSite()"));
+});

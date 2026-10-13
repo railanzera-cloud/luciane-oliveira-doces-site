@@ -1910,7 +1910,7 @@ export default function Home() {
         </section>
       )}
 
-      {(activeCategory || cart.length > 0) && (
+      {cart.length > 0 && (
       <section className="checkout-section" id="carrinho">
         <div className="page-shell">
           <header className={`boutique-checkout-intro ${cart.length > 0 ? "has-cart" : ""}`}>
