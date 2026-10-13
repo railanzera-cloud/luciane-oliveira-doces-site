@@ -1579,7 +1579,7 @@ export default function Home() {
                           onError={(event) => {
                             // A imagem original do catálogo permanece como fallback seguro.
                             if (category.id === "fatias" && event.currentTarget.getAttribute("src")?.includes("categoria-fatias-editorial.webp")) {
-                              event.currentTarget.src = cover.cardImage ?? cover.image;
+                              event.currentTarget.src = cover.cardImage ?? cover.image ?? event.currentTarget.src;
                             }
                           }}
                         />}
