@@ -402,3 +402,74 @@
 .storefront .menu-entry.is-neutral .category-option:hover:not(:disabled) .category-option-media img {
   transform: none;
 }
+
+
+/* Editorial v7 — equivalencia visual com a referencia aprovada no iPhone.
+ * Refinamento restrito aos cards de entrada: compacidade, fotografia natural,
+ * contraste e continuidade entre produto e painel. Nenhuma regra comercial. */
+.storefront .menu-entry.is-neutral .category-option {
+  border-color: rgba(184, 131, 81, .62);
+}
+.storefront .menu-entry.is-neutral .category-option-copy {
+  background:
+    radial-gradient(ellipse 97% 88% at 100% 0%, rgba(207, 145, 89, .085), transparent 77%),
+    linear-gradient(143deg, #4d3227 0%, #402a20 57%, #2e1e17 100%);
+}
+.storefront .menu-entry.is-neutral .category-option-media,
+.storefront .menu-entry.is-neutral .category-option:first-child .category-option-media,
+.storefront .menu-entry.is-neutral .category-option:nth-child(2) .category-option-media {
+  background: #38251c;
+}
+.storefront .menu-entry.is-neutral .category-option:first-child .category-option-media img {
+  object-fit: cover;
+  object-position: 50% 48%;
+  filter: brightness(.945) saturate(.94) contrast(1.01);
+  transform: none;
+}
+.storefront .menu-entry.is-neutral .category-option:nth-child(2) .category-option-media img {
+  object-fit: cover;
+  object-position: 50% 50%;
+  filter: none;
+  transform: none;
+}
+.storefront .menu-entry.is-neutral .category-option-media::after {
+  background: linear-gradient(90deg, transparent 80%, rgba(35, 21, 15, .08) 100%);
+}
+@media (max-width: 599px) {
+  .storefront .menu-entry.is-neutral .category-options { gap: 10px; }
+  .storefront .menu-entry.is-neutral .category-option {
+    grid-template-columns: minmax(0, 49%) minmax(0, 51%);
+    grid-template-rows: minmax(0, 1fr);
+    height: 180px;
+    min-height: 180px;
+  }
+  .storefront .menu-entry.is-neutral .category-option-media { min-height: 0; height: 100%; }
+  .storefront .menu-entry.is-neutral .category-option-copy { padding: 12px 15px 12px 12px; }
+  .storefront .menu-entry.is-neutral .category-option-copy strong {
+    font-size: clamp(1.10rem, 4.55vw, 1.26rem);
+    letter-spacing: -.043em;
+    line-height: 1.07;
+  }
+  .storefront .menu-entry.is-neutral .category-option-copy > span:not(.category-option-action) {
+    margin-top: 8px;
+    font-size: .72rem;
+  }
+  .storefront .menu-entry.is-neutral .category-option-copy > .category-option-action {
+    margin-top: 12px;
+    font-size: .74rem;
+    padding-right: 9px;
+  }
+  .storefront .menu-entry.is-neutral .category-option-arrow { right: 11px; bottom: 11px; }
+}
+@media (max-width: 359px) {
+  .storefront .menu-entry.is-neutral .category-option {
+    grid-template-columns: minmax(0, 45%) minmax(0, 55%);
+    height: 190px;
+    min-height: 190px;
+  }
+  .storefront .menu-entry.is-neutral .category-option-copy { padding: 12px 12px 12px 10px; }
+  .storefront .menu-entry.is-neutral .category-option-copy strong { font-size: 1.08rem; }
+}
+@media (min-width: 600px) and (max-width: 979px) {
+  .storefront .menu-entry.is-neutral .category-option { grid-template-columns: minmax(0, 49%) minmax(0, 51%); }
+}
