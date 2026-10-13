@@ -216,3 +216,11 @@ A inspeção no Chromium local foi bloqueada por `ERR_BLOCKED_BY_ADMINISTRATOR`.
 - Sem alterar fluxos comerciais, substituímos a âncora nativa por botão sem navegação/hash que usa `window.scrollTo({behavior:"instant"})` até o bloco real `#tamanhos`, com foco sem rolagem na etapa `#step-size`.
 - Correção localizada: mantém título e âncoras do restante do site, sem mudanças em carrinho, cálculo, disponibilidade ou checkout.
 - Hipótese técnica parcialmente fundamentada; **reteste manual no Safari ainda obrigatório** para afirmar que o congelamento do gesto de rolagem foi eliminado.
+
+## Vitrine Crocante v5 — direção aprovada (13/10/2026)
+- Referência visual: mockup editorial chocolate e cobre com dois copos reais, com menos elementos de cenário e fundo discreto. Não copiar o mockup inteiro como imagem renderizada nem reconstruir o site.
+- Home: teaser compacto preserva as duas categorias principais; fotos dos dois sabores lado a lado, nome e preço + CTA visual de entrada.
+- Pipocas: hero editorial, fotografias independentes com interação para ver o sabor, preço nobre R$ 15,90 por copo, 400 ml / 190 g, botão genuíno para explorar detalhes (sem checkout), estado de pré-lançamento/aguardando liberação; retorno para “Ver potes recheados” preservado com salto direto.
+- Sem reserva; sem simular compras, sem nova categoria permanente, sem alterar operação, produto/preço ou estoque existente. A mudança para “disponível” segue bloqueada pela flag de integração comercial e aprovação da loja.
+- Para Preview, incluir WebP das fotos do Ninho e Chocolate da conversa (verdadeiros produtos fornecidos) e as duas imagens originais editoriais aprovadas. Sincronização dos binários no Github segue pendente, verificada separadamente.
+- Homologar visual/navegação no Safari iPhone antes de produção; não mexer na Boutique 4.6 nem em Supabase/Luciane Gestão.
