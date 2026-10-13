@@ -976,9 +976,9 @@
 
 /* Isolamento da campanha: sem pedido em andamento, o configurador tradicional
  * não aparece abaixo do lançamento. O botão secundário abre a compra real. */
-.storefront .builder-section.is-cup-discovery > .builder-shell > :not(.limited-cup-story) {
+.storefront #configurador.is-cup-discovery > .page-shell > :not(.limited-cup-story) {
   display: none;
 }
-.storefront .builder-section.is-cup-discovery .limited-cup-story {
+.storefront #configurador.is-cup-discovery .limited-cup-story {
   margin-bottom: 0;
 }
