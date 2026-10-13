@@ -36,3 +36,19 @@ test("acessibilidade, mobile estreito e movimento reduzido cobertos",()=>{
     assert.ok(css.includes(rule),rule);
   }
 });
+
+test("mobile mantém as duas vitrines com igual altura e evita crescimento pela proporção das fotos",()=>{
+  assert.ok(css.includes("height: 190px;"));
+  assert.ok(css.includes("height: 204px;"));
+  assert.ok(css.includes("grid-template-rows: minmax(0, 1fr)"));
+  assert.ok(css.includes("position: absolute;"));
+  assert.ok(css.includes(".category-option-media img"));
+});
+test("paleta cobre-creme mantém o texto escuro e a foto livre de máscara preta pesada",()=>{
+  assert.ok(css.includes("#ddbc97"));
+  assert.ok(css.includes("#d3ab84"));
+  assert.ok(css.includes("#cba17c"));
+  assert.ok(css.includes("color: #352016"));
+  assert.ok(css.includes("color: #513422"));
+  assert.ok(css.includes("content: none"));
+});
