@@ -1065,19 +1065,44 @@ test('receiving continues to next incomplete field without a mandatory Continue 
  assert.match(source,/chooseFulfillment[\s\S]*?setAddedNotice\(null\)/);
 });
 
-test('direct category navigation rejects unavailable categories and preserves saved items', () => {
- let selected='pipocas';let scheduled=0;
- for(const allowed of [false,true]) {
-  const select=pageFunction('selectCategory',{
-   categoryIsAvailable:()=>allowed,setRequestedCategory:value=>selected=value,setEditingId:()=>{},setSelectionMessage:()=>{},setAddedNotice:()=>{},setBuilderEngaged:()=>{},
-   setCart:()=>assert.fail('Category navigation must not change saved cart items'),
-   window:{history:{state:null,replaceState(){}},location:{href:'https://example.test/?utm_source=instagram'},setTimeout:fn=>{scheduled++;fn();}},
-   categoryUrl:navigation.categoryUrl,scrollToSection:()=>{},
+test('direct category navigation isolates the cup campaign, rejects unavailable categories and preserves saved items', () => {
+  let selected='pipocas', isCupPreview=true, scheduled=null;
+  for(const allowed of [false,true]) {
+   const select=pageFunction('selectCategory',{
+    categoryIsAvailable:()=>allowed,setRequestedCategory:value=>selected=value,setShowLimitedCupView:value=>isCupPreview=value,
+    setEditingId:()=>{},setSelectionMessage:()=>{},setAddedNotice:()=>{},setBuilderEngaged:()=>{},
+    setCart:()=>assert.fail('Category navigation must not change saved cart items'),
+    window:{history:{state:null,replaceState(){}},location:{href:'https://example.test/?utm_source=instagram'}},
+    categoryUrl:navigation.categoryUrl,requestScroll:id=>scheduled=id,requestEditorialScroll:id=>scheduled=id,
+   });
+   scheduled=null;selected='pipocas';isCupPreview=true;
+   select('fatias');
+   assert.equal(selected,allowed?'fatias':'pipocas');
+   assert.equal(isCupPreview,!allowed);
+   assert.equal(scheduled,allowed?'configurador':null);
+   if(allowed) {
+     isCupPreview=true;scheduled=null;
+     select('pipocas');
+     assert.equal(isCupPreview,false);
+     assert.equal(scheduled,'tamanhos','Pipocas tradicionais must start at size');
+   }
+  }
+  assert.match(source,/visibleCategories\.filter\(\(category\) => category.id !== activeCategory\)/);
+  assert.match(source,/disabled=\{!categoryIsAvailable\(category.id\)\} onClick=\{\(\) => selectCategory\(category.id\)\}/);
+});
+
+test('limited campaign opens in discovery, without altering saved cart', () => {
+  let category=null,preview=false,engaged=true,scroll=null;
+  const open=pageFunction('openLimitedCupEdition',{
+    categoryIsAvailable:()=>true,setShowLimitedCupView:value=>preview=value,setCupFlavorPreview:()=>{},
+    setRequestedCategory:value=>category=value,setEditingId:()=>{},setSelectionMessage:()=>{},setAddedNotice:()=>{},
+    setBuilderEngaged:value=>engaged=value,setCart:()=>assert.fail('Preview must preserve cart'),
+    window:{history:{state:null,replaceState(){}},location:{href:'https://example.test/?utm_source=instagram'}},
+    categoryUrl:navigation.categoryUrl,requestEditorialScroll:id=>scroll=id,
   });
-  select('fatias');assert.equal(selected,allowed?'fatias':'pipocas');assert.equal(scheduled,allowed?1:0);
- }
- assert.match(source,/visibleCategories\.filter\(\(category\) => category.id !== activeCategory\)/);
- assert.match(source,/disabled=\{!categoryIsAvailable\(category.id\)\} onClick=\{\(\) => selectCategory\(category.id\)\}/);
+  open();assert.equal(category,'pipocas');assert.equal(preview,true);assert.equal(engaged,false);assert.equal(scroll,'edicao-crocante');
+  assert.match(source,/!showLimitedCupView && !\(stickyUsesCheckoutAction/);
+  assert.match(source,/activeCategory === "pipocas" && showLimitedCupView/);
 });
 
 test('real delivery JSX keeps required city neighborhood, hides it for specific places and shows accessible conflict guidance', () => {
