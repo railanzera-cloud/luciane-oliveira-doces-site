@@ -111,3 +111,20 @@ test("v6 mantém os dois arquivos escolhidos com fallback seguro e foto da pipoc
   assert.ok(v6.includes("transform: none;"));
   assert.ok(page.includes("event.currentTarget.src = cover.cardImage ?? cover.image"));
 });
+
+
+test("v7 aproxima a referência aprovada: cartões compactos, fundo chocolate e fotos integradas", () => {
+  const v7 = css.slice(css.lastIndexOf("Editorial v7"));
+  assert.ok(v7.startsWith("Editorial v7"), "acabamento v7 deve existir e prevalecer sobre v6");
+  for (const value of [
+    "linear-gradient(143deg, #4d3227 0%, #402a20 57%, #2e1e17 100%)",
+    "object-fit: cover;",
+    "filter: brightness(.945) saturate(.94) contrast(1.01);",
+    "grid-template-columns: minmax(0, 49%) minmax(0, 51%)",
+    "height: 180px;",
+    "gap: 10px;",
+    "filter: none;"
+  ]) assert.ok(v7.includes(value), "regra v7 ausente: " + value);
+  assert.ok(page.includes("onClick={() => selectCategory(category.id)}"));
+  assert.ok(page.includes("event.currentTarget.src = cover.cardImage ?? cover.image"));
+});
