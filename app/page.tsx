@@ -1696,7 +1696,7 @@ export default function Home() {
                   const available = categoryIsAvailable(category.id);
                   const cover = category.id === "pipocas" ? POPCORN : SLICES.find((slice) => sliceIsVisible(slice.id));
                   return (
-                    <button type="button" className="category-option" disabled={!available} key={category.id} onClick={() => selectCategory(category.id)} aria-label={`${category.name}${available ? "" : " — Esgotado"}`}>
+                    <button type="button" className="category-option" disabled={!available} key={category.id} onClick={() => selectCategory(category.id)} aria-label={`${category.name}${available ? (category.id === "pipocas" ? " — Montar meu pote" : " — Escolher minha fatia") : " — Esgotado"}`}>
                       <span className="category-option-media">
                         {cover?.image && <img
                           src={category.id === "fatias" ? "/images/categoria-fatias-editorial.webp" : category.id === "pipocas" ? "/images/categoria-pipocas-editorial-enquadrada-v107.webp" : cover.cardImage ?? cover.image}
@@ -1717,10 +1717,14 @@ export default function Home() {
                       <span className="category-option-copy">
                         <strong>{category.name}</strong>
                         <span>{category.description}</span>
-                        {available && <span className="category-option-action" aria-hidden="true">{category.id === "pipocas" ? "Escolher pipocas" : "Ver as fatias"}</span>}
+                        {available && (
+                          <span className="category-option-action" aria-hidden="true">
+                            {category.id === "pipocas" ? "Montar meu pote" : "Escolher minha fatia"}
+                            <ChevronRight className="category-option-arrow" size={16} aria-hidden="true" />
+                          </span>
+                        )}
                         {!available && <em>Esgotado</em>}
                       </span>
-                      {available && <ChevronRight className="category-option-arrow" size={20} aria-hidden="true" />}
                     </button>
                   );
                 })}

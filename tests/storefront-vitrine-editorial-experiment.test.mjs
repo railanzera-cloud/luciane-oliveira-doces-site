@@ -20,7 +20,7 @@ test("fotografias e legendas são elementos independentes e a ação é explíci
   assert.ok(page.includes('className="category-option-media"'));
   assert.ok(page.includes('className="category-option-copy"'));
   assert.ok(page.includes('className="category-option-action"'));
-  assert.ok(page.includes('"Escolher pipocas" : "Ver as fatias"'));
+  assert.ok(page.includes('"Montar meu pote" : "Escolher minha fatia"'));
   assert.ok(page.includes("onClick={() => selectCategory(category.id)}"));
   assert.ok(page.includes('disabled={!available}'));
   assert.ok(css.includes("grid-template-columns: minmax(0,44%) minmax(0,56%)"));
