@@ -22,7 +22,7 @@ test("segundo toque fecha; outro sabor substitui detalhes sem acumular", () => {
 test("abrir e fechar sao estados acessiveis e identificaveis", () => {
   assert.ok(story.includes('aria-expanded={cupFlavorPreview === "ninho"}'));
   assert.ok(story.includes('aria-expanded={cupFlavorPreview === "chocolate"}'));
-  assert.equal((story.match(/aria-controls="limited-cup-flavor-panel"/g)||[]).length, 2);
+  assert.equal((story.match(/aria-controls="crocantes-quantidade"/g)||[]).length, 2);
   assert.ok(story.includes('id="limited-cup-flavor-panel"'));
   assert.ok(story.includes('cupFlavorPreview === "ninho" ? "Selecionado · fechar detalhes" : cupSalesEnabled ?'));
   assert.ok(story.includes('cupFlavorPreview === "chocolate" ? "Selecionado · fechar detalhes" : cupSalesEnabled ?'));
@@ -43,15 +43,15 @@ test("detalhes tem altura equilibrada e segue fluxo da pagina", () => {
   assert.ok(!styles.includes('position: absolute'));
 });
 
-test("nao altera preco, fotos, lancamento nem checkout dos copos", () => {
-  assert.ok(story.includes('<strong>R$ 15,90</strong>'));
+test("preço, fotos e checkout dos copos mantidos, sem data automática", () => {
+  assert.ok(story.includes('R$ 15,90 por copo'));
   assert.ok(story.includes('400 ml'));
   assert.ok(story.includes('190 g'));
   assert.ok(story.includes('/images/edicao-crocante-ninho.webp'));
   assert.ok(story.includes('/images/edicao-crocante-chocolate.webp'));
   assert.ok(story.includes('onClick={() => selectCategory("pipocas")}'));
-  assert.ok(release.includes('launchDayStart: "2026-10-15T12:00:00-03:00"'));
-  for(const flag of ['orderingIntegrated: true','salesApprovedByStore: true','inventoryVerifiedAvailable: true']) assert.ok(release.includes(flag));
+  assert.ok(release.includes('if (!ordersOpen) return "closed"'));
+  assert.doesNotMatch(release,/launchDayStart/);
   assert.ok(!styles.includes('.mobile-sticky-bar'));
   assert.ok(!styles.includes('.admin-'));
 });
