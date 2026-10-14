@@ -1918,17 +1918,11 @@ export default function Home() {
                           {!selected && !disabled && potPriceWithOption !== null && (
                             <span
                               className={`boutique-flavor-impact ${priceDifference > 0 ? "has-increase" : "is-same"}`}
-                              aria-label={priceDifference > 0
-                                ? `Pote fica ${currency.format(potPriceWithOption)}; diferença de ${currency.format(priceDifference)} em relação à combinação atual`
-                                : undefined}
+                              aria-label={`Com ${option.name}, o pote fica por ${currency.format(potPriceWithOption)}`}
                             >
-                              {priceDifference > 0
-                                ? `+ ${currency.format(priceDifference)} no total`
-                                : popcornPromotionActive
-                                  ? "Mesmo preço na promoção"
-                                  : !popcornOptionIds.length
-                                    ? "Preço base"
-                                    : "Total não muda"}
+                              {!popcornOptionIds.length && priceDifference === 0
+                                ? popcornPromotionActive ? "Mesmo preço na promoção" : "Preço base"
+                                : `Pote fica por ${currency.format(potPriceWithOption)}`}
                             </span>
                           )}
                           {selected && <span className="boutique-flavor-picked"><Check size={13} strokeWidth={2.8} aria-hidden="true" /> Escolhido</span>}

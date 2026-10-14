@@ -11,8 +11,11 @@ test("premium 2.0 esclarece preco sem modificar precificacao", () => {
   assert.ok(page.includes("Math.max(0, potPriceWithOption - currentPotPrice)"));
   assert.ok(page.includes("currency.format(flavorPotPrice ?? potPriceWithOption)"));
   assert.ok(page.includes("className=\"sr-only\">Preço do pote com este sabor"));
-  assert.ok(page.includes("+ ${currency.format(priceDifference)} no total"));
-  assert.ok(page.includes("Pote fica ${currency.format(potPriceWithOption)}; diferença de"));
+  assert.ok(page.includes("Pote fica por ${currency.format(potPriceWithOption)}"));
+  assert.ok(page.includes("Com ${option.name}, o pote fica por ${currency.format(potPriceWithOption)}"));
+  assert.ok(page.includes("!popcornOptionIds.length && priceDifference === 0"));
+  assert.ok(page.includes('"Preço base"'));
+  assert.ok(!page.includes("+ ${currency.format(priceDifference)} no total"));
   assert.ok(page.includes('Remover sabor ${option.name}'));
 });
 test("premium 2.0 preserva etapas, CTA e protecao do teclado", () => {

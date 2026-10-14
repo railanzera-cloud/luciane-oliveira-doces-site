@@ -39,7 +39,7 @@ test("preços do pote por sabor e da combinação ficam claros sem alterar prici
   assert.ok(page.includes("popcornPrice(popcornVariant.id, [option.id], promotionTime)"));
   assert.ok(page.includes("const priceDifference = currentPotPrice !== null && potPriceWithOption !== null"));
   assert.ok(page.includes("currency.format(flavorPotPrice ?? potPriceWithOption)"));
-  for (const phrase of ["Preço base do pote","Preço atual do pote","Preço do pote com este sabor","Pote fica ","Total não muda","Mesmo preço na promoção"]) assert.ok(page.includes(phrase));
+  for (const phrase of ["Preço base do pote","Preço atual do pote","Preço do pote com este sabor","Pote fica por ","Preço base","Mesmo preço na promoção"]) assert.ok(page.includes(phrase));
   assert.ok(!page.includes("Se incluir"));
   assert.ok(page.includes("togglePopcornOption(option)"));
   assert.ok(page.includes("popcornPromotionActive"));

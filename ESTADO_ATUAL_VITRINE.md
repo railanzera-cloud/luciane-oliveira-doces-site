@@ -50,3 +50,13 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **Regra comercial e integrações:** intactas; nenhuma alteração de catálogo, Supabase, admin, pagamentos, mensuração ou disponibilidade.
 - **Validação:** a suíte do GitHub Actions em `.github/workflows/design-boutique-preview.yml` é a fonte da verificação de build, TypeScript, regressão e ZIP do commit após o push. Não registrar sucesso antes do resultado da execução.
 - **Pendente de homologação manual:** Safari físico, teclado aberto, viewport de 320 a 430 px e navegação comercial real. **Sem publicação no Cloudflare nem merge na main.**
+
+
+## Refinamento de comunicação de preços — selo direto (14/10/2026)
+
+- Partida: commit `00d453045824856e6e193058c5e4c17029af8b33` da branch `design/luciane-editorial-vitrine-experiment-20261013`. Revisão incremental sobre o UI/UX Premium 2.0; preservar o histórico de v10.7.
+- **Decisão aprovada:** manter a composição compacta dos sabores e os preços de cada sabor; substituir a etiqueta de acréscimo (ex.: "+ R$ 5,00 no total") por **"Pote fica por R$ X"**, apontando diretamente ao preço que a combinação terá caso o cliente escolha aquele sabor.
+- O valor X vem da função comercial existente `popcornPrice(popcornVariant.id, selected ? popcornOptionIds : [...popcornOptionIds, option.id], promotionTime)`, considerando o tamanho, os sabores já selecionados e a promoção ativa. Não é preço fixo nem adicional cumulativo. Ao adicionar um sabor mais barato que o já selecionado, o selo mostra o total que permanece vigente, sem induzir soma de valores.
+- No início, o sabor que custa o mesmo que o pote-base mantém "Preço base"; nos preços especiais de fim de semana sem seleção, mantém-se a orientação "Mesmo preço na promoção". No estado selecionado, a indicação "Escolhido" permanece.
+- A tipografia, as fotografias, o bloco superior de preço atual, a barra inferior e as animações/navegação previamente homologadas permanecem intactos; somente o texto/semântica da etiqueta e testes associados foram revisados.
+- Validação automática e ZIP do **mesmo novo commit**: conferir status do fluxo `design-boutique-preview.yml` e artefato do GitHub Actions antes de considerar conclusão. Safari físico continua pendente de homologação. **Sem publicação, sem merge, sem Supabase.**
