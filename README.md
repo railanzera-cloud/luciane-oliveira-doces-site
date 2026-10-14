@@ -1,5 +1,7 @@
 # Luciane Oliveira Doces
 
+**Continuidade oficial da vitrine fotográfica/editorial:** [ESTADO_ATUAL_VITRINE.md](ESTADO_ATUAL_VITRINE.md) — checkpoint funcional v10.7 `5abb4c5`; commit obrigatório no GitHub + ZIP por alteração validada; sem publicação automática.
+
 Para exportação, instalação fora do Work e dependências externas, consulte
 [docs/PORTABILIDADE.md](docs/PORTABILIDADE.md). O estado da homologação está em
 [docs/CONTINUIDADE-FASE2-CHECKPOINT-2026-09-12.md](docs/CONTINUIDADE-FASE2-CHECKPOINT-2026-09-12.md).

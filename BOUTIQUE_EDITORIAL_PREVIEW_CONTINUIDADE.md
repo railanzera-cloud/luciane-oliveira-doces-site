@@ -1,5 +1,7 @@
 # Vitrine Editorial Experimental — continuidade
 
+> **ATENÇÃO (14/10/2026):** O ponto de partida oficial agora é [ESTADO_ATUAL_VITRINE.md](ESTADO_ATUAL_VITRINE.md). A versão visual aprovada é v10.7, commit `5abb4c5236fc7147972c7ab9cc5f58e5fc227732`, na branch `design/luciane-editorial-vitrine-experiment-20261013`. Entradas históricas abaixo podem mencionar arquivos faltantes, versões v8/v9/v10 e 16/10; essas pendências e datas foram superadas. Não usar essas entradas como estado vigente.
+
 ## Vitrine editorial v10 — cartões profundos, fotos e navegação (13/10/2026)
 
 - Último checkpoint funcional: `803045361e429f622ed6e331b712c97a621b51c2`. Alterações de código apenas em `app/page.tsx`, `app/storefront-vitrine-editorial-experiment.css` e teste específico.
