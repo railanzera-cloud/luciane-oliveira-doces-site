@@ -59,7 +59,7 @@ test("routes both checkout CTAs through the same dispatcher and keeps one WhatsA
   assert.equal((page.match(/window\.location\.assign\(/g) ?? []).length, 0);
   assert.match(finish, /await createWhatsAppOrder\(/);
   assert.match(finish, /setWhatsAppResult\(registered\)/);
-  assert.match(page, /className="whatsapp-button checkout-primary-button" onClick=\{handleFinalAction\}/);
+  assert.match(page, /className="whatsapp-button checkout-primary-button" data-ready=\{checkoutReady \? "true" : "false"\} onClick=\{handleFinalAction\}/);
   assert.match(page, /onClick=\{handleStickyAction\}/);
   assert.match(stickyAction, /if \(stickyUsesCheckoutAction\) handleFinalAction\(\)/);
   assert.match(stickyAction, /else stickyBuilderAction\(\)/);

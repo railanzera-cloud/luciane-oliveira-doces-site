@@ -6,12 +6,15 @@ const [page,layout,css] = await Promise.all([
   readFile(new URL("../app/layout.tsx",import.meta.url),"utf8"),
   readFile(new URL("../app/storefront-vitrine-editorial-experiment.css",import.meta.url),"utf8"),
 ]);
+// As asserções editoriais históricas param antes da camada de acabamento
+// de conversão, que foi explicitamente autorizada depois.
+const legacyEditorialCss = css.split("/*\n * ACABAMENTO DE CONVERSÃO —")[0];
 test("vitrine experimental é uma camada posterior e restrita à tela inicial",()=>{
   assert.ok(layout.indexOf('import "./storefront-vitrine-editorial-experiment.css";') > layout.indexOf('import "./storefront-boutique-v3.css";'));
   assert.ok(css.includes(".storefront .menu-entry.is-neutral"));
   assert.ok(!css.includes(".admin-"));
-  assert.ok(!css.includes(".checkout-"));
-  assert.ok(!css.includes(".builder-"));
+  assert.ok(!legacyEditorialCss.includes(".checkout-"));
+  assert.ok(!legacyEditorialCss.includes(".builder-"));
 });
 test("fotografias e legendas são elementos independentes e a ação é explícita",()=>{
   assert.ok(page.includes('className="category-option-media"'));
@@ -152,7 +155,7 @@ test("v8 apresenta relógio e refina a hierarquia da entrada sem mudar pedidos",
 });
 
 test("v9 preserva o título, coloca o complemento do prazo abaixo e mantém fotos e cliques", () => {
-  const v9 = css.slice(css.lastIndexOf("Editorial v9"));
+  const v9 = legacyEditorialCss.slice(legacyEditorialCss.lastIndexOf("Editorial v9"));
   assert.ok(v9.startsWith("Editorial v9"));
   for (const rule of [
     ".delivery-time-main,",
