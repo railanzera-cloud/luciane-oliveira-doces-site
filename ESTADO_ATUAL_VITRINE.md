@@ -92,3 +92,13 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **Validação:** executar build, tipos e suíte completa no GitHub Actions. Gerar o ZIP Cloudflare **desse mesmo SHA** depois que o CI aprovar. A leitura visual no Safari físico permanece pendente de homologação. Sem merge na main e sem publicação no Cloudflare.
 
 - **Ajuste de teste do Premium 2.2:** o primeiro CI aprovou build e TypeScript, mas o teste de navegação inicial ainda esperava `aria-label="Pipocas Gourmet"` sem o complemento acessível. Atualizada apenas a expectativa para os rótulos explícitos dos dois cartões. Nenhum componente comercial foi modificado nesta correção; concluir somente com nova suíte integral aprovada.
+
+## UI/UX Premium 2.3 — edição limitada Pipocas Crocantes (14/10/2026)
+
+- **Ponto de partida:** SHA remoto `201d8955be2cbf436c22f8ef2f43228e49bfac87` da branch `design/luciane-editorial-vitrine-experiment-20261013`; edição em copos, distinta dos potes recheados. Esta intervenção não promove vendas, não modifica estoque e não altera o calendário.
+- **Descoberta dos sabores:** cartões Ninho e Chocolate mantêm fotos reais, dimensões, seleção `aria-pressed`, clique e painel de informações. O acabamento ganha relevo editorial, molduras cobre, brilho interno localizado e CTA visual “Ver detalhes” mais identificável. Estados selecionados reforçados; sem movimentos contínuos.
+- **Preço e ficha:** o preço **R$ 15,90 por copo**, volume **400 ml** e peso **190 g** permanecem; alinhamento, contraste e chips são refinados apenas visualmente.
+- **Comunicação temporal:** um painel discreto destaca “CHEGA NESTA QUINTA” antes de 15/10 e preserva a descrição derivada do estado `cupLaunchCopy`; após a data, a interface respeita `awaiting-release`/ `available`/ `sold-out` e **não anuncia vendas antes da liberação real**. `app/limited-cup-release.ts` intacto (integração, aprovação e estoque permanecem `false`).
+- **Atalho inferior:** apresentação refinada com rótulo “Prefere os potes recheados?” e ação “Escolher tamanho”; mesmo handler original `selectCategory("pipocas")`.
+- **Preservação:** fotos, vitrine da home, categorias Gourmet/Fatias, cart/checkout, Supabase, integrações, WhatsApp, Pixel/CAPI, período aprovado, preços, pesos, volume e painel administrativo inalterados. Nenhuma publicação na main/Cloudflare.
+- **Validação:** testes novos em `tests/uiux-premium-23-crocantes.test.mjs`, ajuste de asserção histórica ao HTML sem modificar handler; CI no commit resultante deve aprovar build, TypeScript e suíte completa e produzir ZIP do mesmo SHA. Safari físico permanece homologação manual.

@@ -241,7 +241,8 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
 
   assert.ok(page.includes('id="edicao-crocante"'));
   assert.ok(page.includes('id="tamanhos"'));
-  assert.ok(page.includes('onClick={() => selectCategory("pipocas")}>Prefere os potes recheados?'));
+  assert.ok(page.includes('onClick={() => selectCategory("pipocas")}')); 
+  assert.ok(page.includes('<span>Prefere os potes recheados?</span>'));
   assert.ok(page.includes('Toque em Ninho ou Chocolate para conhecer cada sabor.'));
   assert.ok(!page.includes("Conhecer os sabores"));
   assert.ok(!page.includes('className="limited-cup-story-primary"'));
