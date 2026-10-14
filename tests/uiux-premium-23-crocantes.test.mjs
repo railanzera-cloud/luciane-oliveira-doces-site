@@ -20,7 +20,7 @@ test("dois sabores continuam como seleção informativa, fotos e preço intactos
   assert.ok(story.includes("/images/edicao-crocante-chocolate.webp"));
   assert.ok(story.includes('<strong>R$ 15,90</strong>'));
   assert.ok(story.includes("400 ml"));
-  assert.ok(story.includes("190 g"));
+  assert.ok(!story.includes("190 g"));
   assert.ok(story.includes('aria-atomic="true"'));
   assert.ok(story.includes('className="limited-cup-flavor-details"'));
   assert.equal((story.match(/className="limited-cup-duo-disclosure"/g)||[]).length, 2);

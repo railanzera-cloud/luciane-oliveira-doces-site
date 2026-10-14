@@ -258,7 +258,7 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(!page.includes('href="#potes-recheados"'));
   assert.ok(page.includes("R$ 15,90"));
   assert.ok(page.includes("400 ml"));
-  assert.ok(page.includes("190 g"));
+  assert.ok(!page.includes("190 g"));
   assert.ok(page.includes("/images/edicao-crocante-ninho.webp"));
   assert.ok(page.includes("/images/edicao-crocante-chocolate.webp"));
   assert.ok(!page.includes("edicao-crocante-copos-reais.webp"));

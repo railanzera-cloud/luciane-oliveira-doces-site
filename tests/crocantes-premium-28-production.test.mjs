@@ -18,7 +18,7 @@ const sample={
   customer_name:"Cliente de Teste",notes:"[TESTE DE HOMOLOGAÇÃO — NÃO PREPARAR / NÃO COBRAR]",
   items:[{product_id:"crocante-ninho",variant_id:"400ml",option_ids:[],
     name:"Pipocas Crocantes — Caramelo com Leite Ninho",
-    size:"400 ml · 190 g",kind:"popcorn",options:[],quantity:2,unit_price:15.90}],
+    size:"400 ml",kind:"popcorn",options:[],quantity:2,unit_price:15.90}],
   fulfillment:"retirada",neighborhood:"",street:"",number:"",complement:"",reference:"",
   payment:"pix",needs_change:false,cash_received_cents:null,
   subtotal:31.80,delivery_fee:0,total:31.80,currency:"BRL"
