@@ -475,12 +475,12 @@ export default function Home() {
     return () => window.clearInterval(timer);
   }, []);
   const cupLaunchCopy = cupPhase === "prelaunch"
-    ? { eyebrow: "EDIÇÃO LIMITADA · 15/10", teaser: "Descobrir", description: "Edição limitada, enquanto durarem os copos. Sem reposição." }
+    ? { eyebrow: "EDIÇÃO LIMITADA · 15/10", teaser: "Descobrir", description: "Vendas a partir das 12h de quinta, 15/10. Enquanto durarem os copos, sem reposição." }
     : cupPhase === "awaiting-release"
       ? { eyebrow: "EDIÇÃO LIMITADA · EM BREVE", teaser: "Descobrir", description: "Aguardando confirmação da loja. Sem reposição após o fim do estoque." }
       : cupPhase === "sold-out"
         ? { eyebrow: "EDIÇÃO LIMITADA · ESGOTADA", teaser: "Conhecer", description: "A edição em copos chegou ao fim, sem reposição." }
-        : { eyebrow: "EDIÇÃO LIMITADA · DISPONÍVEL", teaser: "Conhecer", description: "Disponibilidade sujeita ao estoque confirmado. Sem reposição." };
+        : { eyebrow: "EDIÇÃO LIMITADA · DISPONÍVEL", teaser: "Conhecer", description: "Escolha seus copos, adicione ao pedido e finalize no WhatsApp. Sem reposição." };
   const visibleCategories = publicCategories(availability);
   const activeCategory = hasResolvedAvailability ? resolveMenuCategory(availability, requestedCategory) : null;
   const checkoutStartedRef = useRef(false);
@@ -745,7 +745,7 @@ export default function Home() {
   const cartContainsCrocantes = cart.some((item) => isCrocantesProduct(item.productId));
   const cupProductId = cupFlavorPreview === "ninho" ? "crocante-ninho" : cupFlavorPreview === "chocolate" ? "crocante-chocolate" : "";
   const cupStockKey = cupProductId ? CROCANTES_ITEM_KEYS[cupProductId] : "";
-  const cupCanOrder = cupPhase === "available" && availability.ordersOpen && availability.source === "supabase"
+  const cupCanOrder = cupPhase === "available" && pipocasAvailable && availability.ordersOpen && availability.source === "supabase"
     && Boolean(cupStockKey && isItemAvailable(availability, cupStockKey));
   useEffect(() => {
     if (cartContainsCrocantes && checkoutChannel !== "whatsapp") {
@@ -1838,9 +1838,26 @@ export default function Home() {
                     <p className="limited-cup-flavor-hint">Toque em um copo para ver os detalhes do sabor.</p>
                   )}
                 </div>
+                {cupPhase === "available" && (
+                  <div className="limited-cup-buy" aria-label="Monte seu pedido de Pipocas Crocantes">
+                    <div className="limited-cup-buy-heading"><strong>Monte seu pedido</strong><small>Escolha um dos sabores acima e a quantidade de copos.</small></div>
+                    <div className="limited-cup-buy-actions">
+                      <div className="mini-quantity" aria-label="Quantidade de copos">
+                        <Button type="button" variant="ghost" size="icon" aria-label="Diminuir quantidade de copos" disabled={cupQuantity <= 1} onClick={() => setCupQuantity((n) => Math.max(1, n - 1))}><Minus size={16} /></Button>
+                        <strong aria-live="polite">{cupQuantity}</strong>
+                        <Button type="button" variant="ghost" size="icon" aria-label="Aumentar quantidade de copos" disabled={cupQuantity >= 99} onClick={() => setCupQuantity((n) => Math.min(99, n + 1))}><Plus size={16} /></Button>
+                      </div>
+                      <Button type="button" className="limited-cup-buy-cta" disabled={!cupCanOrder} onClick={() => void addCrocantesCup()}>
+                        <ShoppingBag size={16} aria-hidden="true" /> {cupCanOrder ? `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "copo" : "copos"} · ${currency.format(15.9 * cupQuantity)}` : "Escolha um sabor disponível"}
+                      </Button>
+                    </div>
+                    {cartContainsCrocantes && <button type="button" className="limited-cup-to-cart" onClick={() => requestScroll("carrinho")}>Ver carrinho e continuar pedido <ChevronRight size={15} aria-hidden="true" /></button>}
+                  </div>
+                )}
+                {cupAddedNotice && <p className="limited-cup-buy-feedback" role="status">{cupAddedNotice}</p>}
                 <div className={`limited-cup-story-availability ${cupPhase === "prelaunch" ? "is-prelaunch" : "is-current"}`}>
                   <span className="limited-cup-story-availability-kicker">
-                    {cupPhase === "prelaunch" ? "ESTREIA · QUINTA, 15/10" : cupPhase === "awaiting-release" ? "AGUARDANDO LIBERAÇÃO" : cupPhase === "sold-out" ? "EDIÇÃO ENCERRADA" : "EDIÇÃO DISPONÍVEL"}
+                    {cupPhase === "prelaunch" ? "ESTREIA · QUINTA, 15/10, ÀS 12H" : cupPhase === "awaiting-release" ? "AGUARDANDO LIBERAÇÃO" : cupPhase === "sold-out" ? "EDIÇÃO ENCERRADA" : "EDIÇÃO DISPONÍVEL"}
                   </span>
                   <p>{cupLaunchCopy.description}</p>
                 </div>

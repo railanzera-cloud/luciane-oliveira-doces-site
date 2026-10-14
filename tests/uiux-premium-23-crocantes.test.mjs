@@ -31,10 +31,10 @@ test("estreia 15/10 ganha presença sem liberar automaticamente as vendas", () =
   assert.ok(story.includes('cupPhase === "prelaunch" ? "ESTREIA · QUINTA, 15/10"'));
   assert.ok(story.includes('{cupLaunchCopy.description}'));
   assert.ok(look.includes(".limited-cup-story-availability-kicker"));
-  assert.ok(release.includes('launchDayStart: "2026-10-15T00:00:00-03:00"'));
-  assert.ok(release.includes("orderingIntegrated: false"));
-  assert.ok(release.includes("salesApprovedByStore: false"));
-  assert.ok(release.includes("inventoryVerifiedAvailable: false"));
+  assert.ok(release.includes('launchDayStart: "2026-10-15T12:00:00-03:00"'));
+  assert.ok(release.includes("orderingIntegrated: true"));
+  assert.ok(release.includes("salesApprovedByStore: true"));
+  assert.ok(release.includes("inventoryVerifiedAvailable: true"));
   assert.ok(release.includes("cfg.orderingIntegrated && cfg.salesApprovedByStore && cfg.inventoryVerifiedAvailable"));
 });
 

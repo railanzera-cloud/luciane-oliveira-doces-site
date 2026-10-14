@@ -1997,3 +1997,19 @@
     transition: none !important;
   }
 }
+
+/* Premium 2.6 — compra de copos com acabamento coerente com o checkout existente. */
+.storefront #configurador .limited-cup-buy{display:grid;gap:12px;margin-top:13px;padding:14px 13px;border:1px solid rgba(241,190,130,.55);border-radius:13px;background:linear-gradient(135deg,rgba(125,73,42,.38),rgba(39,22,15,.87));box-shadow:inset 0 1px 0 rgba(255,235,205,.17),0 9px 24px rgba(15,7,4,.16);}
+.storefront #configurador .limited-cup-buy-heading{display:grid;gap:3px;}
+.storefront #configurador .limited-cup-buy-heading strong{color:#ffe6c0;font-size:.89rem;}
+.storefront #configurador .limited-cup-buy-heading small{color:#d7b79a;font-size:.75rem;line-height:1.4;}
+.storefront #configurador .limited-cup-buy-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.storefront #configurador .limited-cup-buy-actions .mini-quantity{min-width:110px;display:flex;align-items:center;justify-content:space-between;border:1px solid rgba(244,191,127,.37);border-radius:12px;background:rgba(33,17,12,.55);color:#ffdcac;}
+.storefront #configurador .limited-cup-buy-actions .mini-quantity strong{font-size:.97rem;font-variant-numeric:tabular-nums;}
+.storefront #configurador .limited-cup-buy-cta{flex:1 1 190px;min-height:46px;border-radius:11px;background:linear-gradient(115deg,#f7ce92,#dfa363);color:#32190f;font-size:.82rem;font-weight:760;white-space:normal;line-height:1.25;}
+.storefront #configurador .limited-cup-buy-cta:disabled{background:#6f5b4e;color:#e3cebb;cursor:not-allowed;}
+.storefront #configurador .limited-cup-to-cart{min-height:38px;padding:5px 0;display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;background:transparent;color:#ffdaac;font-weight:700;font-size:.78rem;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
+.storefront #configurador .limited-cup-buy-feedback{margin:11px 0 0;padding:10px 12px;border-radius:9px;border:1px solid rgba(233,180,116,.45);color:#ffe0b6;background:rgba(82,49,30,.6);font-size:.78rem;line-height:1.42;}
+.storefront #configurador .limited-cup-buy-cta:focus-visible,.storefront #configurador .limited-cup-to-cart:focus-visible{outline:3px solid #ffe4b8;outline-offset:3px;}
+@media(max-width:359px){.storefront #configurador .limited-cup-buy{padding:11px 9px;}.storefront #configurador .limited-cup-buy-actions .mini-quantity{width:100%;}.storefront #configurador .limited-cup-buy-cta{flex-basis:100%;}}
+@media(prefers-reduced-motion:reduce){.storefront #configurador .limited-cup-buy *{transition:none!important;animation:none!important;}}

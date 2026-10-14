@@ -50,8 +50,8 @@ test("nao altera preco, fotos, lancamento nem checkout dos copos", () => {
   assert.ok(story.includes('/images/edicao-crocante-ninho.webp'));
   assert.ok(story.includes('/images/edicao-crocante-chocolate.webp'));
   assert.ok(story.includes('onClick={() => selectCategory("pipocas")}'));
-  assert.ok(release.includes('launchDayStart: "2026-10-15T00:00:00-03:00"'));
-  for(const flag of ['orderingIntegrated: false','salesApprovedByStore: false','inventoryVerifiedAvailable: false']) assert.ok(release.includes(flag));
+  assert.ok(release.includes('launchDayStart: "2026-10-15T12:00:00-03:00"'));
+  for(const flag of ['orderingIntegrated: true','salesApprovedByStore: true','inventoryVerifiedAvailable: true']) assert.ok(release.includes(flag));
   assert.ok(!styles.includes('.mobile-sticky-bar'));
   assert.ok(!styles.includes('.admin-'));
 });

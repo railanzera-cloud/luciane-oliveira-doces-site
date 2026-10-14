@@ -126,3 +126,12 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **Validação e entrega:** novo teste dedicado `tests/uiux-premium-25-crocantes-accordion.test.mjs`, adequação dos testes históricos 2.3/2.4, build e suíte no GitHub Actions. Gerar pacote apenas do SHA validado, sem publicar em Cloudflare ou alterar main; homologação final no Instagram/Safari do iPhone pendente de análise visual.
 
 - **CI corretiva do 2.5:** build e TypeScript aprovados; 407/408 testes passaram inicialmente. A única falha foi a expectativa histórica de `aria-pressed` no teste v6, enquanto o disclosure expandível agora usa `aria-expanded` com `aria-controls`. Foi adaptada apenas a verificação histórica para a semântica correta. Nenhum código de compra ou interface foi modificado neste checkpoint de testes; nova suíte completa é necessária antes da entrega do ZIP.
+
+## Premium 2.6 — integração de pedidos Crocantes (14/10/2026)
+
+- **Autorização da loja:** venda da edição limitada em 15/10/2026 a partir das 12h, horário de Paragominas (UTC−3). A abertura é validada em `quoteCartItems` do backend, nunca apenas no calendário do celular.
+- **Catálogo:** SKU `crocante-ninho` e `crocante-chocolate` independentes, 400 ml/190 g, R$ 15,90 por copo. Não combina sabores em um mesmo copo. O catálogo autoritativo na Edge Function revalida preço, quantidade e disponibilidade antes de registrar.
+- **Checkout existente:** quantidade, adicionar ao carrinho, carrinho misto com fatias e potes e checkout estruturado somente via WhatsApp/Tintim para pedidos com copos. Mensagem de registro existente (número, cliente, quantidade, tamanho, retirada/entrega e Pix manual) preservada. A confirmação de pagamento é da Luciane, não automática.
+- **Disponibilidade:** as duas chaves de produto devem existir em `menu_availability` via migration. Se a consulta falhar ou o estoque for marcado como esgotado, o botão deve permanecer bloqueado. Alterações em estoque posteriores à migration não são sobrescritas.
+- **Implantação:** o GitHub e o ZIP não publicam o frontend, não aplicam migration e não atualizam Edge Function. A abertura às 12h só ocorrerá de fato se frontend, migration e backend homologados estiverem instalados antes do horário. Nenhum deploy Cloudflare automático.
+- **Controle:** não tocar no projeto Luciane Gestão, no main, no Mercado Pago e em outras campanhas. Teste adicional `tests/uiux-premium-26-crocantes-commerce.test.mjs` e suíte completa no Actions. Homologação real Instagram/Safari e verificação da integração backend antes da abertura.
