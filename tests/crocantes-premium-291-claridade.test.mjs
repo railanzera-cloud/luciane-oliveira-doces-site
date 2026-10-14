@@ -57,7 +57,8 @@ test("loja fechada comunica consulta, bloqueia quantidade e oculta a barra da ed
   assert.ok(page.includes('disabled={cupPhase !== "available" || cupQuantity <= 1 || cupAdding}'));
   assert.ok(page.includes('disabled={cupPhase !== "available" || cupQuantity >= 99 || cupAdding}'));
   assert.ok(page.includes('disabled={cupAdding || cupPhase !== "available" || (Boolean(cupFlavorPreview) && !cupCanOrder)}'));
-  assert.ok(page.includes('cupPhase === "closed" ? "Pedidos fechados"'));
+  assert.ok(page.includes('cupSalesEnabled && cupPhase !== "available" && ('));
+  assert.ok(page.includes('cupPhase === "closed" ? "LOJA FECHADA"'));
   assert.ok(page.includes('(!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen))'));
   assert.ok(css.includes('.limited-cup-story-availability.is-closed'));
 });

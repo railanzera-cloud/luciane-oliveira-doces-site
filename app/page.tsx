@@ -1941,7 +1941,7 @@ export default function Home() {
                       </div>
                       <Button type="button" className="limited-cup-buy-cta" disabled={cupAdding || cupPhase !== "available" || (Boolean(cupFlavorPreview) && !cupCanOrder)} onClick={handleCupPurchaseAction}>
                         {cupFlavorPreview ? <ShoppingBag size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
-                        {cupAdding ? "Conferindo estoque…" : cupPhase === "closed" ? "Pedidos fechados" : cupPhase !== "available" ? "Indisponível no momento" : !cupFlavorPreview ? "Escolher meu sabor" : cupCanOrder ? `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "copo" : "copos"} · ${currency.format(15.9 * cupQuantity)}` : "Sabor indisponível"}
+                        {cupAdding ? "Conferindo estoque…" : !cupFlavorPreview ? "Escolher meu sabor" : cupCanOrder ? `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "copo" : "copos"} · ${currency.format(15.9 * cupQuantity)}` : "Sabor indisponível"}
                       </Button>
                     </div>
                     {cartContainsCrocantes && <button type="button" className="limited-cup-to-cart" onClick={() => requestScroll("carrinho")}>Ver carrinho e continuar pedido <ChevronRight size={15} aria-hidden="true" /></button>}
