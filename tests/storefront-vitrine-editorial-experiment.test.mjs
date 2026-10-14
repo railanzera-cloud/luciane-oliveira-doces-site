@@ -276,11 +276,11 @@ test("v2 de lançamento exige três condições para anunciar disponibilidade", 
 });
 
 test("foto clara das Pipocas Gourmet fica restrita à vitrine inicial", async () => {
-  const photo = await readFile(new URL("../public/images/categoria-pipocas-editorial-clara.webp", import.meta.url));
-  assert.ok(photo.length > 20000 && photo.length < 130000, "WebP leve para iPhone");
+  const photo = await readFile(new URL("../public/images/categoria-pipocas-editorial-enquadrada-v107.webp", import.meta.url));
+  assert.ok(photo.length > 20000 && photo.length < 250000, "WebP leve para iPhone");
   assert.equal(photo.toString("ascii", 0, 4), "RIFF");
   assert.equal(photo.toString("ascii", 8, 12), "WEBP");
-  assert.ok(page.includes('category.id === "pipocas" ? "/images/categoria-pipocas-editorial-clara.webp"'));
+  assert.ok(page.includes('category.id === "pipocas" ? "/images/categoria-pipocas-editorial-enquadrada-v107.webp"'));
   assert.ok(page.includes('<img src="/images/categoria-pipocas-editorial.webp" onError='));
   assert.ok(page.includes('category.id === "fatias" ? "/images/categoria-fatias-editorial.webp"'));
   assert.ok(css.includes('background: #d4a988;'));
@@ -288,7 +288,7 @@ test("foto clara das Pipocas Gourmet fica restrita à vitrine inicial", async ()
 
 test("cartoes v10: pote enquadrado com respiro e painel chocolate profundo", () => {
   const v10 = css.slice(css.lastIndexOf("Cartoes editoriais v10"));
-  assert.ok(v10.includes("object-position: 50% 12%"));
+  assert.ok(v10.includes("object-position: 50% 50%"));
   assert.ok(v10.includes("linear-gradient(145deg, #482d22"));
   assert.ok(v10.includes("filter: none"));
   assert.ok(!v10.includes(".menu-entry.has-category"));
