@@ -25,7 +25,7 @@ jobs:
         run: npx tsc --noEmit --project tsconfig.boutique.json
       - name: Teste focal da fila sem banco real
         run: node --test tests/kitchen-print-preparation.test.mjs
-      - name: Suite de regressão
-        run: node --test tests/*.test.mjs
       - name: Build (sem publicar)
         run: npm run build
+      - name: Suite de regressão
+        run: node --test tests/*.test.mjs
