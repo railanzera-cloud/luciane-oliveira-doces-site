@@ -134,7 +134,18 @@ async function printClaim(claim: PrintClaim): Promise<void> {
   await qz.print(config, [{ type: "raw", format: "plain", data: receipt(claim) }]);
 }
 
+/** O servidor e a fila devem estar explicitamente habilitados.
+ * Ausencia da RPC (versao antiga) impede qualquer claim e qualquer impressao.
+ */
+export async function kitchenPrintIsEnabled(client: SupabaseClient): Promise<boolean> {
+  const { data, error } = await client.rpc("admin_get_kitchen_print_control");
+  if (error) throw new Error("Fila protegida não instalada no servidor. Não é seguro imprimir.");
+  return Boolean(data && typeof data === "object"
+    && !Array.isArray(data) && (data as { enabled?: unknown }).enabled === true);
+}
+
 export async function drainPrintQueue(client: SupabaseClient, maxJobs = 10): Promise<number> {
+  if (!(await kitchenPrintIsEnabled(client))) return 0;
   let printed = 0;
   for (let index = 0; index < maxJobs; index += 1) {
     const claim = await claimPrintJob(client, workerId);

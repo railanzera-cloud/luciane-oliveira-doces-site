@@ -328,14 +328,16 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     setPrinting(true);
     setError("");
     try {
-      const { connectKitchenPrinter, drainPrintQueue } = await import("@/lib/qz-print-client");
+      const { connectKitchenPrinter, kitchenPrintIsEnabled } = await import("@/lib/qz-print-client");
+      // Conectar hardware NÃO pode consumir a fila de impressão implicitamente.
+      // O controle remoto permanece desligado até a homologação física.
       const printer = await connectKitchenPrinter(session.access_token);
+      const enabled = await kitchenPrintIsEnabled(client);
       setPrinterName(printer);
       setPrinterReady(true);
-      const count = await drainPrintQueue(client);
-      setNotice(count > 0
-        ? `Impressão conectada: ${printer}. ${count} ${count === 1 ? "comanda impressa" : "comandas impressas"}.`
-        : `Impressão conectada: ${printer}.`);
+      setNotice(enabled
+        ? `Impressora conectada: ${printer}. Fila protegida ativa; aguardando comandas elegíveis.`
+        : `Impressora conectada: ${printer}. Impressão automática desativada com segurança.`);
     } catch (printerError) {
       setError(printerError instanceof Error ? printerError.message : "Não foi possível conectar ao QZ Tray.");
     } finally {
