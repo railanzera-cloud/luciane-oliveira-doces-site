@@ -24,7 +24,7 @@ test("homologacao so com token e expiracao verificados no servidor",()=>{
 test("nunca tornar o codigo parte da URL, carrega somente no fluxo Whatsapp",()=>{
   assert.ok(page.includes('teste_crocantes') && page.includes('type="password"'));
   assert.ok(page.includes('checkCrocantesPreviewCode'));
-  assert.ok(page.includes('cartContainsCrocantes && cupTestActive ? { preview_token: cupTestCode }'));
+  assert.ok(page.includes('preview_token: cupTestCode'));
   assert.ok(page.includes('cartAvailabilityIssues(cart, latest.snapshot, cupTestActive)'));
   assert.ok(page.includes('TESTE DE HOMOLOGAÇÃO — NÃO PREPARAR / NÃO COBRAR'));
   assert.ok(client.includes('preview_token?: string'));

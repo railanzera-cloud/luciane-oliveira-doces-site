@@ -53,7 +53,7 @@ test("carrinho exibe foto e mantém todas as ações comerciais", () => {
   assert.ok(page.includes("changeCartQuantity(item.id, 1)"));
   assert.ok(page.includes("editItem(item)"));
   assert.ok(page.includes("removeItem(item.id)"));
-  assert.ok(page.includes("cartAvailabilityIssues(cart, availability)"));
+  assert.ok(page.includes("cartAvailabilityIssues(cart, availability, cupTestActive)"));
 });
 
 test("checkout só adiciona navegação visual e preserva finalização", () => {
