@@ -1,11 +1,9 @@
 import { receiptCardQuote } from "../_shared/receipt-card.mjs";
 // Manual WhatsApp requests only. No gateway calls, Purchase or print effects.
-import { quoteCartItems, quoteFulfillment, CROCANTES_OPEN_AT_MS } from "../_shared/commerce-catalog.mjs";
+import { quoteCartItems, quoteFulfillment } from "../_shared/commerce-catalog.mjs";
 const ORDER_ID_PATTERN = /^LOD-(?:[0-9A-HJKMNP-TV-Z]{4}-){2}[0-9A-HJKMNP-TV-Z]{4}$/;
 const PAYMENT_METHODS = new Set(["manual_pix", "card_on_delivery", "cash"]);
 const DEFAULT_ALLOWED_ORIGINS = ["https://lucianeoliveiradoces.pages.dev", "https://luciane-oliveira-doces.railanzera.chatgpt.site"];
-// Somente esta implantação Preview foi aprovada para testes até a estreia.
-const CROCANTES_TEST_PREVIEW_ORIGIN = "https://56.lucianeoliveiradoces.pages.dev";
 class HttpError extends Error {
   status: number;
   code: string;
@@ -25,8 +23,6 @@ function allowedOrigins(): Set<string> {
     .map((value) => value.trim())
     .filter(Boolean);
   const allowed = new Set(configured?.length ? configured : DEFAULT_ALLOWED_ORIGINS);
-  // Preserve the configured production origins; never authorize an entire host suffix.
-  if (Date.now() < CROCANTES_OPEN_AT_MS) allowed.add(CROCANTES_TEST_PREVIEW_ORIGIN);
   return allowed;
 }
 
@@ -189,17 +185,6 @@ async function revalidateAvailability(itemKeys: string[]): Promise<void> {
   }
 }
 
-// Token stored only as a SHA-256 digest in a service-role-only RLS table.
-// This escape hatch expires exactly at the public launch, without changing its clock gate.
-async function verifyCrocantesPreviewToken(value: unknown): Promise<boolean> {
-  if (Date.now() >= CROCANTES_OPEN_AT_MS || typeof value !== "string" || !/^[0-9a-f]{64}$/.test(value)) return false;
-  const digest = await sha256(value);
-  const rows = await rest<Array<{ token_hash: string }>>(
-    `crocantes_preview_access?select=token_hash&token_hash=eq.${digest}&enabled=eq.true&expires_at=gt.${encodeURIComponent(new Date().toISOString())}`,
-  );
-  return rows.length === 1;
-}
-
 function sanitizeParameters(value: unknown): Record<string, string[]> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const entries: Array<[string, string[]]> = [];
@@ -216,10 +201,6 @@ function sanitizeParameters(value: unknown): Record<string, string[]> {
 Deno.serve(async (request: Request) => {
   const origin = request.headers.get("origin");
   try {
-    // Expire Preview's privileged origin exactly when the public launch starts.
-    if (origin === CROCANTES_TEST_PREVIEW_ORIGIN && Date.now() >= CROCANTES_OPEN_AT_MS) {
-      throw new HttpError(403, "preview_expired", "A homologação privada terminou.");
-    }
     if (origin && !allowedOrigins().has(origin)) throw new HttpError(403, "origin_not_allowed", "Origem não autorizada.");
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(origin) });
     if (request.method !== "POST") throw new HttpError(405, "method_not_allowed", "Método não permitido.");
@@ -229,19 +210,10 @@ Deno.serve(async (request: Request) => {
     let input: Record<string, unknown>;
     try { input = JSON.parse(raw); } catch { throw new HttpError(400, "invalid_json", "Pedido inválido."); }
     if (!input || typeof input !== "object" || Array.isArray(input)) throw new HttpError(400, "invalid_input", "Pedido inválido.");
-    // This Preview cannot submit regular, unmarked orders. A private code is mandatory.
-    if (origin === CROCANTES_TEST_PREVIEW_ORIGIN && input.crocantes_preview_check !== true
-        && typeof input.preview_token !== "string") {
-      throw new HttpError(403, "preview_only", "Este endereço é exclusivo para pedidos de homologação.");
+    // O código temporário de teste nunca deve criar pedidos na operação real.
+    if ("preview_token" in input || "crocantes_preview_check" in input) {
+      throw new HttpError(403, "preview_disabled", "A homologação privada foi encerrada.");
     }
-    if (input.crocantes_preview_check === true) {
-      const valid = await verifyCrocantesPreviewToken(input.preview_token);
-      if (!valid) throw new HttpError(403, "preview_not_authorized", "Código de homologação inválido ou expirado.");
-      return response(origin, 200, { ok: true, preview_authorized: true });
-    }
-    const containsCup = Array.isArray(input.items) && input.items.some((item) => item && typeof item === "object" && ["crocante-ninho", "crocante-chocolate"].includes((item as Record<string, unknown>).product_id as string));
-    const previewAuthorized = containsCup && Date.now() < CROCANTES_OPEN_AT_MS && await verifyCrocantesPreviewToken(input.preview_token);
-    if (input.preview_token && !previewAuthorized) throw new HttpError(403, "preview_not_authorized", "Código de homologação inválido ou expirado.");
     const orderId = cleanString(input.client_order_id, "o código do pedido", 80);
     if (!ORDER_ID_PATTERN.test(orderId)) throw new HttpError(400, "invalid_order_id", "Código do pedido inválido.");
     const customer = input.customer && typeof input.customer === "object" ? input.customer as Record<string, unknown> : {};
@@ -255,7 +227,7 @@ Deno.serve(async (request: Request) => {
     const customerEmail = normalizeEmail(customer.email, false);
     if (customerName.length < 2) throw new HttpError(400, "invalid_name", "Informe seu nome (mínimo 2 caracteres).");
     const requestedNotes = optionalString(input.notes, 500);
-    const notes = previewAuthorized ? `[TESTE INTERNO — NÃO PREPARAR OU COBRAR]${requestedNotes ? ` ${requestedNotes}` : ""}`.slice(0, 500) : requestedNotes;
+    const notes = requestedNotes;
     if (typeof input.notes === "string" && input.notes.length > 500) throw new HttpError(400, "invalid_notes", "Use até 500 caracteres nas observações.");
     const requestKey = typeof input.request_key === "string" ? input.request_key : "";
     if (!/^[0-9a-f]{64}$/.test(requestKey)) throw new HttpError(400, "invalid_request_key", "Reabra o pedido e tente novamente.");
@@ -268,14 +240,14 @@ Deno.serve(async (request: Request) => {
     let quote: ReturnType<typeof quoteCartItems>;
     let fulfillment: ReturnType<typeof quoteFulfillment>;
     try {
-      quote = quoteCartItems(input.items, Date.now(), previewAuthorized);
+      quote = quoteCartItems(input.items, Date.now());
       fulfillment = quoteFulfillment(input.fulfillment);
     } catch (quoteError) {
       throw new HttpError(400, "invalid_order", quoteError instanceof Error ? quoteError.message : "Pedido inválido.");
     }
     await revalidateAvailability(quote.availabilityKeys);
     // Availability can cross the promotion boundary: price again before validating/storing.
-    quote = quoteCartItems(input.items, Date.now(), previewAuthorized);
+    quote = quoteCartItems(input.items, Date.now());
     const cardQuote = receiptCardQuote(quote.subtotalCents + fulfillment.delivery_fee_cents, cardMode);
     const expected = parseMoneyToCents(input.expected_total);
     if (expected === null || expected !== cardQuote.totalCents) {
@@ -340,7 +312,7 @@ Deno.serve(async (request: Request) => {
     });
 
 
-    return response(origin, 201, { ok: true, order: storedOrder, payment: { method, status: "pending" }, preview_authorized: previewAuthorized });
+    return response(origin, 201, { ok: true, order: storedOrder, payment: { method, status: "pending" } });
   } catch (error) {
     if (error instanceof HttpError) {
       console.warn("[checkout-diagnostic]", error.status, error.code);
