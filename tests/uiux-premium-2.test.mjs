@@ -33,7 +33,7 @@ test("premium 2.0 preserva etapas, CTA e protecao do teclado", () => {
 test("premium 2.0 permanece escopado e nao altera campanhas e fotos", () => {
   assert.ok(page.includes("/images/categoria-pipocas-editorial-enquadrada-v107.webp"));
   assert.ok(page.includes("/images/categoria-fatias-editorial.webp"));
-  assert.ok(page.includes("EDIÇÃO LIMITADA · 15/10"));
+  assert.ok(page.includes("EDIÇÃO LIMITADA · DISPONÍVEL"));
   assert.ok(!css.includes(".admin-"));
   assert.equal((css.match(/UI\/UX PREMIUM 2\.0/g) || []).length, 1);
 });
