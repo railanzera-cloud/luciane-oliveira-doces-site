@@ -30,3 +30,15 @@ test("nunca tornar o codigo parte da URL, carrega somente no fluxo Whatsapp",()=
   assert.ok(client.includes('preview_token?: string'));
   assert.ok(client.includes('crocantes_preview_check: true'));
 });
+
+test("origin Preview 90 e apenas ela permite homologacao privada antes de 12h",()=>{
+  assert.ok(src.includes('CROCANTES_TEST_PREVIEW_ORIGIN = "https://90.lucianeoliveiradoces.pages.dev"'));
+  assert.ok(src.includes('Date.now() < CROCANTES_OPEN_AT_MS) allowed.add(CROCANTES_TEST_PREVIEW_ORIGIN)'));
+  assert.ok(src.includes('origin === CROCANTES_TEST_PREVIEW_ORIGIN && Date.now() >= CROCANTES_OPEN_AT_MS'));
+  assert.ok(src.includes('preview_expired'));
+  assert.ok(src.includes('origin === CROCANTES_TEST_PREVIEW_ORIGIN && input.crocantes_preview_check !== true'));
+  assert.ok(src.includes('typeof input.preview_token !== "string"'));
+  assert.ok(src.includes('preview_only'));
+  assert.ok(!src.includes('*.pages.dev'));
+  assert.ok(!src.includes('Access-Control-Allow-Origin"] = "*"'));
+});

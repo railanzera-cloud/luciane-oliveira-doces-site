@@ -168,3 +168,10 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **Edge Function:** `create-whatsapp-order` versão **14**, status `ACTIVE`, arquivos da instância conferidos byte a byte contra GitHub, com diagnóstico anterior e regra de venda pública preservados.
 - **Frontend de homologação:** `?teste_crocantes=1` revela campo de código na seção Crocantes. Não autoriza venda sem validação server-side; exibe quantidade e CTA ao receber autorização. Registra pedido real de **TESTE INTERNO — NÃO PREPARAR/NÃO COBRAR** e mensagem de WhatsApp identificada; o responsável deve cancelar pedido fictício após verificação, sem realizar pagamento Pix.
 - **Deploy Cloudflare:** AINDA NÃO EFETUADO. Entregar ZIP de CI do SHA final para upload manual. Depois que o responsável publicar o ZIP, testar manualmente no Safari/Instagram iPhone, usando código privado, sem antecipar a liberação comercial.
+
+### Homologação em Preview Cloudflare — 14/10/2026
+- Domínio exato informado pelo responsável: `https://90.lucianeoliveiradoces.pages.dev`. Não confundir com domínio de produção.
+- A função `create-whatsapp-order` passa a aceitar essa origem **somente antes de 15/10/2026, 12h -03:00**, além das origens anteriormente configuradas. Não há wildcard `pages.dev`.
+- Apenas pedidos com código de homologação válido ou operação de verificação de código podem partir desse Preview; pedidos comuns sem código são rejeitados com `preview_only`. Após as 12h, a origem Preview é rejeitada com `preview_expired`, inclusive se estiver na variável de ambiente.
+- A autorização privada continua com SHA-256/RLS e bloqueio no servidor. Nenhum token/hash é copiado para os arquivos públicos. O site de produção e sua habilitação comercial permanecem inalterados.
+- Conferir CI antes de implantar a Edge Function, preservando `verify_jwt=false`, imports e diagnóstico de erro da função ativa. O pacote Cloudflare do Preview já havia sido instalado pelo responsável e **não precisa ser republicado por causa deste ajuste exclusivamente no backend**.

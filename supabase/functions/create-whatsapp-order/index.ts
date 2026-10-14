@@ -4,6 +4,8 @@ import { quoteCartItems, quoteFulfillment, CROCANTES_OPEN_AT_MS } from "../_shar
 const ORDER_ID_PATTERN = /^LOD-(?:[0-9A-HJKMNP-TV-Z]{4}-){2}[0-9A-HJKMNP-TV-Z]{4}$/;
 const PAYMENT_METHODS = new Set(["manual_pix", "card_on_delivery", "cash"]);
 const DEFAULT_ALLOWED_ORIGINS = ["https://lucianeoliveiradoces.pages.dev", "https://luciane-oliveira-doces.railanzera.chatgpt.site"];
+// Somente esta implantação Preview foi aprovada para testes até a estreia.
+const CROCANTES_TEST_PREVIEW_ORIGIN = "https://90.lucianeoliveiradoces.pages.dev";
 class HttpError extends Error {
   status: number;
   code: string;
@@ -22,7 +24,10 @@ function allowedOrigins(): Set<string> {
     ?.split(",")
     .map((value) => value.trim())
     .filter(Boolean);
-  return new Set(configured?.length ? configured : DEFAULT_ALLOWED_ORIGINS);
+  const allowed = new Set(configured?.length ? configured : DEFAULT_ALLOWED_ORIGINS);
+  // Preserve the configured production origins; never authorize arbitrary *.pages.dev.
+  if (Date.now() < CROCANTES_OPEN_AT_MS) allowed.add(CROCANTES_TEST_PREVIEW_ORIGIN);
+  return allowed;
 }
 
 function corsHeaders(origin: string | null): HeadersInit {
@@ -211,6 +216,10 @@ function sanitizeParameters(value: unknown): Record<string, string[]> {
 Deno.serve(async (request: Request) => {
   const origin = request.headers.get("origin");
   try {
+    // Expire Preview's privileged origin exactly when the public launch starts.
+    if (origin === CROCANTES_TEST_PREVIEW_ORIGIN && Date.now() >= CROCANTES_OPEN_AT_MS) {
+      throw new HttpError(403, "preview_expired", "A homologação privada terminou.");
+    }
     if (origin && !allowedOrigins().has(origin)) throw new HttpError(403, "origin_not_allowed", "Origem não autorizada.");
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(origin) });
     if (request.method !== "POST") throw new HttpError(405, "method_not_allowed", "Método não permitido.");
@@ -220,6 +229,11 @@ Deno.serve(async (request: Request) => {
     let input: Record<string, unknown>;
     try { input = JSON.parse(raw); } catch { throw new HttpError(400, "invalid_json", "Pedido inválido."); }
     if (!input || typeof input !== "object" || Array.isArray(input)) throw new HttpError(400, "invalid_input", "Pedido inválido.");
+    // This Preview cannot submit regular, unmarked orders. A private code is mandatory.
+    if (origin === CROCANTES_TEST_PREVIEW_ORIGIN && input.crocantes_preview_check !== true
+        && typeof input.preview_token !== "string") {
+      throw new HttpError(403, "preview_only", "Este endereço é exclusivo para pedidos de homologação.");
+    }
     if (input.crocantes_preview_check === true) {
       const valid = await verifyCrocantesPreviewToken(input.preview_token);
       if (!valid) throw new HttpError(403, "preview_not_authorized", "Código de homologação inválido ou expirado.");
