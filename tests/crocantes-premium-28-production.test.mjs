@@ -43,13 +43,14 @@ test("mensagem de pedido real mantém Pix, chave e instruções como antes",()=>
   assert.match(message,/Vou fazer o Pix e enviar o comprovante/);
   assert.doesNotMatch(message,/TESTE DE HOMOLOGAÇÃO|NÃO EFETUAR PAGAMENTO/);
 });
-test("e-commerce Crocantes conciso na fase disponível, texto de estreia conservado",()=>{
+test("e-commerce Crocantes conciso, sem bloquear por estreia",()=>{
   assert.match(page,/cupSalesEnabled \? \(/);
   assert.ok(page.includes('className="limited-cup-sale-compact"'));
   assert.ok(page.includes('className="limited-cup-stock-note"'));
   assert.ok(page.includes('!cupSalesEnabled && <div id="limited-cup-flavor-panel"'));
   assert.ok(page.includes('Caramelizadas com leite em pó.'));
-  assert.ok(page.includes('ESTREIA · QUINTA, 15/10, ÀS 12H'));
+  assert.ok(page.includes('LOJA FECHADA'));
+  assert.ok(!page.includes('ESTREIA · QUINTA, 15/10, ÀS 12H'));
   assert.ok(page.includes('R$ 15,90 por copo'));
   assert.ok(css.includes('.limited-cup-sale-compact'));
 });
@@ -57,6 +58,7 @@ test("compras adicionais identificam outro copo e mantêm o fluxo original",()=>
   assert.equal((page.match(/cartContainsCrocantes \? "Adicionar outro copo" : "Adicionar copo Crocante"/g)||[]).length,2);
   assert.ok(page.includes('className="crocantes-cross-sell"'));
   assert.ok(page.includes('onClick={startAnotherCrocantes}'));
-  assert.ok(page.includes('PIX_DETAILS, typeof cartContainsCrocantes'));
-  assert.ok(page.includes('Teste de homologação: não faça Pix nem envie comprovante'));
+  assert.ok(page.includes('PIX_DETAILS), attribution'));
+  assert.ok(page.includes('Depois de finalizar no WhatsApp, faça o Pix'));
+  assert.ok(!page.includes('Teste de homologação: não faça Pix nem envie comprovante'));
 });
