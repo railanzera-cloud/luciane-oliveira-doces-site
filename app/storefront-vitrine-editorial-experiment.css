@@ -1936,3 +1936,64 @@
     transition: none !important;
   }
 }
+
+
+/*
+ * UI/UX PREMIUM 2.5 — detalhes expansíveis com fechamento real.
+ * Apenas edição limitada em copos: altura reservada e textos curtos,
+ * preservando o fluxo natural no navegador interno do Instagram/Safari.
+ */
+
+/* Reserva discreta de espaço para a dica OU um sabor, sem empilhar painéis.
+   Não fixa a altura do texto: zoom/fontes grandes continuam podendo expandir. */
+.storefront #configurador .limited-cup-flavor-slot {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 52px;
+  margin-top: 8px;
+}
+.storefront #configurador .limited-cup-flavor-slot .limited-cup-flavor-details {
+  width: 100%;
+  min-height: 49px;
+  margin: 0;
+  padding: 8px 11px;
+  grid-template-columns: 74px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 3px;
+}
+.storefront #configurador .limited-cup-flavor-slot .limited-cup-flavor-details > strong,
+.storefront #configurador .limited-cup-flavor-slot .limited-cup-flavor-details > span {
+  line-height: 1.34;
+}
+.storefront #configurador .limited-cup-flavor-slot .limited-cup-flavor-details > span {
+  overflow-wrap: break-word;
+}
+.storefront #configurador .limited-cup-flavor-slot .limited-cup-flavor-hint {
+  margin: 0;
+}
+.storefront #configurador .limited-cup-duo-item.is-selected .limited-cup-duo-disclosure svg {
+  transform: rotate(-90deg);
+}
+.storefront #configurador .limited-cup-duo-item[aria-expanded="true"] .limited-cup-duo-disclosure {
+  border-color: rgba(255, 219, 172, .76);
+}
+.storefront #configurador .limited-cup-story-bottom {
+  padding-bottom: max(20px, env(safe-area-inset-bottom, 0px));
+}
+@media (max-width: 359px) {
+  .storefront #configurador .limited-cup-flavor-slot {
+    min-height: 55px;
+  }
+  .storefront #configurador .limited-cup-flavor-slot .limited-cup-flavor-details {
+    grid-template-columns: 65px minmax(0, 1fr);
+    padding: 8px 9px;
+    column-gap: 6px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront #configurador .limited-cup-duo-disclosure svg {
+    transition: none !important;
+  }
+}

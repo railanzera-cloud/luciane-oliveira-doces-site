@@ -453,6 +453,9 @@ export default function Home() {
   const { availability, hasResolvedAvailability, refreshAvailability } = useMenuAvailability();
   const [cupPhase, setCupPhase] = useState<LimitedCupPhase>("prelaunch");
   const [cupFlavorPreview, setCupFlavorPreview] = useState<"ninho" | "chocolate" | null>(null);
+  function toggleCupFlavorPreview(flavor: "ninho" | "chocolate") {
+    setCupFlavorPreview((current) => current === flavor ? null : flavor);
+  }
   useEffect(() => {
     const refresh = () => setCupPhase(getLimitedCupPhase(Date.now()));
     refresh();
@@ -1755,13 +1758,13 @@ export default function Home() {
                 <p>Pipocas crocantes caramelizadas, em dois sabores para escolher: Ninho ou Chocolate.</p>
               </div>
               <div className="limited-cup-duo" aria-label="Sabores da edição limitada">
-                <button type="button" className={cupFlavorPreview === "ninho" ? "limited-cup-duo-item is-ninho is-selected" : "limited-cup-duo-item is-ninho"} aria-pressed={cupFlavorPreview === "ninho"} onClick={() => setCupFlavorPreview("ninho")}>
+                <button type="button" className={cupFlavorPreview === "ninho" ? "limited-cup-duo-item is-ninho is-selected" : "limited-cup-duo-item is-ninho"} aria-expanded={cupFlavorPreview === "ninho"} aria-controls="limited-cup-flavor-panel" onClick={() => toggleCupFlavorPreview("ninho")}>
                   <img src="/images/edicao-crocante-ninho.webp" alt="Copo com pipocas de caramelo e Leite Ninho" width="840" height="1260" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
-                  <span className="limited-cup-duo-caption"><small>01 · NINHO</small><strong>Caramelo com Leite Ninho</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "ninho" ? "Detalhes abertos" : "Ver detalhes"} <ChevronRight size={13} aria-hidden="true" /></span></span>
+                  <span className="limited-cup-duo-caption"><small>01 · NINHO</small><strong>Caramelo com Leite Ninho</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "ninho" ? "Fechar detalhes" : "Ver detalhes"} <ChevronRight size={13} aria-hidden="true" /></span></span>
                 </button>
-                <button type="button" className={cupFlavorPreview === "chocolate" ? "limited-cup-duo-item is-chocolate is-selected" : "limited-cup-duo-item is-chocolate"} aria-pressed={cupFlavorPreview === "chocolate"} onClick={() => setCupFlavorPreview("chocolate")}>
+                <button type="button" className={cupFlavorPreview === "chocolate" ? "limited-cup-duo-item is-chocolate is-selected" : "limited-cup-duo-item is-chocolate"} aria-expanded={cupFlavorPreview === "chocolate"} aria-controls="limited-cup-flavor-panel" onClick={() => toggleCupFlavorPreview("chocolate")}>
                   <img src="/images/edicao-crocante-chocolate.webp" alt="Copo com pipocas de caramelo e chocolate" width="840" height="1260" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
-                  <span className="limited-cup-duo-caption"><small>02 · CHOCOLATE</small><strong>Caramelo com Chocolate</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "chocolate" ? "Detalhes abertos" : "Ver detalhes"} <ChevronRight size={13} aria-hidden="true" /></span></span>
+                  <span className="limited-cup-duo-caption"><small>02 · CHOCOLATE</small><strong>Caramelo com Chocolate</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "chocolate" ? "Fechar detalhes" : "Ver detalhes"} <ChevronRight size={13} aria-hidden="true" /></span></span>
                 </button>
               </div>
               <div className="limited-cup-story-bottom">
@@ -1769,13 +1772,16 @@ export default function Home() {
                   <div className="limited-cup-story-price"><span>EDIÇÃO ESPECIAL</span><strong>R$ 15,90</strong><small>por copo</small></div>
                   <div className="limited-cup-story-measure" aria-label="Medidas do copo"><span aria-label="Volume de 400 mililitros">400 ml</span><span aria-label="Peso de 190 gramas">190 g</span></div>
                 </div>
-                {cupFlavorPreview && (
-                  <div className="limited-cup-flavor-details" role="status" aria-live="polite" aria-atomic="true">
-                    <strong>{cupFlavorPreview === "ninho" ? "Ninho" : "Chocolate"}</strong>
-                    <span>{cupFlavorPreview === "ninho" ? "Pipocas caramelizadas e finalizadas com leite em pó." : "Pipocas caramelizadas e finalizadas com uma crosta de chocolate."}</span>
-                  </div>
-                )}
-                {!cupFlavorPreview && <p className="limited-cup-flavor-hint">Toque em um copo para ver os detalhes do sabor.</p>}
+                <div id="limited-cup-flavor-panel" className="limited-cup-flavor-slot">
+                  {cupFlavorPreview ? (
+                    <div className="limited-cup-flavor-details" role="status" aria-live="polite" aria-atomic="true">
+                      <strong>{cupFlavorPreview === "ninho" ? "Ninho" : "Chocolate"}</strong>
+                      <span>{cupFlavorPreview === "ninho" ? "Caramelizadas com leite em pó." : "Caramelizadas com crosta de chocolate."}</span>
+                    </div>
+                  ) : (
+                    <p className="limited-cup-flavor-hint">Toque em um copo para ver os detalhes do sabor.</p>
+                  )}
+                </div>
                 <div className={`limited-cup-story-availability ${cupPhase === "prelaunch" ? "is-prelaunch" : "is-current"}`}>
                   <span className="limited-cup-story-availability-kicker">
                     {cupPhase === "prelaunch" ? "ESTREIA · QUINTA, 15/10" : cupPhase === "awaiting-release" ? "AGUARDANDO LIBERAÇÃO" : cupPhase === "sold-out" ? "EDIÇÃO ENCERRADA" : "EDIÇÃO DISPONÍVEL"}

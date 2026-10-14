@@ -21,13 +21,15 @@ test("vitrine distingue dois copos para escolher, sem sugerir mistura no mesmo c
 });
 
 test("detalhe escolhido substitui instrução, com altura em fluxo natural", () => {
-  assert.ok(story.includes('{!cupFlavorPreview && <p className="limited-cup-flavor-hint">'));
+  assert.ok(story.includes('id="limited-cup-flavor-panel" className="limited-cup-flavor-slot"'));
+  assert.ok(story.includes('{cupFlavorPreview ? ('));
+  assert.ok(story.includes(') : ('));
   assert.ok(story.includes('Toque em um copo para ver os detalhes do sabor.'));
   assert.ok(!story.includes('Selecione o outro copo para comparar os sabores.'));
-  assert.ok(story.includes('cupFlavorPreview === "ninho" ? "Detalhes abertos" : "Ver detalhes"'));
-  assert.ok(story.includes('cupFlavorPreview === "chocolate" ? "Detalhes abertos" : "Ver detalhes"'));
-  assert.ok(story.includes('aria-pressed={cupFlavorPreview === "ninho"}'));
-  assert.ok(story.includes('aria-pressed={cupFlavorPreview === "chocolate"}'));
+  assert.ok(story.includes('cupFlavorPreview === "ninho" ? "Fechar detalhes" : "Ver detalhes"'));
+  assert.ok(story.includes('cupFlavorPreview === "chocolate" ? "Fechar detalhes" : "Ver detalhes"'));
+  assert.ok(story.includes('aria-expanded={cupFlavorPreview === "ninho"}'));
+  assert.ok(story.includes('aria-expanded={cupFlavorPreview === "chocolate"}'));
   assert.ok(story.includes('role="status" aria-live="polite" aria-atomic="true"'));
   assert.ok(focused.includes("grid-template-columns: auto minmax(0, 1fr)"));
   assert.ok(!focused.includes("position: absolute"));
