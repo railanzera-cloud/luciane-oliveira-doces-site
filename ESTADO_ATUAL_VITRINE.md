@@ -200,3 +200,9 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **Ajuste mínimo de backend:** substituir exclusivamente `CROCANTES_TEST_PREVIEW_ORIGIN` de `90` para `56` na função `create-whatsapp-order`. Preview `90` deixa de ser autorizado por esta exceção; nenhuma autorização wildcard.
 - Manter a origem de produção e as demais origens previamente configuradas, verificação de código SHA-256 no Supabase, bloqueio por data em 15/10/2026 às 12h (Paragominas) e sinalização de pedido de teste.
 - **Sem alteração no frontend:** o pacote Premium 2.7 já publicado em Preview pelo responsável permanece válido, sem necessidade de nova instalação em Cloudflare para essa liberação de origem. A homologação manual de compras no iPhone e o envio efetivo da mensagem WhatsApp seguem pendentes.
+
+### Confirmação operacional Preview 56 — Supabase v16
+- Código da função no commit `bc39c07cfdcb829af72fda39c10febef2aea6ae1`: **425/425 testes**, build e TypeScript aprovados na execução GitHub Actions `38583360072`.
+- Implantação realizada no projeto comercial `edqiwvccmboyayojvuea` somente da função `create-whatsapp-order`: **v16, ACTIVE**, preservando `verify_jwt=false` da versão anterior.
+- Os quatro arquivos implantados foram conferidos contra o mesmo commit e possuem conteúdo idêntico. Origem `https://56.lucianeoliveiradoces.pages.dev` exclusivamente para homologação temporária; antiga exceção `90` revogada. Bloqueio de data e código privado mantidos.
+- Nenhuma publicação Cloudflare, alteração em `main` ou nos outros projetos. Validar manualmente o novo Preview no iPhone e pedido de teste completo no WhatsApp. Nenhum pedido real de homologação foi enviado pela equipe técnica durante a implantação.
