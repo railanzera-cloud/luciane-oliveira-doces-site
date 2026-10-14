@@ -2127,3 +2127,30 @@
 @media (prefers-reduced-motion:reduce) {
   .storefront #configurador .limited-cup-sale-compact {transition:none;}
 }
+
+/* Crocantes Premium 2.9.1 — seleção inequívoca e estados operacionais discretos. */
+.storefront #configurador .limited-cup-duo-item[aria-pressed="true"] .limited-cup-duo-disclosure {
+  border-color: rgba(255, 219, 172, .76);
+}
+.storefront #configurador .limited-cup-duo-item.is-selected .limited-cup-duo-disclosure svg {
+  transform: none;
+}
+.storefront #configurador .limited-cup-buy-actions .mini-quantity[aria-disabled="true"] {
+  opacity: .68;
+}
+.storefront #configurador .limited-cup-story-availability.is-closed {
+  gap: 4px;
+  margin-top: 8px;
+  padding: 9px 12px;
+  border-left-width: 2px;
+  background: linear-gradient(130deg, rgba(90, 53, 33, .36), rgba(42, 25, 18, .66));
+}
+.storefront #configurador .limited-cup-story-availability.is-closed p {
+  font-size: .73rem;
+  line-height: 1.35;
+}
+@media (max-width: 359px) {
+  .storefront #configurador .limited-cup-story-availability.is-closed {
+    padding: 8px 10px;
+  }
+}
