@@ -2,7 +2,6 @@ import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
 export const CATALOG_VERSION = "2026-10-15.crocantes";
-export const CROCANTES_OPEN_AT_MS = Date.parse("2026-10-15T12:00:00-03:00");
 export const CROCANTES = Object.freeze({
   "crocante-ninho": Object.freeze({ itemKey: "crocante_copo_ninho", name: "Pipocas Crocantes — Caramelo com Leite Ninho", priceCents: 1590 }),
   "crocante-chocolate": Object.freeze({ itemKey: "crocante_copo_chocolate", name: "Pipocas Crocantes — Caramelo com Chocolate", priceCents: 1590 }),
@@ -92,7 +91,7 @@ function quantityOf(value) {
   return value;
 }
 
-export function quoteCartItems(rawItems, now = Date.now(), previewAuthorized = false) {
+export function quoteCartItems(rawItems, now = Date.now()) {
   if (!Array.isArray(rawItems) || rawItems.length === 0 || rawItems.length > 40) {
     throw new Error("Adicione pelo menos um item válido ao pedido.");
   }
@@ -109,7 +108,6 @@ export function quoteCartItems(rawItems, now = Date.now(), previewAuthorized = f
 
     if (Object.hasOwn(CROCANTES, productId)) {
       const cup = CROCANTES[productId];
-      if (now < CROCANTES_OPEN_AT_MS && !previewAuthorized) throw new Error("Vendas dos copos Crocantes a partir de 15/10, às 12h (Paragominas).");
       if (variantId !== "400ml" || optionIds.length !== 0) throw new Error("Escolha um copo Crocantes válido de 400 ml.");
       availabilityKeys.add(CATEGORY_ITEM_KEYS.pipocas);
       availabilityKeys.add(cup.itemKey);
