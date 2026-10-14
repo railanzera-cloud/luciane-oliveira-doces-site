@@ -250,6 +250,9 @@ function makeCartId() {
 }
 
 function productLabel(product: Product) {
+  if (product.id === "crocante-ninho" || product.id === "crocante-chocolate") {
+    return `Pipocas Crocantes — ${product.name}`;
+  }
   return product.subtitle
     ? `${product.name} (${product.subtitle.toLowerCase()})`
     : product.name;
