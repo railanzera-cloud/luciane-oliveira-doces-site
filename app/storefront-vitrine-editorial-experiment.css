@@ -1242,6 +1242,9 @@
   .storefront #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child {
     grid-column: 1 / -1;
     min-height: 86px;
+    /* O destaque ativo usa a mesma superfície dos outros dois tamanhos. */
+  }
+  .storefront #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child:not(.is-selected) {
     border-color: rgba(228, 180, 122, .42);
     background: linear-gradient(112deg, #39251a, #2e1e15);
   }
@@ -1262,12 +1265,7 @@
   }
 }
 
-/* Etapa 2 — seleção premium: acabamento de superfície, não efeitos chamativos. */
-.storefront #sabores .flavor-card.is-selected {
-  background: linear-gradient(97deg, rgba(148, 90, 52, .24), rgba(87, 52, 31, .12));
-  border-color: rgba(244, 192, 126, .47);
-  box-shadow: inset 3px 0 #e5b57a, inset 0 0 0 1px rgba(237, 188, 128, .11);
-}
+/* Etapa 2 — superfície selecionada consolidada no Refinamento 2.1, abaixo. */
 .storefront #sabores .flavor-card .boutique-flavor-impact {
   font-variant-numeric: tabular-nums;
   letter-spacing: -.008em;
@@ -1396,4 +1394,82 @@
   .storefront .slice-builder .slice-card,
   .storefront .mobile-sticky-bar.is-ready.is-whatsapp button,
   .storefront .checkout-section .payment-option { transition: none !important; animation: none !important; transform: none !important; }
+}
+
+
+/*
+ * UI/UX PREMIUM 2.1 — seleção luminosa: tamanhos e sabores Pipocas Gourmet.
+ * Recupera luminosidade do vídeo 05h34 sem tocar em layout, fotos ou lógica.
+ */
+
+/* A luz surge das duas extremidades para equilibrar também o pote horizontal de 1 litro. */
+.storefront #tamanhos .size-card.is-selected:not(.is-unavailable) {
+  border-color: #f2c58c;
+  background:
+    radial-gradient(ellipse 72% 105% at 4% -16%, rgba(255, 210, 151, .20), transparent 80%),
+    radial-gradient(ellipse 66% 108% at 100% -16%, rgba(232, 167, 101, .14), transparent 83%),
+    linear-gradient(132deg, #64422e 0%, #523526 53%, #3e291e 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 237, 203, .43),
+    inset 0 0 0 1px rgba(248, 204, 148, .33),
+    0 0 0 1px rgba(230, 167, 98, .16),
+    0 11px 24px rgba(10, 5, 3, .31),
+    0 3px 10px rgba(122, 64, 32, .14);
+}
+.storefront #tamanhos .size-card.is-selected:not(.is-unavailable) .size-copy strong { color: #fff5e7; }
+.storefront #tamanhos .size-card.is-selected:not(.is-unavailable) .size-copy b {
+  color: #ffdda9;
+  text-shadow: 0 1px 0 rgba(20, 8, 3, .20);
+}
+.storefront #tamanhos .size-card.is-selected:not(.is-unavailable) .size-copy small { color: #ebd0b0; }
+.storefront #tamanhos .size-card.is-selected:not(.is-unavailable) button[role="radio"][data-state="checked"] {
+  border-color: #ffd7a2;
+  background: #e8aa66;
+  color: #251509;
+  box-shadow: inset 0 1px 0 rgba(255, 241, 218, .50), 0 2px 7px rgba(13, 5, 2, .28);
+}
+.storefront #tamanhos .size-card.is-selected:not(.is-unavailable) .selected-check {
+  background: linear-gradient(152deg, #f7c88e, #dda05b);
+  color: #241409;
+  box-shadow: inset 0 1px rgba(255, 240, 211, .49), 0 3px 10px rgba(13, 6, 2, .34);
+}
+.storefront #tamanhos .size-card:focus-within { outline: 2px solid #ffdfa9; outline-offset: 2px; }
+
+/* Reflexo acetinado, borda firme, brilho interno e sem alteração de geometria. */
+.storefront #sabores .flavor-card.is-selected {
+  z-index: 1;
+  border-color: rgba(250, 205, 144, .72);
+  background:
+    radial-gradient(ellipse 95% 120% at 11% -12%, rgba(249, 195, 128, .17), transparent 72%),
+    linear-gradient(105deg, #5c3a29 0%, #452b1e 54%, #362118 100%);
+  box-shadow:
+    inset 3px 0 0 #f7c995,
+    inset 0 1px 0 rgba(255, 226, 184, .40),
+    inset 0 -1px 0 rgba(232, 169, 104, .40),
+    inset -1px 0 0 rgba(241, 192, 130, .30),
+    0 0 0 1px rgba(238, 183, 112, .32),
+    0 6px 19px rgba(12, 6, 3, .23);
+}
+.storefront #sabores .flavor-card.is-selected .boutique-flavor-value { border-top-color: rgba(253, 210, 152, .27); }
+.storefront #sabores .flavor-card.is-selected .boutique-flavor-cost strong { color: #ffdfb4; }
+.storefront #sabores .flavor-card.is-selected button[role="checkbox"][data-state="checked"] {
+  border-color: #ffdda9;
+  background: #f5cb96;
+  color: #2b1709;
+  box-shadow: inset 0 1px 0 rgba(255, 243, 222, .52), 0 2px 7px rgba(15, 7, 3, .29);
+}
+.storefront #sabores .flavor-card.is-selected .boutique-flavor-picked {
+  border: 1px solid rgba(249, 199, 135, .52);
+  background: linear-gradient(140deg, rgba(141, 88, 49, .54), rgba(96, 57, 34, .54));
+  color: #ffe6c1;
+  box-shadow: inset 0 1px rgba(255, 225, 184, .11);
+}
+.storefront #sabores .flavor-card.is-selected:focus-within { outline: 2px solid #ffdfad; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .storefront #tamanhos .size-card,
+  .storefront #sabores .flavor-card {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
 }
