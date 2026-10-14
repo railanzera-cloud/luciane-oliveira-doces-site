@@ -32,6 +32,6 @@ test("preço, checkout, fotos, tamanho e seleção comercial permanecem intactos
     "Pote fica por ${currency.format(potPriceWithOption)}",
     "handleStickyAction",
     "/images/categoria-pipocas-editorial-enquadrada-v107.webp",
-    "EDIÇÃO LIMITADA · 15/10"
+    "EDIÇÃO LIMITADA · DISPONÍVEL"
   ]) assert.ok(page.includes(statement),statement);
 });
