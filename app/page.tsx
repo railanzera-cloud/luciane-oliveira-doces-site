@@ -830,8 +830,8 @@ export default function Home() {
       ? activeCategory === "pipocas" ? `A partir de ${currency.format(popcornPrice("500ml", [], promotionTime))}` : "A partir de R$20"
       : currency.format(draftSubtotal);
   const stickyPriceCaption = cart.length > 0 && !builderFlowActive
-    ? hasEstimatedTotal ? "Total" : "Subtotal"
-    : activeCategory === "pipocas" ? "Sua pipoca" : "Sua fatia";
+    ? hasEstimatedTotal ? "Total do pedido" : "Subtotal do pedido"
+    : cart.length > 0 ? "Item em montagem" : activeCategory === "pipocas" ? "Sua pipoca" : "Sua fatia";
   const paymentLabel = checkoutChannel === "site" && isSitePayment(payment)
     ? sitePaymentLabel(payment, fulfillment)
     : paymentDescription(isWhatsAppPayment(payment) ? payment : "", fulfillment).replace(" (1x)", "");
@@ -2490,7 +2490,7 @@ export default function Home() {
               <button type="button" className="summary-link" onClick={() => enterCheckout("pagamento")}><span><small>Pagamento</small><strong>{paymentLabel}</strong></span><ChevronRight size={18} /></button>
             </div>
             <div className="boutique-final-action" ref={inlineFinalActionRef}>
-              <Button type="button" className="whatsapp-button checkout-primary-button" onClick={handleFinalAction} disabled={isFinalizing || (!availability.ordersOpen && orderContext?.handoff_fingerprint !== checkoutFingerprint)} aria-describedby="checkout-status" data-event={checkoutChannel === "whatsapp" ? "whatsapp_checkout" : "site_checkout"}>{isFinalizing ? <LoaderCircle className="admin-spinner" size={20} /> : !checkoutReady ? <ChevronRight size={20} /> : checkoutChannel === "whatsapp" ? <MessageCircle size={20} /> : payment === "mercado_pago_pix" ? <QrCode size={20} /> : <ShoppingBag size={20} />} {summaryActionLabel}</Button>
+              <Button type="button" className="whatsapp-button checkout-primary-button" data-ready={checkoutReady ? "true" : "false"} onClick={handleFinalAction} disabled={isFinalizing || (!availability.ordersOpen && orderContext?.handoff_fingerprint !== checkoutFingerprint)} aria-describedby="checkout-status" data-event={checkoutChannel === "whatsapp" ? "whatsapp_checkout" : "site_checkout"}>{isFinalizing ? <LoaderCircle className="admin-spinner" size={20} /> : !checkoutReady ? <ChevronRight size={20} /> : checkoutChannel === "whatsapp" ? <MessageCircle size={20} /> : payment === "mercado_pago_pix" ? <QrCode size={20} /> : <ShoppingBag size={20} />} {summaryActionLabel}</Button>
             </div>
             {checkoutChannel === "whatsapp" && orderContext?.whatsapp_attempted_at && <div className="whatsapp-return-note" role="status"><strong>Continue no WhatsApp</strong><p>Envie a mensagem por lá para encaminhar o pedido. Seu pedido continua nesta aba para consulta.</p><Button type="button" variant="outline" onClick={clearOrder} disabled={isFinalizing}>Fazer novo pedido</Button></div>}
             {payment === "pix" && <p className="payment-guidance">Depois de finalizar no WhatsApp, faça o Pix com a chave informada na mensagem e envie o comprovante na conversa.</p>}
@@ -2506,7 +2506,7 @@ export default function Home() {
       <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
       {(activeCategory || cart.length > 0) && !showLimitedCupView && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && (
-      <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
+      <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"} ${stickyIsCheckoutReady && checkoutChannel === "whatsapp" ? "is-whatsapp" : ""}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
         <div className="mobile-sticky-price" aria-live="polite" aria-atomic="true"><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></div>
         <Button type="button" onClick={handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
           {stickyButtonLabel}

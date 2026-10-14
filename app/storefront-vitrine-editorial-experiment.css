@@ -1228,3 +1228,172 @@
     transform: none !important;
   }
 }
+
+
+/*
+ * ACABAMENTO DE CONVERSÃO — 14/10/2026.
+ * Exclusivamente storefront: superfícies, seleção e barra contextual mobile.
+ * Sem modificações comerciais, fotografias, rolagem JS ou disponibilidade.
+ */
+
+/* Etapa 1 — terceira medida deixa de parecer uma opção solta no iPhone.
+   Só expande se a grade realmente tiver três cartões visíveis. */
+@media (max-width: 599px) {
+  .storefront #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child {
+    grid-column: 1 / -1;
+    min-height: 86px;
+    border-color: rgba(228, 180, 122, .42);
+    background: linear-gradient(112deg, #39251a, #2e1e15);
+  }
+  .storefront #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child .size-copy {
+    display: grid;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-content: center;
+    column-gap: 9px;
+    row-gap: 3px;
+    padding: 12px 47px 12px 16px;
+  }
+  .storefront #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child .size-copy > strong { grid-column: 1; grid-row: 1; }
+  .storefront #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child .size-copy > small { grid-column: 1; grid-row: 2; }
+  .storefront #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child .size-copy > b {
+    grid-column: 2; grid-row: 1 / 3; align-self: center; white-space: nowrap; font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Etapa 2 — seleção premium: acabamento de superfície, não efeitos chamativos. */
+.storefront #sabores .flavor-card.is-selected {
+  background: linear-gradient(97deg, rgba(148, 90, 52, .24), rgba(87, 52, 31, .12));
+  border-color: rgba(244, 192, 126, .47);
+  box-shadow: inset 3px 0 #e5b57a, inset 0 0 0 1px rgba(237, 188, 128, .11);
+}
+.storefront #sabores .flavor-card .boutique-flavor-impact {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.008em;
+}
+.storefront #sabores .flavor-card .boutique-flavor-picked { border: 1px solid rgba(239, 185, 116, .25); }
+.storefront .slice-builder .slice-card.is-selected {
+  border-color: #eec696;
+  box-shadow: 0 0 0 1px rgba(244, 195, 133, .18), 0 12px 28px rgba(0, 0, 0, .24);
+}
+.storefront .slice-builder .slice-card:focus-within {
+  outline: 2px solid #ffdbac;
+  outline-offset: 2px;
+}
+
+/* Etapa 3 — passagem chocolate para creme: continua clara, mas menos abrupta. */
+.storefront .checkout-section {
+  background: linear-gradient(180deg, #e5d3c0 0, #f7efe5 125px, #f6ecdf 100%);
+}
+.storefront .checkout-section::before {
+  height: 2px;
+  background: linear-gradient(90deg, rgba(141, 91, 56, .22), rgba(177, 120, 72, .65), rgba(141, 91, 56, .22));
+}
+.storefront .checkout-section .order-card,
+.storefront .checkout-section .summary-card {
+  border-color: rgba(141, 98, 64, .20);
+  box-shadow: 0 10px 29px rgba(73, 48, 29, .06);
+}
+.storefront .checkout-section .payment-option.is-selected {
+  border-color: #ad805b;
+  background: #f5e7d4;
+  box-shadow: none;
+}
+.storefront .checkout-section .choice-card.is-selected {
+  border-color: #a97d58;
+  background: #f5e8d6;
+}
+.storefront .checkout-section .boutique-checkout-progress button[aria-current="step"] {
+  border-color: #a27450;
+  background: #f1dec6;
+  box-shadow: inset 0 0 0 1px rgba(160, 105, 61, .11);
+}
+
+/* Etapa 4 — verde final reservado à confirmação via WhatsApp.
+   :not(:disabled) supera a regra boutique legada mais específica. */
+.storefront .mobile-sticky-bar.is-ready.is-whatsapp {
+  border-color: rgba(199, 153, 104, .48);
+  background: rgba(38, 25, 18, .98);
+  box-shadow: 0 13px 36px rgba(0, 0, 0, .36), inset 0 1px rgba(255, 235, 202, .09);
+}
+.storefront .mobile-sticky-bar.is-ready.is-whatsapp strong { color: #ffddac; }
+.storefront .mobile-sticky-bar.is-ready.is-whatsapp button:not(:disabled),
+.storefront .boutique-final-action .checkout-primary-button[data-event="whatsapp_checkout"][data-ready="true"]:not(:disabled) {
+  border: 1px solid #4d8c6e;
+  background: linear-gradient(155deg, #287650 0%, #205e43 100%);
+  color: #fff9ed;
+  box-shadow: 0 5px 14px rgba(15, 72, 46, .19), inset 0 1px rgba(255, 255, 255, .10);
+  text-shadow: none;
+}
+.storefront .mobile-sticky-bar.is-ready.is-whatsapp button:not(:disabled):active,
+.storefront .boutique-final-action .checkout-primary-button[data-event="whatsapp_checkout"][data-ready="true"]:not(:disabled):active {
+  background: #1b553b;
+}
+.storefront .mobile-sticky-bar.is-ready.is-whatsapp button:not(:disabled):focus-visible {
+  outline: 3px solid #ffe0ab;
+  outline-offset: 2px;
+}
+
+/* Etapa 5 — rótulo revela se o valor é do item em montagem ou do pedido.
+   O respiro no destino de rolagem respeita a barra e o safe area do iPhone. */
+@media (max-width: 699px) {
+  .storefront .mobile-sticky-bar {
+    bottom: max(11px, env(safe-area-inset-bottom, 0px));
+    border-radius: 17px;
+  }
+  .storefront .mobile-sticky-bar .mobile-sticky-price {
+    flex: 0 1 112px;
+    min-width: 88px;
+  }
+  .storefront .mobile-sticky-bar .mobile-sticky-price small {
+    font-size: .62rem;
+    line-height: 1.28;
+  }
+  .storefront .mobile-sticky-bar .mobile-sticky-price strong {
+    line-height: 1.18;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+  }
+  .storefront #tamanhos,
+  .storefront #sabores,
+  .storefront #quantidade-pipocas,
+  .storefront #fatias,
+  .storefront #calda-fatias,
+  .storefront #quantidade-fatias,
+  .storefront #recebimento,
+  .storefront #identificacao,
+  .storefront #pagamento,
+  .storefront .summary-card {
+    scroll-margin-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (max-width: 359px) {
+  .storefront .mobile-sticky-bar .mobile-sticky-price { min-width: 77px; flex-basis: 91px; }
+  .storefront #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child .size-copy { padding-left: 12px; padding-right: 39px; }
+}
+
+/* Etapa 6 — fatias: fotografias e cartões intocados; menos espera até a vitrine. */
+@media (max-width: 599px) {
+  .storefront #configurador:has(.slice-builder) { padding-top: 15px; }
+  .storefront #configurador:has(.slice-builder) .section-intro {
+    margin-bottom: 15px;
+  }
+  .storefront #configurador:has(.slice-builder) .section-intro h2 {
+    font-size: clamp(1.85rem, 6.6vw, 2.35rem);
+    line-height: 1.09;
+    margin-top: 5px;
+  }
+  .storefront #configurador:has(.slice-builder) .section-intro > p:not(.eyebrow) {
+    margin-top: 5px;
+    line-height: 1.4;
+  }
+  .storefront #configurador:has(.slice-builder) .section-intro .category-text-link { margin-top: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront #sabores .flavor-card,
+  .storefront .slice-builder .slice-card,
+  .storefront .mobile-sticky-bar.is-ready.is-whatsapp button,
+  .storefront .checkout-section .payment-option { transition: none !important; animation: none !important; transform: none !important; }
+}

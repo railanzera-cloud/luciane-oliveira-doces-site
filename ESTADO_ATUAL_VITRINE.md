@@ -60,3 +60,15 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - No início, o sabor que custa o mesmo que o pote-base mantém "Preço base"; nos preços especiais de fim de semana sem seleção, mantém-se a orientação "Mesmo preço na promoção". No estado selecionado, a indicação "Escolhido" permanece.
 - A tipografia, as fotografias, o bloco superior de preço atual, a barra inferior e as animações/navegação previamente homologadas permanecem intactos; somente o texto/semântica da etiqueta e testes associados foram revisados.
 - Validação automática e ZIP do **mesmo novo commit**: conferir status do fluxo `design-boutique-preview.yml` e artefato do GitHub Actions antes de considerar conclusão. Safari físico continua pendente de homologação. **Sem publicação, sem merge, sem Supabase.**
+
+## Acabamento de conversão mobile — implementação em 14/10/2026
+
+- **Base verificada:** `b592373a371c8182d706e6d37968ba8ea23b3dd7` na branch `design/luciane-editorial-vitrine-experiment-20261013`. Esta seção registra somente alterações posteriores ao checkpoint anterior; não altera o histórico aprovado.
+- **Barra contextual:** mantém exatamente os handlers, visibilidade por observadores, fluxo guiado, proteção do teclado e safe area. O verde-esmeralda profundo com texto creme aplica-se somente à barra com checkout pronto via WhatsApp, usando a classe `is-whatsapp`, e ao botão equivalente pronto no resumo. Montagem permanece caramelo; estado final do checkout pelo site não recebe o verde específico do WhatsApp. Superfície externa continua chocolate com contorno cobre discreto.
+- **Preços e rótulos:** quando há itens no carrinho e outro está em montagem, o rótulo do preço flutuante muda para **Item em montagem**; no modo de checkout, exibe **Total do pedido** ou **Subtotal do pedido**. Os valores, a fórmula, o destino e as ações não mudam.
+- **Tamanhos mobile:** o terceiro cartão ocupa as duas colunas apenas se houver exatamente três cartões de tamanho renderizados; mantém o radio original, disponibilidade, cálculo e clique. Demais quantidades de tamanhos mantêm a grade anterior.
+- **Sabores e fatias:** ajuste de bordas, foco e superfícies selecionadas sem interferir nas fotografias, descrições, quantidade, seleção ou estoque.
+- **Checkout:** passagem chocolate-creme mais suave, bordas de cartões e opções de pagamento/recebimento menos pesadas; conteúdo e dados intactos.
+- **Categoria fatias:** redução localizada do respiro acima das fotos em até 599px, sem recorte, substituição ou alteração de proporções nas fotos.
+- **Safari iOS:** amplia margem de destino da rolagem acima da barra e preserva as proteções já existentes para teclado e saltos, sem mudar handlers e scroll JS. Validação manual em Safari físico permanece necessária (rolagem, teclado, 320–430px, estados com loja fechada e pagamentos).
+- **Testes:** o arquivo `tests/uiux-conversion-finish.test.mjs` cobre escopo do CSS, preço/CTA, preservação comercial e comportamento condicional. Conferir CI no commit desta intervenção antes de atribuir aprovação. **Sem publicação em produção, merge na main, migração de banco ou alteração de campanha.**
