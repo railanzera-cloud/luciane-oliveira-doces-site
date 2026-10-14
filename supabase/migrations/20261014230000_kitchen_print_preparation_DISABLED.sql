@@ -190,10 +190,43 @@ end;
 $function$
 
 
+-- Segunda validação, imediatamente antes de entregar bytes ao QZ Tray.
+-- Se a comanda foi cancelada/refundada depois do claim, impedir envio.
+create or replace function public.admin_verify_print_claim(p_job_id uuid, p_claim_token uuid)
+returns boolean language plpgsql security definer
+set search_path = public, auth, pg_temp
+as $guard$
+begin
+  perform public.lod_require_authenticated_staff();
+  return exists (
+    select 1 from public.print_jobs j
+    join public.orders o on o.id = j.order_uuid
+    join public.kitchen_print_control c on c.control_id = true
+    where j.id = p_job_id and j.claim_token = p_claim_token and j.status = 'printing'
+      and c.enabled = true and j.created_at >= c.accept_new_after
+      and (
+        (j.kind = 'initial' and o.created_at >= c.accept_new_after
+         and public.lod_kitchen_print_eligible(o))
+        or
+        (j.kind = 'reprint' and j.requested_by is not null
+         and o.order_status not in ('cancelled','payment_pending')
+         and o.payment_status not in ('refunded','failed','cancelled')
+         and exists (
+           select 1 from public.print_jobs previous
+           where previous.order_uuid = o.id and previous.kind = 'initial'
+             and previous.status = 'printed'
+         ))
+      )
+  );
+end;
+$guard$;
+
 revoke all on function public.lod_kitchen_print_eligible(public.orders) from public, anon, authenticated;
 revoke all on function public.lod_queue_kitchen_print_on_order_change() from public, anon, authenticated;
+revoke all on function public.admin_verify_print_claim(uuid,uuid) from public, anon;
 revoke all on function public.admin_get_kitchen_print_control() from public, anon;
 revoke all on function public.admin_set_kitchen_print_enabled(boolean) from public, anon;
+grant execute on function public.admin_verify_print_claim(uuid,uuid) to authenticated, service_role;
 grant execute on function public.admin_get_kitchen_print_control() to authenticated, service_role;
 grant execute on function public.admin_set_kitchen_print_enabled(boolean) to authenticated, service_role;
 

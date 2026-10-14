@@ -151,6 +151,14 @@ export async function drainPrintQueue(client: SupabaseClient, maxJobs = 10): Pro
     const claim = await claimPrintJob(client, workerId);
     if (!claim) break;
     try {
+      // O estado pode ter mudado (cancelamento, estorno ou desligamento) após o claim.
+      const { data: stillEligible, error: verifyError } = await client.rpc("admin_verify_print_claim", {
+        p_job_id: claim.job.id, p_claim_token: claim.job.claim_token,
+      });
+      if (verifyError || stillEligible !== true) {
+        await failPrintJob(client, claim, "Comanda bloqueada por mudança de estado ou falha de validação.");
+        continue; // Não enviar comandos à impressora.
+      }
       await printClaim(claim);
       await completePrintJob(client, claim);
       printed += 1;
