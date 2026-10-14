@@ -308,7 +308,10 @@ Deno.serve(async (request: Request) => {
 
     return response(origin, 201, { ok: true, order: storedOrder, payment: { method, status: "pending" } });
   } catch (error) {
-    if (error instanceof HttpError) return response(origin, error.status, { ok: false, error: { code: error.code, message: error.message, details: error.details } });
+    if (error instanceof HttpError) {
+      console.warn("[checkout-diagnostic]", error.status, error.code);
+      return response(origin, error.status, { ok: false, error: { code: error.code, message: error.message, details: error.details } });
+    }
     console.error("create-whatsapp-order failed", error instanceof Error ? error.name : "unknown");
     return response(origin, 500, { ok: false, error: { code: "internal_error", message: "Não foi possível registrar. Tente novamente sem alterar o pedido." } });
   }
