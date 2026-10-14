@@ -29,7 +29,7 @@ test("keeps a second product easy to add beside the receiving options", () => {
   assert.doesNotMatch(page, /id="item-adicionado"/);
   assert.match(page, /className="boutique-added-continuity"/);
   assert.match(page, /Quer adicionar mais alguma coisa\?/);
-  assert.match(page, /category === "pipocas" \? "Outra pipoca" : "Outra fatia"/);
+  assert.match(page, /category === "pipocas" \? "Outro pote recheado" : "Outra fatia"/);
   assert.match(page, /onClick=\{\(\) => startAnother\(category\)\}/);
   assert.match(page, /cart-add-options \$\{STORE_CONFIG\.enabledExtras\.drinks \? "" : "without-drinks"\}/);
   assert.match(page, /const destination = wasEditing \? "carrinho" : "recebimento"/);

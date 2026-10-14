@@ -1103,7 +1103,7 @@ test('limited campaign opens in discovery, without altering saved cart', () => {
     categoryUrl:navigation.categoryUrl,requestEditorialScroll:id=>scroll=id,
   });
   open();assert.equal(category,'pipocas');assert.equal(preview,true);assert.equal(engaged,false);assert.equal(scroll,'edicao-crocante');
-  assert.match(source,/!showLimitedCupView && !\(stickyUsesCheckoutAction/);
+  assert.match(source,/\(!showLimitedCupView \|\| cupBuilderFlowActive\) && !\(cupBuilderFlowActive && cupInlineActionVisible\)/);
   assert.match(source,/activeCategory === "pipocas" && showLimitedCupView/);
 });
 

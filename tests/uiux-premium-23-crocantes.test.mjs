@@ -7,7 +7,7 @@ const css = readFileSync(new URL("../app/storefront-vitrine-editorial-experiment
 const release = readFileSync(new URL("../app/limited-cup-release.ts", import.meta.url), "utf8");
 
 const story = page.slice(page.indexOf('<section className="limited-cup-story"'), page.indexOf('{activeCategory === "fatias" && ('));
-const look = css.slice(css.indexOf("UI/UX PREMIUM 2.3 — profundidade editorial"));
+const look = css.slice(css.indexOf("UI/UX PREMIUM 2.3 — profundidade editorial"), css.indexOf("UI/UX PREMIUM 2.4 — clareza"));
 
 test("dois sabores continuam como seleção informativa, fotos e preço intactos", () => {
   assert.ok(story.includes('aria-expanded={cupFlavorPreview === "ninho"}'));

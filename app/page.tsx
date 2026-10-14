@@ -958,7 +958,7 @@ export default function Home() {
         : checkoutReady
           ? finalButtonLabel
           : checkoutNextActionLabel;
-  const stickyButtonLabel = cupBuilderFlowActive
+  const stickyButtonLabel = typeof cupBuilderFlowActive !== "undefined" && cupBuilderFlowActive
     ? cupAdding ? "Conferindo estoque…" : !cupFlavorPreview ? "Escolher meu sabor" : !cupCanOrder ? "Sabor indisponível" : `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "copo" : "copos"}`
     : isFinalizing ? finalButtonLabel : !availability.ordersOpen
     ? "Pedidos fechados"
@@ -1696,7 +1696,7 @@ export default function Home() {
   }
 
   function handleStickyAction() {
-    if (cupBuilderFlowActive) handleCupPurchaseAction();
+    if (typeof cupBuilderFlowActive !== "undefined" && cupBuilderFlowActive) handleCupPurchaseAction();
     else if (stickyUsesCheckoutAction) handleFinalAction();
     else stickyBuilderAction();
   }

@@ -7,7 +7,7 @@ const css = readFileSync(new URL("../app/storefront-vitrine-editorial-experiment
 const release = readFileSync(new URL("../app/limited-cup-release.ts", import.meta.url), "utf8");
 
 const story = page.slice(page.indexOf('<section className="limited-cup-story"'),page.indexOf('{activeCategory === "fatias" && ('));
-const styles = css.split("UI/UX PREMIUM 2.5 — detalhes expansíveis")[1];
+const styles = css.split("UI/UX PREMIUM 2.5 — detalhes expansíveis")[1]?.split("Premium 2.6 — compra de copos")[0];
 
 test("segundo toque fecha; outro sabor substitui detalhes sem acumular", () => {
   assert.ok(page.includes('function toggleCupFlavorPreview(flavor: "ninho" | "chocolate")'));
@@ -24,8 +24,8 @@ test("abrir e fechar sao estados acessiveis e identificaveis", () => {
   assert.ok(story.includes('aria-expanded={cupFlavorPreview === "chocolate"}'));
   assert.equal((story.match(/aria-controls="limited-cup-flavor-panel"/g)||[]).length, 2);
   assert.ok(story.includes('id="limited-cup-flavor-panel"'));
-  assert.ok(story.includes('cupFlavorPreview === "ninho" ? "Fechar detalhes" : "Ver detalhes"'));
-  assert.ok(story.includes('cupFlavorPreview === "chocolate" ? "Fechar detalhes" : "Ver detalhes"'));
+  assert.ok(story.includes('cupFlavorPreview === "ninho" ? "Selecionado · fechar detalhes" : cupSalesEnabled ?'));
+  assert.ok(story.includes('cupFlavorPreview === "chocolate" ? "Selecionado · fechar detalhes" : cupSalesEnabled ?'));
   assert.ok(story.includes('role="status" aria-live="polite" aria-atomic="true"'));
   assert.ok(styles.includes('transform: rotate(-90deg)'));
 });

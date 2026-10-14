@@ -249,7 +249,7 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes('aria-expanded={cupFlavorPreview === "ninho"}'));
   assert.ok(page.includes('aria-expanded={cupFlavorPreview === "chocolate"}'));
   assert.ok(page.includes('className="limited-cup-teaser-cta"'));
-  assert.ok(page.includes('!showLimitedCupView && !(stickyUsesCheckoutAction'));
+  assert.ok(page.includes('(!showLimitedCupView || cupBuilderFlowActive)'));
   assert.ok(page.includes('setShowLimitedCupView(false);\n    setBuilderEngaged(true);'));
   assert.ok(page.includes('window.scrollTo({ top, behavior: "instant" })'));
   assert.ok(page.includes('setShowLimitedCupView(isEdition)'));

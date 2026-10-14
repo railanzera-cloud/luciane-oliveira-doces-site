@@ -9,7 +9,7 @@ const release = readFileSync(new URL("../app/limited-cup-release.ts", import.met
 const start = page.indexOf('<section className="limited-cup-story"');
 const end = page.indexOf('{activeCategory === "fatias" && (',start);
 const story = page.slice(start,end);
-const focused = css.split("UI/UX PREMIUM 2.4 — clareza")[1];
+const focused = css.split("UI/UX PREMIUM 2.4 — clareza")[1]?.split("UI/UX PREMIUM 2.5 — detalhes expansíveis")[0];
 
 test("vitrine distingue dois copos para escolher, sem sugerir mistura no mesmo copo", () => {
   assert.ok(page.includes('Escolha entre 2 sabores'));
@@ -26,8 +26,8 @@ test("detalhe escolhido substitui instrução, com altura em fluxo natural", () 
   assert.ok(story.includes(') : ('));
   assert.ok(story.includes('Toque em um copo para ver os detalhes do sabor.'));
   assert.ok(!story.includes('Selecione o outro copo para comparar os sabores.'));
-  assert.ok(story.includes('cupFlavorPreview === "ninho" ? "Fechar detalhes" : "Ver detalhes"'));
-  assert.ok(story.includes('cupFlavorPreview === "chocolate" ? "Fechar detalhes" : "Ver detalhes"'));
+  assert.ok(story.includes('cupFlavorPreview === "ninho" ? "Selecionado · fechar detalhes" : cupSalesEnabled ?'));
+  assert.ok(story.includes('cupFlavorPreview === "chocolate" ? "Selecionado · fechar detalhes" : cupSalesEnabled ?'));
   assert.ok(story.includes('aria-expanded={cupFlavorPreview === "ninho"}'));
   assert.ok(story.includes('aria-expanded={cupFlavorPreview === "chocolate"}'));
   assert.ok(story.includes('role="status" aria-live="polite" aria-atomic="true"'));
