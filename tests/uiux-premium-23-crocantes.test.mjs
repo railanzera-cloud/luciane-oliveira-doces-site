@@ -10,10 +10,10 @@ const story = page.slice(page.indexOf('<section className="limited-cup-story"'),
 const look = css.slice(css.indexOf("UI/UX PREMIUM 2.3 — profundidade editorial"), css.indexOf("UI/UX PREMIUM 2.4 — clareza"));
 
 test("dois sabores continuam como seleção informativa, fotos e preço intactos", () => {
-  assert.ok(story.includes('aria-expanded={cupFlavorPreview === "ninho"}'));
-  assert.ok(story.includes('aria-expanded={cupFlavorPreview === "chocolate"}'));
-  assert.ok(story.includes('toggleCupFlavorPreview("ninho")'));
-  assert.ok(story.includes('toggleCupFlavorPreview("chocolate")'));
+  assert.ok(story.includes('aria-pressed={cupFlavorPreview === "ninho"}'));
+  assert.ok(story.includes('aria-pressed={cupFlavorPreview === "chocolate"}'));
+  assert.ok(story.includes('selectCupFlavor("ninho")'));
+  assert.ok(story.includes('selectCupFlavor("chocolate")'));
   assert.ok(story.includes("Caramelo com Leite Ninho"));
   assert.ok(story.includes("Caramelo com Chocolate"));
   assert.ok(story.includes("/images/edicao-crocante-ninho.webp"));

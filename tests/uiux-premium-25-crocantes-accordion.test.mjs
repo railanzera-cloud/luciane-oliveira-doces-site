@@ -9,25 +9,27 @@ const release = readFileSync(new URL("../app/limited-cup-release.ts", import.met
 const story = page.slice(page.indexOf('<section className="limited-cup-story"'),page.indexOf('{activeCategory === "fatias" && ('));
 const styles = css.split("UI/UX PREMIUM 2.5 — detalhes expansíveis")[1]?.split("Premium 2.6 — compra de copos")[0];
 
-test("segundo toque fecha; outro sabor substitui detalhes sem acumular", () => {
-  assert.ok(page.includes('function toggleCupFlavorPreview(flavor: "ninho" | "chocolate")'));
-  assert.ok(page.includes('setCupFlavorPreview((current) => current === flavor ? null : flavor)'));
-  assert.equal((story.match(/onClick=\{\(\) => toggleCupFlavorPreview\("/g)||[]).length, 2);
-  assert.ok(story.includes('onClick={() => toggleCupFlavorPreview("ninho")}'));
-  assert.ok(story.includes('onClick={() => toggleCupFlavorPreview("chocolate")}'));
+test("o sabor escolhido permanece; outro sabor substitui a seleção", () => {
+  assert.ok(page.includes('function selectCupFlavor(flavor: "ninho" | "chocolate")'));
+  assert.ok(page.includes('if (cupFlavorPreview === flavor) return;'));
+  assert.ok(page.includes('setCupFlavorPreview(flavor)'));
+  assert.equal((story.match(/onClick=\{\(\) => selectCupFlavor\("/g)||[]).length, 2);
+  assert.ok(story.includes('onClick={() => selectCupFlavor("ninho")}'));
+  assert.ok(story.includes('onClick={() => selectCupFlavor("chocolate")}'));
   assert.ok(story.includes('{cupFlavorPreview ? ('));
   assert.ok(story.includes('className="limited-cup-flavor-hint"'));
 });
 
 test("abrir e fechar sao estados acessiveis e identificaveis", () => {
-  assert.ok(story.includes('aria-expanded={cupFlavorPreview === "ninho"}'));
-  assert.ok(story.includes('aria-expanded={cupFlavorPreview === "chocolate"}'));
+  assert.ok(story.includes('aria-pressed={cupFlavorPreview === "ninho"}'));
+  assert.ok(story.includes('aria-pressed={cupFlavorPreview === "chocolate"}'));
   assert.equal((story.match(/aria-controls="crocantes-quantidade"/g)||[]).length, 2);
   assert.ok(story.includes('id="limited-cup-flavor-panel"'));
-  assert.ok(story.includes('cupFlavorPreview === "ninho" ? "Selecionado · fechar detalhes" : cupSalesEnabled ?'));
-  assert.ok(story.includes('cupFlavorPreview === "chocolate" ? "Selecionado · fechar detalhes" : cupSalesEnabled ?'));
+  assert.ok(story.includes('cupFlavorPreview === "ninho" ? "Selecionado" : "Escolher Ninho"'));
+  assert.ok(story.includes('cupFlavorPreview === "chocolate" ? "Selecionado" : "Escolher Chocolate"'));
   assert.ok(story.includes('role="status" aria-live="polite" aria-atomic="true"'));
-  assert.ok(styles.includes('transform: rotate(-90deg)'));
+  assert.ok(css.includes('transform: none;'));
+  assert.ok(css.includes('.limited-cup-duo-item[aria-pressed="true"]'));
 });
 
 test("detalhes tem altura equilibrada e segue fluxo da pagina", () => {

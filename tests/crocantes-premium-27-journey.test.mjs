@@ -16,7 +16,8 @@ test("selecao de sabor encaminha diretamente para a proxima etapa",()=>{
   assert.ok(page.includes('requestScroll("crocantes-quantidade")'));
   assert.ok(page.includes('id="crocantes-sabores"'));
   assert.ok(page.includes('id="crocantes-quantidade"'));
-  assert.ok(page.includes('Selecionado · fechar detalhes'));
+  assert.ok(page.includes('cupFlavorPreview === "ninho" ? "Selecionado" : "Escolher Ninho"'));
+  assert.ok(page.includes('aria-pressed={cupFlavorPreview === "ninho"}'));
   assert.ok(page.includes('onClick={handleCupPurchaseAction}'));
 });
 test("copo adicionado usa o checkout e continuidade existentes",()=>{
