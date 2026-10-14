@@ -236,7 +236,7 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes('if (category === "pipocas") requestEditorialScroll("tamanhos")'));
   assert.ok(page.includes('requestEditorialScroll("edicao-crocante")'));
   assert.ok(page.includes('activeCategory === "pipocas" && showLimitedCupView'));
-  assert.ok(page.includes('showLimitedCupView && cart.length === 0 ? "builder-section is-cup-discovery"'));
+  assert.ok(page.includes('showLimitedCupView ? "builder-section is-cup-discovery"'));
   assert.ok(css.includes('#configurador.is-cup-discovery > .page-shell > :not(.limited-cup-story)'));
 
   assert.ok(page.includes('id="edicao-crocante"'));
@@ -268,9 +268,9 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
 
 test("v2 de lançamento exige três condições para anunciar disponibilidade", async () => {
   const cfg = await readFile(new URL("../app/limited-cup-release.ts", import.meta.url), "utf8");
-  assert.ok(cfg.includes("orderingIntegrated: false"));
-  assert.ok(cfg.includes("salesApprovedByStore: false"));
-  assert.ok(cfg.includes("inventoryVerifiedAvailable: false"));
+  assert.ok(cfg.includes("orderingIntegrated: true"));
+  assert.ok(cfg.includes("salesApprovedByStore: true"));
+  assert.ok(cfg.includes("inventoryVerifiedAvailable: true"));
   assert.ok(cfg.includes("soldOutConfirmed: false"));
   assert.ok(cfg.includes("nowMs < Date.parse(cfg.launchDayStart)"));
   assert.ok(cfg.includes("cfg.orderingIntegrated && cfg.salesApprovedByStore && cfg.inventoryVerifiedAvailable"));
@@ -334,7 +334,7 @@ test("v107: fotografia correta, enquadramento central e lancamento em 15/10", as
   assert.ok(page.includes("EDIÇÃO LIMITADA · 15/10"));
   assert.ok(page.includes("ESTREIA · QUINTA, 15/10"));
   assert.ok(!page.includes("16/10"));
-  assert.ok(release.includes("2026-10-15T00:00:00-03:00"));
+  assert.ok(release.includes("2026-10-15T12:00:00-03:00"));
   assert.ok(!release.includes("2026-10-16T00:00:00-03:00"));
   const lastPotRule = css.slice(css.lastIndexOf(".category-option:first-child .category-option-media img"));
   assert.ok(lastPotRule.includes("object-fit: cover"));

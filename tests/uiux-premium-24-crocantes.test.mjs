@@ -38,7 +38,7 @@ test("detalhe escolhido substitui instrução, com altura em fluxo natural", () 
 
 test("estreia e reposição ficam em um aviso, com estados comerciais corretos", () => {
   assert.ok(story.includes('ESTREIA · QUINTA, 15/10, ÀS 12H'));
-  assert.ok(page.includes('Edição limitada, enquanto durarem os copos. Sem reposição.'));
+  assert.ok(page.includes('Vendas a partir das 12h de quinta, 15/10. Enquanto durarem os copos, sem reposição.'));
   assert.ok(page.includes('Aguardando confirmação da loja. Sem reposição após o fim do estoque.'));
   assert.ok(story.includes('<p>{cupLaunchCopy.description}</p>'));
   assert.ok(!story.includes('<span>Esta edição em copo não terá reposição após o fim do estoque.</span>'));

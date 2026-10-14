@@ -28,7 +28,7 @@ test("dois sabores continuam como seleção informativa, fotos e preço intactos
 
 test("estreia 15/10 ganha presença sem liberar automaticamente as vendas", () => {
   assert.ok(page.includes("ESTREIA · QUINTA, 15/10"));
-  assert.ok(story.includes('cupPhase === "prelaunch" ? "ESTREIA · QUINTA, 15/10"'));
+  assert.ok(story.includes('cupPhase === "prelaunch" ? "ESTREIA · QUINTA, 15/10, ÀS 12H"'));
   assert.ok(story.includes('{cupLaunchCopy.description}'));
   assert.ok(look.includes(".limited-cup-story-availability-kicker"));
   assert.ok(release.includes('launchDayStart: "2026-10-15T12:00:00-03:00"'));

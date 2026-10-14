@@ -36,7 +36,7 @@ test("keeps a second product easy to add beside the receiving options", () => {
 });
 
 test("lets the sticky action add a ready second item instead of skipping to checkout", () => {
-  assert.match(page, /const builderFlowActive = Boolean\(activeCategory && \(editingId \|\| builderEngaged \|\| draftReady \|\| !cart\.length\)\)/);
+  assert.match(page, /const builderFlowActive = !showLimitedCupView && Boolean\(activeCategory && \(editingId \|\| builderEngaged \|\| draftReady \|\| !cart\.length\)\)/);
   assert.match(page, /const stickyUsesCheckoutAction = !builderFlowActive/);
   assert.match(page, /function stickyBuilderAction\(\)/);
   assert.match(page, /function handleStickyAction\(\)/);

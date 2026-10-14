@@ -262,14 +262,10 @@ function trackMetaEvent(eventName: MetaEventName, payload?: Record<string, unkno
   return true;
 }
 
-function isCrocantesProduct(productId: string) {
-  return productId === "crocante-ninho" || productId === "crocante-chocolate";
-}
-
 function itemUnitPrice(product: Product, variant: Variant, optionIds: string[] = [], now = Date.now()) {
   // Carrinhos com tamanho retirado ficam sem valor de venda até serem corrigidos.
   if (variant.retired) return 0;
-  return product.kind === "popcorn" && !isCrocantesProduct(product.id) ? popcornPrice(variant.id, optionIds, now) : variant.price;
+  return product.kind === "popcorn" && !(product.id === "crocante-ninho" || product.id === "crocante-chocolate") ? popcornPrice(variant.id, optionIds, now) : variant.price;
 }
 
 function unavailableReason(snapshot: AvailabilitySnapshot, itemKey: string, label: string) {
@@ -305,7 +301,7 @@ function cartAvailabilityIssues(
       }
     }
 
-    if (isCrocantesProduct(product.id)) {
+    if ((product.id === "crocante-ninho" || product.id === "crocante-chocolate")) {
       const key = CROCANTES_ITEM_KEYS[product.id];
       if (Date.now() < Date.parse("2026-10-15T12:00:00-03:00")) reasons.push("Vendas dos copos Crocantes começam em 15/10 às 12h.");
       if (snapshot.source !== "supabase" || !key || !isItemAvailable(snapshot, key)) reasons.push("Copo indisponível no momento.");
@@ -369,7 +365,7 @@ function sanitizeSavedCart(value: unknown): CartItem[] {
       ? item.optionIds.filter((id): id is string => typeof id === "string" && (product.kind !== "slice" || product.options.some(option => option.id === id)))
       : [];
     const optionsAreAvailable = optionIds.every((id) => product.options.some((option) => option.id === id && option.available));
-    const optionsAreValid = isCrocantesProduct(product.id) ? optionIds.length === 0
+    const optionsAreValid = (product.id === "crocante-ninho" || product.id === "crocante-chocolate") ? optionIds.length === 0
       : product.kind === "popcorn"
       ? optionIds.length > 0 && optionIds.length <= (variant.maxOptions ?? 0) && new Set(optionIds).size === optionIds.length
       : product.kind === "slice" ? optionIds.length <= 1 : optionIds.length === 0;
@@ -742,7 +738,7 @@ export default function Home() {
 
   const cartNeedsSizeReview = cart.some((item) => PRODUCTS.find((product) => product.id === item.productId)?.variants.find((variant) => variant.id === item.variantId)?.retired);
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
-  const cartContainsCrocantes = cart.some((item) => isCrocantesProduct(item.productId));
+  const cartContainsCrocantes = cart.some((item) => (item.productId === "crocante-ninho" || item.productId === "crocante-chocolate"));
   const cupProductId = cupFlavorPreview === "ninho" ? "crocante-ninho" : cupFlavorPreview === "chocolate" ? "crocante-chocolate" : "";
   const cupStockKey = cupProductId ? CROCANTES_ITEM_KEYS[cupProductId] : "";
   const cupCanOrder = cupPhase === "available" && pipocasAvailable && availability.ordersOpen && availability.source === "supabase"
@@ -1001,7 +997,6 @@ export default function Home() {
     if (!categoryIsAvailable("pipocas")) return;
     setShowLimitedCupView(true);
     setCupFlavorPreview(null);
-    setCupQuantity(1);
     setCupAddedNotice("");
     setRequestedCategory("pipocas");
     setEditingId(null);
@@ -1018,7 +1013,6 @@ export default function Home() {
   function returnToCategories() {
     setShowLimitedCupView(false);
     setCupFlavorPreview(null);
-    setCupAddedNotice("");
     setRequestedCategory(null);
     setEditingId(null);
     setSelectionMessage("");
@@ -1182,7 +1176,7 @@ export default function Home() {
   }
 
   function chooseCheckoutChannel(value: string) {
-    const next = value === "site" && COMMERCE_CONFIG.siteOrderingEnabled && !cart.some((item) => isCrocantesProduct(item.productId)) ? "site" : "whatsapp";
+    const next = value === "site" && COMMERCE_CONFIG.siteOrderingEnabled && !cart.some((item) => (item.productId === "crocante-ninho" || item.productId === "crocante-chocolate")) ? "site" : "whatsapp";
     if (next === checkoutChannel) return;
     setCheckoutChannel(next);
     setPayment("");
@@ -1337,7 +1331,7 @@ export default function Home() {
 
   function editItem(item: CartItem) {
     const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
-    if (isCrocantesProduct(product.id)) return; // Quantidade é alterável no carrinho.
+    if ((product.id === "crocante-ninho" || product.id === "crocante-chocolate")) return; // Quantidade é alterável no carrinho.
     if (product.kind === "drink" || !isProductEnabled(product)) return;
     const itemCategory = product.kind === "popcorn" ? "pipocas" : "fatias";
     if (!categoryIsAvailable(itemCategory)) {
@@ -1391,7 +1385,7 @@ export default function Home() {
 
 
   async function finishOnSite(card?: MercadoPagoCardData) {
-    if (cart.some((item) => isCrocantesProduct(item.productId))) {
+    if (cart.some((item) => (item.productId === "crocante-ninho" || item.productId === "crocante-chocolate"))) {
       setCheckoutChannel("whatsapp");
       setCheckoutAvailabilityMessage("Pedidos com copos Crocantes são concluídos pelo WhatsApp.");
       return;
@@ -2307,7 +2301,7 @@ export default function Home() {
                             <span>{item.quantity}</span>
                             <Button type="button" variant="ghost" size="icon" onClick={() => changeCartQuantity(item.id, 1)} disabled={!availability.ordersOpen || Boolean(itemIssue)} aria-label="Aumentar quantidade deste item"><Plus size={15} /></Button>
                           </div>
-                          {product.kind !== "drink" && !isCrocantesProduct(product.id) && <Button type="button" variant="ghost" className="text-action" onClick={() => editItem(item)}><Pencil size={15} /> Editar</Button>}
+                          {product.kind !== "drink" && !(product.id === "crocante-ninho" || product.id === "crocante-chocolate") && <Button type="button" variant="ghost" className="text-action" onClick={() => editItem(item)}><Pencil size={15} /> Editar</Button>}
                           <Button type="button" variant="ghost" className="text-action destructive-action" onClick={() => removeItem(item.id)}><Trash2 size={15} /> Remover</Button>
                         </div>
                       </article>
