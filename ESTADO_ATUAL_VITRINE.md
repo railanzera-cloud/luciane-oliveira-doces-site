@@ -160,3 +160,11 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **Validação real:** apenas a Edge Function reconhece o código, libera exclusivamente os SKUs dos copos antes das 12h, exige disponibilidade/loja aberta e recalcula os mesmos preços. Nenhum código secreto nem hash de token é embutido no bundle do site.
 - **Mensagem/registro:** identifica o pedido de teste no texto WhatsApp e em `notes` no Supabase com aviso para NÃO PREPARAR / NÃO COBRAR. Pedido real de teste entra no histórico; marcar como cancelado depois da homologação para não contaminar os resultados.
 - **Sem publicação:** esta alteração cria um ZIP específico de homologação. Cloudflare Pages deve ser publicado pelo responsável. Nada muda no horário comercial público. Expiração é controlada no servidor.
+
+### Homologação 2.6.1 — implantação técnica verificada em 14/10/2026
+
+- **Commit de código e testes:** `d36e6a7a4ee0bc4e5320ba43f70bcc18555a0b8f`, CI verde: 420/420, TypeScript e build aprovados.
+- **Supabase comercial:** migration `crocantes_preview_access_20261014` aplicada; uma credencial temporária armazenada apenas como digest SHA-256, com RLS e acesso da Edge Function. Código em si **não** deve ser persistido no GitHub ou no site. Expira em 15/10 às 12h UTC−3.
+- **Edge Function:** `create-whatsapp-order` versão **14**, status `ACTIVE`, arquivos da instância conferidos byte a byte contra GitHub, com diagnóstico anterior e regra de venda pública preservados.
+- **Frontend de homologação:** `?teste_crocantes=1` revela campo de código na seção Crocantes. Não autoriza venda sem validação server-side; exibe quantidade e CTA ao receber autorização. Registra pedido real de **TESTE INTERNO — NÃO PREPARAR/NÃO COBRAR** e mensagem de WhatsApp identificada; o responsável deve cancelar pedido fictício após verificação, sem realizar pagamento Pix.
+- **Deploy Cloudflare:** AINDA NÃO EFETUADO. Entregar ZIP de CI do SHA final para upload manual. Depois que o responsável publicar o ZIP, testar manualmente no Safari/Instagram iPhone, usando código privado, sem antecipar a liberação comercial.
