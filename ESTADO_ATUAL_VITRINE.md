@@ -37,3 +37,16 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 
 ## Fluxo de entrega
 **Alteração solicitada → editar branch correta → validar → commitar no GitHub → gerar ZIP do mesmo commit → conferir no iPhone (quando visual) → publicar só com autorização.**
+
+
+## Refinamento UI/UX Premium 2.0 — revisão de interface 14/10/2026
+
+- **Branch:** `design/luciane-editorial-vitrine-experiment-20261013`. **Base preservada:** `1a5f84145151720d2ca0e7928fe9a104f7a14795` (v10.7 aprovada no commit anterior `5abb4c5`).
+- **Checkpoint do refinamento:** o commit que introduz esta seção e as alterações de `app/page.tsx`, `app/storefront-vitrine-editorial-experiment.css` e `tests/uiux-premium-2.test.mjs` na HEAD remota da branch. Conferir o SHA exato no GitHub antes de publicar.
+- **Sabores:** preço individual por tamanho mantido; a explicação repetitiva passou a ser acessível a leitores de tela e a diferença não cumulativa sobre a seleção atual é apresentada com valor calculado pela função de precificação original. Anúncio acessível preserva o total resultante.
+- **Etapas:** o checkout existente continua com Pedido → Recebimento → Pagamento, agora com sinalização explícita da etapa corrente na navegação.
+- **Barra mobile:** acabamento em caramelo/chocolate e áreas de toque mantidas. Observadores dos CTAs, proteção do teclado no iPhone e ações originais preservados.
+- **Fotografias:** nenhuma imagem substituída, alterada ou reenquadrada. **Crocantes 15/10:** nenhuma mudança.
+- **Regra comercial e integrações:** intactas; nenhuma alteração de catálogo, Supabase, admin, pagamentos, mensuração ou disponibilidade.
+- **Validação:** a suíte do GitHub Actions em `.github/workflows/design-boutique-preview.yml` é a fonte da verificação de build, TypeScript, regressão e ZIP do commit após o push. Não registrar sucesso antes do resultado da execução.
+- **Pendente de homologação manual:** Safari físico, teclado aberto, viewport de 320 a 430 px e navegação comercial real. **Sem publicação no Cloudflare nem merge na main.**

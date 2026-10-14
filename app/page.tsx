@@ -1900,7 +1900,7 @@ export default function Home() {
                       ? Math.max(0, potPriceWithOption - currentPotPrice) : 0;
                     return (
                       <label className={`flavor-card ${selected ? "is-selected" : ""} ${disabled ? "is-disabled" : ""}`} htmlFor={`flavor-${option.id}`} key={option.id}>
-                        <Checkbox id={`flavor-${option.id}`} checked={selected} disabled={disabled} onCheckedChange={() => togglePopcornOption(option)} aria-label={`Selecionar sabor ${option.name}`} />
+                        <Checkbox id={`flavor-${option.id}`} checked={selected} disabled={disabled} onCheckedChange={() => togglePopcornOption(option)} aria-label={selected ? `Remover sabor ${option.name}` : `Selecionar sabor ${option.name}`} />
                         <span className="boutique-flavor-identity">
                           <span className="flavor-tone" style={{ backgroundColor: option.tone }} aria-hidden="true" />
                           <span className="flavor-copy">
@@ -1912,13 +1912,18 @@ export default function Home() {
                           {potPriceWithOption !== null && (
                             <span className="boutique-flavor-cost">
                               <strong>{currency.format(flavorPotPrice ?? potPriceWithOption)}</strong>
-                              <small>Preço do pote com este sabor</small>
+                              <small className="sr-only">Preço do pote com este sabor</small>
                             </span>
                           )}
                           {!selected && !disabled && potPriceWithOption !== null && (
-                            <span className={`boutique-flavor-impact ${priceDifference > 0 ? "has-increase" : "is-same"}`}>
+                            <span
+                              className={`boutique-flavor-impact ${priceDifference > 0 ? "has-increase" : "is-same"}`}
+                              aria-label={priceDifference > 0
+                                ? `Pote fica ${currency.format(potPriceWithOption)}; diferença de ${currency.format(priceDifference)} em relação à combinação atual`
+                                : undefined}
+                            >
                               {priceDifference > 0
-                                ? `Pote fica ${currency.format(potPriceWithOption)}`
+                                ? `+ ${currency.format(priceDifference)} no total`
                                 : popcornPromotionActive
                                   ? "Mesmo preço na promoção"
                                   : !popcornOptionIds.length
@@ -2148,11 +2153,11 @@ export default function Home() {
                 <span className="boutique-progress-index"><ShoppingBag size={16} aria-hidden="true" /></span>
                 <span>Pedido</span>
               </button>
-              <button type="button" className={fulfillment && addressReady ? "is-complete" : "is-current"} onClick={() => scrollToSection("recebimento")}>
+              <button type="button" className={fulfillment && addressReady ? "is-complete" : "is-current"} aria-current={!(fulfillment && addressReady) ? "step" : undefined} onClick={() => scrollToSection("recebimento")}>
                 <span className="boutique-progress-index">{fulfillment && addressReady ? <Check size={16} aria-hidden="true" /> : "2"}</span>
                 <span>Recebimento</span>
               </button>
-              <button type="button" className={paymentReady ? "is-complete" : ""} onClick={() => scrollToSection("pagamento")}>
+              <button type="button" className={paymentReady ? "is-complete" : fulfillment && addressReady ? "is-current" : ""} aria-current={!paymentReady && fulfillment && addressReady ? "step" : undefined} onClick={() => scrollToSection("pagamento")}>
                 <span className="boutique-progress-index">{paymentReady ? <Check size={16} aria-hidden="true" /> : "3"}</span>
                 <span>Pagamento</span>
               </button>
@@ -2508,7 +2513,7 @@ export default function Home() {
 
       {(activeCategory || cart.length > 0) && !showLimitedCupView && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && (
       <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
-        <div><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></div>
+        <div className="mobile-sticky-price" aria-live="polite" aria-atomic="true"><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></div>
         <Button type="button" onClick={handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
           {stickyButtonLabel}
           {stickyIsCheckoutReady ? checkoutChannel === "whatsapp" ? <MessageCircle size={17} /> : <ShoppingBag size={17} /> : <ChevronRight size={17} />}

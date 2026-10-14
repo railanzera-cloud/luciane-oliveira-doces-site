@@ -1122,3 +1122,109 @@
 .storefront .menu-entry.is-neutral .category-option:nth-child(2) .category-option-media img {
   filter: none;
 }
+
+
+/*
+ * UI/UX PREMIUM 2.0 — acabamento apenas da escolha de sabores, etapa de
+ * checkout e barra mobile. Fotografia, comercio e protecoes Safari preservados.
+ */
+.storefront #sabores .flavor-card {
+  min-height: 84px;
+  padding: 11px 12px;
+  gap: 5px 10px;
+  border-bottom-color: rgba(225, 178, 122, .20);
+  transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease;
+}
+.storefront #sabores .boutique-flavor-identity { gap: 9px; }
+.storefront #sabores .flavor-tone { width: 34px; height: 34px; flex-basis: 34px; }
+.storefront #sabores .flavor-copy strong { line-height: 1.27; }
+.storefront #sabores .flavor-copy small { line-height: 1.38; }
+.storefront #sabores .boutique-flavor-value {
+  padding-top: 4px;
+  gap: 5px 9px;
+  border-top-color: rgba(227, 178, 118, .10);
+}
+.storefront #sabores .boutique-flavor-cost { min-width: 0; }
+.storefront #sabores .boutique-flavor-cost strong { font-size: 1rem; font-variant-numeric: tabular-nums; }
+.storefront #sabores .boutique-flavor-impact {
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.storefront #sabores .boutique-flavor-impact.has-increase {
+  background: rgba(231, 176, 106, .18);
+  border: 1px solid rgba(230, 179, 112, .30);
+  color: #ffe2ba;
+}
+.storefront #sabores .boutique-flavor-impact.is-same {
+  background: rgba(255, 238, 213, .055);
+  color: #d9c8b3;
+}
+.storefront #sabores .flavor-card:focus-within {
+  outline: 2px solid #ffdfa9;
+  outline-offset: -2px;
+}
+.storefront .boutique-checkout-progress button[aria-current="step"] {
+  border-color: #a97749;
+  box-shadow: inset 0 0 0 1px rgba(169, 119, 73, .18);
+}
+@media (min-width: 600px) {
+  .storefront #sabores .flavor-card { min-height: 76px; }
+  .storefront #sabores .boutique-flavor-value { padding-top: 0; }
+}
+@media (max-width: 699px) {
+  .storefront .mobile-sticky-bar {
+    bottom: max(9px, env(safe-area-inset-bottom, 0px));
+    min-height: 65px;
+    padding: 8px 9px 8px 13px;
+    gap: 10px;
+    border-color: rgba(224, 172, 110, .42);
+    background: rgba(37, 23, 16, .97);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, .33), inset 0 1px rgba(255, 230, 191, .07);
+  }
+  .storefront .mobile-sticky-bar.is-ready {
+    border-color: rgba(231, 190, 132, .66);
+    background: rgba(40, 27, 19, .98);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, .34), inset 0 1px rgba(255, 230, 191, .10);
+  }
+  .storefront .mobile-sticky-bar .mobile-sticky-price { min-width: 90px; gap: 2px; }
+  .storefront .mobile-sticky-bar small { color: #c8ab8e; font-size: .65rem; letter-spacing: .02em; }
+  .storefront .mobile-sticky-bar strong,
+  .storefront .mobile-sticky-bar.is-ready strong {
+    margin-top: 0;
+    color: #ffe0b4;
+    font-size: .95rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .storefront .mobile-sticky-bar button,
+  .storefront .mobile-sticky-bar.is-ready button {
+    min-height: 48px;
+    padding: 9px 12px;
+    border: 1px solid #dda766;
+    border-radius: 12px;
+    background: #cc914f;
+    color: #221408;
+    font-size: .84rem;
+    font-weight: 800;
+    box-shadow: none;
+  }
+  .storefront .mobile-sticky-bar button:focus-visible { outline: 3px solid #ffdcaa; outline-offset: 2px; }
+  .storefront .mobile-sticky-bar button:active:not(:disabled) { transform: scale(.988); }
+}
+@media (max-width: 359px) {
+  .storefront #sabores .flavor-card { min-height: 86px; padding: 10px 8px; gap: 5px 7px; }
+  .storefront #sabores .flavor-tone { width: 31px; height: 31px; flex-basis: 31px; }
+  .storefront #sabores .boutique-flavor-impact { font-size: .65rem; padding: 4px 6px; }
+  .storefront .mobile-sticky-bar { padding: 8px 8px 8px 10px; gap: 8px; }
+  .storefront .mobile-sticky-bar .mobile-sticky-price { min-width: 80px; }
+  .storefront .mobile-sticky-bar button { padding: 9px 8px; font-size: .8rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront #sabores .flavor-card,
+  .storefront .mobile-sticky-bar button,
+  .storefront .boutique-checkout-progress button {
+    transition: none !important;
+    transform: none !important;
+  }
+}
