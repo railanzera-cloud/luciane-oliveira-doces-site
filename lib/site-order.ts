@@ -187,10 +187,18 @@ export function isGatewayFailed(payment: SitePaymentGatewayResponse): boolean {
 }
 
 export type WhatsAppOrderInput = Omit<CreateSiteOrderInput, "new_payment_attempt"> & {
+  preview_token?: string;
   request_key: string;
   notes: string;
   expected_total: string;
 };
+export async function checkCrocantesPreviewCode(code: string): Promise<boolean> {
+  const response = await edgeRequest<{ ok: true; preview_authorized: boolean }>(
+    "create-whatsapp-order", { crocantes_preview_check: true, preview_token: code },
+  );
+  return response.preview_authorized === true;
+}
+
 export async function createWhatsAppOrder(input: WhatsAppOrderInput): Promise<SiteOrderResult> {
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), 20000);

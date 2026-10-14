@@ -2013,3 +2013,15 @@
 .storefront #configurador .limited-cup-buy-cta:focus-visible,.storefront #configurador .limited-cup-to-cart:focus-visible{outline:3px solid #ffe4b8;outline-offset:3px;}
 @media(max-width:359px){.storefront #configurador .limited-cup-buy{padding:11px 9px;}.storefront #configurador .limited-cup-buy-actions .mini-quantity{width:100%;}.storefront #configurador .limited-cup-buy-cta{flex-basis:100%;}}
 @media(prefers-reduced-motion:reduce){.storefront #configurador .limited-cup-buy *{transition:none!important;animation:none!important;}}
+
+/* Modo de homologação restrito: visível apenas com ?teste_crocantes=1, sem o código na URL. */
+.storefront #configurador .limited-cup-test-gate {
+  margin-top:12px;padding:14px;border:1px solid rgba(242,184,116,.62);border-radius:12px;
+  background:linear-gradient(135deg,rgba(101,57,33,.54),rgba(31,18,13,.94));color:#f5dbc0;
+}
+.storefront #configurador .limited-cup-test-gate strong{font-size:.83rem;letter-spacing:.03em;}
+.storefront #configurador .limited-cup-test-gate p{margin:7px 0 0;font-size:.77rem;line-height:1.5;color:#f2d1b0;}
+.storefront #configurador .limited-cup-test-input{display:flex;gap:9px;margin-top:11px;flex-wrap:wrap;}
+.storefront #configurador .limited-cup-test-input input{flex:1;min-width:150px;background:#241510;color:#ffead5;border:1px solid rgba(248,195,127,.5);}
+.storefront #configurador .limited-cup-test-input button{min-height:42px;background:#e6b67e;color:#2e190d;font-weight:700;}
+.storefront #configurador .limited-cup-test-input :focus-visible{outline:3px solid #ffe3ae;outline-offset:2px;}

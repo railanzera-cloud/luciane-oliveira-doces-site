@@ -92,7 +92,7 @@ function quantityOf(value) {
   return value;
 }
 
-export function quoteCartItems(rawItems, now = Date.now()) {
+export function quoteCartItems(rawItems, now = Date.now(), previewAuthorized = false) {
   if (!Array.isArray(rawItems) || rawItems.length === 0 || rawItems.length > 40) {
     throw new Error("Adicione pelo menos um item válido ao pedido.");
   }
@@ -109,7 +109,7 @@ export function quoteCartItems(rawItems, now = Date.now()) {
 
     if (Object.hasOwn(CROCANTES, productId)) {
       const cup = CROCANTES[productId];
-      if (now < CROCANTES_OPEN_AT_MS) throw new Error("Vendas dos copos Crocantes a partir de 15/10, às 12h (Paragominas).");
+      if (now < CROCANTES_OPEN_AT_MS && !previewAuthorized) throw new Error("Vendas dos copos Crocantes a partir de 15/10, às 12h (Paragominas).");
       if (variantId !== "400ml" || optionIds.length !== 0) throw new Error("Escolha um copo Crocantes válido de 400 ml.");
       availabilityKeys.add(CATEGORY_ITEM_KEYS.pipocas);
       availabilityKeys.add(cup.itemKey);

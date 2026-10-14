@@ -153,3 +153,10 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **GitHub CI:** adicionados caminhos comerciais e este documento ao fluxo de validação, para que futuras revisões recebam compilação, suíte integral e ZIP do mesmo SHA. 
 - **Cloudflare Pages:** **NÃO PUBLICADO**. O responsável deve instalar o ZIP validado da branch antes da estreia e homologar as telas no Safari/Instagram. Caso o pacote não esteja instalado, o site publicado não terá o formulário de compra dos copos. Publicar não é tarefa automática desta intervenção.
 - **Homologação pendente:** teste ponta a ponta em smartphone com a loja, com um pedido real após o horário de abertura. Não criar pedidos reais de teste em produção antes das 12h.
+
+## 2.6.1 — Homologação privada de copos antes do lançamento
+- **Autorização:** pedido explícito do responsável para testar em 14/10; acesso de clientes segue fechado até 15/10 às 12h -03.
+- **Acesso:** página da edição com `?teste_crocantes=1`, código privado de 64 caracteres inserido em formulário (nunca no URL). Código é conferido na `create-whatsapp-order` contra apenas o SHA-256 armazenado em `public.crocantes_preview_access`, RLS habilitada sem acesso para anon/authenticated. A autorização expira automaticamente às 12h.
+- **Validação real:** apenas a Edge Function reconhece o código, libera exclusivamente os SKUs dos copos antes das 12h, exige disponibilidade/loja aberta e recalcula os mesmos preços. Nenhum código secreto nem hash de token é embutido no bundle do site.
+- **Mensagem/registro:** identifica o pedido de teste no texto WhatsApp e em `notes` no Supabase com aviso para NÃO PREPARAR / NÃO COBRAR. Pedido real de teste entra no histórico; marcar como cancelado depois da homologação para não contaminar os resultados.
+- **Sem publicação:** esta alteração cria um ZIP específico de homologação. Cloudflare Pages deve ser publicado pelo responsável. Nada muda no horário comercial público. Expiração é controlada no servidor.

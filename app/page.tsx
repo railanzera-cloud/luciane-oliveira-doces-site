@@ -90,7 +90,7 @@ import { deliveryZoneMismatchMessage } from "@/supabase/functions/_shared/commer
 import { RECEIPT_CARD_NOTICE, receiptCardQuote } from "@/lib/manual-payment-policy";
 import { getCommercePublicConfiguration } from "@/lib/commerce-config";
 import {
-  createSiteOrder, createWhatsAppOrder, rememberOrder, lastOrderToken,
+  createSiteOrder, createWhatsAppOrder, checkCrocantesPreviewCode, rememberOrder, lastOrderToken,
   isGatewayFailed,
   sitePaymentLabel,
   SiteOrderError,
@@ -280,6 +280,7 @@ function unavailableReason(snapshot: AvailabilitySnapshot, itemKey: string, labe
 function cartAvailabilityIssues(
   cart: CartItem[],
   snapshot: AvailabilitySnapshot,
+  previewAuthorized = false,
 ): CartAvailabilityIssue[] {
   return cart.flatMap((item) => {
     const product = PRODUCTS.find((candidate) => candidate.id === item.productId);
@@ -306,7 +307,7 @@ function cartAvailabilityIssues(
 
     if ((product.id === "crocante-ninho" || product.id === "crocante-chocolate")) {
       const key = CROCANTES_ITEM_KEYS[product.id];
-      if (Date.now() < Date.parse("2026-10-15T12:00:00-03:00")) reasons.push("Vendas dos copos Crocantes começam em 15/10 às 12h.");
+      if (Date.now() < Date.parse("2026-10-15T12:00:00-03:00") && !previewAuthorized) reasons.push("Vendas dos copos Crocantes começam em 15/10 às 12h.");
       if (snapshot.source !== "supabase" || !key || !isItemAvailable(snapshot, key)) reasons.push("Copo indisponível no momento.");
     } else if (product.kind === "popcorn") {
       const sizeKey = POPCORN_SIZE_ITEM_KEYS[variant.id];
@@ -466,6 +467,28 @@ export default function Home() {
   const [cupQuantity, setCupQuantity] = useState(1);
   const [cupAddedNotice, setCupAddedNotice] = useState("");
   const [cupAdding, setCupAdding] = useState(false);
+  // Opt-in via ?teste_crocantes=1; the secret is typed, never placed in the URL.
+  const [cupTestRequested, setCupTestRequested] = useState(false);
+  const [cupTestCode, setCupTestCode] = useState("");
+  const [cupTestVerified, setCupTestVerified] = useState(false);
+  const [cupTestVerifying, setCupTestVerifying] = useState(false);
+  const [cupTestFeedback, setCupTestFeedback] = useState("");
+  useEffect(() => { setCupTestRequested(new URLSearchParams(window.location.search).get("teste_crocantes") === "1"); }, []);
+  const cupTestActive = cupTestVerified && cupPhase === "prelaunch";
+  async function authorizeCrocantesTest() {
+    setCupTestVerifying(true);
+    setCupTestVerified(false);
+    setCupTestFeedback("");
+    try {
+      if (!/^[0-9a-f]{64}$/.test(cupTestCode) || !await checkCrocantesPreviewCode(cupTestCode)) throw new Error("Código inválido ou expirado.");
+      setCupTestVerified(true);
+      setCupTestFeedback("Modo de homologação autorizado. Pedidos de teste não devem ser pagos ou preparados.");
+    } catch {
+      setCupTestFeedback("Não foi possível validar o código de homologação.");
+    } finally {
+      setCupTestVerifying(false);
+    }
+  }
   function toggleCupFlavorPreview(flavor: "ninho" | "chocolate") {
     setCupFlavorPreview((current) => current === flavor ? null : flavor);
   }
@@ -757,7 +780,7 @@ export default function Home() {
   const cartContainsCrocantes = cart.some((item) => (item.productId === "crocante-ninho" || item.productId === "crocante-chocolate"));
   const cupProductId = cupFlavorPreview === "ninho" ? "crocante-ninho" : cupFlavorPreview === "chocolate" ? "crocante-chocolate" : "";
   const cupStockKey = cupProductId ? CROCANTES_ITEM_KEYS[cupProductId] : "";
-  const cupCanOrder = cupPhase === "available" && pipocasAvailable && availability.ordersOpen && availability.source === "supabase"
+  const cupCanOrder = (cupPhase === "available" || cupTestActive) && pipocasAvailable && availability.ordersOpen && availability.source === "supabase"
     && Boolean(cupStockKey && isItemAvailable(availability, cupStockKey));
   useEffect(() => {
     if (cartContainsCrocantes && checkoutChannel !== "whatsapp") {
@@ -772,8 +795,8 @@ export default function Home() {
     ? ["pipocas", "fatias"]
     : ["fatias", "pipocas"];
   const cartIssues = useMemo(
-    () => cartAvailabilityIssues(cart, availability),
-    [availability, cart],
+    () => cartAvailabilityIssues(cart, availability, cupTestActive),
+    [availability, cart, cupTestActive],
   );
   const inProgressSummary = cart.slice(0, 2).map((item) => {
     const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
@@ -1222,13 +1245,13 @@ export default function Home() {
     try {
     const latest = await refreshAvailability();
     if (latest.usedFallback || !latest.snapshot.ordersOpen || !isItemAvailable(latest.snapshot, CROCANTES_ITEM_KEYS[product.id])
-      || Date.now() < Date.parse("2026-10-15T12:00:00-03:00")) {
+      || (Date.now() < Date.parse("2026-10-15T12:00:00-03:00") && !cupTestActive)) {
       setCupAddedNotice("A disponibilidade mudou. Confira novamente antes de pedir.");
       return;
     }
     const qty = Math.min(99, Math.max(1, cupQuantity));
     setCart((current) => [...current, { id: makeCartId(), productId: product.id, variantId: variant.id, optionIds: [], quantity: qty }]);
-    trackMetaEvent("AddToCart", metaProductPayload(product, variant, qty));
+    if (!cupTestActive) trackMetaEvent("AddToCart", metaProductPayload(product, variant, qty));
     setCheckoutChannel("whatsapp");
     setPayment("");
     setBuilderEngaged(false);
@@ -1562,7 +1585,7 @@ export default function Home() {
       const latest = await refreshAvailability();
       if (latest.usedFallback) throw new Error("Não conseguimos concluir seu pedido agora. Tente novamente.");
       if (!latest.snapshot.ordersOpen) throw new Error(STORE_CONFIG.closedMessage);
-      const issues = cartAvailabilityIssues(cart, latest.snapshot);
+      const issues = cartAvailabilityIssues(cart, latest.snapshot, cupTestActive);
       if (issues.length) throw new Error(`Item indisponível: ${issues.map(issue => `${issue.itemLabel}: ${issue.reasons.join(" ")}`).join("; ")}`);
       }
       if (checkoutFingerprintRef.current !== checkoutFingerprint) throw new Error("O pedido foi alterado durante a conferência. Confira o resumo e tente novamente.");
@@ -1585,13 +1608,24 @@ export default function Home() {
           ...(cardMode ? { card_mode: cardMode } : {}),
           ...(payment === "dinheiro" && needsChange && cashReceivedCents !== null ? { change_for: (cashReceivedCents / 100).toFixed(2) } : {}) },
         notes: notes.trim(), expected_total: orderTotal.toFixed(2), attribution,
+        ...(cartContainsCrocantes && cupTestActive ? { preview_token: cupTestCode } : {}),
       });
       const trackingUrl = `${window.location.origin}/pedido?token=${encodeURIComponent(result.order.tracking_token)}`;
       rememberOrder(result.order.tracking_token);
       setLastToken(result.order.tracking_token);
       const registered: RegisteredWhatsAppOrder = {
         result, customerName: customerName.trim(), trackingUrl,
-        whatsappUrl: tintimWhatsAppUrl(buildRegisteredOrderMessage({ ...checkoutDetails, subtotal: Number(result.order.subtotal ?? checkoutDetails.subtotal), delivery_fee: Number(result.order.delivery_fee ?? checkoutDetails.delivery_fee), card_fee: Number(result.order.card_fee ?? 0), card_basis_points: result.order.card_basis_points ?? 0, total: Number(result.order.total) }, result.order.order_number, trackingUrl, PIX_DETAILS), attribution, document.cookie),
+        whatsappUrl: tintimWhatsAppUrl(
+          (cartContainsCrocantes && cupTestActive ? "*TESTE DE HOMOLOGAÇÃO — NÃO PREPARAR / NÃO COBRAR*\n\n" : "") +
+          buildRegisteredOrderMessage({ ...checkoutDetails,
+            notes: cartContainsCrocantes && cupTestActive ? "[TESTE INTERNO — NÃO PREPARAR/NÃO COBRAR] " + checkoutDetails.notes : checkoutDetails.notes,
+            subtotal: Number(result.order.subtotal ?? checkoutDetails.subtotal),
+            delivery_fee: Number(result.order.delivery_fee ?? checkoutDetails.delivery_fee),
+            card_fee: Number(result.order.card_fee ?? 0),
+            card_basis_points: result.order.card_basis_points ?? 0,
+            total: Number(result.order.total)
+          }, result.order.order_number, trackingUrl, PIX_DETAILS),
+          attribution, document.cookie),
       };
       // The request snapshot remains immutable even if a control changed while awaiting the server.
       setWhatsAppResult(registered);
@@ -1858,7 +1892,21 @@ export default function Home() {
                     <p className="limited-cup-flavor-hint">Toque em um copo para ver os detalhes do sabor.</p>
                   )}
                 </div>
-                {cupPhase === "available" && (
+                {cupTestRequested && cupPhase === "prelaunch" && (
+                  <div className="limited-cup-test-gate" aria-label="Homologação restrita dos copos">
+                    <strong>Homologação interna · não é uma venda</strong>
+                    <p>O público continuará bloqueado até amanhã às 12h. Digite o código temporário para testar o pedido e o WhatsApp.</p>
+                    {!cupTestVerified && <div className="limited-cup-test-input">
+                      <Input type="password" autoComplete="off" spellCheck={false} aria-label="Código privado de homologação" value={cupTestCode}
+                        placeholder="Código privado" onChange={(event) => setCupTestCode(event.target.value.trim())} />
+                      <Button type="button" disabled={cupTestVerifying || cupTestCode.length !== 64} onClick={() => void authorizeCrocantesTest()}>
+                        {cupTestVerifying ? "Validando…" : "Ativar teste"}
+                      </Button>
+                    </div>}
+                    {cupTestFeedback && <p role="status">{cupTestFeedback}</p>}
+                  </div>
+                )}
+                {(cupPhase === "available" || cupTestActive) && (
                   <div className="limited-cup-buy" aria-label="Monte seu pedido de Pipocas Crocantes">
                     <div className="limited-cup-buy-heading"><strong>Monte seu pedido</strong><small>Escolha um dos sabores acima e a quantidade de copos.</small></div>
                     <div className="limited-cup-buy-actions">
