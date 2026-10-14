@@ -246,8 +246,8 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes('Toque em um copo para ver os detalhes do sabor.'));
   assert.ok(!page.includes("Conhecer os sabores"));
   assert.ok(!page.includes('className="limited-cup-story-primary"'));
-  assert.ok(page.includes('aria-pressed={cupFlavorPreview === "ninho"}'));
-  assert.ok(page.includes('aria-pressed={cupFlavorPreview === "chocolate"}'));
+  assert.ok(page.includes('aria-expanded={cupFlavorPreview === "ninho"}'));
+  assert.ok(page.includes('aria-expanded={cupFlavorPreview === "chocolate"}'));
   assert.ok(page.includes('className="limited-cup-teaser-cta"'));
   assert.ok(page.includes('!showLimitedCupView && !(stickyUsesCheckoutAction'));
   assert.ok(page.includes('setShowLimitedCupView(false);\n    setBuilderEngaged(true);'));
