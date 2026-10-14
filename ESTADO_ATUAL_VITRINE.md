@@ -114,3 +114,5 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **Validação:** testes direcionados novos em `tests/uiux-premium-24-crocantes.test.mjs`; asserções textuais legadas adaptadas aos textos autorizados. Conferir CI, build, TypeScript, suíte integral, integridade do ZIP e SHA remoto antes da entrega. Revisão visual no Safari físico segue pendente.
 
 - **CI do 2.4:** primeiro build e TypeScript aprovados; 403/404 testes passaram. A única falha ocorreu porque o teste histórico do escopo 2.2 lia também as seções CSS 2.3/2.4 adicionadas depois. O teste foi delimitado corretamente até o início do 2.3. Nenhum código de interface ou integração foi modificado neste checkpoint corretivo. A versão final depende da nova execução integral.
+
+- **Gatilho de validação corrigido:** o fluxo GitHub Actions passou a considerar `tests/*.test.mjs` na branch de desenvolvimento, mantendo o restante dos filtros e as etapas de compilação iguais. Assim correções ou novos testes de refinamento visual não ficam sem CI/ZIP por ausência de trigger. Nenhum ambiente, conta, credencial, integração, branch principal ou regra comercial foi alterado.

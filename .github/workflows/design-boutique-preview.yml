@@ -12,11 +12,8 @@ on:
       - app/catalog.ts
       - app/layout.tsx
       - app/page.tsx
-      - tests/storefront-boutique-design.test.mjs
-      - tests/storefront-boutique-v3.test.mjs
-      - tests/storefront-vitrine-editorial-experiment.test.mjs
-      - tests/menu-refinement.test.mjs
-      - tests/order-building-ux.test.mjs
+      # Todos os testes da vitrine ativam a CI; evita checkpoint sem ZIP.
+      - 'tests/*.test.mjs'
       - tsconfig.boutique.json
       - .github/workflows/design-boutique-preview.yml
   workflow_dispatch:
