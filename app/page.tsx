@@ -460,6 +460,7 @@ export default function Home() {
   const checkoutFingerprintRef = useRef("");
   const unlockTimerRef = useRef<number | undefined>(undefined);
   const { availability, hasResolvedAvailability, refreshAvailability } = useMenuAvailability();
+  const cupSalesEnabled = true; // Formulário pronto; pedidos dependem de orders_open e estoque.
   const cupPhase: LimitedCupPhase = getLimitedCupPhase(
     availability.ordersOpen,
     availability.source === "supabase" && isItemAvailable(availability, CATEGORY_ITEM_KEYS.pipocas)
@@ -764,7 +765,6 @@ export default function Home() {
   const cartContainsCrocantes = cart.some((item) => (item.productId === "crocante-ninho" || item.productId === "crocante-chocolate"));
   const cupProductId = cupFlavorPreview === "ninho" ? "crocante-ninho" : cupFlavorPreview === "chocolate" ? "crocante-chocolate" : "";
   const cupStockKey = cupProductId ? CROCANTES_ITEM_KEYS[cupProductId] : "";
-  const cupSalesEnabled = true; // A interface de compra fica pronta; o checkout valida loja e estoque.
   const cupCanOrder = cupSalesEnabled && pipocasAvailable && availability.ordersOpen && availability.source === "supabase"
     && Boolean(cupStockKey && isItemAvailable(availability, cupStockKey));
   const cupCanBeAddedFromCheckout = cupSalesEnabled && pipocasAvailable && availability.ordersOpen && availability.source === "supabase"
@@ -1238,8 +1238,9 @@ export default function Home() {
     setCupAdding(true);
     try {
     const latest = await refreshAvailability();
-    if (latest.usedFallback || !latest.snapshot.ordersOpen || !isItemAvailable(latest.snapshot, CROCANTES_ITEM_KEYS[product.id])
-) {
+    if (latest.usedFallback || !latest.snapshot.ordersOpen
+      || !isItemAvailable(latest.snapshot, CATEGORY_ITEM_KEYS.pipocas)
+      || !isItemAvailable(latest.snapshot, CROCANTES_ITEM_KEYS[product.id])) {
       setCupAddedNotice("A disponibilidade mudou. Confira novamente antes de pedir.");
       return;
     }
@@ -1888,11 +1889,11 @@ export default function Home() {
               </div>
               <div className="limited-cup-selection-heading" id="crocantes-sabores"><span>01 · ESCOLHA SEU SABOR</span><small>Toque no copo que deseja adicionar.</small></div>
               <div className="limited-cup-duo" aria-label="Escolha um sabor de Pipocas Crocantes">
-                <button type="button" disabled={cupAdding} className={cupFlavorPreview === "ninho" ? "limited-cup-duo-item is-ninho is-selected" : "limited-cup-duo-item is-ninho"} aria-expanded={cupFlavorPreview === "ninho"} aria-controls="limited-cup-flavor-panel" onClick={() => toggleCupFlavorPreview("ninho")}>
+                <button type="button" disabled={cupAdding} className={cupFlavorPreview === "ninho" ? "limited-cup-duo-item is-ninho is-selected" : "limited-cup-duo-item is-ninho"} aria-expanded={cupFlavorPreview === "ninho"} aria-controls="crocantes-quantidade" onClick={() => toggleCupFlavorPreview("ninho")}>
                   <img src="/images/edicao-crocante-ninho.webp" alt="Copo com pipocas de caramelo e Leite Ninho" width="840" height="1260" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
                   <span className="limited-cup-duo-caption"><small>01 · NINHO</small><strong>Caramelo com Leite Ninho</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "ninho" ? "Selecionado · fechar detalhes" : cupSalesEnabled ? "Escolher Ninho" : "Ver detalhes"} <ChevronRight size={13} aria-hidden="true" /></span></span>
                 </button>
-                <button type="button" disabled={cupAdding} className={cupFlavorPreview === "chocolate" ? "limited-cup-duo-item is-chocolate is-selected" : "limited-cup-duo-item is-chocolate"} aria-expanded={cupFlavorPreview === "chocolate"} aria-controls="limited-cup-flavor-panel" onClick={() => toggleCupFlavorPreview("chocolate")}>
+                <button type="button" disabled={cupAdding} className={cupFlavorPreview === "chocolate" ? "limited-cup-duo-item is-chocolate is-selected" : "limited-cup-duo-item is-chocolate"} aria-expanded={cupFlavorPreview === "chocolate"} aria-controls="crocantes-quantidade" onClick={() => toggleCupFlavorPreview("chocolate")}>
                   <img src="/images/edicao-crocante-chocolate.webp" alt="Copo com pipocas de caramelo e chocolate" width="840" height="1260" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
                   <span className="limited-cup-duo-caption"><small>02 · CHOCOLATE</small><strong>Caramelo com Chocolate</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "chocolate" ? "Selecionado · fechar detalhes" : cupSalesEnabled ? "Escolher Chocolate" : "Ver detalhes"} <ChevronRight size={13} aria-hidden="true" /></span></span>
                 </button>
