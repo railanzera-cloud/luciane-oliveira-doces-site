@@ -175,3 +175,11 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - Apenas pedidos com código de homologação válido ou operação de verificação de código podem partir desse Preview; pedidos comuns sem código são rejeitados com `preview_only`. Após as 12h, a origem Preview é rejeitada com `preview_expired`, inclusive se estiver na variável de ambiente.
 - A autorização privada continua com SHA-256/RLS e bloqueio no servidor. Nenhum token/hash é copiado para os arquivos públicos. O site de produção e sua habilitação comercial permanecem inalterados.
 - Conferir CI antes de implantar a Edge Function, preservando `verify_jwt=false`, imports e diagnóstico de erro da função ativa. O pacote Cloudflare do Preview já havia sido instalado pelo responsável e **não precisa ser republicado por causa deste ajuste exclusivamente no backend**.
+
+### Liberação de origem Preview 90 — verificada em 14/10/2026
+- Link de homologação confirmado pelo responsável: `https://90.lucianeoliveiradoces.pages.dev/?teste_crocantes=1`. O código é digitado apenas no formulário de homologação; não deve aparecer na URL ou repositório.
+- **CI do código:** `e4b272890ef2fcf0bf0fa450b7fafd183b03cbd8`, 421/421 testes e build concluídos no GitHub Actions `38573084129`.
+- **Supabase comercial:** Edge Function `create-whatsapp-order` atualizada para **v15 ACTIVE**, `verify_jwt=false` preservado conforme implantação anterior. Entrypoint e três dependências implantados correspondem exatamente aos arquivos do commit de código.
+- **Restrição CORS:** a origem Preview exata foi adicionada temporariamente, mesmo quando o ambiente define lista própria de origens; demais origens válidas preservadas. Sem wildcard. Após 15/10/2026 12h UTC−3, Preview expira. Enquanto aberta, essa origem só aceita validação do código ou pedido contendo código válido.
+- **Credencial:** uma autorização de teste ativa, hash armazenado no Supabase com RLS, expira exatamente em 15/10 às 12h em Paragominas. Nenhuma chave secreta incluída no JS público.
+- **Publicação:** não houve nova publicação Cloudflare. O responsável já informou o URL de Preview; falta homologação manual do pedido e da mensagem WhatsApp no iPhone. Não marcar pedido de teste como venda paga; cancelar depois de verificar.
