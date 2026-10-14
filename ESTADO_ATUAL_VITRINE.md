@@ -102,3 +102,13 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **Atalho inferior:** apresentação refinada com rótulo “Prefere os potes recheados?” e ação “Escolher tamanho”; mesmo handler original `selectCategory("pipocas")`.
 - **Preservação:** fotos, vitrine da home, categorias Gourmet/Fatias, cart/checkout, Supabase, integrações, WhatsApp, Pixel/CAPI, período aprovado, preços, pesos, volume e painel administrativo inalterados. Nenhuma publicação na main/Cloudflare.
 - **Validação:** testes novos em `tests/uiux-premium-23-crocantes.test.mjs`, ajuste de asserção histórica ao HTML sem modificar handler; CI no commit resultante deve aprovar build, TypeScript e suíte completa e produzir ZIP do mesmo SHA. Safari físico permanece homologação manual.
+
+## UI/UX Premium 2.4 — clareza e fluidez da edição Crocantes (14/10/2026)
+
+- **Checkpoint de origem:** HEAD remoto `112bd6617b04bc46108c8e863346b0fc3ccf91fa` na branch `design/luciane-editorial-vitrine-experiment-20261013`. Este refinamento continua incrementalmente o 2.3; não afeta as áreas comerciais protegidas.
+- **Vitrine da campanha:** `Escolha entre 2 sabores` deixa explícito que há dois copos alternativos, sem insinuar mistura dos sabores no mesmo copo. Preço 15,90, título e imagens originais mantidos.
+- **Introdução interna:** descrição direta de Ninho e Chocolate. A etiqueta superior interna agora informa somente `EDIÇÃO LIMITADA`, deixando a data para o aviso específico da estreia, sem triplicar o mesmo dado.
+- **Detalhes:** o estado selecionado mostra `Detalhes abertos`; a descrição curta substitui a orientação inicial em vez de empilhar as duas. Painel de detalhes em fluxo normal, compacto e com anúncio acessível. Não há barra fixa ou manipulação de scroll; o atalho dos potes continua ao final e com o mesmo handler.
+- **Estreia e reposição:** bloco único `ESTREIA · QUINTA, 15/10`, antes da data; texto de tiragem limitada e ausência de reposição no mesmo painel. Após 15/10, os textos respeitam os estados comerciais reais `awaiting-release`, `available`, `sold-out`; o calendário não libera pedidos.
+- **Segurança:** `app/limited-cup-release.ts` permanece intocado (flags de integração, autorização e estoque não alteradas). Fotografias Ninho/Chocolate, produtos, valores, carrinho, checkout, Supabase, Meta/Tintim/WhatsApp e admin intactos. Nenhum merge na main nem publicação.
+- **Validação:** testes direcionados novos em `tests/uiux-premium-24-crocantes.test.mjs`; asserções textuais legadas adaptadas aos textos autorizados. Conferir CI, build, TypeScript, suíte integral, integridade do ZIP e SHA remoto antes da entrega. Revisão visual no Safari físico segue pendente.

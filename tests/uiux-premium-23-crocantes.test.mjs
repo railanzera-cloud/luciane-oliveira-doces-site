@@ -21,13 +21,14 @@ test("dois sabores continuam como seleção informativa, fotos e preço intactos
   assert.ok(story.includes('<strong>R$ 15,90</strong>'));
   assert.ok(story.includes("400 ml"));
   assert.ok(story.includes("190 g"));
-  assert.ok(story.includes("O pedido desta edição ainda não está liberado."));
+  assert.ok(story.includes('aria-atomic="true"'));
+  assert.ok(story.includes('className="limited-cup-flavor-details"'));
   assert.equal((story.match(/className="limited-cup-duo-disclosure"/g)||[]).length, 2);
 });
 
 test("estreia 15/10 ganha presença sem liberar automaticamente as vendas", () => {
-  assert.ok(page.includes("Estreia quinta, 15/10"));
-  assert.ok(story.includes('cupPhase === "prelaunch" ? "CHEGA NESTA QUINTA"'));
+  assert.ok(page.includes("ESTREIA · QUINTA, 15/10"));
+  assert.ok(story.includes('cupPhase === "prelaunch" ? "ESTREIA · QUINTA, 15/10"'));
   assert.ok(story.includes('{cupLaunchCopy.description}'));
   assert.ok(look.includes(".limited-cup-story-availability-kicker"));
   assert.ok(release.includes('launchDayStart: "2026-10-15T00:00:00-03:00"'));
