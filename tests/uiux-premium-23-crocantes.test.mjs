@@ -26,16 +26,14 @@ test("dois sabores continuam como seleção informativa, fotos e preço intactos
   assert.equal((story.match(/className="limited-cup-duo-disclosure"/g)||[]).length, 2);
 });
 
-test("estreia 15/10 ganha presença sem liberar automaticamente as vendas", () => {
-  assert.ok(page.includes("ESTREIA · QUINTA, 15/10"));
-  assert.ok(story.includes('cupPhase === "prelaunch" ? "ESTREIA · QUINTA, 15/10, ÀS 12H"'));
+test("loja e estoque substituem a estreia como estado comercial", () => {
+  assert.doesNotMatch(page,/ESTREIA · QUINTA, 15\/10/);
+  assert.ok(story.includes('cupPhase === "closed" ? "LOJA FECHADA"'));
   assert.ok(story.includes('{cupLaunchCopy.description}'));
   assert.ok(look.includes(".limited-cup-story-availability-kicker"));
-  assert.ok(release.includes('launchDayStart: "2026-10-15T12:00:00-03:00"'));
-  assert.ok(release.includes("orderingIntegrated: true"));
-  assert.ok(release.includes("salesApprovedByStore: true"));
-  assert.ok(release.includes("inventoryVerifiedAvailable: true"));
-  assert.ok(release.includes("cfg.orderingIntegrated && cfg.salesApprovedByStore && cfg.inventoryVerifiedAvailable"));
+  assert.ok(release.includes('if (!ordersOpen) return "closed"'));
+  assert.ok(release.includes('if (anyCupAvailable) return "available"'));
+  assert.doesNotMatch(release,/launchDayStart|2026-10-15/);
 });
 
 test("atalho abre montagem dos potes sem competir com a edição em copos", () => {
