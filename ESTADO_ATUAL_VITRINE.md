@@ -237,3 +237,11 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **ZIP oficial para publicação manual**: `luciane-oliveira-doces-cloudflare-pages.zip` do artefato `11914863220` gerado pelo commit `baf46d5`, SHA-256 `da1a3ee0ea9d79939b61666547ea9523cefe92db3d8ccfcf518ce77e502a097c`. O pacote disponibilizado ao responsável é binariamente idêntico.
 - **Não foi feito deploy do Cloudflare, merge na main, migração ou alteração do estado da loja.** A abertura deverá ser decidida manualmente no painel administrativo depois de o responsável instalar e conferir a Premium 2.9.
 - **Homologação física Safari** da nova versão e criação de pedido real seguem pendentes da operação pelo responsável; não criar pedidos fictícios no sistema comercial para validar.
+
+## Premium 2.9.1 — clareza e conversão dos Copos Crocantes (14/10/2026)
+
+- **Ponto de partida:** Premium 2.9 operacional aprovada; fotos, paleta Chocolate Editorial Premium, preço, categorias, carrinho, pagamento, WhatsApp/Tintim, Pixel/CAPI e painel preservados.
+- **Somente refinamentos UI/UX Crocantes:** (1) seleção não se desfaz com segundo toque, estado passa a `aria-pressed` e selo discreto `Selecionado` com check; (2) a numeração aparece apenas nas etapas, nunca nos sabores Ninho/Chocolate; (3) instrução muda entre comprar e conhecer sabores segundo o estado operacional; (4) controles de quantidade inativos e barra flutuante da edição oculta quando a loja está fechada; (5) aviso de fechamento compacto e legível.
+- **Segurança:** nenhuma alteração de banco, disponibilidades, valor de pedido, autenticação, Edge Function ou integrações. A Edge Function `create-whatsapp-order` v17 permanece responsável por validar `orders_open`, estoque e preços.
+- **Testes:** suíte histórica atualizada para o novo comportamento sem enfraquecer verificações de fluxo, e incluído `tests/crocantes-premium-291-claridade.test.mjs` para testar segundo toque, estados de venda, acessibilidade e preservação da finalização. O CI em GitHub Actions precisa passar por TypeScript, build, testes e ZIP antes de entrega.
+- **Entrega:** registrar SHA final da branch validada e utilizar exclusivamente o ZIP desse commit. **Não publicar Cloudflare automaticamente**, não tocar em `main`, e não alegar validação do Safari físico além das gravações enviadas pelo responsável.
