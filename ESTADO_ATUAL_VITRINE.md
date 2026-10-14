@@ -227,3 +227,13 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **Implantação:** esta seção documenta a revisão de código, **não** autoriza deploy de Edge Function ou Cloudflare. O backend publicado continua sendo v16 até autorização específica. Para liberar vendas: manter a loja fechada, implantar Edge Function coordenadamente, publicar ZIP manualmente e, somente quando for hora de operar, abrir a loja pelo painel.
 
 - **Checkpoint promovido à branch oficial (código + testes):** `9e1b2d647aff6b27e0b09d62e24c36d8e98fc919`. Publicação Cloudflare e Edge Function não realizadas; o CI da revisão precisa ser confirmado antes de entregar um pacote de produção.
+
+### Implantação coordenada do backend — Premium 2.9 (14/10/2026)
+
+- A loja comercial foi consultada imediatamente antes da implantação: `orders_open=false`. Continuou fechada na verificação posterior.
+- A Edge Function comercial `create-whatsapp-order` foi implantada no projeto `edqiwvccmboyayojvuea` como **v17 ACTIVE**, com `verify_jwt=false` preservado da v16, mantendo a autenticação interna por chave publicável autorizada.
+- O entrypoint e suas três dependências foram comparados com o commit **`baf46d520af7e130d80ccbd3cc7ca0422d1abd17`**: conteúdo dos quatro arquivos implantados idêntico ao repositório.
+- **CI aprovada:** GitHub Actions [38604689109](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/38604689109), com **431/431 testes**, build, TypeScript e validação do ZIP aprovados; arquivo de produção contém 60 arquivos e CRC íntegro.
+- **ZIP oficial para publicação manual**: `luciane-oliveira-doces-cloudflare-pages.zip` do artefato `11914863220` gerado pelo commit `baf46d5`, SHA-256 `da1a3ee0ea9d79939b61666547ea9523cefe92db3d8ccfcf518ce77e502a097c`. O pacote disponibilizado ao responsável é binariamente idêntico.
+- **Não foi feito deploy do Cloudflare, merge na main, migração ou alteração do estado da loja.** A abertura deverá ser decidida manualmente no painel administrativo depois de o responsável instalar e conferir a Premium 2.9.
+- **Homologação física Safari** da nova versão e criação de pedido real seguem pendentes da operação pelo responsável; não criar pedidos fictícios no sistema comercial para validar.
