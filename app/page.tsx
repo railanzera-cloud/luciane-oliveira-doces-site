@@ -472,11 +472,12 @@ export default function Home() {
   const [cupAddedNotice, setCupAddedNotice] = useState("");
   const [cupAdding, setCupAdding] = useState(false);
   const [cupInlineActionVisible, setCupInlineActionVisible] = useState(false);
-  function toggleCupFlavorPreview(flavor: "ninho" | "chocolate") {
-    const opening = cupFlavorPreview !== flavor;
-    setCupFlavorPreview((current) => current === flavor ? null : flavor);
+  function selectCupFlavor(flavor: "ninho" | "chocolate") {
+    // Escolher novamente o mesmo sabor não desfaz o pedido em montagem.
+    if (cupFlavorPreview === flavor) return;
+    setCupFlavorPreview(flavor);
     setCupAddedNotice("");
-    if (opening) requestScroll("crocantes-quantidade");
+    requestScroll("crocantes-quantidade");
   }
   const cupLaunchCopy = cupPhase === "closed"
     ? { eyebrow: "EDIÇÃO LIMITADA · LOJA FECHADA", description: "Pedidos encerrados por hoje. Você ainda pode conhecer os sabores." }
@@ -1887,15 +1888,15 @@ export default function Home() {
                 <h2>Pipocas <em>Crocantes</em></h2>
                 <p>Pipocas crocantes caramelizadas, em dois sabores para escolher: Ninho ou Chocolate.</p>
               </div>
-              <div className="limited-cup-selection-heading" id="crocantes-sabores"><span>01 · ESCOLHA SEU SABOR</span><small>Toque no copo que deseja adicionar.</small></div>
+              <div className="limited-cup-selection-heading" id="crocantes-sabores"><span>01 · ESCOLHA SEU SABOR</span><small>{cupPhase === "available" ? "Toque no copo que deseja adicionar." : "Toque em um sabor para conhecer os detalhes."}</small></div>
               <div className="limited-cup-duo" aria-label="Escolha um sabor de Pipocas Crocantes">
-                <button type="button" disabled={cupAdding} className={cupFlavorPreview === "ninho" ? "limited-cup-duo-item is-ninho is-selected" : "limited-cup-duo-item is-ninho"} aria-expanded={cupFlavorPreview === "ninho"} aria-controls="crocantes-quantidade" onClick={() => toggleCupFlavorPreview("ninho")}>
+                <button type="button" disabled={cupAdding} className={cupFlavorPreview === "ninho" ? "limited-cup-duo-item is-ninho is-selected" : "limited-cup-duo-item is-ninho"} aria-pressed={cupFlavorPreview === "ninho"} aria-controls="crocantes-quantidade" onClick={() => selectCupFlavor("ninho")}>
                   <img src="/images/edicao-crocante-ninho.webp" alt="Copo com pipocas de caramelo e Leite Ninho" width="840" height="1260" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
-                  <span className="limited-cup-duo-caption"><small>01 · NINHO</small><strong>Caramelo com Leite Ninho</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "ninho" ? "Selecionado · fechar detalhes" : cupSalesEnabled ? "Escolher Ninho" : "Ver detalhes"} <ChevronRight size={13} aria-hidden="true" /></span></span>
+                  <span className="limited-cup-duo-caption"><small>NINHO</small><strong>Caramelo com Leite Ninho</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "ninho" ? "Selecionado" : "Escolher Ninho"} {cupFlavorPreview === "ninho" ? <Check size={13} aria-hidden="true" /> : <ChevronRight size={13} aria-hidden="true" />}</span></span>
                 </button>
-                <button type="button" disabled={cupAdding} className={cupFlavorPreview === "chocolate" ? "limited-cup-duo-item is-chocolate is-selected" : "limited-cup-duo-item is-chocolate"} aria-expanded={cupFlavorPreview === "chocolate"} aria-controls="crocantes-quantidade" onClick={() => toggleCupFlavorPreview("chocolate")}>
+                <button type="button" disabled={cupAdding} className={cupFlavorPreview === "chocolate" ? "limited-cup-duo-item is-chocolate is-selected" : "limited-cup-duo-item is-chocolate"} aria-pressed={cupFlavorPreview === "chocolate"} aria-controls="crocantes-quantidade" onClick={() => selectCupFlavor("chocolate")}>
                   <img src="/images/edicao-crocante-chocolate.webp" alt="Copo com pipocas de caramelo e chocolate" width="840" height="1260" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
-                  <span className="limited-cup-duo-caption"><small>02 · CHOCOLATE</small><strong>Caramelo com Chocolate</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "chocolate" ? "Selecionado · fechar detalhes" : cupSalesEnabled ? "Escolher Chocolate" : "Ver detalhes"} <ChevronRight size={13} aria-hidden="true" /></span></span>
+                  <span className="limited-cup-duo-caption"><small>CHOCOLATE</small><strong>Caramelo com Chocolate</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "chocolate" ? "Selecionado" : "Escolher Chocolate"} {cupFlavorPreview === "chocolate" ? <Check size={13} aria-hidden="true" /> : <ChevronRight size={13} aria-hidden="true" />}</span></span>
                 </button>
               </div>
               <div className="limited-cup-story-bottom">
@@ -1923,14 +1924,14 @@ export default function Home() {
                   <div className="limited-cup-buy" id="crocantes-quantidade" aria-label="Quantidade e inclusão no pedido">
                     <div className="limited-cup-buy-heading"><strong>02 · QUANTOS COPOS?</strong><small>{cupFlavorPreview ? (cupFlavorPreview === "ninho" ? "Ninho — caramelizadas com leite em pó." : "Chocolate — caramelizadas com crosta de chocolate.") : "Primeiro selecione Ninho ou Chocolate acima."}</small></div>
                     <div className="limited-cup-buy-actions">
-                      <div className="mini-quantity" aria-label="Quantidade de copos">
-                        <Button type="button" variant="ghost" size="icon" aria-label="Diminuir quantidade de copos" disabled={cupQuantity <= 1 || cupAdding} onClick={() => setCupQuantity((n) => Math.max(1, n - 1))}><Minus size={16} /></Button>
+                      <div className="mini-quantity" role="group" aria-label="Quantidade de copos" aria-disabled={cupPhase !== "available"}>
+                        <Button type="button" variant="ghost" size="icon" aria-label="Diminuir quantidade de copos" disabled={cupPhase !== "available" || cupQuantity <= 1 || cupAdding} onClick={() => setCupQuantity((n) => Math.max(1, n - 1))}><Minus size={16} /></Button>
                         <strong aria-live="polite">{cupQuantity}</strong>
-                        <Button type="button" variant="ghost" size="icon" aria-label="Aumentar quantidade de copos" disabled={cupQuantity >= 99 || cupAdding} onClick={() => setCupQuantity((n) => Math.min(99, n + 1))}><Plus size={16} /></Button>
+                        <Button type="button" variant="ghost" size="icon" aria-label="Aumentar quantidade de copos" disabled={cupPhase !== "available" || cupQuantity >= 99 || cupAdding} onClick={() => setCupQuantity((n) => Math.min(99, n + 1))}><Plus size={16} /></Button>
                       </div>
-                      <Button type="button" className="limited-cup-buy-cta" disabled={cupAdding || (Boolean(cupFlavorPreview) && !cupCanOrder)} onClick={handleCupPurchaseAction}>
+                      <Button type="button" className="limited-cup-buy-cta" disabled={cupAdding || cupPhase !== "available" || (Boolean(cupFlavorPreview) && !cupCanOrder)} onClick={handleCupPurchaseAction}>
                         {cupFlavorPreview ? <ShoppingBag size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
-                        {cupAdding ? "Conferindo estoque…" : !cupFlavorPreview ? "Escolher meu sabor" : cupCanOrder ? `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "copo" : "copos"} · ${currency.format(15.9 * cupQuantity)}` : !availability.ordersOpen ? "Pedidos fechados" : "Sabor indisponível"}
+                        {cupAdding ? "Conferindo estoque…" : cupPhase === "closed" ? "Pedidos fechados" : cupPhase !== "available" ? "Indisponível no momento" : !cupFlavorPreview ? "Escolher meu sabor" : cupCanOrder ? `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "copo" : "copos"} · ${currency.format(15.9 * cupQuantity)}` : "Sabor indisponível"}
                       </Button>
                     </div>
                     {cartContainsCrocantes && <button type="button" className="limited-cup-to-cart" onClick={() => requestScroll("carrinho")}>Ver carrinho e continuar pedido <ChevronRight size={15} aria-hidden="true" /></button>}
@@ -1940,7 +1941,7 @@ export default function Home() {
                 {cupPhase === "available" ? (
                   <p className="limited-cup-stock-note"><span aria-hidden="true">✦</span> Edição limitada · enquanto durarem os copos, sem reposição.</p>
                 ) : (
-                <div className="limited-cup-story-availability is-current">
+                <div className={`limited-cup-story-availability is-current ${cupPhase === "closed" ? "is-closed" : ""}`}>
                   <span className="limited-cup-story-availability-kicker">
                     {cupPhase === "closed" ? "LOJA FECHADA" : cupPhase === "sold-out" ? "EDIÇÃO ENCERRADA" : "INDISPONÍVEL NO MOMENTO"}
                   </span>
@@ -2682,7 +2683,7 @@ export default function Home() {
 
       <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
-      {(activeCategory || cart.length > 0) && (!showLimitedCupView || cupBuilderFlowActive) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && (
+      {(activeCategory || cart.length > 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && (
       <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"} ${stickyIsCheckoutReady && checkoutChannel === "whatsapp" ? "is-whatsapp" : ""} ${cupBuilderFlowActive ? "is-crocantes-step" : ""}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
         <div className="mobile-sticky-price" aria-live="polite" aria-atomic="true"><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></div>
         <Button type="button" onClick={handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || cupAdding || (cupBuilderFlowActive && Boolean(cupFlavorPreview) && !cupCanOrder) || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
