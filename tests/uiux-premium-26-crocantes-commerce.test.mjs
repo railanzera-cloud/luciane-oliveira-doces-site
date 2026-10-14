@@ -7,8 +7,12 @@ test("dois copos independentes, mesmo preço, sem misturar sabores",()=>{
 for(const id of ["crocante-ninho","crocante-chocolate"]){assert.ok(catalog.includes('id: "'+id+'"'));assert.ok(back.includes('"'+id+'": Object.freeze'));}
 assert.ok(catalog.includes("price: 15.9"));assert.ok(back.includes("priceCents: 1590"));assert.ok(catalog.includes("400 ml · 190 g"));assert.ok(back.includes('optionIds.length !== 0'));assert.ok(back.includes('item_type: "popcorn"'));
 });
-test("liberação 15/10 às 12h de Paragominas é verificada no backend",()=>{
-assert.ok(rel.includes("2026-10-15T12:00:00-03:00"));assert.ok(back.includes("2026-10-15T12:00:00-03:00"));assert.ok(back.includes("if (now < CROCANTES_OPEN_AT_MS && !previewAuthorized) throw"));assert.ok(edge.includes("quoteCartItems(input.items, Date.now(), previewAuthorized)"));
+test("controle operacional substitui data, com estoque e loja no backend",()=>{
+assert.ok(rel.includes('if (!ordersOpen) return "closed"'));
+assert.doesNotMatch(back,/CROCANTES_OPEN_AT_MS/);
+assert.ok(edge.includes("quoteCartItems(input.items, Date.now())"));
+assert.ok(edge.includes("store_settings?select=value&key=eq.orders_open"));
+assert.ok(edge.includes('statuses.get(key) !== "available"'));
 });
 test("estoque remoto exclusivo e preço calculado no backend",()=>{
 for(const key of ["crocante_copo_ninho","crocante_copo_chocolate"]){assert.ok(menu.includes(key));assert.ok(sql.includes(key));assert.ok(back.includes(key));}
