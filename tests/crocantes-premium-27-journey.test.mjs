@@ -8,7 +8,7 @@ test("barra Crocantes orienta sabor/quantidade sem duplicar botao visivel",()=>{
   assert.ok(page.includes('!cupFlavorPreview ? "Escolher meu sabor"'));
   assert.ok(page.includes('cupInlineActionVisible'));
   assert.ok(page.includes('setCupInlineActionVisible(Boolean(entry?.isIntersecting))'));
-  assert.ok(page.includes('if (cupBuilderFlowActive) handleCupPurchaseAction()'));
+  assert.ok(page.includes('typeof cupBuilderFlowActive !== "undefined" && cupBuilderFlowActive) handleCupPurchaseAction()'));
   assert.ok(page.includes('className={\`mobile-sticky-bar'));
 });
 test("ativacao de teste e selecao encaminham para a proxima etapa",()=>{
