@@ -36,17 +36,14 @@ test("detalhe escolhido substitui instrução, com altura em fluxo natural", () 
   assert.ok(!focused.includes("position: fixed"));
 });
 
-test("estreia e reposição ficam em um aviso, com estados comerciais corretos", () => {
-  assert.ok(story.includes('ESTREIA · QUINTA, 15/10, ÀS 12H'));
-  assert.ok(page.includes('Vendas a partir das 12h de quinta, 15/10. Enquanto durarem os copos, sem reposição.'));
-  assert.ok(page.includes('Aguardando confirmação da loja. Sem reposição após o fim do estoque.'));
+test("mensagens da edição limitada acompanham a loja, não a data", () => {
+  assert.ok(story.includes('LOJA FECHADA'));
+  assert.ok(page.includes('Pedidos encerrados por hoje. Você ainda pode conhecer os sabores.'));
+  assert.ok(page.includes('A edição em copos chegou ao fim, sem reposição.'));
   assert.ok(story.includes('<p>{cupLaunchCopy.description}</p>'));
-  assert.ok(!story.includes('<span>Esta edição em copo não terá reposição após o fim do estoque.</span>'));
-  assert.ok(release.includes('launchDayStart: "2026-10-15T12:00:00-03:00"'));
-  assert.ok(release.includes("orderingIntegrated: true"));
-  assert.ok(release.includes("salesApprovedByStore: true"));
-  assert.ok(release.includes("inventoryVerifiedAvailable: true"));
-  assert.ok(release.includes("cfg.orderingIntegrated && cfg.salesApprovedByStore && cfg.inventoryVerifiedAvailable"));
+  assert.doesNotMatch(page,/ESTREIA · QUINTA, 15\/10/);
+  assert.ok(release.includes('if (!ordersOpen) return "closed"'));
+  assert.ok(release.includes('if (anyCupAvailable) return "available"'));
 });
 
 test("atalho para potes e fotos mantêm fluxo e recursos aprovados", () => {
