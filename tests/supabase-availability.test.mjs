@@ -91,7 +91,7 @@ test("revalidates the complete cart immediately before the backend registration"
   assert.match(finish, /await refreshAvailability\(\)/);
   assert.match(finish, /if \(latest\.usedFallback\)/);
   assert.match(finish, /Não conseguimos concluir seu pedido agora/);
-  assert.match(finish, /cartAvailabilityIssues\(cart, latest\.snapshot, typeof cupTestActive !== "undefined" && cupTestActive\)/);
+  assert.match(finish, /cartAvailabilityIssues\(cart, latest\.snapshot\)/);
   assert.match(finish, /!latest\.snapshot\.ordersOpen/);
   assert.match(finish, /Item indisponível/);
   assert.ok(finish.indexOf("await refreshAvailability()") < finish.indexOf("await createWhatsAppOrder"));
