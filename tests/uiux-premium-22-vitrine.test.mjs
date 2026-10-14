@@ -17,7 +17,7 @@ test("A vitrine usa CTA unificado para pote e fatias sem duplicar botoes", () =>
 });
 
 test("O acabamento Premium 2.2 fica escopado na vitrine e adapta telas pequenas", () => {
-  const finish = styles.split("Premium 2.2 — Vitrine de categorias:")[1];
+  const finish = styles.split("Premium 2.2 — Vitrine de categorias:")[1]?.split("UI/UX PREMIUM 2.3 — profundidade editorial")[0];
   assert.ok(finish);
   assert.ok(finish.includes('.menu-entry.is-neutral .category-option-copy > .category-option-action'));
   assert.ok(finish.includes('.category-option-arrow'));
