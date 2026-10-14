@@ -25,7 +25,7 @@ function allowedOrigins(): Set<string> {
     .map((value) => value.trim())
     .filter(Boolean);
   const allowed = new Set(configured?.length ? configured : DEFAULT_ALLOWED_ORIGINS);
-  // Preserve the configured production origins; never authorize arbitrary *.pages.dev.
+  // Preserve the configured production origins; never authorize an entire host suffix.
   if (Date.now() < CROCANTES_OPEN_AT_MS) allowed.add(CROCANTES_TEST_PREVIEW_ORIGIN);
   return allowed;
 }
