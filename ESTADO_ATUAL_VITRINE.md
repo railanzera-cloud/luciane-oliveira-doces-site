@@ -141,3 +141,5 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **Homologação técnica:** suíte 2.6 passou 411/412; teste antigo do modo vitrine não injetava o novo callback de limpeza da mensagem `setCupAddedNotice` na função isolada. Mock de teste corrigido sem remover a limpeza real nem alterar fluxos comerciais; executar CI novamente.
 
 - **Reforço da integração WhatsApp:** nomes dos copos na identificação comercial do cliente/WhatsApp incluem o prefixo `Pipocas Crocantes —`, evitando confusão com os potes tradicionais. Testes executam `quoteCartItems` real para o bloqueio até 11:59:59.999, liberação às 12:00, combinação de dois SKUs e total misto com fatia. Preço calculado no backend, sem soma de sabores e sem gateway de pagamento automático.
+
+- **Proteção de duplo toque e horário exato:** em 15/10 às 12h o frontend dispara atualização de fase; ao retornar ao Instagram/Safari também atualiza. Backend continua sendo o guardião do horário. Cadastro assíncrono usa lock e botão desabilitado durante revalidação de estoque; quantidade não ultrapassa 99. Commit externo de diagnóstico Edge Function preservado como ancestral, sem sobrescrever.

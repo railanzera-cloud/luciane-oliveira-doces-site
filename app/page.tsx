@@ -72,7 +72,7 @@ import {
 import { categoryFromUrl, categoryUrl, publicCategories, resolveMenuCategory } from "@/app/menu-navigation";
 import { useMenuAvailability } from "@/hooks/use-menu-availability";
 import { usePopcornPromotion } from "@/hooks/use-popcorn-promotion";
-import { getLimitedCupPhase, type LimitedCupPhase } from "@/app/limited-cup-release";
+import { getLimitedCupPhase, LIMITED_CUP_RELEASE, type LimitedCupPhase } from "@/app/limited-cup-release";
 import { isPopcornPromotionActive } from "@/supabase/functions/_shared/popcorn-promotion.mjs";
 import {
   buildRegisteredOrderMessage, captureOrderAttribution, cleanWhatsAppField, formatOrderMoney, newOrderContext,
@@ -453,6 +453,7 @@ export default function Home() {
   const orderContextRef = useRef<OrderContext | null>(null);
   const attributionRef = useRef<OrderAttribution | undefined>(undefined);
   const finalizationLockRef = useRef(false);
+  const cupAddLockRef = useRef(false);
   const inlineFinalActionRef = useRef<HTMLDivElement | null>(null);
   const [inlineFinalActionVisible, setInlineFinalActionVisible] = useState(false);
   const [inlineBuilderActionVisible, setInlineBuilderActionVisible] = useState(false);
@@ -464,15 +465,27 @@ export default function Home() {
   const [cupFlavorPreview, setCupFlavorPreview] = useState<"ninho" | "chocolate" | null>(null);
   const [cupQuantity, setCupQuantity] = useState(1);
   const [cupAddedNotice, setCupAddedNotice] = useState("");
+  const [cupAdding, setCupAdding] = useState(false);
   function toggleCupFlavorPreview(flavor: "ninho" | "chocolate") {
     setCupFlavorPreview((current) => current === flavor ? null : flavor);
   }
   useEffect(() => {
     const refresh = () => setCupPhase(getLimitedCupPhase(Date.now()));
     refresh();
+    const msUntilOpening = Date.parse(LIMITED_CUP_RELEASE.launchDayStart) - Date.now();
+    const openTimer = msUntilOpening > 0
+      ? window.setTimeout(() => { refresh(); void refreshAvailability(); }, msUntilOpening + 1)
+      : undefined;
     const timer = window.setInterval(refresh, 60_000);
-    return () => window.clearInterval(timer);
-  }, []);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      if (openTimer !== undefined) window.clearTimeout(openTimer);
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [refreshAvailability]);
   const cupLaunchCopy = cupPhase === "prelaunch"
     ? { eyebrow: "EDIÇÃO LIMITADA · 15/10", teaser: "Descobrir", description: "Vendas a partir das 12h de quinta, 15/10. Enquanto durarem os copos, sem reposição." }
     : cupPhase === "awaiting-release"
@@ -1197,12 +1210,16 @@ export default function Home() {
   }
 
   async function addCrocantesCup() {
+    if (cupAddLockRef.current) return;
     const product = PRODUCTS.find((candidate) => candidate.id === cupProductId);
     const variant = product?.variants[0];
     if (!product || !variant || !cupCanOrder) {
       setCupAddedNotice(cupPhase === "prelaunch" ? "Vendas em 15/10 a partir das 12h." : "Este copo ainda não está disponível.");
       return;
     }
+    cupAddLockRef.current = true;
+    setCupAdding(true);
+    try {
     const latest = await refreshAvailability();
     if (latest.usedFallback || !latest.snapshot.ordersOpen || !isItemAvailable(latest.snapshot, CROCANTES_ITEM_KEYS[product.id])
       || Date.now() < Date.parse("2026-10-15T12:00:00-03:00")) {
@@ -1218,6 +1235,12 @@ export default function Home() {
     setCupAddedNotice(`${qty} ${qty === 1 ? "copo adicionado" : "copos adicionados"}: ${product.name}.`);
     setCupFlavorPreview(null);
     setCupQuantity(1);
+    } catch {
+      setCupAddedNotice("Não foi possível confirmar o estoque. Tente novamente.");
+    } finally {
+      cupAddLockRef.current = false;
+      setCupAdding(false);
+    }
   }
 
   function addOrUpdatePopcorn() {
@@ -1382,7 +1405,7 @@ export default function Home() {
       }
     }
     setCart((current) => current.map((item) => item.id === id
-      ? { ...item, quantity: Math.max(1, item.quantity + delta) }
+      ? { ...item, quantity: Math.min(99, Math.max(1, item.quantity + delta)) }
       : item));
   }
 
@@ -1811,11 +1834,11 @@ export default function Home() {
                 <p>Pipocas crocantes caramelizadas, em dois sabores para escolher: Ninho ou Chocolate.</p>
               </div>
               <div className="limited-cup-duo" aria-label="Sabores da edição limitada">
-                <button type="button" className={cupFlavorPreview === "ninho" ? "limited-cup-duo-item is-ninho is-selected" : "limited-cup-duo-item is-ninho"} aria-expanded={cupFlavorPreview === "ninho"} aria-controls="limited-cup-flavor-panel" onClick={() => toggleCupFlavorPreview("ninho")}>
+                <button type="button" disabled={cupAdding} className={cupFlavorPreview === "ninho" ? "limited-cup-duo-item is-ninho is-selected" : "limited-cup-duo-item is-ninho"} aria-expanded={cupFlavorPreview === "ninho"} aria-controls="limited-cup-flavor-panel" onClick={() => toggleCupFlavorPreview("ninho")}>
                   <img src="/images/edicao-crocante-ninho.webp" alt="Copo com pipocas de caramelo e Leite Ninho" width="840" height="1260" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
                   <span className="limited-cup-duo-caption"><small>01 · NINHO</small><strong>Caramelo com Leite Ninho</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "ninho" ? "Fechar detalhes" : "Ver detalhes"} <ChevronRight size={13} aria-hidden="true" /></span></span>
                 </button>
-                <button type="button" className={cupFlavorPreview === "chocolate" ? "limited-cup-duo-item is-chocolate is-selected" : "limited-cup-duo-item is-chocolate"} aria-expanded={cupFlavorPreview === "chocolate"} aria-controls="limited-cup-flavor-panel" onClick={() => toggleCupFlavorPreview("chocolate")}>
+                <button type="button" disabled={cupAdding} className={cupFlavorPreview === "chocolate" ? "limited-cup-duo-item is-chocolate is-selected" : "limited-cup-duo-item is-chocolate"} aria-expanded={cupFlavorPreview === "chocolate"} aria-controls="limited-cup-flavor-panel" onClick={() => toggleCupFlavorPreview("chocolate")}>
                   <img src="/images/edicao-crocante-chocolate.webp" alt="Copo com pipocas de caramelo e chocolate" width="840" height="1260" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
                   <span className="limited-cup-duo-caption"><small>02 · CHOCOLATE</small><strong>Caramelo com Chocolate</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "chocolate" ? "Fechar detalhes" : "Ver detalhes"} <ChevronRight size={13} aria-hidden="true" /></span></span>
                 </button>
@@ -1840,12 +1863,12 @@ export default function Home() {
                     <div className="limited-cup-buy-heading"><strong>Monte seu pedido</strong><small>Escolha um dos sabores acima e a quantidade de copos.</small></div>
                     <div className="limited-cup-buy-actions">
                       <div className="mini-quantity" aria-label="Quantidade de copos">
-                        <Button type="button" variant="ghost" size="icon" aria-label="Diminuir quantidade de copos" disabled={cupQuantity <= 1} onClick={() => setCupQuantity((n) => Math.max(1, n - 1))}><Minus size={16} /></Button>
+                        <Button type="button" variant="ghost" size="icon" aria-label="Diminuir quantidade de copos" disabled={cupQuantity <= 1 || cupAdding} onClick={() => setCupQuantity((n) => Math.max(1, n - 1))}><Minus size={16} /></Button>
                         <strong aria-live="polite">{cupQuantity}</strong>
-                        <Button type="button" variant="ghost" size="icon" aria-label="Aumentar quantidade de copos" disabled={cupQuantity >= 99} onClick={() => setCupQuantity((n) => Math.min(99, n + 1))}><Plus size={16} /></Button>
+                        <Button type="button" variant="ghost" size="icon" aria-label="Aumentar quantidade de copos" disabled={cupQuantity >= 99 || cupAdding} onClick={() => setCupQuantity((n) => Math.min(99, n + 1))}><Plus size={16} /></Button>
                       </div>
-                      <Button type="button" className="limited-cup-buy-cta" disabled={!cupCanOrder} onClick={() => void addCrocantesCup()}>
-                        <ShoppingBag size={16} aria-hidden="true" /> {cupCanOrder ? `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "copo" : "copos"} · ${currency.format(15.9 * cupQuantity)}` : "Escolha um sabor disponível"}
+                      <Button type="button" className="limited-cup-buy-cta" disabled={!cupCanOrder || cupAdding} onClick={() => void addCrocantesCup()}>
+                        <ShoppingBag size={16} aria-hidden="true" /> {cupAdding ? "Conferindo estoque…" : cupCanOrder ? `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "copo" : "copos"} · ${currency.format(15.9 * cupQuantity)}` : "Escolha um sabor disponível"}
                       </Button>
                     </div>
                     {cartContainsCrocantes && <button type="button" className="limited-cup-to-cart" onClick={() => requestScroll("carrinho")}>Ver carrinho e continuar pedido <ChevronRight size={15} aria-hidden="true" /></button>}
@@ -2302,7 +2325,7 @@ export default function Home() {
                           <div className="mini-quantity">
                             <Button type="button" variant="ghost" size="icon" onClick={() => changeCartQuantity(item.id, -1)} disabled={item.quantity === 1} aria-label="Diminuir quantidade deste item"><Minus size={15} /></Button>
                             <span>{item.quantity}</span>
-                            <Button type="button" variant="ghost" size="icon" onClick={() => changeCartQuantity(item.id, 1)} disabled={!availability.ordersOpen || Boolean(itemIssue)} aria-label="Aumentar quantidade deste item"><Plus size={15} /></Button>
+                            <Button type="button" variant="ghost" size="icon" onClick={() => changeCartQuantity(item.id, 1)} disabled={!availability.ordersOpen || Boolean(itemIssue) || item.quantity >= 99} aria-label="Aumentar quantidade deste item"><Plus size={15} /></Button>
                           </div>
                           {product.kind !== "drink" && !(product.id === "crocante-ninho" || product.id === "crocante-chocolate") && <Button type="button" variant="ghost" className="text-action" onClick={() => editItem(item)}><Pencil size={15} /> Editar</Button>}
                           <Button type="button" variant="ghost" className="text-action destructive-action" onClick={() => removeItem(item.id)}><Trash2 size={15} /> Remover</Button>
