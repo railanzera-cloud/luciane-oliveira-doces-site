@@ -1585,7 +1585,7 @@ export default function Home() {
       const latest = await refreshAvailability();
       if (latest.usedFallback) throw new Error("Não conseguimos concluir seu pedido agora. Tente novamente.");
       if (!latest.snapshot.ordersOpen) throw new Error(STORE_CONFIG.closedMessage);
-      const issues = cartAvailabilityIssues(cart, latest.snapshot, cupTestActive);
+      const issues = cartAvailabilityIssues(cart, latest.snapshot, typeof cupTestActive !== "undefined" && cupTestActive);
       if (issues.length) throw new Error(`Item indisponível: ${issues.map(issue => `${issue.itemLabel}: ${issue.reasons.join(" ")}`).join("; ")}`);
       }
       if (checkoutFingerprintRef.current !== checkoutFingerprint) throw new Error("O pedido foi alterado durante a conferência. Confira o resumo e tente novamente.");
@@ -1608,24 +1608,21 @@ export default function Home() {
           ...(cardMode ? { card_mode: cardMode } : {}),
           ...(payment === "dinheiro" && needsChange && cashReceivedCents !== null ? { change_for: (cashReceivedCents / 100).toFixed(2) } : {}) },
         notes: notes.trim(), expected_total: orderTotal.toFixed(2), attribution,
-        ...(cartContainsCrocantes && cupTestActive ? { preview_token: cupTestCode } : {}),
+        ...(typeof cartContainsCrocantes !== "undefined" && cartContainsCrocantes && typeof cupTestActive !== "undefined" && cupTestActive ? { preview_token: cupTestCode } : {}),
       });
       const trackingUrl = `${window.location.origin}/pedido?token=${encodeURIComponent(result.order.tracking_token)}`;
       rememberOrder(result.order.tracking_token);
       setLastToken(result.order.tracking_token);
       const registered: RegisteredWhatsAppOrder = {
         result, customerName: customerName.trim(), trackingUrl,
-        whatsappUrl: tintimWhatsAppUrl(
-          (cartContainsCrocantes && cupTestActive ? "*TESTE DE HOMOLOGAÇÃO — NÃO PREPARAR / NÃO COBRAR*\n\n" : "") +
-          buildRegisteredOrderMessage({ ...checkoutDetails,
-            notes: cartContainsCrocantes && cupTestActive ? "[TESTE INTERNO — NÃO PREPARAR/NÃO COBRAR] " + checkoutDetails.notes : checkoutDetails.notes,
+        whatsappUrl: tintimWhatsAppUrl(buildRegisteredOrderMessage({ ...checkoutDetails,
+            notes: typeof cartContainsCrocantes !== "undefined" && cartContainsCrocantes && typeof cupTestActive !== "undefined" && cupTestActive ? "[TESTE DE HOMOLOGAÇÃO — NÃO PREPARAR / NÃO COBRAR] " + checkoutDetails.notes : checkoutDetails.notes,
             subtotal: Number(result.order.subtotal ?? checkoutDetails.subtotal),
             delivery_fee: Number(result.order.delivery_fee ?? checkoutDetails.delivery_fee),
             card_fee: Number(result.order.card_fee ?? 0),
             card_basis_points: result.order.card_basis_points ?? 0,
             total: Number(result.order.total)
-          }, result.order.order_number, trackingUrl, PIX_DETAILS),
-          attribution, document.cookie),
+          }, result.order.order_number, trackingUrl, PIX_DETAILS), attribution, document.cookie),
       };
       // The request snapshot remains immutable even if a control changed while awaiting the server.
       setWhatsAppResult(registered);
