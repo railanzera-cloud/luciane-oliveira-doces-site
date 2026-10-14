@@ -201,6 +201,10 @@ function sanitizeParameters(value: unknown): Record<string, string[]> {
 Deno.serve(async (request: Request) => {
   const origin = request.headers.get("origin");
   try {
+    // A URL de homologação temporária nunca poderá registrar um pedido real.
+    if (origin === "https://56.lucianeoliveiradoces.pages.dev") {
+      throw new HttpError(403, "preview_disabled", "Este ambiente de homologação foi encerrado.");
+    }
     if (origin && !allowedOrigins().has(origin)) throw new HttpError(403, "origin_not_allowed", "Origem não autorizada.");
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(origin) });
     if (request.method !== "POST") throw new HttpError(405, "method_not_allowed", "Método não permitido.");
