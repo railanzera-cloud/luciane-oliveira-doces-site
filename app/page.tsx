@@ -60,6 +60,7 @@ import {
 } from "@/app/catalog";
 import {
   CATEGORY_ITEM_KEYS,
+  CROCANTES_ITEM_KEYS,
   POPCORN_FLAVOR_ITEM_KEYS,
   POPCORN_SIZE_ITEM_KEYS,
   SLICE_ITEM_KEYS,
@@ -261,10 +262,14 @@ function trackMetaEvent(eventName: MetaEventName, payload?: Record<string, unkno
   return true;
 }
 
+function isCrocantesProduct(productId: string) {
+  return productId === "crocante-ninho" || productId === "crocante-chocolate";
+}
+
 function itemUnitPrice(product: Product, variant: Variant, optionIds: string[] = [], now = Date.now()) {
   // Carrinhos com tamanho retirado ficam sem valor de venda até serem corrigidos.
   if (variant.retired) return 0;
-  return product.kind === "popcorn" ? popcornPrice(variant.id, optionIds, now) : variant.price;
+  return product.kind === "popcorn" && !isCrocantesProduct(product.id) ? popcornPrice(variant.id, optionIds, now) : variant.price;
 }
 
 function unavailableReason(snapshot: AvailabilitySnapshot, itemKey: string, label: string) {
@@ -300,7 +305,11 @@ function cartAvailabilityIssues(
       }
     }
 
-    if (product.kind === "popcorn") {
+    if (isCrocantesProduct(product.id)) {
+      const key = CROCANTES_ITEM_KEYS[product.id];
+      if (Date.now() < Date.parse("2026-10-15T12:00:00-03:00")) reasons.push("Vendas dos copos Crocantes começam em 15/10 às 12h.");
+      if (snapshot.source !== "supabase" || !key || !isItemAvailable(snapshot, key)) reasons.push("Copo indisponível no momento.");
+    } else if (product.kind === "popcorn") {
       const sizeKey = POPCORN_SIZE_ITEM_KEYS[variant.id];
       if (sizeKey && !isItemAvailable(snapshot, sizeKey)) {
         reasons.push(unavailableReason(snapshot, sizeKey, `O tamanho ${variant.label}`));
@@ -360,7 +369,8 @@ function sanitizeSavedCart(value: unknown): CartItem[] {
       ? item.optionIds.filter((id): id is string => typeof id === "string" && (product.kind !== "slice" || product.options.some(option => option.id === id)))
       : [];
     const optionsAreAvailable = optionIds.every((id) => product.options.some((option) => option.id === id && option.available));
-    const optionsAreValid = product.kind === "popcorn"
+    const optionsAreValid = isCrocantesProduct(product.id) ? optionIds.length === 0
+      : product.kind === "popcorn"
       ? optionIds.length > 0 && optionIds.length <= (variant.maxOptions ?? 0) && new Set(optionIds).size === optionIds.length
       : product.kind === "slice" ? optionIds.length <= 1 : optionIds.length === 0;
     if (!optionsAreAvailable || !optionsAreValid) return [];
@@ -453,6 +463,8 @@ export default function Home() {
   const { availability, hasResolvedAvailability, refreshAvailability } = useMenuAvailability();
   const [cupPhase, setCupPhase] = useState<LimitedCupPhase>("prelaunch");
   const [cupFlavorPreview, setCupFlavorPreview] = useState<"ninho" | "chocolate" | null>(null);
+  const [cupQuantity, setCupQuantity] = useState(1);
+  const [cupAddedNotice, setCupAddedNotice] = useState("");
   function toggleCupFlavorPreview(flavor: "ninho" | "chocolate") {
     setCupFlavorPreview((current) => current === flavor ? null : flavor);
   }
@@ -730,6 +742,17 @@ export default function Home() {
 
   const cartNeedsSizeReview = cart.some((item) => PRODUCTS.find((product) => product.id === item.productId)?.variants.find((variant) => variant.id === item.variantId)?.retired);
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
+  const cartContainsCrocantes = cart.some((item) => isCrocantesProduct(item.productId));
+  const cupProductId = cupFlavorPreview === "ninho" ? "crocante-ninho" : cupFlavorPreview === "chocolate" ? "crocante-chocolate" : "";
+  const cupStockKey = cupProductId ? CROCANTES_ITEM_KEYS[cupProductId] : "";
+  const cupCanOrder = cupPhase === "available" && availability.ordersOpen && availability.source === "supabase"
+    && Boolean(cupStockKey && isItemAvailable(availability, cupStockKey));
+  useEffect(() => {
+    if (cartContainsCrocantes && checkoutChannel !== "whatsapp") {
+      setCheckoutChannel("whatsapp");
+      setPayment("");
+    }
+  }, [cartContainsCrocantes, checkoutChannel]);
   const justAddedProduct = addedNotice
     ? PRODUCTS.find((product) => product.id === addedNotice.productId)
     : null;
@@ -824,7 +847,7 @@ export default function Home() {
     : paymentReady
       ? "complete"
       : "active";
-  const builderFlowActive = Boolean(activeCategory && (editingId || builderEngaged || draftReady || !cart.length));
+  const builderFlowActive = !showLimitedCupView && Boolean(activeCategory && (editingId || builderEngaged || draftReady || !cart.length));
   const stickyUsesCheckoutAction = !builderFlowActive;
   const stickyIsCheckoutReady = stickyUsesCheckoutAction && checkoutReady;
   const stickyPriceLabel = cart.length > 0 && !builderFlowActive
@@ -978,6 +1001,8 @@ export default function Home() {
     if (!categoryIsAvailable("pipocas")) return;
     setShowLimitedCupView(true);
     setCupFlavorPreview(null);
+    setCupQuantity(1);
+    setCupAddedNotice("");
     setRequestedCategory("pipocas");
     setEditingId(null);
     setSelectionMessage("");
@@ -993,6 +1018,7 @@ export default function Home() {
   function returnToCategories() {
     setShowLimitedCupView(false);
     setCupFlavorPreview(null);
+    setCupAddedNotice("");
     setRequestedCategory(null);
     setEditingId(null);
     setSelectionMessage("");
@@ -1156,7 +1182,7 @@ export default function Home() {
   }
 
   function chooseCheckoutChannel(value: string) {
-    const next = value === "site" && COMMERCE_CONFIG.siteOrderingEnabled ? "site" : "whatsapp";
+    const next = value === "site" && COMMERCE_CONFIG.siteOrderingEnabled && !cart.some((item) => isCrocantesProduct(item.productId)) ? "site" : "whatsapp";
     if (next === checkoutChannel) return;
     setCheckoutChannel(next);
     setPayment("");
@@ -1171,6 +1197,30 @@ export default function Home() {
     trackPaymentInfo(paymentMethod);
     setPayment(paymentMethod);
     setNewPaymentAttempt(false);
+  }
+
+  async function addCrocantesCup() {
+    const product = PRODUCTS.find((candidate) => candidate.id === cupProductId);
+    const variant = product?.variants[0];
+    if (!product || !variant || !cupCanOrder) {
+      setCupAddedNotice(cupPhase === "prelaunch" ? "Vendas em 15/10 a partir das 12h." : "Este copo ainda não está disponível.");
+      return;
+    }
+    const latest = await refreshAvailability();
+    if (latest.usedFallback || !latest.snapshot.ordersOpen || !isItemAvailable(latest.snapshot, CROCANTES_ITEM_KEYS[product.id])
+      || Date.now() < Date.parse("2026-10-15T12:00:00-03:00")) {
+      setCupAddedNotice("A disponibilidade mudou. Confira novamente antes de pedir.");
+      return;
+    }
+    const qty = Math.min(99, Math.max(1, cupQuantity));
+    setCart((current) => [...current, { id: makeCartId(), productId: product.id, variantId: variant.id, optionIds: [], quantity: qty }]);
+    trackMetaEvent("AddToCart", metaProductPayload(product, variant, qty));
+    setCheckoutChannel("whatsapp");
+    setPayment("");
+    setBuilderEngaged(false);
+    setCupAddedNotice(`${qty} ${qty === 1 ? "copo adicionado" : "copos adicionados"}: ${product.name}.`);
+    setCupFlavorPreview(null);
+    setCupQuantity(1);
   }
 
   function addOrUpdatePopcorn() {
@@ -1287,6 +1337,7 @@ export default function Home() {
 
   function editItem(item: CartItem) {
     const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
+    if (isCrocantesProduct(product.id)) return; // Quantidade é alterável no carrinho.
     if (product.kind === "drink" || !isProductEnabled(product)) return;
     const itemCategory = product.kind === "popcorn" ? "pipocas" : "fatias";
     if (!categoryIsAvailable(itemCategory)) {
@@ -1340,6 +1391,11 @@ export default function Home() {
 
 
   async function finishOnSite(card?: MercadoPagoCardData) {
+    if (cart.some((item) => isCrocantesProduct(item.productId))) {
+      setCheckoutChannel("whatsapp");
+      setCheckoutAvailabilityMessage("Pedidos com copos Crocantes são concluídos pelo WhatsApp.");
+      return;
+    }
     if (finalizationLockRef.current || !COMMERCE_CONFIG.siteOrderingEnabled || !isSitePayment(payment)) return;
     if (!availability.ordersOpen) {
       scrollToSection("inicio");
@@ -1745,7 +1801,7 @@ export default function Home() {
       </section>
 
       {activeCategory && (
-      <section className={showLimitedCupView && cart.length === 0 ? "builder-section is-cup-discovery" : "builder-section"} id="configurador">
+      <section className={showLimitedCupView ? "builder-section is-cup-discovery" : "builder-section"} id="configurador">
         <div className="page-shell builder-shell">
           {activeCategory === "pipocas" && showLimitedCupView && (
             <section className="limited-cup-story" id="edicao-crocante" aria-label="Edição limitada de pipocas crocantes no copo">
@@ -2234,7 +2290,7 @@ export default function Home() {
                             <span>{item.quantity}</span>
                             <Button type="button" variant="ghost" size="icon" onClick={() => changeCartQuantity(item.id, 1)} disabled={!availability.ordersOpen || Boolean(itemIssue)} aria-label="Aumentar quantidade deste item"><Plus size={15} /></Button>
                           </div>
-                          {product.kind !== "drink" && <Button type="button" variant="ghost" className="text-action" onClick={() => editItem(item)}><Pencil size={15} /> Editar</Button>}
+                          {product.kind !== "drink" && !isCrocantesProduct(product.id) && <Button type="button" variant="ghost" className="text-action" onClick={() => editItem(item)}><Pencil size={15} /> Editar</Button>}
                           <Button type="button" variant="ghost" className="text-action destructive-action" onClick={() => removeItem(item.id)}><Trash2 size={15} /> Remover</Button>
                         </div>
                       </article>
@@ -2349,7 +2405,7 @@ export default function Home() {
               {fulfillment === "retirada" && <div className="pickup-note"><MapPin size={18} /><span><strong>Retirada disponível em Paragominas.</strong>{checkoutChannel === "whatsapp" ? "O horário e o local serão confirmados no WhatsApp." : "A loja confirmará o horário e o local pelo celular informado."}</span></div>}
             </section>
 
-            {COMMERCE_CONFIG.siteOrderingEnabled && (
+            {COMMERCE_CONFIG.siteOrderingEnabled && !cartContainsCrocantes && (
               <section className="order-card checkout-channel-card" id="finalizacao" aria-labelledby="channel-title">
                 <div className="order-card-heading"><div><p className="eyebrow">Finalização</p><h2 id="channel-title">Como deseja concluir?</h2></div></div>
                 <RadioGroup className="choice-grid checkout-channel-options" value={checkoutChannel} onValueChange={chooseCheckoutChannel} aria-label="Canal de finalização">
