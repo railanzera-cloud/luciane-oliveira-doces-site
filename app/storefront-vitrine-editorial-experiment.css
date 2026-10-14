@@ -2025,3 +2025,78 @@
 .storefront #configurador .limited-cup-test-input input{flex:1;min-width:150px;background:#241510;color:#ffead5;border:1px solid rgba(248,195,127,.5);}
 .storefront #configurador .limited-cup-test-input button{min-height:42px;background:#e6b67e;color:#2e190d;font-weight:700;}
 .storefront #configurador .limited-cup-test-input :focus-visible{outline:3px solid #ffe3ae;outline-offset:2px;}
+
+/* Crocantes 2.7 — clareza de escolha e continuidade, isolado da campanha. */
+.storefront #configurador .limited-cup-selection-heading {
+  display: grid;
+  gap: 5px;
+  padding: 14px 16px 4px;
+  scroll-margin-top: 24px;
+  color: #ffe0b6;
+}
+.storefront #configurador .limited-cup-selection-heading span {
+  font-size: .73rem;
+  font-weight: 820;
+  letter-spacing: .12em;
+}
+.storefront #configurador .limited-cup-selection-heading small {
+  color: #e0bea0;
+  font-size: .78rem;
+}
+.storefront #configurador .limited-cup-buy {
+  scroll-margin-top: 24px;
+}
+.storefront #configurador .limited-cup-buy-heading strong {
+  letter-spacing: .07em;
+  color: #ffdfad;
+}
+.storefront #configurador .limited-cup-buy-cta:not(:disabled) {
+  box-shadow: inset 0 1px 0 rgba(255,242,215,.65), 0 6px 14px rgba(10,6,3,.20);
+  border: 1px solid rgba(255,221,165,.7);
+}
+.storefront #configurador .limited-cup-test-gate:has(> strong:first-child:last-child) { padding: 10px 13px; }
+.storefront .mobile-sticky-bar.is-crocantes-step {
+  border-color: rgba(248,196,135,.68);
+  box-shadow: 0 12px 32px rgba(0,0,0,.40), inset 0 1px rgba(255,227,189,.14);
+}
+.storefront .mobile-sticky-bar.is-crocantes-step .mobile-sticky-price small {
+  color: #e9c7a3;
+}
+.storefront .cart-add-options.has-crocantes-option,
+.storefront .boutique-added-other-actions.has-crocantes-option {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 9px;
+}
+.storefront .cart-add-options.has-crocantes-option > button,
+.storefront .boutique-added-other-actions.has-crocantes-option > button {
+  min-width: 0;
+  min-height: 47px;
+  white-space: normal;
+  text-align: center;
+}
+.storefront .cart-add-options .crocantes-cross-sell,
+.storefront .boutique-added-other-actions .crocantes-cross-sell {
+  grid-column: 1/-1;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  border-color: rgba(183,130,78,.65);
+  background: linear-gradient(180deg,rgba(235,195,147,.10),rgba(158,114,70,.05));
+  font-weight: 740;
+}
+.storefront .cart-add-options .crocantes-cross-sell:focus-visible,
+.storefront .boutique-added-other-actions .crocantes-cross-sell:focus-visible {
+  outline: 3px solid #d49858;
+  outline-offset: 2px;
+}
+@media (max-width:359px) {
+  .storefront #configurador .limited-cup-selection-heading {padding-inline:10px;}
+  .storefront .cart-add-options.has-crocantes-option,
+  .storefront .boutique-added-other-actions.has-crocantes-option {gap:7px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .storefront #configurador .limited-cup-buy-cta,
+  .storefront .mobile-sticky-bar.is-crocantes-step {transition:none!important;}
+}
