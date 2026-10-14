@@ -1,0 +1,31 @@
+name: Cozinha QZ — preparação isolada (sem deploy)
+
+on:
+  push:
+    branches:
+      - work/cozinha-qz-fila-segura-20261014
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Instalar dependências
+        run: npm ci --no-audit --no-fund
+      - name: TypeScript
+        run: npx tsc --noEmit --project tsconfig.boutique.json
+      - name: Teste focal da fila sem banco real
+        run: node --test tests/kitchen-print-preparation.test.mjs
+      - name: Suite de regressão
+        run: node --test tests/*.test.mjs
+      - name: Build (sem publicar)
+        run: npm run build
