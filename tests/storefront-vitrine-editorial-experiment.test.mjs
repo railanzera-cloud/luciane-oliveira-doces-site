@@ -305,6 +305,7 @@ test("fotografias comerciais aprovadas sempre acompanham o codigo e o ZIP do Clo
   const names = [
     "categoria-fatias-editorial.webp",
     "categoria-pipocas-editorial-clara.webp",
+    "categoria-pipocas-editorial-enquadrada-v107.webp",
     "categoria-pipocas-editorial.webp",
     "edicao-crocante-ninho.webp",
     "edicao-crocante-chocolate.webp",
@@ -317,8 +318,21 @@ test("fotografias comerciais aprovadas sempre acompanham o codigo e o ZIP do Clo
     assert.equal(data.toString("ascii", 8, 12), "WEBP", `Formato incorreto: ${name}`);
   }
   assert.ok(page.includes("/images/categoria-fatias-editorial.webp"));
-  assert.ok(page.includes("/images/categoria-pipocas-editorial-clara.webp"));
+  assert.ok(page.includes("/images/categoria-pipocas-editorial-enquadrada-v107.webp"));
   assert.ok(page.includes("/images/categoria-pipocas-editorial.webp"));
   assert.ok(page.includes("/images/edicao-crocante-ninho.webp"));
   assert.ok(page.includes("/images/edicao-crocante-chocolate.webp"));
+});
+
+test("v107: fotografia correta, enquadramento central e lancamento em 15/10", async () => {
+  const release = await readFile(new URL("../app/limited-cup-release.ts", import.meta.url), "utf8");
+  assert.ok(page.includes("/images/categoria-pipocas-editorial-enquadrada-v107.webp"));
+  assert.ok(page.includes("EDIÇÃO LIMITADA · 15/10"));
+  assert.ok(page.includes("Estreia quinta, 15/10"));
+  assert.ok(!page.includes("16/10"));
+  assert.ok(release.includes("2026-10-15T00:00:00-03:00"));
+  assert.ok(!release.includes("2026-10-16T00:00:00-03:00"));
+  const lastPotRule = css.slice(css.lastIndexOf(".category-option:first-child .category-option-media img"));
+  assert.ok(lastPotRule.includes("object-fit: cover"));
+  assert.ok(lastPotRule.includes("object-position: 50% 50%"));
 });

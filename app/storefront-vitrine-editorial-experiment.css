@@ -1116,7 +1116,7 @@
 }
 .storefront .menu-entry.is-neutral .category-option:first-child .category-option-media img {
   object-fit: cover;
-  object-position: 50% 12%;
+  object-position: 50% 50%;
   filter: none;
 }
 .storefront .menu-entry.is-neutral .category-option:nth-child(2) .category-option-media img {

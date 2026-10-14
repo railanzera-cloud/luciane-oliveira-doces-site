@@ -7,8 +7,8 @@
 export type LimitedCupPhase = "prelaunch" | "awaiting-release" | "available" | "sold-out";
 
 export const LIMITED_CUP_RELEASE = {
-  // Início do dia 16/10 no horário de Paragominas (UTC-3). Não é horário de abertura.
-  launchDayStart: "2026-10-16T00:00:00-03:00",
+  // Início do dia 15/10 no horário de Paragominas (UTC-3). Não é horário de abertura.
+  launchDayStart: "2026-10-15T00:00:00-03:00",
   orderingIntegrated: false,
   salesApprovedByStore: false,
   inventoryVerifiedAvailable: false,
