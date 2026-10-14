@@ -209,9 +209,10 @@ export function buildOrderMessage(order: CheckoutDetails, orderId: string, pix: 
 }
 
 // Called before the Tintim redirect. Never processes Tintim's returned text or invisible attribution suffix.
-export function buildRegisteredOrderMessage(order: CheckoutDetails, number: number, _trackingUrl: string, pix: { holder: string; key: string; keyType: string }): string {
+export function buildRegisteredOrderMessage(order: CheckoutDetails, number: number, _trackingUrl: string, pix: { holder: string; key: string; keyType: string }, isHomologation = false): string {
   if (!Number.isSafeInteger(number) || number < 1) throw new Error("Pedido sem número confirmado.");
   const lines = ["Olá! Finalizei meu pedido pelo site da Luciane Oliveira Doces.", "", `*PEDIDO #${number}*`, "", `Cliente: ${cleanWhatsAppField(order.customer_name ?? "")}`, ""];
+  if (isHomologation) lines.unshift("*TESTE DE HOMOLOGAÇÃO — NÃO PREPARAR / NÃO COBRAR*", "");
   for (const item of order.items) {
     lines.push(`${item.quantity}x ${item.name}${item.kind === "slice" ? "" : ` ${item.size}`}`);
     if (item.options.length) lines.push(item.options.join(" + "));
@@ -234,15 +235,19 @@ export function buildRegisteredOrderMessage(order: CheckoutDetails, number: numb
   }
   lines.push(`Total: ${formatOrderMoney(order.total)}`, "");
   if (isCard) lines.push("Acréscimo já incluído no total.");
-  if (order.payment === "pix") lines.push(
+  if (isHomologation) {
+    // Preview autorizado: nunca pedir Pix, mostrar chave ou orientar pagamento.
+    // O valor permanece apenas como referência para validar a cotação.
+    lines.push("*HOMOLOGAÇÃO — NÃO EFETUAR PAGAMENTO*", "Pedido de teste para conferência do atendimento. Não preparar, cobrar ou enviar comprovante.");
+  } else if (order.payment === "pix") lines.push(
     "*PRÓXIMO PASSO — PAGAMENTO VIA PIX*", "",
     `*Valor a pagar:* ${formatOrderMoney(order.total)}`,
     `*Chave Pix (${pix.keyType}):* ${pix.key}`,
     `Titular: ${pix.holder}`, "",
     "*Vou fazer o Pix e enviar o comprovante por aqui.*",
   );
-  if (order.payment === "cartao") lines.push("Cartão no recebimento");
-  if (order.payment === "dinheiro") {
+  if (!isHomologation && order.payment === "cartao") lines.push("Cartão no recebimento");
+  if (!isHomologation && order.payment === "dinheiro") {
     lines.push("Dinheiro no recebimento");
     if (order.needs_change) {
       if (order.cash_received_cents === null || order.cash_received_cents < Math.round(order.total * 100)) throw new Error("Confira o troco.");

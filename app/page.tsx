@@ -1663,7 +1663,7 @@ export default function Home() {
             card_fee: Number(result.order.card_fee ?? 0),
             card_basis_points: result.order.card_basis_points ?? 0,
             total: Number(result.order.total)
-          }, result.order.order_number, trackingUrl, PIX_DETAILS), attribution, document.cookie),
+          }, result.order.order_number, trackingUrl, PIX_DETAILS, typeof cartContainsCrocantes !== "undefined" && cartContainsCrocantes && typeof cupTestActive !== "undefined" && cupTestActive), attribution, document.cookie),
       };
       // The request snapshot remains immutable even if a control changed while awaiting the server.
       setWhatsAppResult(registered);
@@ -1936,11 +1936,17 @@ export default function Home() {
                 </button>
               </div>
               <div className="limited-cup-story-bottom">
+                {cupSalesEnabled ? (
+                  <div className="limited-cup-sale-compact" aria-label="Informações do copo">
+                    <span>400 ml · 190 g</span><strong>R$ 15,90 por copo</strong>
+                  </div>
+                ) : (
                 <div className="limited-cup-story-sale">
                   <div className="limited-cup-story-price"><span>EDIÇÃO ESPECIAL</span><strong>R$ 15,90</strong><small>por copo</small></div>
                   <div className="limited-cup-story-measure" aria-label="Medidas do copo"><span aria-label="Volume de 400 mililitros">400 ml</span><span aria-label="Peso de 190 gramas">190 g</span></div>
                 </div>
-                <div id="limited-cup-flavor-panel" className="limited-cup-flavor-slot">
+                )}
+                {!cupSalesEnabled && <div id="limited-cup-flavor-panel" className="limited-cup-flavor-slot">
                   {cupFlavorPreview ? (
                     <div className="limited-cup-flavor-details" role="status" aria-live="polite" aria-atomic="true">
                       <strong>{cupFlavorPreview === "ninho" ? "Ninho" : "Chocolate"}</strong>
@@ -1949,7 +1955,7 @@ export default function Home() {
                   ) : (
                     <p className="limited-cup-flavor-hint">Toque em um copo para ver os detalhes do sabor.</p>
                   )}
-                </div>
+                </div>}
                 {cupTestRequested && cupPhase === "prelaunch" && (
                   <div className="limited-cup-test-gate" aria-label="Homologação restrita dos copos">
                     <strong>{cupTestVerified ? "Teste autorizado · não cobrar" : "Homologação interna · não é uma venda"}</strong>
@@ -1966,7 +1972,7 @@ export default function Home() {
                 )}
                 {(cupPhase === "available" || cupTestActive) && (
                   <div className="limited-cup-buy" id="crocantes-quantidade" aria-label="Quantidade e inclusão no pedido">
-                    <div className="limited-cup-buy-heading"><strong>02 · QUANTOS COPOS?</strong><small>{cupFlavorPreview ? `Sabor escolhido: ${cupFlavorPreview === "ninho" ? "Ninho" : "Chocolate"} · ${currency.format(15.9)} por copo.` : "Primeiro selecione Ninho ou Chocolate acima."}</small></div>
+                    <div className="limited-cup-buy-heading"><strong>02 · QUANTOS COPOS?</strong><small>{cupFlavorPreview ? (cupFlavorPreview === "ninho" ? "Ninho — caramelizadas com leite em pó." : "Chocolate — caramelizadas com crosta de chocolate.") : "Primeiro selecione Ninho ou Chocolate acima."}</small></div>
                     <div className="limited-cup-buy-actions">
                       <div className="mini-quantity" aria-label="Quantidade de copos">
                         <Button type="button" variant="ghost" size="icon" aria-label="Diminuir quantidade de copos" disabled={cupQuantity <= 1 || cupAdding} onClick={() => setCupQuantity((n) => Math.max(1, n - 1))}><Minus size={16} /></Button>
@@ -1982,12 +1988,16 @@ export default function Home() {
                   </div>
                 )}
                 {cupAddedNotice && <p className="limited-cup-buy-feedback" role="status">{cupAddedNotice}</p>}
+                {cupPhase === "available" ? (
+                  <p className="limited-cup-stock-note"><span aria-hidden="true">✦</span> Edição limitada · enquanto durarem os copos, sem reposição.</p>
+                ) : (
                 <div className={`limited-cup-story-availability ${cupPhase === "prelaunch" ? "is-prelaunch" : "is-current"}`}>
                   <span className="limited-cup-story-availability-kicker">
                     {cupPhase === "prelaunch" ? "ESTREIA · QUINTA, 15/10, ÀS 12H" : cupPhase === "awaiting-release" ? "AGUARDANDO LIBERAÇÃO" : cupPhase === "sold-out" ? "EDIÇÃO ENCERRADA" : "EDIÇÃO DISPONÍVEL"}
                   </span>
                   <p>{cupLaunchCopy.description}</p>
                 </div>
+                )}
                 <div className="limited-cup-story-footer">
                   <button type="button" onClick={() => selectCategory("pipocas")}>
                     <span>Prefere os potes recheados?</span>
@@ -2453,7 +2463,7 @@ export default function Home() {
                     <div className={`cart-add-options ${STORE_CONFIG.enabledExtras.drinks ? "" : "without-drinks"} ${cupCanBeAddedFromCheckout ? "has-crocantes-option" : ""}`}>
                       {fatiasAvailable && <Button type="button" variant="outline" onClick={() => startAnother("fatias")}><CakeSlice size={16} /> Outra fatia</Button>}
                       {pipocasAvailable && <Button type="button" variant="outline" onClick={() => startAnother("pipocas")}><Plus size={16} /> Outro pote recheado</Button>}
-                      {cupCanBeAddedFromCheckout && <Button type="button" variant="outline" className="crocantes-cross-sell" onClick={startAnotherCrocantes}><ShoppingBag size={16} /> Copos Crocantes <ChevronRight size={15} aria-hidden="true" /></Button>}
+                      {cupCanBeAddedFromCheckout && <Button type="button" variant="outline" className="crocantes-cross-sell" onClick={startAnotherCrocantes}><ShoppingBag size={16} /> {cartContainsCrocantes ? "Adicionar outro copo" : "Adicionar copo Crocante"} <ChevronRight size={15} aria-hidden="true" /></Button>}
                       {STORE_CONFIG.enabledExtras.drinks && <Button type="button" variant="outline" onClick={() => scrollToSection("acompanhamentos")}><CupSoda size={16} /> Refrigerante</Button>}
                     </div>
                   </div>
@@ -2484,7 +2494,7 @@ export default function Home() {
                           {category === "pipocas" ? "Outro pote recheado" : "Outra fatia"}
                         </Button>
                       ))}
-                      {cupCanBeAddedFromCheckout && <Button type="button" variant="outline" className="crocantes-cross-sell" onClick={startAnotherCrocantes}><ShoppingBag size={15} aria-hidden="true" /> Copos Crocantes <ChevronRight size={15} aria-hidden="true" /></Button>}
+                      {cupCanBeAddedFromCheckout && <Button type="button" variant="outline" className="crocantes-cross-sell" onClick={startAnotherCrocantes}><ShoppingBag size={15} aria-hidden="true" /> {cartContainsCrocantes ? "Adicionar outro copo" : "Adicionar copo Crocante"} <ChevronRight size={15} aria-hidden="true" /></Button>}
                     </div>
                   </div>
                 </div>
@@ -2711,7 +2721,9 @@ export default function Home() {
               <Button type="button" className="whatsapp-button checkout-primary-button" data-ready={checkoutReady ? "true" : "false"} onClick={handleFinalAction} disabled={isFinalizing || (!availability.ordersOpen && orderContext?.handoff_fingerprint !== checkoutFingerprint)} aria-describedby="checkout-status" data-event={checkoutChannel === "whatsapp" ? "whatsapp_checkout" : "site_checkout"}>{isFinalizing ? <LoaderCircle className="admin-spinner" size={20} /> : !checkoutReady ? <ChevronRight size={20} /> : checkoutChannel === "whatsapp" ? <MessageCircle size={20} /> : payment === "mercado_pago_pix" ? <QrCode size={20} /> : <ShoppingBag size={20} />} {summaryActionLabel}</Button>
             </div>
             {checkoutChannel === "whatsapp" && orderContext?.whatsapp_attempted_at && <div className="whatsapp-return-note" role="status"><strong>Continue no WhatsApp</strong><p>Envie a mensagem por lá para encaminhar o pedido. Seu pedido continua nesta aba para consulta.</p><Button type="button" variant="outline" onClick={clearOrder} disabled={isFinalizing}>Fazer novo pedido</Button></div>}
-            {payment === "pix" && <p className="payment-guidance">Depois de finalizar no WhatsApp, faça o Pix com a chave informada na mensagem e envie o comprovante na conversa.</p>}
+            {payment === "pix" && (cartContainsCrocantes && cupTestActive
+              ? <p className="payment-guidance" role="status">Teste de homologação: não faça Pix nem envie comprovante. O valor é apenas para conferência.</p>
+              : <p className="payment-guidance">Depois de finalizar no WhatsApp, faça o Pix com a chave informada na mensagem e envie o comprovante na conversa.</p>)}
             <p id="checkout-status" className={checkoutShowsReady ? "ready-status" : "checkout-status"} aria-live="polite">{checkoutShowsReady && <Check size={14} />}{checkoutHint}</p>
           </aside>
         </div>

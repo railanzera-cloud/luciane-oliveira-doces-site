@@ -2100,3 +2100,30 @@
   .storefront #configurador .limited-cup-buy-cta,
   .storefront .mobile-sticky-bar.is-crocantes-step {transition:none!important;}
 }
+
+
+/* Crocantes 2.8 — leitura editorial concisa somente durante vendas liberadas. */
+.storefront #configurador .limited-cup-sale-compact {
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+  gap:5px 14px;padding:7px 0 9px;border-bottom:1px solid rgba(231,178,118,.28);
+  color:#edcba5;font-size:.79rem;line-height:1.45;
+}
+.storefront #configurador .limited-cup-sale-compact strong {
+  color:#ffe1ae;font-size:.90rem;letter-spacing:.01em;font-variant-numeric:tabular-nums;
+}
+.storefront #configurador .limited-cup-buy {
+  margin-top:9px;gap:9px;padding:12px 13px;
+}
+.storefront #configurador .limited-cup-stock-note {
+  margin:9px 0 0;display:flex;gap:7px;align-items:flex-start;
+  font-size:.73rem;line-height:1.45;color:#e7c7a4;
+}
+.storefront #configurador .limited-cup-stock-note span {color:#f4c58e;}
+.storefront #configurador .limited-cup-story-footer {margin-top:8px;padding-top:8px;}
+@media (max-width:359px) {
+  .storefront #configurador .limited-cup-sale-compact {font-size:.75rem;}
+  .storefront #configurador .limited-cup-buy {padding:10px 9px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .storefront #configurador .limited-cup-sale-compact {transition:none;}
+}
