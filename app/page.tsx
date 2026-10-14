@@ -1626,7 +1626,7 @@ export default function Home() {
             card_fee: Number(result.order.card_fee ?? 0),
             card_basis_points: result.order.card_basis_points ?? 0,
             total: Number(result.order.total)
-          }, result.order.order_number, trackingUrl, PIX_DETAILS, attribution, document.cookie),
+          }, result.order.order_number, trackingUrl, PIX_DETAILS), attribution, document.cookie),
       };
       // The request snapshot remains immutable even if a control changed while awaiting the server.
       setWhatsAppResult(registered);
