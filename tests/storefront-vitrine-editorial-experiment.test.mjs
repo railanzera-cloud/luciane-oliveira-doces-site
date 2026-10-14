@@ -266,15 +266,12 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(css.includes(".limited-cup-story-footer > button:focus-visible"));
 });
 
-test("v2 de lançamento exige três condições para anunciar disponibilidade", async () => {
+test("v2.9 respeita estado operacional e mantém as fotos reais", async () => {
   const cfg = await readFile(new URL("../app/limited-cup-release.ts", import.meta.url), "utf8");
-  assert.ok(cfg.includes("orderingIntegrated: true"));
-  assert.ok(cfg.includes("salesApprovedByStore: true"));
-  assert.ok(cfg.includes("inventoryVerifiedAvailable: true"));
-  assert.ok(cfg.includes("soldOutConfirmed: false"));
-  assert.ok(cfg.includes("nowMs < Date.parse(cfg.launchDayStart)"));
-  assert.ok(cfg.includes("cfg.orderingIntegrated && cfg.salesApprovedByStore && cfg.inventoryVerifiedAvailable"));
-  assert.ok(cfg.includes('return "awaiting-release"'));
+  assert.ok(cfg.includes('if (!ordersOpen) return "closed"'));
+  assert.ok(cfg.includes('if (anyCupAvailable) return "available"'));
+  assert.ok(cfg.includes('return allCupsSoldOut ? "sold-out" : "unavailable"'));
+  assert.doesNotMatch(cfg,/launchDayStart|2026-10-15/);
   assert.ok(!page.includes("Ainda não há foto do sabor chocolate"));
   assert.ok(!page.includes("Foto ilustrativa de copos maiores"));
 });
@@ -328,14 +325,13 @@ test("fotografias comerciais aprovadas sempre acompanham o codigo e o ZIP do Clo
   assert.ok(page.includes("/images/edicao-crocante-chocolate.webp"));
 });
 
-test("v107: fotografia correta, enquadramento central e lancamento em 15/10", async () => {
+test("v107: fotografia e enquadramento preservados na liberação operacional", async () => {
   const release = await readFile(new URL("../app/limited-cup-release.ts", import.meta.url), "utf8");
   assert.ok(page.includes("/images/categoria-pipocas-editorial-enquadrada-v107.webp"));
-  assert.ok(page.includes("EDIÇÃO LIMITADA · 15/10"));
-  assert.ok(page.includes("ESTREIA · QUINTA, 15/10"));
-  assert.ok(!page.includes("16/10"));
-  assert.ok(release.includes("2026-10-15T12:00:00-03:00"));
-  assert.ok(!release.includes("2026-10-16T00:00:00-03:00"));
+  assert.ok(page.includes("EDIÇÃO LIMITADA · DISPONÍVEL"));
+  assert.ok(page.includes("EDIÇÃO LIMITADA · LOJA FECHADA"));
+  assert.doesNotMatch(page,/ESTREIA · QUINTA, 15\/10/);
+  assert.ok(release.includes('if (!ordersOpen) return "closed"'));
   const lastPotRule = css.slice(css.lastIndexOf(".category-option:first-child .category-option-media img"));
   assert.ok(lastPotRule.includes("object-fit: cover"));
   assert.ok(lastPotRule.includes("object-position: 50% 50%"));
