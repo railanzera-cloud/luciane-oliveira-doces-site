@@ -8,7 +8,7 @@ import {
 export const AVAILABILITY_STATUSES = ["available", "sold_out", "hidden"] as const;
 
 export type AvailabilityStatus = (typeof AVAILABILITY_STATUSES)[number];
-export type AvailabilityItemType = "category" | "popcorn_size" | "popcorn_flavor" | "slice";
+export type AvailabilityItemType = "category" | "popcorn_size" | "popcorn_flavor" | "slice" | "product";
 
 export type MenuAvailabilityItem = {
   itemKey: string;
@@ -35,6 +35,10 @@ export type AvailabilitySnapshot = {
   loadedAt: number;
 };
 
+export const CROCANTES_ITEM_KEYS: Record<string, string> = {
+  "crocante-ninho": "crocante_copo_ninho",
+  "crocante-chocolate": "crocante_copo_chocolate",
+};
 export const CATEGORY_ITEM_KEYS: Record<CategoryId, string> = {
   pipocas: "category_pipocas",
   fatias: "category_fatias",
@@ -105,6 +109,8 @@ const SLICE_ITEMS: MenuAvailabilityItem[] = SLICES.map((slice) => ({
 
 export const MENU_AVAILABILITY_ITEMS: MenuAvailabilityItem[] = [
   ...CATEGORY_ITEMS,
+  { itemKey: CROCANTES_ITEM_KEYS["crocante-ninho"], name: "Crocantes — Ninho (400 ml)", itemType: "product", categoryKey: CATEGORY_ITEM_KEYS.pipocas },
+  { itemKey: CROCANTES_ITEM_KEYS["crocante-chocolate"], name: "Crocantes — Chocolate (400 ml)", itemType: "product", categoryKey: CATEGORY_ITEM_KEYS.pipocas },
   ...POPCORN_SIZE_ITEMS,
   ...POPCORN_FLAVOR_ITEMS,
   ...SLICE_ITEMS,
@@ -128,6 +134,7 @@ export function createFallbackAvailability(): AvailabilitySnapshot {
   for (const option of POPCORN.options) {
     statuses[POPCORN_FLAVOR_ITEM_KEYS[option.id]] = staticStatus(POPCORN.available && option.available);
   }
+  for (const key of Object.values(CROCANTES_ITEM_KEYS)) statuses[key] = "sold_out";
   for (const slice of SLICES) {
     statuses[SLICE_ITEM_KEYS[slice.id]] = staticStatus(Boolean(slice.available && slice.variants[0]?.available));
   }

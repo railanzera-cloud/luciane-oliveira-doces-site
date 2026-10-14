@@ -83,6 +83,20 @@ export const SLICE_OPTIONS: ProductOption[] = [
 // Catálogo central: preços, fotos e disponibilidade são alterados somente aqui.
 export const PRODUCTS: Product[] = [
   {
+    id: "crocante-ninho", kind: "popcorn", category: "Pipocas Crocantes",
+    name: "Caramelo com Leite Ninho", available: true,
+    image: "/images/edicao-crocante-ninho.webp", imageAlt: "Copo Crocantes Ninho",
+    variants: [{ id: "400ml", label: "400 ml · 190 g", whatsappLabel: "400 ml · 190 g", price: 15.9, maxOptions: 0, available: true }],
+    options: [],
+  },
+  {
+    id: "crocante-chocolate", kind: "popcorn", category: "Pipocas Crocantes",
+    name: "Caramelo com Chocolate", available: true,
+    image: "/images/edicao-crocante-chocolate.webp", imageAlt: "Copo Crocantes Chocolate",
+    variants: [{ id: "400ml", label: "400 ml · 190 g", whatsappLabel: "400 ml · 190 g", price: 15.9, maxOptions: 0, available: true }],
+    options: [],
+  },
+  {
     id: "pipoca-gourmet",
     kind: "popcorn",
     category: "Pipocas Gourmet",

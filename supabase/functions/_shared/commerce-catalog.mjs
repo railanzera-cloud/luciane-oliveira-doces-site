@@ -1,7 +1,12 @@
 import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
-export const CATALOG_VERSION = "2026-09-29.sauce";
+export const CATALOG_VERSION = "2026-10-15.crocantes";
+export const CROCANTES_OPEN_AT_MS = Date.parse("2026-10-15T12:00:00-03:00");
+export const CROCANTES = Object.freeze({
+  "crocante-ninho": Object.freeze({ itemKey: "crocante_copo_ninho", name: "Pipocas Crocantes — Caramelo com Leite Ninho", priceCents: 1590 }),
+  "crocante-chocolate": Object.freeze({ itemKey: "crocante_copo_chocolate", name: "Pipocas Crocantes — Caramelo com Chocolate", priceCents: 1590 }),
+});
 
 export const CATEGORY_ITEM_KEYS = Object.freeze({
   pipocas: "category_pipocas",
@@ -102,6 +107,21 @@ export function quoteCartItems(rawItems, now = Date.now()) {
     const optionIds = rawOptionIds.map((id) => requiredString(id, "sabor", 80));
     if (new Set(optionIds).size !== optionIds.length) throw new Error("Não repita o mesmo sabor.");
 
+    if (Object.hasOwn(CROCANTES, productId)) {
+      const cup = CROCANTES[productId];
+      if (now < CROCANTES_OPEN_AT_MS) throw new Error("Vendas dos copos Crocantes a partir de 15/10, às 12h (Paragominas).");
+      if (variantId !== "400ml" || optionIds.length !== 0) throw new Error("Escolha um copo Crocantes válido de 400 ml.");
+      availabilityKeys.add(CATEGORY_ITEM_KEYS.pipocas);
+      availabilityKeys.add(cup.itemKey);
+      return {
+        item_key: cup.itemKey, product_id: productId,
+        category_key: CATEGORY_ITEM_KEYS.pipocas, item_type: "popcorn",
+        name: cup.name, variant_id: "400ml", variant_item_key: cup.itemKey,
+        size_label: "400 ml · 190 g", option_ids: [], option_item_keys: [],
+        option_names: [], quantity, unit_price_cents: cup.priceCents,
+        line_total_cents: cup.priceCents * quantity, catalog_version: CATALOG_VERSION,
+      };
+    }
     if (productId === "pipoca-gourmet") {
       const size = POPCORN_SIZES[variantId];
       if (!size) throw new Error("Escolha um tamanho atual de pipoca.");
