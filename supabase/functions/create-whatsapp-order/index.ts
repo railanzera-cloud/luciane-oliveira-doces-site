@@ -5,7 +5,7 @@ const ORDER_ID_PATTERN = /^LOD-(?:[0-9A-HJKMNP-TV-Z]{4}-){2}[0-9A-HJKMNP-TV-Z]{4
 const PAYMENT_METHODS = new Set(["manual_pix", "card_on_delivery", "cash"]);
 const DEFAULT_ALLOWED_ORIGINS = ["https://lucianeoliveiradoces.pages.dev", "https://luciane-oliveira-doces.railanzera.chatgpt.site"];
 // Somente esta implantação Preview foi aprovada para testes até a estreia.
-const CROCANTES_TEST_PREVIEW_ORIGIN = "https://90.lucianeoliveiradoces.pages.dev";
+const CROCANTES_TEST_PREVIEW_ORIGIN = "https://56.lucianeoliveiradoces.pages.dev";
 class HttpError extends Error {
   status: number;
   code: string;

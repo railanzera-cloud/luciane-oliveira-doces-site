@@ -194,3 +194,9 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **Segurança:** sem edição em Supabase, Edge Functions, regras de lançamento, preços, limite, fotografias, backend ou integrações. O código de homologação privado não vai para o repositório nem para o JS compilado. Testes e experiência no Safari/Instagram devem ser validados; nenhuma publicação automática em Cloudflare.
 
 - **CI corretiva 2.7:** asserções legadas revisadas para o botão progressivo autorizado na edição, rótulo sem ambiguidade `Outro pote recheado` e CSS de escopo fechado. Funções isoladas do checkout mantêm proteção `typeof` para o novo contexto Crocantes, preservando casos de Pix/dinheiro/crédito/débito. A primeira execução (411/425) falhou devido a expectativas da interface anterior; não ocorreu alteração de backend comercial ou banco.
+
+### Troca de endereço Preview 90 → 56, em 14/10/2026
+- **Solicitação do responsável:** novo Preview de homologação `https://56.lucianeoliveiradoces.pages.dev`.
+- **Ajuste mínimo de backend:** substituir exclusivamente `CROCANTES_TEST_PREVIEW_ORIGIN` de `90` para `56` na função `create-whatsapp-order`. Preview `90` deixa de ser autorizado por esta exceção; nenhuma autorização wildcard.
+- Manter a origem de produção e as demais origens previamente configuradas, verificação de código SHA-256 no Supabase, bloqueio por data em 15/10/2026 às 12h (Paragominas) e sinalização de pedido de teste.
+- **Sem alteração no frontend:** o pacote Premium 2.7 já publicado em Preview pelo responsável permanece válido, sem necessidade de nova instalação em Cloudflare para essa liberação de origem. A homologação manual de compras no iPhone e o envio efetivo da mensagem WhatsApp seguem pendentes.
