@@ -81,7 +81,7 @@ test("both available: neutral entry, balanced choices, no default builder or emp
   assert.equal(navigation.resolveMenuCategory(snapshot(), null), null);
   const html = renderMenu(snapshot());
   assert.match(html, /Escolha o que deseja pedir/);
-  for (const name of ["Pipocas Gourmet", "Fatias Artesanais"]) assert.match(html, new RegExp(`aria-label="${name}"`));
+  for (const name of ["Pipocas Gourmet — Montar meu pote", "Fatias Artesanais — Escolher minha fatia"]) assert.match(html, new RegExp(`aria-label="${name}"`));
   assert.doesNotMatch(html, /id="configurador"|id="carrinho"|mobile-sticky-bar/);
 });
 
