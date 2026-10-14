@@ -11,7 +11,7 @@ test("barra Crocantes orienta sabor/quantidade sem duplicar botao visivel",()=>{
   assert.ok(page.includes('typeof cupBuilderFlowActive !== "undefined" && cupBuilderFlowActive) handleCupPurchaseAction()'));
   assert.ok(page.includes('className={\`mobile-sticky-bar'));
 });
-test("ativacao de teste e selecao encaminham para a proxima etapa",()=>{
+test("selecao de sabor encaminha diretamente para a proxima etapa",()=>{
   assert.ok(page.includes('requestScroll("crocantes-sabores")'));
   assert.ok(page.includes('requestScroll("crocantes-quantidade")'));
   assert.ok(page.includes('id="crocantes-sabores"'));
@@ -28,12 +28,12 @@ test("copo adicionado usa o checkout e continuidade existentes",()=>{
   assert.ok(page.includes('cupCanBeAddedFromCheckout && <Button'));
   assert.ok(css.includes('.boutique-added-other-actions.has-crocantes-option'));
 });
-test("sem mudancas no backend, calculo ou data de venda",()=>{
+test("carrinho e servidor não possuem mais a data como trava",()=>{
   const rel=read("app/limited-cup-release.ts");
   const backend=read("supabase/functions/_shared/commerce-catalog.mjs");
-  assert.ok(rel.includes('2026-10-15T12:00:00-03:00'));
+  assert.ok(rel.includes('if (!ordersOpen) return "closed"'));
   assert.ok(backend.includes('priceCents: 1590'));
-  assert.ok(page.includes('preview_token: cupTestCode'));
+  assert.doesNotMatch(backend,/CROCANTES_OPEN_AT_MS/);
   assert.ok(page.includes('createWhatsAppOrder({'));
   assert.ok(css.includes('prefers-reduced-motion:reduce'));
 });
