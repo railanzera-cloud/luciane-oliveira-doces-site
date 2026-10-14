@@ -1095,7 +1095,7 @@ test('direct category navigation isolates the cup campaign, rejects unavailable 
 test('limited campaign opens in discovery, without altering saved cart', () => {
   let category=null,preview=false,engaged=true,scroll=null;
   const open=pageFunction('openLimitedCupEdition',{
-    categoryIsAvailable:()=>true,setShowLimitedCupView:value=>preview=value,setCupFlavorPreview:()=>{},
+    categoryIsAvailable:()=>true,setShowLimitedCupView:value=>preview=value,setCupFlavorPreview:()=>{},setCupAddedNotice:()=>{},
     categoryFromUrl:navigation.categoryFromUrl,
     setRequestedCategory:value=>category=value,setEditingId:()=>{},setSelectionMessage:()=>{},setAddedNotice:()=>{},
     setBuilderEngaged:value=>engaged=value,setCart:()=>assert.fail('Preview must preserve cart'),

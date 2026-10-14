@@ -137,3 +137,5 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **Controle:** não tocar no projeto Luciane Gestão, no main, no Mercado Pago e em outras campanhas. Teste adicional `tests/uiux-premium-26-crocantes-commerce.test.mjs` e suíte completa no Actions. Homologação real Instagram/Safari e verificação da integração backend antes da abertura.
 
 - **Refinamento de compatibilidade dos testes 2.6:** o novo primeiro commit inseria os copos antes do produto principal; foi corrigido para manter Pipocas Gourmet como primeiro produto do catálogo. As funções testadas isoladamente por `menu-refinement.test.mjs` agora usam verificação local de ID, sem dependência de helper exterior; testes anteriores atualizados para refletir a abertura autorizada às 12h. Sem ajuste adicional em pagamento, WhatsApp ou disponibilidade comercial.
+
+- **Homologação técnica:** suíte 2.6 passou 411/412; teste antigo do modo vitrine não injetava o novo callback de limpeza da mensagem `setCupAddedNotice` na função isolada. Mock de teste corrigido sem remover a limpeza real nem alterar fluxos comerciais; executar CI novamente.
