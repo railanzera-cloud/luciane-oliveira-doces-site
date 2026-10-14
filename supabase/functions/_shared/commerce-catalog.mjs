@@ -115,7 +115,7 @@ export function quoteCartItems(rawItems, now = Date.now()) {
         item_key: cup.itemKey, product_id: productId,
         category_key: CATEGORY_ITEM_KEYS.pipocas, item_type: "popcorn",
         name: cup.name, variant_id: "400ml", variant_item_key: cup.itemKey,
-        size_label: "400 ml · 190 g", option_ids: [], option_item_keys: [],
+        size_label: "400 ml", option_ids: [], option_item_keys: [],
         option_names: [], quantity, unit_price_cents: cup.priceCents,
         line_total_cents: cup.priceCents * quantity, catalog_version: CATALOG_VERSION,
       };

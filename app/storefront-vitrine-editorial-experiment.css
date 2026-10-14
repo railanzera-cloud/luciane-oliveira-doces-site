@@ -2154,3 +2154,24 @@
     padding: 8px 10px;
   }
 }
+
+/* Crocantes Premium 2.9.2 — loja fechada: conhecer sabores sem formulário de compra. */
+.storefront #configurador .limited-cup-flavor-summary {
+  display: flex;
+  gap: 4px 9px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  scroll-margin-top: 24px;
+  color: #e9cbaa;
+  font-size: .76rem;
+  line-height: 1.45;
+}
+.storefront #configurador .limited-cup-flavor-summary:empty { display: none; }
+.storefront #configurador .limited-cup-flavor-summary strong {
+  color: #ffdeae;
+  font-weight: 750;
+}
+@media (max-width:359px) {
+  .storefront #configurador .limited-cup-flavor-summary { font-size: .73rem; }
+}

@@ -480,7 +480,7 @@ export default function Home() {
     requestScroll("crocantes-quantidade");
   }
   const cupLaunchCopy = cupPhase === "closed"
-    ? { eyebrow: "EDIÇÃO LIMITADA · LOJA FECHADA", description: "Pedidos encerrados por hoje. Você ainda pode conhecer os sabores." }
+    ? { eyebrow: "EDIÇÃO LIMITADA · LOJA FECHADA", description: "As vendas estão pausadas. Você ainda pode conhecer os sabores." }
     : cupPhase === "sold-out"
       ? { eyebrow: "EDIÇÃO LIMITADA · ESGOTADA", description: "A edição em copos chegou ao fim, sem reposição." }
       : cupPhase === "unavailable"
@@ -1232,7 +1232,7 @@ export default function Home() {
     const product = PRODUCTS.find((candidate) => candidate.id === cupProductId);
     const variant = product?.variants[0];
     if (!product || !variant || !cupCanOrder) {
-      setCupAddedNotice(!availability.ordersOpen ? "Pedidos encerrados por hoje." : "Este copo ainda não está disponível.");
+      setCupAddedNotice(!availability.ordersOpen ? "A loja está fechada no momento." : "Este copo ainda não está disponível.");
       return;
     }
     cupAddLockRef.current = true;
@@ -1902,12 +1902,12 @@ export default function Home() {
               <div className="limited-cup-story-bottom">
                 {cupSalesEnabled ? (
                   <div className="limited-cup-sale-compact" aria-label="Informações do copo">
-                    <span>400 ml · 190 g</span><strong>R$ 15,90 por copo</strong>
+                    <span>400 ml</span><strong>R$ 15,90 por copo</strong>
                   </div>
                 ) : (
                 <div className="limited-cup-story-sale">
                   <div className="limited-cup-story-price"><span>EDIÇÃO ESPECIAL</span><strong>R$ 15,90</strong><small>por copo</small></div>
-                  <div className="limited-cup-story-measure" aria-label="Medidas do copo"><span aria-label="Volume de 400 mililitros">400 ml</span><span aria-label="Peso de 190 gramas">190 g</span></div>
+                  <div className="limited-cup-story-measure" aria-label="Volume do copo"><span aria-label="Volume de 400 mililitros">400 ml</span></div>
                 </div>
                 )}
                 {!cupSalesEnabled && <div id="limited-cup-flavor-panel" className="limited-cup-flavor-slot">
@@ -1920,7 +1920,17 @@ export default function Home() {
                     <p className="limited-cup-flavor-hint">Toque em um copo para ver os detalhes do sabor.</p>
                   )}
                 </div>}
-                {cupSalesEnabled && (
+                {cupSalesEnabled && cupPhase !== "available" && (
+                  <div className="limited-cup-flavor-summary" id="crocantes-quantidade" role="status" aria-live="polite">
+                    {cupFlavorPreview && (
+                      <>
+                        <strong>{cupFlavorPreview === "ninho" ? "Ninho" : "Chocolate"}</strong>
+                        <span>{cupFlavorPreview === "ninho" ? "Caramelizadas com leite em pó." : "Caramelizadas com crosta de chocolate."}</span>
+                      </>
+                    )}
+                  </div>
+                )}
+                {cupSalesEnabled && cupPhase === "available" && (
                   <div className="limited-cup-buy" id="crocantes-quantidade" aria-label="Quantidade e inclusão no pedido">
                     <div className="limited-cup-buy-heading"><strong>02 · QUANTOS COPOS?</strong><small>{cupFlavorPreview ? (cupFlavorPreview === "ninho" ? "Ninho — caramelizadas com leite em pó." : "Chocolate — caramelizadas com crosta de chocolate.") : "Primeiro selecione Ninho ou Chocolate acima."}</small></div>
                     <div className="limited-cup-buy-actions">
