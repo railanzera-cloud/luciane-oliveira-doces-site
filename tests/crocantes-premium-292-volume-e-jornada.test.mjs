@@ -12,10 +12,10 @@ const section = page.slice(page.indexOf('<section className="limited-cup-story"'
 
 test("somente volume de 400 ml, sem peso na vitrine, carrinho ou pedido estruturado", () => {
   assert.ok(section.includes('<span>400 ml</span><strong>R$ 15,90 por copo</strong>'));
-  assert.doesNotMatch(section, /190\\s*g|190 gramas/);
+  assert.doesNotMatch(section, /190\s*g|190 gramas/);
   assert.equal((catalog.match(/label: "400 ml", whatsappLabel: "400 ml"/g) ?? []).length, 2);
   assert.ok(quoteSource.includes('size_label: "400 ml"'));
-  assert.doesNotMatch(quoteSource, /190\\s*g/);
+  assert.doesNotMatch(quoteSource, /190\s*g/);
   for (const product_id of ["crocante-ninho", "crocante-chocolate"]) {
     const [item] = quoteCartItems([{ product_id, variant_id: "400ml", option_ids: [], quantity: 1 }]).items;
     assert.equal(item.size_label, "400 ml");
