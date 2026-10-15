@@ -131,6 +131,7 @@ function receipt(claim: PrintClaim): string {
     "\x1B\x61\x01",
     "LUCIANE OLIVEIRA DOCES",
     `PEDIDO #${claim.order.order_number}`,
+    ...(claim.job.kind === "reprint" ? ["*** REIMPRESSAO ***"] : []),
     new Date(claim.order.created_at).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
     paymentLine(claim),
     "\x1B\x61\x00",
