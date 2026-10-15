@@ -147,3 +147,12 @@ test("eventos perdidos no Realtime são retomados pelo polling seguro em primeir
   assert.match(admin, /\}, 15000\)/);
   assert.match(qz, /if \(!\(await kitchenPrintIsEnabled\(client\)\)\) return 0/);
 });
+
+test("queda do websocket é recuperada antes de enviar comanda", () => {
+  const start = qz.indexOf("async function printClaim(");
+  const end = qz.indexOf("export async function kitchenPrintIsEnabled", start);
+  const segment = qz.slice(start,end);
+  assert.match(segment, /!qz\.websocket\.isActive\(\)/);
+  assert.match(segment, /qz\.websocket\.connect\(\{ retries: 2, delay: 1 \}\)/);
+  assert.ok(segment.indexOf("qz.websocket.connect") < segment.indexOf("await qz.print"));
+});
