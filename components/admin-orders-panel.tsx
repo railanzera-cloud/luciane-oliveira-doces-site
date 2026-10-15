@@ -152,6 +152,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const [printerReady, setPrinterReady] = useState(false);
   const [printerName, setPrinterName] = useState("");
   const [printerTested, setPrinterTested] = useState(false);
+  const [printGateEnabled, setPrintGateEnabled] = useState(false);
   const [printing, setPrinting] = useState(false);
   const knownActionableRef = useRef(new Set<string>());
   const initializedRef = useRef(false);
@@ -347,6 +348,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       const enabled = await kitchenPrintIsEnabled(client);
       setPrinterName(printer);
       setPrinterReady(true);
+      setPrintGateEnabled(enabled);
       setNotice(enabled
         ? `Impressora conectada: ${printer}. Fila protegida ativa; aguardando comandas elegíveis.`
         : `Impressora conectada: ${printer}. Impressão automática desativada com segurança.`);
@@ -371,6 +373,35 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     } catch (testError) {
       setPrinterTested(false);
       setError(testError instanceof Error ? testError.message : "O teste de impressão falhou.");
+    } finally {
+      printingRef.current = false;
+      setPrinting(false);
+    }
+  }
+
+  async function togglePrintAutomation() {
+    if (!printerReady || printingRef.current) return;
+    const next = !printGateEnabled;
+    if (next && !printerTested) {
+      setError("Faça e confira a impressão local antes de ativar a fila automática.");
+      return;
+    }
+    if (!window.confirm(next
+      ? "Ativar impressão automática SOMENTE para novos pedidos elegíveis? A fila antiga será ignorada."
+      : "Pausar a impressão automática da cozinha?")) return;
+    printingRef.current = true;
+    setPrinting(true);
+    setError("");
+    try {
+      const { data, error } = await client.rpc("admin_set_kitchen_print_enabled", { p_enabled: next });
+      if (error || !data || typeof data !== "object" || (data as { enabled?: unknown }).enabled !== next)
+        throw new Error("Servidor não confirmou a mudança. Impressão não foi ativada.");
+      setPrintGateEnabled(next);
+      setNotice(next
+        ? "Impressão automática ativada apenas para pedidos novos e elegíveis."
+        : "Impressão automática pausada.");
+    } catch (automationError) {
+      setError(automationError instanceof Error ? automationError.message : "Não foi possível alterar a impressão.");
     } finally {
       printingRef.current = false;
       setPrinting(false);
@@ -431,7 +462,10 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
         <Button type="button" variant={alertsEnabled ? "default" : "outline"} onClick={() => void enableAlerts()}><BellRing size={17} /> {alertsEnabled ? "Alertas ativados" : alertsPreferred ? "Reativar alertas" : "Ativar alertas da cozinha"}</Button>
         <Button type="button" variant={printerReady ? "default" : "outline"} onClick={() => printerReady ? void processPrints() : void enablePrinter()} disabled={printing}>{printing ? <LoaderCircle className="admin-spinner" size={17} /> : <Printer size={17} />} {printerReady ? printerName || "Processar impressão" : "Conectar impressão 58 mm"}</Button>
         {printerReady && <Button type="button" variant="outline" onClick={() => void printLocalTest()} disabled={printing}><Printer size={17} /> Imprimir teste local</Button>}
-        {printerReady && printerTested && <small role="status">Teste enviado. Confirme se saiu no papel antes de ativar o sistema.</small>}
+        {printerReady && <Button type="button" variant={printGateEnabled ? "default" : "outline"} onClick={() => void togglePrintAutomation()} disabled={printing || (!printGateEnabled && !printerTested)}>{printGateEnabled ? "Pausar impressão automática" : "Ativar impressão automática"}</Button>}
+        {printerReady && !printGateEnabled && !printerTested && <small role="status">Imprima o teste local e confira o papel para habilitar a ativação.</small>}
+        {printerReady && printerTested && !printGateEnabled && <small role="status">Teste enviado. Confira fisicamente o papel antes de ativar a fila.</small>}
+        {printerReady && printGateEnabled && <small role="status">Fila automática ligada — somente pedidos elegíveis posteriores à ativação.</small>}
       </div>
 
       {notice && <div className="admin-notice" role="status"><Check size={16} />{notice}</div>}
