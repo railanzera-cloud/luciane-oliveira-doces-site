@@ -146,3 +146,13 @@ A função `supabase/functions/qz-sign/index.ts` utiliza:
 7. Ativar explicitamente a automação somente após confirmação de impressão física, segurança e estados comerciais; revalidar filas antes de ativar.
 
 **Estado:** a base comercial e o QZ signing endpoint ainda não foram implantados nesta etapa. Nenhuma comanda real deve ser impressa por esta branch até que esses bloqueios sejam resolvidos.
+
+### Integração na base Premium mais recente (15/10/2026)
+
+- Base de integração: `cf7932fd953c7aaadb865cc9265616bd0b6e2c44` da branch editorial.
+- Branch candidata: `work/cozinha-integracao-segura-20261015`.
+- Os arquivos `components/admin-orders-panel.tsx` e `lib/qz-print-client.ts` foram os únicos arquivos existentes do frontend substituídos; eram idênticos na base antiga e na Premium atual.
+- Migração com `enabled=false`, testes de impressão e documentação foram adicionados, não executados.
+- `main`, branch editorial, produção Cloudflare e banco Supabase não foram modificados.
+- Workflow próprio nesta branch valida código e testes sem publicação.
+- Segurança: testes não equivalem a SQL em um banco de testes nem à autorização QZ/certificados no notebook.
