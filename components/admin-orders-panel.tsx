@@ -151,6 +151,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const [alertsPreferred, setAlertsPreferred] = useState(false);
   const [printerReady, setPrinterReady] = useState(false);
   const [printerName, setPrinterName] = useState("");
+  const [printerTested, setPrinterTested] = useState(false);
   const [printing, setPrinting] = useState(false);
   const knownActionableRef = useRef(new Set<string>());
   const initializedRef = useRef(false);
@@ -281,6 +282,16 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     };
   }, [processEffects]);
 
+  // O Realtime pode perder eventos durante suspensão/reconexão: polling seguro
+  // em primeiro plano complementa a fila com gate no servidor.
+  useEffect(() => {
+    if (!printerReady) return;
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") void processPrints();
+    }, 15000);
+    return () => window.clearInterval(timer);
+  }, [printerReady, processPrints]);
+
   useEffect(() => {
     const initialLoad = window.setTimeout(() => void reload(), 0);
     const channel = client.channel("admin-orders-live")
@@ -327,6 +338,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     printingRef.current = true;
     setPrinting(true);
     setError("");
+    setPrinterTested(false);
     try {
       const { connectKitchenPrinter, kitchenPrintIsEnabled } = await import("@/lib/qz-print-client");
       // Conectar hardware NÃO pode consumir a fila de impressão implicitamente.
@@ -340,6 +352,25 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
         : `Impressora conectada: ${printer}. Impressão automática desativada com segurança.`);
     } catch (printerError) {
       setError(printerError instanceof Error ? printerError.message : "Não foi possível conectar ao QZ Tray.");
+    } finally {
+      printingRef.current = false;
+      setPrinting(false);
+    }
+  }
+
+  async function printLocalTest() {
+    if (!printerReady || printingRef.current) return;
+    printingRef.current = true;
+    setPrinting(true);
+    setError("");
+    try {
+      const { testKitchenPrinter } = await import("@/lib/qz-print-client");
+      await testKitchenPrinter();
+      setPrinterTested(true);
+      setNotice("Teste enviado para a POS-58. Confira fisicamente o papel antes de ativar a fila.");
+    } catch (testError) {
+      setPrinterTested(false);
+      setError(testError instanceof Error ? testError.message : "O teste de impressão falhou.");
     } finally {
       printingRef.current = false;
       setPrinting(false);
@@ -399,6 +430,8 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       <div className="admin-kitchen-tools">
         <Button type="button" variant={alertsEnabled ? "default" : "outline"} onClick={() => void enableAlerts()}><BellRing size={17} /> {alertsEnabled ? "Alertas ativados" : alertsPreferred ? "Reativar alertas" : "Ativar alertas da cozinha"}</Button>
         <Button type="button" variant={printerReady ? "default" : "outline"} onClick={() => printerReady ? void processPrints() : void enablePrinter()} disabled={printing}>{printing ? <LoaderCircle className="admin-spinner" size={17} /> : <Printer size={17} />} {printerReady ? printerName || "Processar impressão" : "Conectar impressão 58 mm"}</Button>
+        {printerReady && <Button type="button" variant="outline" onClick={() => void printLocalTest()} disabled={printing}><Printer size={17} /> Imprimir teste local</Button>}
+        {printerReady && printerTested && <small role="status">Teste enviado. Confirme se saiu no papel antes de ativar o sistema.</small>}
       </div>
 
       {notice && <div className="admin-notice" role="status"><Check size={16} />{notice}</div>}
