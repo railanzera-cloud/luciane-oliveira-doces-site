@@ -1,6 +1,6 @@
 // Authenticated signing bridge for QZ Tray. The private key never reaches the
 // browser; without the optional QZ secrets the rest of the order system works.
-import { createPrivateKey, createSign, X509Certificate } from "node:crypto";
+import { createPrivateKey, createPublicKey, createSign, X509Certificate } from "node:crypto";
 
 const DEFAULT_ALLOWED_ORIGINS = [
   "https://lucianeoliveiradoces.pages.dev",
@@ -35,12 +35,15 @@ function cors(origin: string | null): HeadersInit {
 
 function publishableKey(): string {
   const configured = Deno.env.get("SUPABASE_PUBLISHABLE_KEYS");
-  if (!configured) throw new HttpError(503, "backend_not_configured", "Assinatura QZ não configurada.");
-  try {
-    const key = Object.values(JSON.parse(configured) as Record<string, string>).find(Boolean);
-    if (key) return key;
-  } catch { /* handled below */ }
-  throw new HttpError(503, "backend_not_configured", "Assinatura QZ não configurada.");
+  if (configured) {
+    try {
+      const key = Object.values(JSON.parse(configured) as Record<string, string>).find(Boolean);
+      if (key) return key;
+    } catch { /* Fallback to the standard Supabase environment below. */ }
+  }
+  const defaultKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (defaultKey) return defaultKey;
+  throw new HttpError(503, "backend_not_configured", "Chave pública Supabase não configurada.");
 }
 
 async function requireAdmin(request: Request): Promise<void> {
@@ -62,13 +65,29 @@ async function requireAdmin(request: Request): Promise<void> {
   if (!admins.has(user.id.toLowerCase())) throw new HttpError(403, "admin_required", "Apenas administradores da loja podem autorizar impressão.");
 }
 
-function publicCertificate(): string {
-  const certificate = Deno.env.get("QZ_CERTIFICATE");
-  if (!certificate) throw new HttpError(503, "qz_not_configured", "Certificado QZ ainda não configurado.");
-  // Never forward a secret mistakenly pasted into the public certificate slot.
-  if (/PRIVATE KEY/.test(certificate)) throw new HttpError(503, "invalid_qz_certificate", "Confira a configuração do certificado público QZ no servidor.");
-  try { return new X509Certificate(certificate).toString(); }
-  catch { throw new HttpError(503, "invalid_qz_certificate", "Certificado público QZ inválido."); }
+function checkedSigningPair(): { certificate: string; privateKeyPem: string } {
+  const certificatePem = Deno.env.get("QZ_CERTIFICATE");
+  const privateKeyPem = Deno.env.get("QZ_PRIVATE_KEY_PEM");
+  if (!certificatePem || !privateKeyPem) {
+    throw new HttpError(503, "qz_not_configured", "Certificado e assinatura QZ ainda não configurados.");
+  }
+  // Fail closed: an incomplete or mismatched keypair cannot be used to sign.
+  if (/PRIVATE KEY/.test(certificatePem)) {
+    throw new HttpError(503, "invalid_qz_certificate", "Certificado público QZ inválido.");
+  }
+  try {
+    const certificate = new X509Certificate(certificatePem);
+    const privateKey = createPrivateKey(privateKeyPem);
+    const expected = certificate.publicKey.export({ type: "spki", format: "pem" });
+    const actual = createPublicKey(privateKey).export({ type: "spki", format: "pem" });
+    if (expected !== actual) {
+      throw new HttpError(503, "qz_pair_mismatch", "Certificado e chave QZ não correspondem.");
+    }
+    return { certificate: certificate.toString(), privateKeyPem };
+  } catch (error) {
+    if (error instanceof HttpError) throw error;
+    throw new HttpError(503, "invalid_qz_keypair", "Certificado ou chave QZ inválidos.");
+  }
 }
 
 Deno.serve(async (request: Request) => {
@@ -81,14 +100,13 @@ Deno.serve(async (request: Request) => {
     const body = await request.json().catch(() => null) as Record<string, unknown> | null;
     const action = body?.action;
     if (action === "certificate") {
-      const certificate = publicCertificate();
+      const certificate = checkedSigningPair().certificate;
       return new Response(JSON.stringify({ ok: true, certificate }), { status: 200, headers: cors(origin) });
     }
     if (action !== "sign" || typeof body?.request !== "string" || body.request.length > 100000) {
       throw new HttpError(400, "invalid_sign_request", "Solicitação de assinatura inválida.");
     }
-    const privateKeyPem = Deno.env.get("QZ_PRIVATE_KEY_PEM");
-    if (!privateKeyPem) throw new HttpError(503, "qz_not_configured", "Chave de assinatura QZ ainda não configurada.");
+    const { privateKeyPem } = checkedSigningPair();
     const signer = createSign("RSA-SHA512");
     signer.update(body.request, "utf8");
     signer.end();
