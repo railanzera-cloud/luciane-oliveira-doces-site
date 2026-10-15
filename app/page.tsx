@@ -107,6 +107,16 @@ type CartItem = {
   quantity: number;
 };
 
+/** Rótulos de recompra devem refletir o carrinho, sem tratar Crocantes como potes Gourmet. */
+function addMoreButtonLabel(category: CategoryId, cart: CartItem[]): string {
+  if (category === "pipocas") {
+    return cart.some((item) => item.productId === POPCORN.id)
+      ? "Outro pote recheado" : "Adicionar pote recheado";
+  }
+  return cart.some((item) => SLICES.some((slice) => slice.id === item.productId))
+    ? "Outra fatia" : "Adicionar fatia";
+}
+
 type Fulfillment = "entrega" | "retirada" | "";
 type WhatsAppPayment = "pix" | "dinheiro" | "cartao" | "credito" | "debito";
 type Payment = WhatsAppPayment | SitePaymentMethod | "";
@@ -2421,8 +2431,8 @@ export default function Home() {
                   <div className="cart-add-more">
                     <strong>Adicionar mais itens</strong>
                     <div className={`cart-add-options ${STORE_CONFIG.enabledExtras.drinks ? "" : "without-drinks"} ${cupCanBeAddedFromCheckout ? "has-crocantes-option" : ""}`}>
-                      {fatiasAvailable && <Button type="button" variant="outline" onClick={() => startAnother("fatias")}><CakeSlice size={16} /> Outra fatia</Button>}
-                      {pipocasAvailable && <Button type="button" variant="outline" onClick={() => startAnother("pipocas")}><Plus size={16} /> Outro pote recheado</Button>}
+                      {fatiasAvailable && <Button type="button" variant="outline" onClick={() => startAnother("fatias")}><CakeSlice size={16} /> {addMoreButtonLabel("fatias", cart)}</Button>}
+                      {pipocasAvailable && <Button type="button" variant="outline" onClick={() => startAnother("pipocas")}><Plus size={16} /> {addMoreButtonLabel("pipocas", cart)}</Button>}
                       {cupCanBeAddedFromCheckout && <Button type="button" variant="outline" className="crocantes-cross-sell" onClick={startAnotherCrocantes}><ShoppingBag size={16} /> {cartContainsCrocantes ? "Adicionar outro copo" : "Adicionar copo Crocante"} <ChevronRight size={15} aria-hidden="true" /></Button>}
                       {STORE_CONFIG.enabledExtras.drinks && <Button type="button" variant="outline" onClick={() => scrollToSection("acompanhamentos")}><CupSoda size={16} /> Refrigerante</Button>}
                     </div>
@@ -2451,7 +2461,7 @@ export default function Home() {
                       {addMoreCategories.filter((category) => categoryIsAvailable(category)).map((category) => (
                         <Button type="button" key={category} variant="outline" onClick={() => startAnother(category)}>
                           {category === "pipocas" ? <Plus size={15} aria-hidden="true" /> : <CakeSlice size={15} aria-hidden="true" />}
-                          {category === "pipocas" ? "Outro pote recheado" : "Outra fatia"}
+                          {addMoreButtonLabel(category, cart)}
                         </Button>
                       ))}
                       {cupCanBeAddedFromCheckout && <Button type="button" variant="outline" className="crocantes-cross-sell" onClick={startAnotherCrocantes}><ShoppingBag size={15} aria-hidden="true" /> {cartContainsCrocantes ? "Adicionar outro copo" : "Adicionar copo Crocante"} <ChevronRight size={15} aria-hidden="true" /></Button>}
