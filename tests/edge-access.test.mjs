@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
-import { createPrivateKey, createSign, generateKeyPairSync, verify, webcrypto, X509Certificate } from "node:crypto";
+import { createPrivateKey, createPublicKey, createSign, generateKeyPairSync, verify, webcrypto, X509Certificate } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, readFileSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import vm from "node:vm";
@@ -15,6 +19,20 @@ const otherId = "22222222-2222-4222-8222-222222222222";
 const origin = "https://lucianeoliveiradoces.pages.dev";
 const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
 const testPrivatePem = privateKey.export({ type: "pkcs8", format: "pem" });
+// Gerar um certificado TESTE correspondente em diretório temporário, nunca
+// colocar qualquer chave da Luciane ou segredo fixo nos testes/repositório.
+const qzTestDir = mkdtempSync(join(tmpdir(), "lod-qz-pair-"));
+let testCertificatePem;
+try {
+  const keyPath = join(qzTestDir, "private-test.pem");
+  const certPath = join(qzTestDir, "certificate-test.pem");
+  writeFileSync(keyPath, testPrivatePem, { mode: 0o600 });
+  execFileSync("openssl", ["req", "-new", "-x509", "-sha256", "-days", "1",
+    "-key", keyPath, "-out", certPath, "-subj", "/CN=QZ Fixture"], { stdio: "pipe" });
+  testCertificatePem = readFileSync(certPath, "utf8");
+} finally {
+  rmSync(qzTestDir, { recursive: true, force: true });
+}
 
 function harness(source, { user = null, environment = {}, snapshot = {} } = {}) {
   const calls = [];
@@ -24,6 +42,7 @@ function harness(source, { user = null, environment = {}, snapshot = {} } = {}) 
     SUPABASE_SECRET_KEYS: JSON.stringify({ default: "fixture-internal" }),
     LOD_ADMIN_USER_IDS: adminId,
     QZ_PRIVATE_KEY_PEM: testPrivatePem,
+    QZ_CERTIFICATE: testCertificatePem,
     ...environment,
   };
   let handler;
@@ -31,7 +50,7 @@ function harness(source, { user = null, environment = {}, snapshot = {} } = {}) 
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
   }).outputText;
   vm.runInNewContext(code, {
-    createPrivateKey, createSign, X509Certificate, crypto: webcrypto,
+    createPrivateKey, createPublicKey, createSign, X509Certificate, crypto: webcrypto,
     Request, Response, Headers, AbortController, AbortSignal, TextEncoder,
     setTimeout, clearTimeout, console: { error() {} },
     Deno: { env: { get: (key) => env[key] }, serve: (fn) => { handler = fn; } },
