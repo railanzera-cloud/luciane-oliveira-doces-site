@@ -187,8 +187,7 @@ begin
     'claimed_by', v_actor
   );
 end;
-$function$
-
+$function$;
 
 -- Segunda validação, imediatamente antes de entregar bytes ao QZ Tray.
 -- Se a comanda foi cancelada/refundada depois do claim, impedir envio.
