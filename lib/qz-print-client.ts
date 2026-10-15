@@ -19,7 +19,11 @@ function edgeUrl() {
   return `${url}/functions/v1/qz-sign`;
 }
 
-async function signedRequest(accessToken: string, body: Record<string, unknown>) {
+async function signedRequest(body: Record<string, unknown>) {
+  // Nunca reutilizar o token obtido na primeira conexão: ele pode expirar.
+  const session = await activeAuthClient?.auth.getSession();
+  const accessToken = session?.data.session?.access_token;
+  if (session?.error || !accessToken) throw new Error("Sessão expirada. Entre novamente no painel.");
   const { publishableKey } = getSupabasePublicConfiguration();
   const response = await fetch(edgeUrl(), {
     method: "POST",
@@ -43,16 +47,17 @@ async function qzModule() {
   return imported.default;
 }
 
-export async function connectKitchenPrinter(accessToken: string): Promise<string> {
+export async function connectKitchenPrinter(client: SupabaseClient): Promise<string> {
+  activeAuthClient = client;
   const qz = await qzModule();
   if (!configured) {
     qz.security.setCertificatePromise(() => (resolve, reject) => {
-      void signedRequest(accessToken, { action: "certificate" })
+      void signedRequest({ action: "certificate" })
         .then((result) => resolve(String(result.certificate ?? ""))).catch(reject);
     });
     qz.security.setSignatureAlgorithm("SHA512");
     qz.security.setSignaturePromise((request) => (resolve, reject) => {
-      void signedRequest(accessToken, { action: "sign", request })
+      void signedRequest({ action: "sign", request })
         .then((result) => resolve(String(result.signature ?? ""))).catch(reject);
     });
     configured = true;
