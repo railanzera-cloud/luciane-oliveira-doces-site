@@ -387,7 +387,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       return;
     }
     if (!window.confirm(next
-      ? "Ativar impressão automática SOMENTE para novos pedidos elegíveis? A fila antiga será ignorada."
+      ? "O teste local saiu corretamente no papel da POS-58? Ativar a impressão SOMENTE de novos pedidos elegíveis? A fila antiga será ignorada."
       : "Pausar a impressão automática da cozinha?")) return;
     printingRef.current = true;
     setPrinting(true);
