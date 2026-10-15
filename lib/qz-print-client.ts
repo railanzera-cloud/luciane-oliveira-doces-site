@@ -10,6 +10,7 @@ import { getSupabasePublicConfiguration } from "@/lib/supabase-config";
 
 let configured = false;
 let selectedPrinter = "";
+let activeAuthClient: SupabaseClient | null = null;
 const workerId = `lod-kitchen-${crypto.randomUUID()}`;
 
 function edgeUrl() {
@@ -18,7 +19,11 @@ function edgeUrl() {
   return `${url}/functions/v1/qz-sign`;
 }
 
-async function signedRequest(accessToken: string, body: Record<string, unknown>) {
+async function signedRequest(body: Record<string, unknown>) {
+  // Nunca reutilizar o token obtido na primeira conexão: ele pode expirar.
+  const session = await activeAuthClient?.auth.getSession();
+  const accessToken = session?.data.session?.access_token;
+  if (session?.error || !accessToken) throw new Error("Sessão expirada. Entre novamente no painel.");
   const { publishableKey } = getSupabasePublicConfiguration();
   const response = await fetch(edgeUrl(), {
     method: "POST",
@@ -42,28 +47,57 @@ async function qzModule() {
   return imported.default;
 }
 
-export async function connectKitchenPrinter(accessToken: string): Promise<string> {
+export async function connectKitchenPrinter(client: SupabaseClient): Promise<string> {
+  activeAuthClient = client;
   const qz = await qzModule();
   if (!configured) {
     qz.security.setCertificatePromise(() => (resolve, reject) => {
-      void signedRequest(accessToken, { action: "certificate" })
+      void signedRequest({ action: "certificate" })
         .then((result) => resolve(String(result.certificate ?? ""))).catch(reject);
     });
     qz.security.setSignatureAlgorithm("SHA512");
     qz.security.setSignaturePromise((request) => (resolve, reject) => {
-      void signedRequest(accessToken, { action: "sign", request })
+      void signedRequest({ action: "sign", request })
         .then((result) => resolve(String(result.signature ?? ""))).catch(reject);
     });
     configured = true;
   }
   if (!qz.websocket.isActive()) await qz.websocket.connect({ retries: 2, delay: 1 });
+  // Nunca usar a impressora padrão do Windows: pode ser Epson, PDF ou outro dispositivo.
+  const found = await qz.printers.find();
+  const names = (Array.isArray(found) ? found : [found]).filter(
+    (value): value is string => typeof value === "string" && Boolean(value.trim()),
+  );
+  const thermal = names.filter((name) => /(?:pos[\s_-]*58|jp[\s_-]*58|goldensky|thermal[\s_-]*58|58[\s_-]*mm)/i.test(name));
   const saved = window.localStorage.getItem("lod-qz-printer")?.trim();
-  const found = await qz.printers.find(saved || undefined);
-  const printer = Array.isArray(found) ? found[0] : found;
-  if (!printer) throw new Error("Nenhuma impressora padrão foi encontrada no QZ Tray.");
+  const printer = saved && thermal.includes(saved) ? saved : thermal.length === 1 ? thermal[0] : null;
+  if (!printer) {
+    throw new Error(thermal.length > 1
+      ? "Mais de uma impressora térmica encontrada. É preciso selecionar a POS-58 correta antes de imprimir."
+      : "Não encontrei a impressora POS-58 no QZ Tray. Confira a conexão USB e o nome no Windows.");
+  }
   selectedPrinter = printer;
   window.localStorage.setItem("lod-qz-printer", printer);
   return printer;
+}
+
+/** Teste isolado: jamais usa orders, print_jobs ou dados de cliente. */
+export async function testKitchenPrinter(): Promise<void> {
+  if (!selectedPrinter) throw new Error("Conecte primeiro a impressora POS-58.");
+  const qz = await qzModule();
+  if (!qz.websocket.isActive()) throw new Error("QZ Tray desconectado; conecte novamente.");
+  const config = qz.configs.create(selectedPrinter, {
+    encoding: "ISO-8859-1", copies: 1, jobName: "Teste local Luciane 58mm",
+  });
+  const esc = String.fromCharCode(27);
+  const text = [
+    esc + "@", esc + "a" + String.fromCharCode(1),
+    "LUCIANE OLIVEIRA DOCES", "TESTE LOCAL - IMPRESSORA",
+    esc + "a" + String.fromCharCode(0), "-------------------------------",
+    "Conexao QZ Tray e papel 58 mm", "Nenhum pedido comercial.",
+    "-------------------------------", "", "", esc + "d" + String.fromCharCode(3),
+  ].join(String.fromCharCode(10));
+  await qz.print(config, [{ type: "raw", format: "plain", data: text }]);
 }
 
 function plain(value: unknown): string {
@@ -126,20 +160,40 @@ function receipt(claim: PrintClaim): string {
 async function printClaim(claim: PrintClaim): Promise<void> {
   const qz = await qzModule();
   if (!selectedPrinter) throw new Error("Impressora QZ não selecionada.");
+  if (!qz.websocket.isActive()) await qz.websocket.connect({ retries: 2, delay: 1 });
   const config = qz.configs.create(selectedPrinter, {
-    encoding: "UTF-8",
+    encoding: "ISO-8859-1",
     copies: 1,
     jobName: `Luciane Pedido ${claim.order.order_number}`,
   });
   await qz.print(config, [{ type: "raw", format: "plain", data: receipt(claim) }]);
 }
 
+/** O servidor e a fila devem estar explicitamente habilitados.
+ * Ausencia da RPC (versao antiga) impede qualquer claim e qualquer impressao.
+ */
+export async function kitchenPrintIsEnabled(client: SupabaseClient): Promise<boolean> {
+  const { data, error } = await client.rpc("admin_get_kitchen_print_control");
+  if (error) throw new Error("Fila protegida não instalada no servidor. Não é seguro imprimir.");
+  return Boolean(data && typeof data === "object"
+    && !Array.isArray(data) && (data as { enabled?: unknown }).enabled === true);
+}
+
 export async function drainPrintQueue(client: SupabaseClient, maxJobs = 10): Promise<number> {
+  if (!(await kitchenPrintIsEnabled(client))) return 0;
   let printed = 0;
   for (let index = 0; index < maxJobs; index += 1) {
     const claim = await claimPrintJob(client, workerId);
     if (!claim) break;
     try {
+      // O estado pode ter mudado (cancelamento, estorno ou desligamento) após o claim.
+      const { data: stillEligible, error: verifyError } = await client.rpc("admin_verify_print_claim", {
+        p_job_id: claim.job.id, p_claim_token: claim.job.claim_token,
+      });
+      if (verifyError || stillEligible !== true) {
+        await failPrintJob(client, claim, "Comanda bloqueada por mudança de estado ou falha de validação.");
+        continue; // Não enviar comandos à impressora.
+      }
       await printClaim(claim);
       await completePrintJob(client, claim);
       printed += 1;

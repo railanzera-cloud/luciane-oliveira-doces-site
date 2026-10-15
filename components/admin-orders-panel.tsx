@@ -151,6 +151,8 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const [alertsPreferred, setAlertsPreferred] = useState(false);
   const [printerReady, setPrinterReady] = useState(false);
   const [printerName, setPrinterName] = useState("");
+  const [printerTested, setPrinterTested] = useState(false);
+  const [printGateEnabled, setPrintGateEnabled] = useState(false);
   const [printing, setPrinting] = useState(false);
   const knownActionableRef = useRef(new Set<string>());
   const initializedRef = useRef(false);
@@ -281,6 +283,16 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     };
   }, [processEffects]);
 
+  // O Realtime pode perder eventos durante suspensão/reconexão: polling seguro
+  // em primeiro plano complementa a fila com gate no servidor.
+  useEffect(() => {
+    if (!printerReady) return;
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") void processPrints();
+    }, 15000);
+    return () => window.clearInterval(timer);
+  }, [printerReady, processPrints]);
+
   useEffect(() => {
     const initialLoad = window.setTimeout(() => void reload(), 0);
     const channel = client.channel("admin-orders-live")
@@ -327,17 +339,69 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     printingRef.current = true;
     setPrinting(true);
     setError("");
+    setPrinterTested(false);
     try {
-      const { connectKitchenPrinter, drainPrintQueue } = await import("@/lib/qz-print-client");
-      const printer = await connectKitchenPrinter(session.access_token);
+      const { connectKitchenPrinter, kitchenPrintIsEnabled } = await import("@/lib/qz-print-client");
+      // Conectar hardware NÃO pode consumir a fila de impressão implicitamente.
+      // O controle remoto permanece desligado até a homologação física.
+      const printer = await connectKitchenPrinter(client);
+      const enabled = await kitchenPrintIsEnabled(client);
       setPrinterName(printer);
       setPrinterReady(true);
-      const count = await drainPrintQueue(client);
-      setNotice(count > 0
-        ? `Impressão conectada: ${printer}. ${count} ${count === 1 ? "comanda impressa" : "comandas impressas"}.`
-        : `Impressão conectada: ${printer}.`);
+      setPrintGateEnabled(enabled);
+      setNotice(enabled
+        ? `Impressora conectada: ${printer}. Fila protegida ativa; aguardando comandas elegíveis.`
+        : `Impressora conectada: ${printer}. Impressão automática desativada com segurança.`);
     } catch (printerError) {
       setError(printerError instanceof Error ? printerError.message : "Não foi possível conectar ao QZ Tray.");
+    } finally {
+      printingRef.current = false;
+      setPrinting(false);
+    }
+  }
+
+  async function printLocalTest() {
+    if (!printerReady || printingRef.current) return;
+    printingRef.current = true;
+    setPrinting(true);
+    setError("");
+    try {
+      const { testKitchenPrinter } = await import("@/lib/qz-print-client");
+      await testKitchenPrinter();
+      setPrinterTested(true);
+      setNotice("Teste enviado para a POS-58. Confira fisicamente o papel antes de ativar a fila.");
+    } catch (testError) {
+      setPrinterTested(false);
+      setError(testError instanceof Error ? testError.message : "O teste de impressão falhou.");
+    } finally {
+      printingRef.current = false;
+      setPrinting(false);
+    }
+  }
+
+  async function togglePrintAutomation() {
+    if (!printerReady || printingRef.current) return;
+    const next = !printGateEnabled;
+    if (next && !printerTested) {
+      setError("Faça e confira a impressão local antes de ativar a fila automática.");
+      return;
+    }
+    if (!window.confirm(next
+      ? "O teste local saiu corretamente no papel da POS-58? Ativar a impressão SOMENTE de novos pedidos elegíveis? A fila antiga será ignorada."
+      : "Pausar a impressão automática da cozinha?")) return;
+    printingRef.current = true;
+    setPrinting(true);
+    setError("");
+    try {
+      const { data, error } = await client.rpc("admin_set_kitchen_print_enabled", { p_enabled: next });
+      if (error || !data || typeof data !== "object" || (data as { enabled?: unknown }).enabled !== next)
+        throw new Error("Servidor não confirmou a mudança. Impressão não foi ativada.");
+      setPrintGateEnabled(next);
+      setNotice(next
+        ? "Impressão automática ativada apenas para pedidos novos e elegíveis."
+        : "Impressão automática pausada.");
+    } catch (automationError) {
+      setError(automationError instanceof Error ? automationError.message : "Não foi possível alterar a impressão.");
     } finally {
       printingRef.current = false;
       setPrinting(false);
@@ -397,6 +461,11 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       <div className="admin-kitchen-tools">
         <Button type="button" variant={alertsEnabled ? "default" : "outline"} onClick={() => void enableAlerts()}><BellRing size={17} /> {alertsEnabled ? "Alertas ativados" : alertsPreferred ? "Reativar alertas" : "Ativar alertas da cozinha"}</Button>
         <Button type="button" variant={printerReady ? "default" : "outline"} onClick={() => printerReady ? void processPrints() : void enablePrinter()} disabled={printing}>{printing ? <LoaderCircle className="admin-spinner" size={17} /> : <Printer size={17} />} {printerReady ? printerName || "Processar impressão" : "Conectar impressão 58 mm"}</Button>
+        {printerReady && <Button type="button" variant="outline" onClick={() => void printLocalTest()} disabled={printing}><Printer size={17} /> Imprimir teste local</Button>}
+        {printerReady && <Button type="button" variant={printGateEnabled ? "default" : "outline"} onClick={() => void togglePrintAutomation()} disabled={printing || (!printGateEnabled && !printerTested)}>{printGateEnabled ? "Pausar impressão automática" : "Ativar impressão automática"}</Button>}
+        {printerReady && !printGateEnabled && !printerTested && <small role="status">Imprima o teste local e confira o papel para habilitar a ativação.</small>}
+        {printerReady && printerTested && !printGateEnabled && <small role="status">Teste enviado. Confira fisicamente o papel antes de ativar a fila.</small>}
+        {printerReady && printGateEnabled && <small role="status">Fila automática ligada — somente pedidos elegíveis posteriores à ativação.</small>}
       </div>
 
       {notice && <div className="admin-notice" role="status"><Check size={16} />{notice}</div>}
