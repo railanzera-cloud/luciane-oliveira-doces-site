@@ -156,3 +156,23 @@ test("queda do websocket é recuperada antes de enviar comanda", () => {
   assert.match(segment, /qz\.websocket\.connect\(\{ retries: 2, delay: 1 \}\)/);
   assert.ok(segment.indexOf("qz.websocket.connect") < segment.indexOf("await qz.print"));
 });
+
+test("automação fica desligada até teste local e confirmação explícita", () => {
+  assert.match(admin, /const \[printGateEnabled, setPrintGateEnabled\] = useState\(false\)/);
+  const start = admin.indexOf("async function togglePrintAutomation()");
+  const end = admin.indexOf("async function runOrderAction(", start);
+  assert.ok(start >= 0 && end > start);
+  const segment = admin.slice(start,end);
+  assert.match(segment, /if \(next && !printerTested\)/);
+  assert.match(segment, /window\.confirm\(next/);
+  assert.match(segment, /O teste local saiu corretamente no papel da POS-58/);
+  assert.match(segment, /client\.rpc\("admin_set_kitchen_print_enabled", \{ p_enabled: next \}\)/);
+  assert.match(segment, /setPrintGateEnabled\(next\)/);
+  assert.match(admin, /disabled=\{printing \|\| \(!printGateEnabled && !printerTested\)\}/);
+});
+test("ativação cria corte novo e não retroage sobre pedidos antigos", () => {
+  assert.match(sql, /accept_new_after = case when p_enabled and not enabled then now\(\) else accept_new_after end/);
+  assert.match(sql, /and j\.created_at >= c\.accept_new_after/);
+  assert.match(sql, /and o\.created_at >= c\.accept_new_after/);
+  assert.match(sql, /values \(true, false, now\(\)\)/);
+});
