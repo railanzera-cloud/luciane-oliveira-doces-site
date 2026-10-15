@@ -145,6 +145,10 @@ function receipt(claim: PrintClaim): string {
   lines.push(claim.order.fulfillment_type === "pickup" ? "RETIRADA" : "ENTREGA");
   lines.push(...wrap(`Nome: ${claim.order.customer_name}`));
   lines.push(...wrap(`Telefone: ${claim.order.customer_phone}`));
+  if (claim.order.notes) {
+    lines.push("OBSERVACOES:");
+    lines.push(...wrap(claim.order.notes));
+  }
   if (claim.order.fulfillment_type === "delivery") {
     lines.push(...wrap(`${claim.order.street}, ${claim.order.street_number}`));
     if (claim.order.complement) lines.push(...wrap(claim.order.complement));
