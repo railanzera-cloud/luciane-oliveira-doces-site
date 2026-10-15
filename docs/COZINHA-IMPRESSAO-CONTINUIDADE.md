@@ -181,3 +181,17 @@ A branch editorial foi preservada; a interface de impressão está na branch de 
 - A comanda inclui itens, opções, dados necessários à entrega, pagamento e total.
 - Novas versões da integração incluem **observações do cliente**, informação de troco e o rótulo **REIMPRESSAO** no recibo, sem disparar pedidos extras.
 - A comunicação QZ obtém JWT atualizado quando necessário, identifica POS-58 explicitamente, testa sem tocar na fila e complementa Realtime com polling seguro.
+
+## Continuidade — assinatura QZ após criação da chave demo (15/10/2026)
+
+- Luciane gerou `digital-certificate` e `private-key.pem` no notebook. O Site Manager confirmou `QZ Tray Demo Cert` em **Allowed (1)**. A chave privada **não** foi transferida para o chat.
+- A função `qz-sign` foi atualizada para **v2 ACTIVE** no Supabase comercial, com validação de correspondência do par certificado/chave antes de assinar e uso da chave pública padrão fornecida automaticamente pelo Supabase.
+- Corrigido no frontend o `setCertificatePromise`: agora recebe diretamente `(resolve, reject)` conforme a API oficial. `setSignaturePromise` continua na forma de função de duas etapas.
+- Teste de assinatura passou com certificado/par gerado efemeramente por OpenSSL nos testes, **não** com a chave privada real da Luciane.
+- Última CI validada anterior ao registro desta nota: `38825177974` (frontend, 32 testes específicos e PostgreSQL efêmero) e pacote `38825177874` (ZIP Cloudflare sem deploy).
+- `kitchen_print_control.enabled=false`, uma comanda antiga `pending`; nada foi impresso.
+- Não existe nesta conexão uma operação segura para salvar valores em Edge Function Secrets remotamente; será necessária ação do responsável **diretamente no painel Supabase**, com Owner/Admin, sem enviar a chave via chat.
+- Instruções exatas: `docs/QZ-ASSINATURA-SEGURA-INSTALACAO-WINDOWS.md`.
+- Depois de criar `QZ_CERTIFICATE`, `QZ_PRIVATE_KEY_PEM` e `LOD_ADMIN_USER_IDS`, validar signer e testar uma comanda local isolada antes de ligar impressão automática.
+
+**Status:** servidor preparado; chave ainda não confirmada no ambiente; versão frontend corrigida empacotada, **não publicada**; homologação física de uma comanda gerada pelo painel pendente.
