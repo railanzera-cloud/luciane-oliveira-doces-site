@@ -160,6 +160,7 @@ function receipt(claim: PrintClaim): string {
 async function printClaim(claim: PrintClaim): Promise<void> {
   const qz = await qzModule();
   if (!selectedPrinter) throw new Error("Impressora QZ não selecionada.");
+  if (!qz.websocket.isActive()) await qz.websocket.connect({ retries: 2, delay: 1 });
   const config = qz.configs.create(selectedPrinter, {
     encoding: "ISO-8859-1",
     copies: 1,
