@@ -187,3 +187,22 @@ test("comanda imprime detalhes necessários para cozinha, sem criar pedido novo"
   const receipt = qz.slice(qz.indexOf("function receipt("), qz.indexOf("async function printClaim("));
   assert.doesNotMatch(receipt, /client\.rpc|claimPrintJob|print_jobs/);
 });
+
+test("callback do certificado usa executor exigido pela API oficial QZ", async () => {
+  const ts = await import("typescript");
+  const source = ts.createSourceFile("qz-print-client.ts", qz, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const handlers = [];
+  function visit(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(source) === "qz.security.setCertificatePromise") {
+      handlers.push(node.arguments[0]);
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(source);
+  assert.equal(handlers.length, 1, "deve existir apenas um executor QZ");
+  const fn = handlers[0];
+  assert.ok(ts.isArrowFunction(fn), "executor deve ser funcao");
+  assert.deepEqual(fn.parameters.map(p => p.name.getText(source)), ["resolve", "reject"]);
+  assert.match(fn.body.getText(source), /signedRequest\(\{ action: "certificate" \}\)/);
+  assert.match(qz, /setSignaturePromise\(\(request\) => \(resolve, reject\) => \{/);
+});
