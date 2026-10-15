@@ -156,3 +156,28 @@ A função `supabase/functions/qz-sign/index.ts` utiliza:
 - `main`, branch editorial, produção Cloudflare e banco Supabase não foram modificados.
 - Workflow próprio nesta branch valida código e testes sem publicação.
 - Segurança: testes não equivalem a SQL em um banco de testes nem à autorização QZ/certificados no notebook.
+
+## Implantação preparatória no Supabase comercial (15/10/2026)
+
+**Fatos verificados após aplicação da migração, com autorização do responsável:**
+- Banco: `edqiwvccmboyayojvuea`.
+- Migração remota: `kitchen_print_preparation_disabled_20261015` aplicada com sucesso.
+- Controle `public.kitchen_print_control.enabled=false` na consulta posterior.
+- Trigger `kitchen_print_on_order_change` instalado, com gate desabilitado.
+- Fila anterior: **1 pendente**, preservada; **0 novos trabalhos** gerados pela implantação.
+- Edge Function `qz-sign` **v1 ACTIVE**, com autenticação administrativa implementada no código. A assinatura silenciosa **não está pronta** sem os certificados e secrets corretos.
+- Nenhum estado de pedido, pagamento, estoque ou loja foi modificado. Nenhuma impressão gerada.
+
+A migração foi ensaiada integralmente no PostgreSQL 16 descartável em GitHub Actions, simulando pedido antigo, Pix pendente/pago, aceite, duplicação, cancelamento e pausa. Não reaplicar esta migration manualmente sem conferir o histórico remoto.
+
+**Muito importante:** `qz-sign` implantado não é equivalente a assinatura configurada. Faltam `QZ_CERTIFICATE` e `QZ_PRIVATE_KEY_PEM` confiáveis, além da confirmação dos demais parâmetros de autenticação no ambiente. Não enviar a chave privada por chat ou WhatsApp.
+
+### Produção do frontend
+
+A branch editorial foi preservada; a interface de impressão está na branch de integração `work/cozinha-integracao-segura-20261015`. CI própria + workflow da Vitrine geram um ZIP de Cloudflare **somente para publicação manual após homologação**. Não efetuar merge na `main`.
+
+### Qualidade da comanda
+
+- A comanda inclui itens, opções, dados necessários à entrega, pagamento e total.
+- Novas versões da integração incluem **observações do cliente**, informação de troco e o rótulo **REIMPRESSAO** no recibo, sem disparar pedidos extras.
+- A comunicação QZ obtém JWT atualizado quando necessário, identifica POS-58 explicitamente, testa sem tocar na fila e complementa Realtime com polling seguro.
