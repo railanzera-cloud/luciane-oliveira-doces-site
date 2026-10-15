@@ -157,6 +157,9 @@ function receipt(claim: PrintClaim): string {
   }
   lines.push("--------------------------------");
   lines.push(`TOTAL: R$ ${Number(claim.order.total).toFixed(2).replace(".", ",")}`);
+  if (claim.order.payment_method === "cash" && claim.order.cash_change_for) {
+    lines.push(`TROCO PARA: R$ ${Number(claim.order.cash_change_for).toFixed(2).replace(".", ",")}`);
+  }
   lines.push("", "", "\x1B\x64\x04");
   return lines.join("\n");
 }
