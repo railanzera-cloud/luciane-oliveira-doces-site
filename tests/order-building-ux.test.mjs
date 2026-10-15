@@ -29,7 +29,7 @@ test("keeps a second product easy to add beside the receiving options", () => {
   assert.doesNotMatch(page, /id="item-adicionado"/);
   assert.match(page, /className="boutique-added-continuity"/);
   assert.match(page, /Quer adicionar mais alguma coisa\?/);
-  assert.match(page, /category === "pipocas" \? "Outro pote recheado" : "Outra fatia"/);
+  assert.match(page, /\{addMoreButtonLabel\(category, cart\)\}/);
   assert.match(page, /onClick=\{\(\) => startAnother\(category\)\}/);
   assert.match(page, /cart-add-options \$\{STORE_CONFIG\.enabledExtras\.drinks \? "" : "without-drinks"\}/);
   assert.match(page, /const destination = wasEditing \? "carrinho" : "recebimento"/);
@@ -67,4 +67,39 @@ test("explains quantities for repeated and different combinations", () => {
   assert.match(page, /Quantos potes desta combinação\?/);
   assert.match(page, /Quantas fatias deste sabor\?/);
   assert.match(page, /Para outro sabor, adicione este item e escolha a próxima fatia/);
+});
+
+test("additional category labels use actual items in cart, not the last added category", async () => {
+  const ts = await import("typescript");
+  const file = ts.createSourceFile("page.tsx", page, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  let helper = null;
+  for (const stmt of file.statements) {
+    if (ts.isFunctionDeclaration(stmt) && stmt.name?.text === "addMoreButtonLabel") helper = stmt;
+  }
+  assert.ok(helper, "helper for the additional-product labels should exist");
+  const emitted = ts.transpileModule(helper.getText(file), {
+    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS },
+  }).outputText;
+  const decide = new Function("POPCORN", "SLICES", emitted + "; return addMoreButtonLabel;")(
+    {id: "pipoca-gourmet"}, [{id: "fatia-chocolate-morango"}, {id: "fatia-ninho-morango"}],
+  );
+  const item = (productId) => ({productId});
+  const scenarios = [
+    [[], "Adicionar pote recheado", "Adicionar fatia"],
+    [[item("pipoca-gourmet")], "Outro pote recheado", "Adicionar fatia"],
+    [[item("fatia-chocolate-morango")], "Adicionar pote recheado", "Outra fatia"],
+    [[item("crocante-ninho")], "Adicionar pote recheado", "Adicionar fatia"],
+    [[item("crocante-chocolate"), item("fatia-ninho-morango")], "Adicionar pote recheado", "Outra fatia"],
+    [[item("pipoca-gourmet"), item("fatia-chocolate-morango"), item("crocante-ninho")], "Outro pote recheado", "Outra fatia"],
+  ];
+  for (const [cart, popcorn, slice] of scenarios) {
+    assert.equal(decide("pipocas", cart), popcorn);
+    assert.equal(decide("fatias", cart), slice);
+  }
+  // A seção de continuidade e a área do carrinho devem usar a mesma lógica.
+  assert.match(page, /\{addMoreButtonLabel\("fatias", cart\)\}/);
+  assert.match(page, /\{addMoreButtonLabel\("pipocas", cart\)\}/);
+  assert.match(page, /\{addMoreButtonLabel\(category, cart\)\}/);
+  // A regra específica de copos permanece intacta.
+  assert.equal((page.match(/cartContainsCrocantes \? "Adicionar outro copo" : "Adicionar copo Crocante"/g) ?? []).length, 2);
 });
