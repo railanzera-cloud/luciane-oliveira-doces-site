@@ -343,7 +343,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       const { connectKitchenPrinter, kitchenPrintIsEnabled } = await import("@/lib/qz-print-client");
       // Conectar hardware NÃO pode consumir a fila de impressão implicitamente.
       // O controle remoto permanece desligado até a homologação física.
-      const printer = await connectKitchenPrinter(session.access_token);
+      const printer = await connectKitchenPrinter(client);
       const enabled = await kitchenPrintIsEnabled(client);
       setPrinterName(printer);
       setPrinterReady(true);
