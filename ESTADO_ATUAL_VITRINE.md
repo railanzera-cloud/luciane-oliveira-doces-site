@@ -255,3 +255,13 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **Backend implantado:** projeto comercial `edqiwvccmboyayojvuea`, função `create-whatsapp-order` **v18 ACTIVE** (somente `commerce-catalog.mjs` mudou da v17; demais arquivos verificados idênticos ao código). Confirmado `orders_open=false` antes e depois. Nenhum pedido criado, nenhuma migração, nenhuma alteração de estado da loja.
 - **Validação:** GitHub Actions [38615252560](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/38615252560), `439/439` testes aprovados, TypeScript, build e ZIP conferidos. Testes adicionais em `tests/crocantes-premium-292-volume-e-jornada.test.mjs`.
 - **Entrega:** nova publicação de frontend apenas por ZIP manual em Cloudflare Pages. Não modificar `main`, não fazer merge ou publicação automática. A checagem final no Safari do iPhone continua com o responsável.
+
+## Premium 2.9.3 — rótulos contextuais para adicionar mais produtos (15/10/2026)
+
+- **Escopo:** somente microcopy de botões de continuidade comercial, em `app/page.tsx`. A lógica de adicionar produtos, fotos, preço, disponibilidade, carrinho, entrega, checkout, WhatsApp, Pixel, Supabase e painel não foi modificada.
+- **Carrinho sem Pipoca Gourmet:** botão para essa categoria = `Adicionar pote recheado`; com `pipoca-gourmet` no carrinho = `Outro pote recheado`. Copos Crocantes não são potes Gourmet, portanto não alteram essa contagem.
+- **Carrinho sem fatia:** botão = `Adicionar fatia`; com qualquer SKU de `SLICES` = `Outra fatia`. O rótulo reflete os itens reais no carrinho, não só a última categoria escolhida.
+- **Copos Crocantes:** preservada a regra existente `Adicionar copo Crocante` / `Adicionar outro copo`, baseada na presença de Crocantes no carrinho.
+- **Aplicação uniforme:** confirmação `Adicionado ao pedido` e área `Adicionar mais itens` do carrinho usam `addMoreButtonLabel` (uma única lógica).
+- **Testes:** `tests/order-building-ux.test.mjs` cobre carrinho vazio, Gourmet, fatia, Crocante isolado e pedido misto, além de verificar as três áreas de botões. Registrar como validado somente após CI passar.
+- **Implantação:** branch editorial existente, `main` preservada, Cloudflare Pages continua sob publicação manual; nenhuma alteração no Supabase ou na branch isolada da impressora.
