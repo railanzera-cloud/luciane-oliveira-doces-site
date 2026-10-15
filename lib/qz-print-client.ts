@@ -57,13 +57,40 @@ export async function connectKitchenPrinter(accessToken: string): Promise<string
     configured = true;
   }
   if (!qz.websocket.isActive()) await qz.websocket.connect({ retries: 2, delay: 1 });
+  // Nunca usar a impressora padrão do Windows: pode ser Epson, PDF ou outro dispositivo.
+  const found = await qz.printers.find();
+  const names = (Array.isArray(found) ? found : [found]).filter(
+    (value): value is string => typeof value === "string" && Boolean(value.trim()),
+  );
+  const thermal = names.filter((name) => /(?:pos[\\s_-]*58|jp[\\s_-]*58|goldensky|thermal[\\s_-]*58|58[\\s_-]*mm)/i.test(name));
   const saved = window.localStorage.getItem("lod-qz-printer")?.trim();
-  const found = await qz.printers.find(saved || undefined);
-  const printer = Array.isArray(found) ? found[0] : found;
-  if (!printer) throw new Error("Nenhuma impressora padrão foi encontrada no QZ Tray.");
+  const printer = saved && thermal.includes(saved) ? saved : thermal.length === 1 ? thermal[0] : null;
+  if (!printer) {
+    throw new Error(thermal.length > 1
+      ? "Mais de uma impressora térmica encontrada. É preciso selecionar a POS-58 correta antes de imprimir."
+      : "Não encontrei a impressora POS-58 no QZ Tray. Confira a conexão USB e o nome no Windows.");
+  }
   selectedPrinter = printer;
   window.localStorage.setItem("lod-qz-printer", printer);
   return printer;
+}
+
+/** Teste isolado: jamais usa orders, print_jobs ou dados de cliente. */
+export async function testKitchenPrinter(): Promise<void> {
+  if (!selectedPrinter) throw new Error("Conecte primeiro a impressora POS-58.");
+  const qz = await qzModule();
+  if (!qz.websocket.isActive()) throw new Error("QZ Tray desconectado; conecte novamente.");
+  const config = qz.configs.create(selectedPrinter, {
+    encoding: "ISO-8859-1", copies: 1, jobName: "Teste local Luciane 58mm",
+  });
+  const text = [
+    "\\x1B\\x40", "\\x1B\\x61\\x01",
+    "LUCIANE OLIVEIRA DOCES", "TESTE LOCAL - IMPRESSORA",
+    "\\x1B\\x61\\x00", "-------------------------------",
+    "Conexao QZ Tray e papel 58 mm", "Nenhum pedido comercial.",
+    "-------------------------------", "", "", "\\x1B\\x64\\x03",
+  ].join("\\n");
+  await qz.print(config, [{ type: "raw", format: "plain", data: text }]);
 }
 
 function plain(value: unknown): string {
@@ -127,7 +154,7 @@ async function printClaim(claim: PrintClaim): Promise<void> {
   const qz = await qzModule();
   if (!selectedPrinter) throw new Error("Impressora QZ não selecionada.");
   const config = qz.configs.create(selectedPrinter, {
-    encoding: "UTF-8",
+    encoding: "ISO-8859-1",
     copies: 1,
     jobName: `Luciane Pedido ${claim.order.order_number}`,
   });
