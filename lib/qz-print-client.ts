@@ -51,7 +51,8 @@ export async function connectKitchenPrinter(client: SupabaseClient): Promise<str
   activeAuthClient = client;
   const qz = await qzModule();
   if (!configured) {
-    qz.security.setCertificatePromise(() => (resolve, reject) => {
+    // QZ espera um executor (resolve, reject), não uma função que devolve outro executor.
+    qz.security.setCertificatePromise((resolve, reject) => {
       void signedRequest({ action: "certificate" })
         .then((result) => resolve(String(result.certificate ?? ""))).catch(reject);
     });
