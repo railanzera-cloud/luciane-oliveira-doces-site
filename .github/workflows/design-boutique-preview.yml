@@ -5,6 +5,7 @@ on:
       - design/luciane-boutique-v3-20261012
       - design/luciane-boutique-v4-20261013
       - design/luciane-editorial-vitrine-experiment-20261013
+      - work/cozinha-integracao-segura-20261015
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -12,6 +13,8 @@ on:
       - app/catalog.ts
       - app/layout.tsx
       - app/page.tsx
+      - components/admin-orders-panel.tsx
+      - lib/qz-print-client.ts
       - supabase/functions/create-whatsapp-order/index.ts
       - supabase/functions/_shared/commerce-catalog.mjs
       - supabase/migrations/20261014190000_crocantes_lancamento.sql
