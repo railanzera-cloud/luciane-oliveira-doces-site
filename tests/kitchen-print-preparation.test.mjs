@@ -176,3 +176,14 @@ test("ativação cria corte novo e não retroage sobre pedidos antigos", () => {
   assert.match(sql, /and o\.created_at >= c\.accept_new_after/);
   assert.match(sql, /values \(true, false, now\(\)\)/);
 });
+
+test("comanda imprime detalhes necessários para cozinha, sem criar pedido novo", () => {
+  assert.match(sql, /'notes', o\.notes/);
+  assert.match(sql, /'cash_change_for', o\.cash_change_for/);
+  assert.match(qz, /lines\.push\("OBSERVACOES:"\)/);
+  assert.match(qz, /wrap\(claim\.order\.notes\)/);
+  assert.match(qz, /TROCO PARA: R\$/);
+  assert.match(qz, /REIMPRESSAO/);
+  const receipt = qz.slice(qz.indexOf("function receipt("), qz.indexOf("async function printClaim("));
+  assert.doesNotMatch(receipt, /client\.rpc|claimPrintJob|print_jobs/);
+});
