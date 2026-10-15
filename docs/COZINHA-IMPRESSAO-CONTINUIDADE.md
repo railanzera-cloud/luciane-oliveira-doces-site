@@ -108,3 +108,41 @@ TypeScript, build e a suíte automatizada. Registre SHA após conclusão.
 Após testes, preservar branch e checkpoint. Não incorporar na branch Premium,
 não gerar pacote de publicação para Production e não habilitar a fila
 até a Luciane ter tempo para concluir a instalação física.
+
+## Atualização operacional — QZ Tray instalado no Windows (15/10/2026)
+
+- A Luciane confirmou por fotografia a página de teste do Windows impressa na **POS-58(copy of 1)**. O dispositivo é Goldensky SMX-JP58H/58 mm USB. O driver não precisa ser reinstalado.
+- O **QZ Tray 2.3.0** foi instalado e confirmado pelo ícone da bandeja do Windows. Isso comprova o serviço local aberto, não a conexão com o site nem o protocolo ESC/POS.
+- A branch passou a procurar impressora de **58 mm** explicitamente, e não a impressora padrão, evitando selecionar a Epson ou impressoras virtuais. Se nenhuma ou várias candidatas forem encontradas, falha fechada.
+- Adicionado botão **Imprimir teste local**: imprime somente texto diagnóstico, sem carregar pedidos, sem consumir a fila e sem registrar venda.
+- Complementado Realtime com polling de 15 segundos quando a aba estiver visível; o processamento permanece protegido por RPC com `enabled` e elegibilidade.
+- Assinaturas QZ agora obtêm a sessão atual via `auth.getSession()` para não usar JWT vencido depois de horas conectado.
+
+### BLOQUEIO REAL: certificado de impressão silenciosa
+
+Conforme https://qz.io/docs/signing (QZ oficial), o QZ Tray gratuito **não autoriza automaticamente impressão silenciosa** apenas pela instalação. Para eliminar pop-ups de autorização, é obrigatório assinar requisições usando certificado confiável e chave privada **somente no servidor**.
+
+Caminhos:
+1. **Certificado oficial QZ** (licenciado, recomendado para várias máquinas ou operação formal). Gerar par X.509 + chave privada pelo portal da QZ e configurar como Supabase secrets.
+2. **Demo Keys / Site Manager** (sem custo para ensaio em um único notebook): QZ Tray > Advanced > Site Manager > + > Create New; confirma instalação/override. Uma pasta `QZ Tray Demo Cert` é gerada na área de trabalho. O certificado é confiável **somente nessa máquina**, requer cuidados extras em reinstalação e pode não atender política/uso comercial de longo prazo. Não compartilhar `private-key.pem` em WhatsApp, chat, GitHub ou e-mail comum.
+
+A função `supabase/functions/qz-sign/index.ts` utiliza:
+- `QZ_CERTIFICATE`: certificado X.509 (público).
+- `QZ_PRIVATE_KEY_PEM`: chave privada armazenada apenas nos **secrets do Supabase**, jamais no frontend/GitHub.
+- `LOD_ADMIN_USER_IDS`: somente usuários administrativos autorizados.
+- `SUPABASE_PUBLISHABLE_KEYS`: apikey validada pelo Supabase.
+- `CHECKOUT_ALLOWED_ORIGINS`: host estritamente autorizado.
+
+**Ainda não gerar chaves no ChatGPT nem inventar certificados**: o par confiável precisa ser obtido pelo caminho escolhido. O responsável deve inserir os segredos diretamente no painel protegido do Supabase; não colar no chat.
+
+### Próximos passos de homologação obrigatórios
+
+1. Escolher certificado oficial ou Demo Keys; registrar publicamente só a opção escolhida, nunca os valores privados.
+2. Validar assinatura SHA-512 e CORS no `qz-sign` isoladamente.
+3. Testar função de impressão local numa página de homologação, **sem pedido comercial**.
+4. Revisar SQL em banco descartável ou branch de testes. Depois aplicar no Supabase comercial **com `enabled=false`**, preservando backlog e pedidos.
+5. Publicar frontend homologado manualmente e conferir que a impressora selecionada é `POS-58(copy of 1)`.
+6. Testar fim a fim um pedido aprovado elegível e cenários negativos no banco de testes.
+7. Ativar explicitamente a automação somente após confirmação de impressão física, segurança e estados comerciais; revalidar filas antes de ativar.
+
+**Estado:** a base comercial e o QZ signing endpoint ainda não foram implantados nesta etapa. Nenhuma comanda real deve ser impressa por esta branch até que esses bloqueios sejam resolvidos.
