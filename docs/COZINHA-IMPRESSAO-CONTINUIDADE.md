@@ -195,3 +195,14 @@ A branch editorial foi preservada; a interface de impressão está na branch de 
 - Depois de criar `QZ_CERTIFICATE`, `QZ_PRIVATE_KEY_PEM` e `LOD_ADMIN_USER_IDS`, validar signer e testar uma comanda local isolada antes de ligar impressão automática.
 
 **Status:** servidor preparado; chave ainda não confirmada no ambiente; versão frontend corrigida empacotada, **não publicada**; homologação física de uma comanda gerada pelo painel pendente.
+
+## Verificação dos anexos — 15/10/2026
+
+- Os arquivos `digital-certificate.txt` e `private-key.pem` recebidos foram analisados **localmente**, sem expor os valores.
+- O certificado X.509 e a chave privada RSA compõem um **par correspondente**.
+- Certificado identificou `QZ Tray Demo Cert`, válido a partir de 14/10/2026 UTC; é credencial **de demonstração e vinculada ao notebook**.
+- **Atenção à segurança:** a chave privada foi anexada a uma conversa. Ela não foi inserida no GitHub nem empacotada no frontend. O par deve ser **substituído antes do uso definitivo**; depois da rotação, atualizar a confiança no Site Manager e os secrets de QZ.
+- O conector Supabase acessível aqui **não expõe uma operação de escrita para Edge Function Secrets**. Não inserir a chave em SQL, em código de Edge Function, em texto público nem em `git`.
+- Operação pendente: configuração de `QZ_CERTIFICATE`, `QZ_PRIVATE_KEY_PEM` e `LOD_ADMIN_USER_IDS` no painel do Supabase por Owner/Administrator, ou via operação oficial de secrets no Work após login autorizado.
+- Como o Cloudflare Pages não está conectado para publicação via API, o ZIP de homologação continua sem publicação. Não fingir que foi implantado.
+- Controlo remoto `enabled=false`, com uma comanda antiga `pending`. Não alterar antes do teste local físico.
