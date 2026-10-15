@@ -10,6 +10,7 @@ import { getSupabasePublicConfiguration } from "@/lib/supabase-config";
 
 let configured = false;
 let selectedPrinter = "";
+let activeAuthClient: SupabaseClient | null = null;
 const workerId = `lod-kitchen-${crypto.randomUUID()}`;
 
 function edgeUrl() {
@@ -62,7 +63,7 @@ export async function connectKitchenPrinter(accessToken: string): Promise<string
   const names = (Array.isArray(found) ? found : [found]).filter(
     (value): value is string => typeof value === "string" && Boolean(value.trim()),
   );
-  const thermal = names.filter((name) => /(?:pos[\\s_-]*58|jp[\\s_-]*58|goldensky|thermal[\\s_-]*58|58[\\s_-]*mm)/i.test(name));
+  const thermal = names.filter((name) => /(?:pos[\s_-]*58|jp[\s_-]*58|goldensky|thermal[\s_-]*58|58[\s_-]*mm)/i.test(name));
   const saved = window.localStorage.getItem("lod-qz-printer")?.trim();
   const printer = saved && thermal.includes(saved) ? saved : thermal.length === 1 ? thermal[0] : null;
   if (!printer) {
