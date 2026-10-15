@@ -20,6 +20,7 @@ create table public.orders (
   order_status public.lod_order_status not null,
   customer_name text not null default 'Cliente Teste',
   customer_phone text not null default '000',
+  notes text, cash_change_for numeric,
   fulfillment_type text not null default 'pickup',
   neighborhood text,street text,street_number text,complement text,reference text,
   total numeric not null default 15.90,currency text default 'BRL'
