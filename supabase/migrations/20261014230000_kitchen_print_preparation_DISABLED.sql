@@ -169,7 +169,7 @@ begin
     'order', (
       select jsonb_build_object(
         'id', o.id, 'order_id', o.order_id, 'order_number', o.order_number,
-        'customer_name', o.customer_name, 'customer_phone', o.customer_phone, 'notes', o.notes,
+        'customer_name', o.customer_name, 'customer_phone', o.customer_phone, 'notes', o.notes, 'cash_change_for', o.cash_change_for,
         'fulfillment_type', o.fulfillment_type, 'neighborhood', o.neighborhood,
         'street', o.street, 'street_number', o.street_number, 'complement', o.complement,
         'reference', o.reference, 'total', o.total, 'currency', o.currency,
