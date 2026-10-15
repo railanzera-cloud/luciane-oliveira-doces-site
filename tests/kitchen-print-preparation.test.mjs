@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 const read = (path) => readFileSync(new URL("../" + path, import.meta.url), "utf8");
 const sql = read("supabase/migrations/20261014230000_kitchen_print_preparation_DISABLED.sql");
 const qz = read("lib/qz-print-client.ts");
+const signer = read("supabase/functions/qz-sign/index.ts");
 const admin = read("components/admin-orders-panel.tsx");
 
 const ACTIVE = ["new", "confirmed", "preparing", "ready", "ready_for_pickup", "out_for_delivery"];
@@ -205,4 +206,18 @@ test("callback do certificado usa executor exigido pela API oficial QZ", async (
   assert.deepEqual(fn.parameters.map(p => p.name.getText(source)), ["resolve", "reject"]);
   assert.match(fn.body.getText(source), /signedRequest\(\{ action: "certificate" \}\)/);
   assert.match(qz, /setSignaturePromise\(\(request\) => \(resolve, reject\) => \{/);
+});
+
+test("assinatura QZ falha fechada se par de chaves estiver ausente ou divergente", () => {
+  assert.match(signer, /function checkedSigningPair\(/);
+  assert.match(signer, /!certificatePem \|\| !privateKeyPem/);
+  assert.match(signer, /new X509Certificate\(certificatePem\)/);
+  assert.match(signer, /createPrivateKey\(privateKeyPem\)/);
+  assert.match(signer, /createPublicKey\(privateKey\)/);
+  assert.match(signer, /expected !== actual/);
+  assert.match(signer, /qz_pair_mismatch/);
+  assert.match(signer, /const certificate = checkedSigningPair\(\)\.certificate/);
+  assert.match(signer, /const \{ privateKeyPem \} = checkedSigningPair\(\)/);
+  assert.match(signer, /Deno\.env\.get\("SUPABASE_ANON_KEY"\)/);
+  assert.doesNotMatch(qz, /private-key\.pem|QZ_PRIVATE_KEY_PEM/);
 });
