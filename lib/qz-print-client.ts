@@ -84,13 +84,14 @@ export async function testKitchenPrinter(): Promise<void> {
   const config = qz.configs.create(selectedPrinter, {
     encoding: "ISO-8859-1", copies: 1, jobName: "Teste local Luciane 58mm",
   });
+  const esc = String.fromCharCode(27);
   const text = [
-    "\\x1B\\x40", "\\x1B\\x61\\x01",
+    esc + "@", esc + "a" + String.fromCharCode(1),
     "LUCIANE OLIVEIRA DOCES", "TESTE LOCAL - IMPRESSORA",
-    "\\x1B\\x61\\x00", "-------------------------------",
+    esc + "a" + String.fromCharCode(0), "-------------------------------",
     "Conexao QZ Tray e papel 58 mm", "Nenhum pedido comercial.",
-    "-------------------------------", "", "", "\\x1B\\x64\\x03",
-  ].join("\\n");
+    "-------------------------------", "", "", esc + "d" + String.fromCharCode(3),
+  ].join(String.fromCharCode(10));
   await qz.print(config, [{ type: "raw", format: "plain", data: text }]);
 }
 
