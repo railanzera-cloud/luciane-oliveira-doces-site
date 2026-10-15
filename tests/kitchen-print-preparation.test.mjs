@@ -81,7 +81,7 @@ test("conectar USB/QZ não desencadeia impressão nem processa fila histórica",
   const stop = admin.indexOf("async function runOrderAction(", start);
   assert.ok(start > 0 && stop > start);
   const section = admin.slice(start, stop);
-  assert.match(section, /connectKitchenPrinter\(session\.access_token\)/);
+  assert.match(section, /connectKitchenPrinter\(client\)/);
   assert.match(section, /kitchenPrintIsEnabled\(client\)/);
   assert.doesNotMatch(section, /drainPrintQueue\(client\)|claimPrintJob\(/);
   assert.match(section, /Impressão automática desativada com segurança/);
@@ -113,4 +113,37 @@ test("reimpressão só de trabalho já impresso, requerida por atendente", () =>
   assert.match(sql,/previous\.kind = 'initial'/);
   assert.match(sql,/previous\.status = 'printed'/);
   assert.match(sql,/o\.order_status not in \('cancelled','payment_pending'\)/);
+});
+
+test("a POS-58 é selecionada por correspondência térmica, nunca por impressora padrão", () => {
+  assert.match(qz, /await qz\.printers\.find\(\)/);
+  assert.match(qz, /const thermal = names\.filter/);
+  assert.match(qz, /thermal\.length === 1 \? thermal\[0\] : null/);
+  assert.match(qz, /POS-58 correta antes de imprimir/);
+  assert.doesNotMatch(qz, /qz\.printers\.getDefault/);
+});
+test("o QZ atualiza sessão, não armazena token vencido no handler", () => {
+  assert.match(qz, /activeAuthClient\?\.auth\.getSession\(\)/);
+  assert.match(qz, /const accessToken = session\?\.data\.session\?\.access_token/);
+  assert.match(qz, /signedRequest\(\{ action: "sign", request \}\)/);
+  assert.doesNotMatch(qz, /signedRequest\(accessToken,/);
+});
+test("teste de 58mm não acessa banco nem consome fila de pedidos", () => {
+  const start = qz.indexOf("export async function testKitchenPrinter()");
+  const stop = qz.indexOf("function plain(", start);
+  assert.ok(start >= 0 && stop > start);
+  const local = qz.slice(start,stop);
+  assert.match(local, /TESTE LOCAL - IMPRESSORA/);
+  assert.match(local, /Nenhum pedido comercial/);
+  assert.match(local, /qz\.print\(config,/);
+  assert.match(local, /String\.fromCharCode\(27\)/);
+  assert.doesNotMatch(local, /claimPrintJob|print_jobs|claim\.order|client\.rpc/);
+  const panel = admin.slice(admin.indexOf("async function printLocalTest()"),admin.indexOf("async function runOrderAction("));
+  assert.match(panel, /testKitchenPrinter\(\)/);
+});
+test("eventos perdidos no Realtime são retomados pelo polling seguro em primeiro plano", () => {
+  assert.match(admin, /window\.setInterval\(\(\) => \{/);
+  assert.match(admin, /document\.visibilityState === "visible"\) void processPrints\(\)/);
+  assert.match(admin, /\}, 15000\)/);
+  assert.match(qz, /if \(!\(await kitchenPrintIsEnabled\(client\)\)\) return 0/);
 });
