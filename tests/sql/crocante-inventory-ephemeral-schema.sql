@@ -11,3 +11,8 @@ values ('crocante_copo_ninho','product','available'),
        ('crocante_copo_chocolate','product','available'),
        ('category_pipocas','category','available');
 alter table public.order_items add column item_key text;
+
+-- Pedido existente antes da instalacao, nao criar reserva retroativa.
+insert into public.order_items(order_uuid,item_key,name,quantity)
+select id,'crocante_copo_ninho','Crocante Ninho antigo',1
+from public.orders where order_id='legacy';
