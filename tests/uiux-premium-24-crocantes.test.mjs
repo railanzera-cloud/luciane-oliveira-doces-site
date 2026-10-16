@@ -39,7 +39,7 @@ test("detalhe escolhido substitui instrução, com altura em fluxo natural", () 
 test("mensagens da edição limitada acompanham a loja, não a data", () => {
   assert.ok(story.includes('LOJA FECHADA'));
   assert.ok(page.includes('As vendas estão pausadas. Você ainda pode conhecer os sabores.'));
-  assert.ok(page.includes('A edição em copos chegou ao fim, sem reposição.'));
+  assert.ok(page.includes('Copos esgotados no momento. Consulte novamente após a produção.'));
   assert.ok(story.includes('<p>{cupLaunchCopy.description}</p>'));
   assert.doesNotMatch(page,/ESTREIA · QUINTA, 15\/10/);
   assert.ok(release.includes('if (!ordersOpen) return "closed"'));
