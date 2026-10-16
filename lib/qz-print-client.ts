@@ -47,7 +47,14 @@ async function qzModule() {
   return imported.default;
 }
 
-export async function connectKitchenPrinter(client: SupabaseClient): Promise<string> {
+export class KitchenPrinterSelectionError extends Error {
+  constructor(readonly printers: string[]) {
+    super("Mais de uma impressora térmica encontrada. Selecione a POS-58 correta abaixo e confirme a conexão.");
+    this.name = "KitchenPrinterSelectionError";
+  }
+}
+
+export async function connectKitchenPrinter(client: SupabaseClient, preferredPrinter?: string): Promise<string> {
   activeAuthClient = client;
   const qz = await qzModule();
   if (!configured) {
@@ -66,16 +73,19 @@ export async function connectKitchenPrinter(client: SupabaseClient): Promise<str
   if (!qz.websocket.isActive()) await qz.websocket.connect({ retries: 2, delay: 1 });
   // Nunca usar a impressora padrão do Windows: pode ser Epson, PDF ou outro dispositivo.
   const found = await qz.printers.find();
-  const names = (Array.isArray(found) ? found : [found]).filter(
+  const names = [...new Set((Array.isArray(found) ? found : [found]).filter(
     (value): value is string => typeof value === "string" && Boolean(value.trim()),
-  );
+  ))];
   const thermal = names.filter((name) => /(?:pos[\s_-]*58|jp[\s_-]*58|goldensky|thermal[\s_-]*58|58[\s_-]*mm)/i.test(name));
   const saved = window.localStorage.getItem("lod-qz-printer")?.trim();
-  const printer = saved && thermal.includes(saved) ? saved : thermal.length === 1 ? thermal[0] : null;
+  if (preferredPrinter && !thermal.includes(preferredPrinter)) {
+    throw new Error("A impressora selecionada não está disponível. Confira o USB e conecte novamente.");
+  }
+  const remembered = preferredPrinter || saved;
+  const printer = remembered && thermal.includes(remembered) ? remembered : thermal.length === 1 ? thermal[0] : null;
   if (!printer) {
-    throw new Error(thermal.length > 1
-      ? "Mais de uma impressora térmica encontrada. É preciso selecionar a POS-58 correta antes de imprimir."
-      : "Não encontrei a impressora POS-58 no QZ Tray. Confira a conexão USB e o nome no Windows.");
+    if (thermal.length > 1) throw new KitchenPrinterSelectionError(thermal);
+    throw new Error("Não encontrei a impressora POS-58 no QZ Tray. Confira a conexão USB e o nome no Windows.");
   }
   selectedPrinter = printer;
   window.localStorage.setItem("lod-qz-printer", printer);

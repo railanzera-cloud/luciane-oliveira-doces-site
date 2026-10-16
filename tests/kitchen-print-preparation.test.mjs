@@ -78,11 +78,11 @@ test("o QZ se recusa a processar no banco atual sem a RPC de segurança", () => 
 });
 
 test("conectar USB/QZ não desencadeia impressão nem processa fila histórica", () => {
-  const start = admin.indexOf("async function enablePrinter()");
+  const start = admin.indexOf("async function enablePrinter(");
   const stop = admin.indexOf("async function runOrderAction(", start);
   assert.ok(start > 0 && stop > start);
   const section = admin.slice(start, stop);
-  assert.match(section, /connectKitchenPrinter\(client\)/);
+  assert.match(section, /connectKitchenPrinter\(client, preferredPrinter\)/);
   assert.match(section, /kitchenPrintIsEnabled\(client\)/);
   assert.doesNotMatch(section, /drainPrintQueue\(client\)|claimPrintJob\(/);
   assert.match(section, /Impressão automática desativada com segurança/);
@@ -120,7 +120,7 @@ test("a POS-58 é selecionada por correspondência térmica, nunca por impressor
   assert.match(qz, /await qz\.printers\.find\(\)/);
   assert.match(qz, /const thermal = names\.filter/);
   assert.match(qz, /thermal\.length === 1 \? thermal\[0\] : null/);
-  assert.match(qz, /POS-58 correta antes de imprimir/);
+  assert.match(qz, /POS-58 correta abaixo/);
   assert.doesNotMatch(qz, /qz\.printers\.getDefault/);
 });
 test("o QZ atualiza sessão, não armazena token vencido no handler", () => {

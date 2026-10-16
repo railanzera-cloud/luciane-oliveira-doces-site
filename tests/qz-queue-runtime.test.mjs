@@ -16,7 +16,7 @@ function harness(options = {}) {
     security:{setCertificatePromise(){},setSignatureAlgorithm(){},setSignaturePromise(){}},
     websocket:{isActive:()=>active,async connect(){calls.push('connect');if(options.connectFails)throw Error('QZ indisponível');active=true;}},
     printers:{async find(){return options.printers ?? ['POS-58(copy of 1)'];}},
-    configs:{create:()=>({})},
+    configs:{create:(printer)=>{calls.push({configuredPrinter:printer});return {}; }},
     async print(){calls.push('print');if(options.printFails)throw Error('conexão interrompida');},
   };
   const client = {
@@ -28,7 +28,7 @@ function harness(options = {}) {
     .replace('const imported = await import("qz-tray");','const imported = { default: fakeQz };');
   const js = ts.transpileModule(stripped,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
   const exports = {};
-  vm.runInNewContext(js, {exports,crypto:webcrypto,fakeQz,window:{localStorage:{getItem:()=>null,setItem(){}}},fetch(){throw Error('Nenhuma requisição externa permitida');},
+  vm.runInNewContext(js, {exports,crypto:webcrypto,fakeQz,window:{localStorage:{getItem:()=>options.savedPrinter??null,setItem(_key,value){calls.push({savedPrinter:value});}}},fetch(){throw Error('Nenhuma requisição externa permitida');},
     getSupabasePublicConfiguration:()=>({url:'https://fixture.invalid',publishableKey:'fixture'}),
     async claimPrintJob(){calls.push('claim');if(taken)return null;taken=true;return claim;},
     async completePrintJob(){calls.push('complete');if(options.completeFails)throw Error('banco sem conexão');},
@@ -68,4 +68,38 @@ test('impressora desconectada não escolhe outro equipamento',async()=>{
 test('sessão expirada impede chamada remota de assinatura',async()=>{
   const h=harness();const js=ts.transpileModule(source.slice(source.indexOf('async function signedRequest('),source.indexOf('async function qzModule(')),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText;
   const fn=vm.runInNewContext(js+'; signedRequest', {activeAuthClient:h.client});await assert.rejects(fn({action:'sign',request:'fixture'}),/Sessão expirada/);
+});
+
+test('várias térmicas exigem escolha explícita e não enviam comandos',async()=>{
+  const h=harness({printers:['POS-58','POS-58(copy of 1)','Microsoft Print to PDF']});
+  await assert.rejects(h.api.connectKitchenPrinter(h.client),e=>{
+    assert.equal(e.name,'KitchenPrinterSelectionError');
+    assert.deepEqual(Array.from(e.printers),['POS-58','POS-58(copy of 1)']);return true;
+  });
+  assert.ok(!h.calls.includes('print'));assert.ok(!h.calls.includes('claim'));
+});
+test('escolha manual usa exatamente POS-58(copy of 1) e salva preferência',async()=>{
+  const h=harness({printers:['POS-58','POS-58(copy of 1)']});
+  assert.equal(await h.api.connectKitchenPrinter(h.client,'POS-58(copy of 1)'),'POS-58(copy of 1)');
+  assert.ok(h.calls.some(x=>x?.savedPrinter==='POS-58(copy of 1)'));
+  assert.ok(!h.calls.includes('print'));assert.ok(!h.calls.includes('claim'));
+  await h.api.testKitchenPrinter();
+  assert.ok(h.calls.some(x=>x?.configuredPrinter==='POS-58(copy of 1)'));
+});
+test('preferência salva válida é reaproveitada entre várias térmicas',async()=>{
+  const h=harness({printers:['POS-58','POS-58(copy of 1)'],savedPrinter:'POS-58(copy of 1)'});
+  assert.equal(await h.api.connectKitchenPrinter(h.client),'POS-58(copy of 1)');
+});
+test('seleção removida não cai silenciosamente em outra impressora',async()=>{
+  const h=harness({printers:['POS-58']});
+  await assert.rejects(h.api.connectKitchenPrinter(h.client,'POS-58(copy of 1)'),/selecionada não está disponível/);
+  assert.ok(!h.calls.includes('print'));
+});
+test('nomes repetidos no QZ não criam falsa ambiguidade',async()=>{
+  const h=harness({printers:['POS-58(copy of 1)','POS-58(copy of 1)']});
+  assert.equal(await h.api.connectKitchenPrinter(h.client),'POS-58(copy of 1)');
+});
+test('impressora não térmica não pode ser escolhida manualmente',async()=>{
+  const h=harness({printers:['POS-58','Microsoft Print to PDF']});
+  await assert.rejects(h.api.connectKitchenPrinter(h.client,'Microsoft Print to PDF'),/selecionada não está disponível/);
 });

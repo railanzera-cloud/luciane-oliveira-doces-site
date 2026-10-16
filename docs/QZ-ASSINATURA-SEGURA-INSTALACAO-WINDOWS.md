@@ -1,3 +1,9 @@
+> **Seleção de impressora — 15/10/2026:** se houver várias térmicas, o novo
+> frontend permite escolher **POS-58(copy of 1)** e clicar em
+> **Conectar impressora selecionada**. Essa atualização requer o novo ZIP.
+> A assinatura permanece na qz-sign v7; chamadas do notebook retornaram HTTP 200.
+> A fila continua desligada e o teste físico local permanece obrigatório.
+
 > **Correção em 15/10/2026: `qz-sign` v7 ACTIVE.** O HTTP 503 vinha de
 > `X509Certificate.toString()` indisponível no Deno 2.1.4. O PEM validado agora
 > é devolvido diretamente. Assinatura real validada no autoteste do Supabase.

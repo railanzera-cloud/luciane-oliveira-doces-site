@@ -276,3 +276,14 @@ fila desativada e histórico preservado. Aviso de envio incerto refinado, com 10
 novos testes de execução. 482 testes, TypeScript, build e SQL descartável aprovados.
 Sem publicação; login administrativo e acesso Cloudflare ainda impedem terminar
 as validações externas. Estado completo em `docs/COZINHA-IMPRESSAO-CONTINUIDADE.md`.
+
+
+## QZ — seleção explícita de térmica, 15/10/2026
+
+Na branch `work/cozinha-integracao-segura-20261015`, a base `4f9b04e` recebeu
+seletor de impressora no painel após descoberta ambígua. Escolha explícita de
+POS-58(copy of 1), validação da lista atual e preferência local persistida.
+Vitrine e dados comerciais preservados. 492 testes, TypeScript e build aprovados.
+Novo ZIP necessário somente para essa interface; backend continua qz-sign v7,
+com HTTP 200 observado no notebook. Fila desativada e histórico preservado.
+Homologação física pendente. Detalhes em docs/COZINHA-IMPRESSAO-CONTINUIDADE.md.

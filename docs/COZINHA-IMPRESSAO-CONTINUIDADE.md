@@ -1,3 +1,49 @@
+# Estado vigente — seleção explícita de impressora 58 mm (15/10/2026)
+
+Base desta correção: `4f9b04e0046ef2de591987ef01a51dbe52422c4e`.
+A assinatura QZ permanece na **v7**, sem novo deploy de backend.
+
+## Conexão real observada
+
+O notebook Windows da Luciane chegou à descoberta de impressoras, mas recebeu
+“Mais de uma impressora térmica encontrada”. Os logs reais de 22h11min15s e
+22h11min16s (01h11 UTC de 16/10) confirmaram **POST HTTP 200 na qz-sign v7**.
+Portanto, certificado e assinatura já passaram no fluxo autenticado do notebook.
+O bloqueio atual era a ausência de um seletor visível após detectar várias térmicas.
+
+## Correção incremental
+
+- O painel apresenta uma lista com os nomes completos devolvidos pelo QZ,
+  restrita às candidatas térmicas 58 mm, sem usar a impressora padrão.
+- A Luciane deve escolher **POS-58(copy of 1)** e confirmar em
+  **Conectar impressora selecionada**.
+- A seleção é novamente validada contra a lista atual do QZ e salva no navegador.
+  Uma escolha desaparecida não causa troca silenciosa para outra impressora.
+- Nomes duplicados são deduplicados. Nenhuma comanda é enviada pela seleção.
+- Sem alterações no signer, catálogo, pagamentos, vitrine ou outras integrações.
+- Fila real conferida: **enabled=false**, 1 trabalho histórico pending preservado.
+- **492 testes**, TypeScript e build aprovados; seis novos testes de execução
+  cobrem escolha exata, persistência, ambiguidade, nomes repetidos e rejeição de
+  impressora não térmica ou removida.
+
+## Publicação necessária nesta etapa
+
+Esta correção é de frontend, portanto requer o novo ZIP de Cloudflare.
+O pacote conserva Supabase comercial e o modo WhatsApp da versão anterior.
+O acesso ao Cloudflare pelo Work continua bloqueado; o responsável faz o upload
+manual em Production no mesmo projeto `lucianeoliveiradoces`. Não confundir esse
+novo pacote com a correção anterior do signer, que dispensava novo frontend.
+
+Após publicar e atualizar o painel no Windows com Ctrl+F5:
+1. Conectar impressão 58 mm.
+2. Se a lista aparecer, selecionar **POS-58(copy of 1)** e confirmar conexão.
+3. Conferir automação desativada.
+4. Clicar somente **Imprimir teste local** e confirmar o papel **TESTE LOCAL**.
+
+Impressão física ainda pendente. Não ativar automação nem usar a comanda histórica.
+
+---
+
 # Correção vigente da assinatura QZ — 15/10/2026, 22h02 (America/Belem)
 
 **Backend atual: `qz-sign` v7 ACTIVE. Frontend publicado pelo responsável:

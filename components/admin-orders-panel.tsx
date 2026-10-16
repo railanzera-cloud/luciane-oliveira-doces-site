@@ -151,6 +151,8 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const [alertsPreferred, setAlertsPreferred] = useState(false);
   const [printerReady, setPrinterReady] = useState(false);
   const [printerName, setPrinterName] = useState("");
+  const [printerChoices, setPrinterChoices] = useState<string[]>([]);
+  const [printerChoice, setPrinterChoice] = useState("");
   const [printerTested, setPrinterTested] = useState(false);
   const [printGateEnabled, setPrintGateEnabled] = useState(false);
   const [printing, setPrinting] = useState(false);
@@ -335,24 +337,33 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     }
   }
 
-  async function enablePrinter() {
+  async function enablePrinter(preferredPrinter?: string) {
     printingRef.current = true;
     setPrinting(true);
     setError("");
+    setNotice("");
+    setPrinterReady(false);
     setPrinterTested(false);
     try {
       const { connectKitchenPrinter, kitchenPrintIsEnabled } = await import("@/lib/qz-print-client");
       // Conectar hardware NÃO pode consumir a fila de impressão implicitamente.
       // O controle remoto permanece desligado até a homologação física.
-      const printer = await connectKitchenPrinter(client);
+      const printer = await connectKitchenPrinter(client, preferredPrinter);
       const enabled = await kitchenPrintIsEnabled(client);
       setPrinterName(printer);
+      setPrinterChoices([]);
+      setPrinterChoice("");
       setPrinterReady(true);
       setPrintGateEnabled(enabled);
       setNotice(enabled
         ? `Impressora conectada: ${printer}. Fila protegida ativa; aguardando comandas elegíveis.`
         : `Impressora conectada: ${printer}. Impressão automática desativada com segurança.`);
     } catch (printerError) {
+      if (printerError instanceof Error && printerError.name === "KitchenPrinterSelectionError"
+        && "printers" in printerError && Array.isArray(printerError.printers)) {
+        setPrinterChoices(printerError.printers.filter((name): name is string => typeof name === "string"));
+        setPrinterChoice("");
+      }
       setError(printerError instanceof Error ? printerError.message : "Não foi possível conectar ao QZ Tray.");
     } finally {
       printingRef.current = false;
@@ -461,6 +472,15 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       <div className="admin-kitchen-tools">
         <Button type="button" variant={alertsEnabled ? "default" : "outline"} onClick={() => void enableAlerts()}><BellRing size={17} /> {alertsEnabled ? "Alertas ativados" : alertsPreferred ? "Reativar alertas" : "Ativar alertas da cozinha"}</Button>
         <Button type="button" variant={printerReady ? "default" : "outline"} onClick={() => printerReady ? void processPrints() : void enablePrinter()} disabled={printing}>{printing ? <LoaderCircle className="admin-spinner" size={17} /> : <Printer size={17} />} {printerReady ? printerName || "Processar impressão" : "Conectar impressão 58 mm"}</Button>
+        {!printerReady && printerChoices.length > 1 && <div className="admin-printer-selection">
+          <label htmlFor="kitchen-printer-choice">Impressora térmica da cozinha</label>
+          <select id="kitchen-printer-choice" value={printerChoice} onChange={event => setPrinterChoice(event.target.value)} disabled={printing} style={{ display: "block", maxWidth: "100%", margin: "8px 0", padding: "10px", color: "#f7ead8", background: "#2a1a10", border: "1px solid #9b7046", borderRadius: "8px" }}>
+            <option value="">Selecione a impressora…</option>
+            {printerChoices.map(name => <option key={name} value={name}>{name}</option>)}
+          </select>
+          <Button type="button" variant="outline" onClick={() => void enablePrinter(printerChoice)} disabled={printing || !printerChoice}>Conectar impressora selecionada</Button>
+          <small style={{ display: "block", marginTop: "8px" }}>No notebook da Luciane, confira POS-58(copy of 1). A seleção não imprime pedidos.</small>
+        </div>}
         {printerReady && <Button type="button" variant="outline" onClick={() => void printLocalTest()} disabled={printing}><Printer size={17} /> Imprimir teste local</Button>}
         {printerReady && <Button type="button" variant={printGateEnabled ? "default" : "outline"} onClick={() => void togglePrintAutomation()} disabled={printing || (!printGateEnabled && !printerTested)}>{printGateEnabled ? "Pausar impressão automática" : "Ativar impressão automática"}</Button>}
         {printerReady && !printGateEnabled && !printerTested && <small role="status">Imprima o teste local e confira o papel para habilitar a ativação.</small>}
