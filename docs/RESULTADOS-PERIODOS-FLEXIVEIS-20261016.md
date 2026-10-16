@@ -32,4 +32,6 @@ Não muda vitrine, pedidos, estoque, Tintim, Meta, Pix, faturamento contábil ne
 - Data de inclusão principal = `created_at`; `completed_at` só serve para a lista separada de pedidos antigos concluídos. Datas civis em `America/Belem`.
 - Nova RPC read-only `admin_get_sales_summary_v1(date,date)`; não altera pedidos, histórico de status, pagamentos ou a RPC existente de atribuição/relatório.
 - Condição real do banco em 16/10: havia 12 pedidos criados no dia, concluídos e pagos, totalizando R$ 450,58, e um concluído com pagamento ainda pendente (R$ 30,00). Os dados podem mudar, inclusive pela confirmação posterior de pagamentos, e incluem possíveis testes.
-- Aplicar a nova migration no Supabase comercial antes de publicar a nova interface; manter `main` e Cloudflare intocados até autorização. CI automatizada e conferência no Safari pendentes para o commit deste complemento.
+- **Migração aplicada:** `admin_sales_summary_v1_20261016` no Supabase comercial `edqiwvccmboyayojvuea`. Verificado: RPC de vendas existe, RPC v3 anterior preservada, `anon` sem `EXECUTE`, `authenticated` com `EXECUTE`, guarda `lod_require_authenticated_staff()` mantida. Os dados de pedido não foram modificados.
+- **Validação do código:** build, TypeScript, suíte completa e ZIP (incluindo validação de CRC) aprovados no GitHub Actions #38968235758 para `4850fb0`.
+- **Pendente:** conferência da tela no Safari com login da Luciane, seguida de publicação somente com autorização, sem alterar a branch `main`.
