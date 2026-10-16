@@ -7,6 +7,7 @@ on:
       - design/luciane-editorial-vitrine-experiment-20261013
       - work/cozinha-integracao-segura-20261015
       - work/crocantes-estoque-20261016
+      - work/admin-resultados-periodo-personalizado-20261016
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -20,6 +21,12 @@ on:
       - lib/public-menu-availability.ts
       - supabase/migrations/20261016133000_crocante_inventory_individual.sql
       - components/admin-orders-panel.tsx
+      - components/admin-results-panel.tsx
+      - lib/admin-results-client.ts
+      - lib/admin-results-model.ts
+      - lib/admin-results-dates.ts
+      - app/globals.css
+      - supabase/migrations/20261016220000_admin_results_custom_dates_v3.sql
       - lib/qz-print-client.ts
       - supabase/functions/create-whatsapp-order/index.ts
       - supabase/functions/_shared/commerce-catalog.mjs
@@ -82,7 +89,8 @@ jobs:
               assert 'Histórico de visitas identificadas' in js, 'rotulo de historico ausente'
               assert 'O identificador de clique deste pedido coincide' in js, 'evidencia de clique ausente'
               assert 'admin_get_tintim_order_tracking_v3' in js, 'consulta de historico por pedido ausente'
-              assert 'admin_get_results_overview_v2' in js, 'consulta de Resultados v2 ausente'
+              assert 'admin_get_results_overview_v3' in js, 'consulta de Resultados v3 ausente'
+              assert 'Personalizado' in js and 'Aplicar período' in js, 'calendario de resultados ausente'
               assert 'admin_get_crocante_inventory' in js, 'controle de estoque dos copos ausente no painel'
               assert 'admin_set_crocante_inventory' in js, 'salvamento de estoque por sabor ausente'
               assert 'public_crocante_inventory' in js, 'saldo de estoque ausente na vitrine'
