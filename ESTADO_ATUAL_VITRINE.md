@@ -305,3 +305,12 @@ Homologação física pendente. Detalhes em docs/COZINHA-IMPRESSAO-CONTINUIDADE.
 ### Segurança complementar da implantação
 
 A migração `20261016161000_crocante_inventory_rpc_permissions.sql` foi aplicada e validada: acesso `anon` permanece permitido somente ao RPC de saldo público; leitura e escrita administrativas são restritas à autenticação. Ensaios no PostgreSQL efêmero, build e TypeScript passaram na branch isolada. O frontend continua reservado à publicação manual no Cloudflare, sem alterar `main`.
+
+## Ajuste da comanda térmica — Fatias e nome do cliente (16/10/2026)
+
+- Pedido real **#1275**: conferido no banco `quantity=1`, `size_label='1 fatia'`, `name='Chocolate com Morango'`, `option_names=['Com calda de chocolate']`. Impressora não duplicou produto; o rótulo `1 fatia` acrescentado ao título gerava ambiguidade.
+- **Correção exclusiva no formatador** `lib/qz-print-client.ts`: fatias imprimem `1x FATIA - Chocolate com Morango` e linha seguinte `> Com calda de chocolate`; outras opções, preços, quantitativos e impressão de Pipocas Gourmet ficam intactos.
+- **Nome do cliente ampliado 2x**, em negrito, quebrado em 16 caracteres por linha para 58 mm, com restauração do tamanho regular antes de telefone/endereço.
+- Tests: `tests/kitchen-receipt-fatias-legibilidade.test.mjs`, teste de regra sem conectar QZ ou reimprimir pedido real. Evidência física pendente.
+- Base de trabalho: branch isolada `work/crocantes-estoque-20261016`, que contém também o controle de estoque anterior (Supabase já instalado). Não publicar automaticamente; entrega do ZIP compilado e validado para upload manual no mesmo projeto Cloudflare Pages. Não mexer na `main`.
+- Estado/continuidade detalhados em `docs/COZINHA-IMPRESSAO-CONTINUIDADE.md`.
