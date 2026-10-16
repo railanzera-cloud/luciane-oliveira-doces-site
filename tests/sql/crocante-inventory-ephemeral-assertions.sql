@@ -1,8 +1,5 @@
 -- Acoes e verificacoes apenas no banco descartavel da CI.
 -- Reimpressao de uma compra anterior ao inicio do estoque segue possivel.
-insert into public.order_items(order_uuid,item_key,name,quantity)
-select id,'crocante_copo_ninho','Crocante Ninho antigo',1
-from public.orders where order_id='legacy';
 do $
 begin
  if not public.lod_crocante_print_allocation_ready((select id from public.orders where order_id='legacy')) then
