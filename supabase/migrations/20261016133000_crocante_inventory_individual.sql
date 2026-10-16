@@ -8,7 +8,8 @@ create table public.crocante_inventory (
   total_stock integer not null default 0 check (total_stock >= 0),
   is_enabled boolean not null default true,
   version bigint not null default 1,
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  installed_at timestamptz not null default now()
 );
 insert into public.crocante_inventory(item_key,total_stock,is_enabled) values
   ('crocante_copo_ninho',0,true),
@@ -209,8 +210,11 @@ returns boolean language sql stable security definer set search_path=public,pg_t
 as $ready$
   select not exists (
     select 1 from public.order_items i
+    join public.orders o on o.id=i.order_uuid
+    join public.crocante_inventory c on c.item_key=i.item_key
     where i.order_uuid=p_order_uuid
-      and i.item_key in ('crocante_copo_ninho','crocante_copo_chocolate')
+      -- Pedidos anteriores ao controle de estoque preservam reimpressoes historicas.
+      and o.created_at >= c.installed_at
       and not exists (
         select 1 from public.crocante_inventory_holds h
         where h.order_uuid=i.order_uuid and h.item_key=i.item_key and h.state='committed'
