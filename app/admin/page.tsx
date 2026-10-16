@@ -16,6 +16,7 @@ import {
 
 import {
   CATEGORY_ITEM_KEYS,
+  CROCANTES_ITEM_KEYS,
   MENU_AVAILABILITY_ITEMS,
   createFallbackAvailability,
   type AvailabilitySnapshot,
@@ -29,6 +30,9 @@ import { AdminOrdersPanel } from "@/components/admin-orders-panel";
 import { AdminResultsPanel } from "@/components/admin-results-panel";
 import {
   loadRemoteAvailability,
+  loadCrocanteInventory,
+  saveCrocanteInventory,
+  type CrocanteInventoryRow,
   updateMenuItemStatus,
   updateOrdersOpen,
 } from "@/lib/menu-availability-client";
@@ -109,6 +113,9 @@ export default function AdminPage() {
   const [loadError, setLoadError] = useState("");
   const [pendingKeys, setPendingKeys] = useState<string[]>([]);
   const [notice, setNotice] = useState("");
+  const [cupStock, setCupStock] = useState<CrocanteInventoryRow[]>([]);
+  const [cupStockDraft, setCupStockDraft] = useState<Record<string, string>>({});
+  const [cupStockSaving, setCupStockSaving] = useState("");
 
   const categoryItems = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "category");
   const popcornSizes = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "popcorn_size");
@@ -143,8 +150,10 @@ export default function AdminPage() {
     setLoadingMenu(true);
     setLoadError("");
     try {
-      const snapshot = await loadRemoteAvailability();
+      const [snapshot, inventory] = await Promise.all([loadRemoteAvailability(), loadCrocanteInventory()]);
       setAvailability(snapshot);
+      setCupStock(inventory);
+      setCupStockDraft(Object.fromEntries(inventory.map((row) => [row.item_key, String(row.total)])));
     } catch (error) {
       setLoadError(friendlyError(error));
     } finally {
@@ -223,6 +232,33 @@ export default function AdminPage() {
       setLoadError(friendlyError(error));
     } finally {
       setPendingKeys((current) => current.filter((key) => key !== item.itemKey));
+    }
+  }
+
+  async function updateCupStock(row: CrocanteInventoryRow, nextEnabled = row.enabled) {
+    if (!session || cupStockSaving) return;
+    const amount = Number(cupStockDraft[row.item_key] ?? row.total);
+    if (!Number.isSafeInteger(amount) || amount < 0 || amount > 100000) {
+      setLoadError("Informe uma quantidade inteira igual ou maior que zero.");
+      return;
+    }
+    setCupStockSaving(row.item_key);
+    setLoadError("");
+    try {
+      const updated = await saveCrocanteInventory({
+        itemKey: row.item_key,
+        total: amount,
+        version: row.version,
+        enabled: nextEnabled,
+      });
+      setCupStock(updated);
+      setCupStockDraft(Object.fromEntries(updated.map((item) => [item.item_key, String(item.total)])));
+      await reloadMenu();
+      showNotice(`${row.item_key === CROCANTES_ITEM_KEYS["crocante-ninho"] ? "Ninho" : "Chocolate"}: estoque atualizado.`);
+    } catch (error) {
+      setLoadError(friendlyError(error));
+    } finally {
+      setCupStockSaving("");
     }
   }
 
@@ -324,6 +360,56 @@ export default function AdminPage() {
           <h3 className="admin-subheading">Sabores</h3>
           <div className="admin-item-list">
             {popcornFlavors.map((item) => <AvailabilityControl item={item} status={categoryStatus(item.itemKey)} pending={pendingKeys.includes(item.itemKey)} onChange={(status) => changeItemStatus(item, status)} key={item.itemKey} />)}
+          </div>
+        </section>
+
+        <section className="admin-category-section" aria-labelledby="admin-crocantes-title">
+          <div className="admin-category-heading">
+            <div>
+              <p className="eyebrow">Estoque por sabor · 400 ml</p>
+              <h2 id="admin-crocantes-title">Copos Crocantes</h2>
+              <p>Independente dos potes Gourmet. Quando o saldo chega a zero, o copo fica esgotado automaticamente.</p>
+            </div>
+          </div>
+          <div className="admin-item-list">
+            {cupStock.map((row) => {
+              const flavor = row.item_key === CROCANTES_ITEM_KEYS["crocante-ninho"] ? "Caramelo com Ninho" : "Caramelo com Chocolate";
+              const busy = cupStockSaving === row.item_key;
+              return (
+                <article className={`admin-item status-${row.available > 0 && row.enabled ? "available" : "sold_out"}`} key={row.item_key} aria-busy={busy}>
+                  <div className="admin-item-heading">
+                    <div>
+                      <strong>{flavor}</strong>
+                      <span>{row.enabled && row.available > 0 ? `${row.available} disponível(is)` : "Indisponível"} · {row.reserved} reservada(s)</span>
+                    </div>
+                  </div>
+                  <div className="admin-crocante-stock-editor">
+                    <label htmlFor={`stock-${row.item_key}`}>Unidades físicas restantes (inclui reservas)</label>
+                    <div className="admin-crocante-stock-actions">
+                      <Input
+                        id={`stock-${row.item_key}`}
+                        type="number" inputMode="numeric" min={0} max={100000} step={1}
+                        value={cupStockDraft[row.item_key] ?? String(row.total)}
+                        disabled={Boolean(cupStockSaving)}
+                        onChange={(event) => setCupStockDraft((previous) => ({ ...previous, [row.item_key]: event.target.value }))}
+                      />
+                      <Button type="button" disabled={Boolean(cupStockSaving)} onClick={() => void updateCupStock(row)}>
+                        {busy ? <LoaderCircle className="admin-spinner" size={16} /> : <Check size={16} />} Salvar estoque
+                      </Button>
+                    </div>
+                    <div className="admin-crocante-stock-meta">
+                      <span>{row.available} para novos pedidos</span>
+                      <button type="button" disabled={Boolean(cupStockSaving)} onClick={() => void updateCupStock(row, !row.enabled)}>
+                        {row.enabled ? "Pausar apenas este sabor" : "Retomar este sabor"}
+                      </button>
+                    </div>
+                    {row.shortages > 0 && <p role="alert" className="admin-error">
+                      <AlertCircle size={16} /> {row.shortages} pedido(s) pago(s) sem unidade reservada: confira no painel antes de produzir.
+                    </p>}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </section>
 
