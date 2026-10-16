@@ -7,7 +7,7 @@ declare module "qz-tray" {
       disconnect(): Promise<void>;
     };
     security: {
-      setCertificatePromise(factory: () => Resolver<string>): void;
+      setCertificatePromise(executor: Resolver<string>): void;
       setSignatureAlgorithm(algorithm: string): void;
       setSignaturePromise(factory: (request: string) => Resolver<string>): void;
     };

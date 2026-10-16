@@ -92,3 +92,48 @@ begin
    raise exception 'Fila pausada ainda liberou comanda';
  end if;
 end $$;
+
+-- Novos cenários, exclusivamente no banco descartável.
+select public.admin_set_kitchen_print_enabled(true);
+insert into public.orders(order_id,order_number,sales_channel,payment_method,payment_status,order_status)
+values ('mp-card-paid',1200,'site','mercado_pago_card','paid','new');
+do $$
+declare v_claim jsonb; v_again jsonb; v_job uuid; v_token uuid; v_order uuid;
+begin
+ v_claim := public.claim_print_job('runtime-worker-1');
+ if v_claim->'order'->>'order_id' <> 'mp-card-paid' then
+   raise exception 'Cartao aprovado nao foi liberado ou houve consumo antigo';
+ end if;
+ v_job := (v_claim->'job'->>'id')::uuid;
+ v_token := (v_claim->'job'->>'claim_token')::uuid;
+ v_order := (select id from public.orders where order_id='mp-card-paid');
+ if public.claim_print_job('runtime-worker-2') is not null then
+   raise exception 'Tentativa duplicada do mesmo claim';
+ end if;
+ if public.admin_verify_print_claim(v_job,gen_random_uuid()) then
+   raise exception 'Token incorreto autorizado';
+ end if;
+ -- Interrupcao depois de enviar: printing nao deve expirar para pending.
+ update public.print_jobs set claimed_at=now()-interval '1 day' where id=v_job;
+ if public.claim_print_job('runtime-worker-3') is not null then
+   raise exception 'Claim interrompido foi reenviado automaticamente';
+ end if;
+ update public.print_jobs set status='failed' where id=v_job;
+ if public.claim_print_job('runtime-worker-4') is not null then
+   raise exception 'Falha ambigua foi reenviada automaticamente';
+ end if;
+ -- Apenas simula confirmacao de spooler para ensaiar reimpressao solicitada.
+ update public.print_jobs set status='printed',printed_at=now() where id=v_job;
+ insert into public.print_jobs(order_uuid,job_key,kind,requested_by)
+ values(v_order,'reprint:ephemeral-only','reprint',public.lod_require_authenticated_staff());
+ v_again:=public.claim_print_job('runtime-worker-5');
+ if v_again->'job'->>'kind' <> 'reprint' then raise exception 'Reimpressao valida ausente'; end if;
+ if not public.admin_verify_print_claim((v_again->'job'->>'id')::uuid,(v_again->'job'->>'claim_token')::uuid) then
+   raise exception 'Reimpressao valida bloqueada';
+ end if;
+ update public.orders set order_status='cancelled' where id=v_order;
+ if public.admin_verify_print_claim((v_again->'job'->>'id')::uuid,(v_again->'job'->>'claim_token')::uuid) then
+   raise exception 'Reimpressao de cancelado autorizada';
+ end if;
+end $$;
+select public.admin_set_kitchen_print_enabled(false);

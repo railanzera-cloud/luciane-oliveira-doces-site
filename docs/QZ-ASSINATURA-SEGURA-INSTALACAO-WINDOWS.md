@@ -1,3 +1,8 @@
+> **Atualização 15/10/2026:** os dois segredos QZ já foram configurados no Supabase,
+> e a lista administrativa existente foi preservada. Não repetir essa configuração.
+> A validação positiva remota e a impressão física seguem pendentes; fila desligada.
+> Consulte o estado vigente em `COZINHA-IMPRESSAO-CONTINUIDADE.md`.
+
 # Finalização local QZ Tray — Luciane Oliveira Doces
 
 **Uso:** somente pessoa autorizada com acesso ao Supabase comercial e ao notebook Windows da Luciane.  

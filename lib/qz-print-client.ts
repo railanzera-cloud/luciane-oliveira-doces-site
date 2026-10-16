@@ -166,7 +166,7 @@ function receipt(claim: PrintClaim): string {
   return lines.join("\n");
 }
 
-async function printClaim(claim: PrintClaim): Promise<void> {
+async function printClaim(claim: PrintClaim, onDispatch: () => void): Promise<void> {
   const qz = await qzModule();
   if (!selectedPrinter) throw new Error("Impressora QZ não selecionada.");
   if (!qz.websocket.isActive()) await qz.websocket.connect({ retries: 2, delay: 1 });
@@ -175,7 +175,10 @@ async function printClaim(claim: PrintClaim): Promise<void> {
     copies: 1,
     jobName: `Luciane Pedido ${claim.order.order_number}`,
   });
-  await qz.print(config, [{ type: "raw", format: "plain", data: receipt(claim) }]);
+  const data = [{ type: "raw", format: "plain", data: receipt(claim) }];
+  // Depois desta fronteira, até uma rejeição pode ocorrer após envio ao spooler.
+  onDispatch();
+  await qz.print(config, data);
 }
 
 /** O servidor e a fila devem estar explicitamente habilitados.
@@ -194,6 +197,7 @@ export async function drainPrintQueue(client: SupabaseClient, maxJobs = 10): Pro
   for (let index = 0; index < maxJobs; index += 1) {
     const claim = await claimPrintJob(client, workerId);
     if (!claim) break;
+    let dispatchStarted = false;
     try {
       // O estado pode ter mudado (cancelamento, estorno ou desligamento) após o claim.
       const { data: stillEligible, error: verifyError } = await client.rpc("admin_verify_print_claim", {
@@ -203,13 +207,22 @@ export async function drainPrintQueue(client: SupabaseClient, maxJobs = 10): Pro
         await failPrintJob(client, claim, "Comanda bloqueada por mudança de estado ou falha de validação.");
         continue; // Não enviar comandos à impressora.
       }
-      await printClaim(claim);
+      await printClaim(claim, () => { dispatchStarted = true; });
+      // Confirma apenas a aceitação pelo QZ/spooler, não a saída física do papel.
       await completePrintJob(client, claim);
       printed += 1;
     } catch (error) {
-      const failure = error instanceof Error ? error.message : "Falha de impressão.";
-      await failPrintJob(client, claim, failure);
-      throw error;
+      const cause = error instanceof Error ? error.message : "Falha de impressão.";
+      const failure = dispatchStarted
+        ? `Pedido #${claim.order.order_number}: envio pode ter ocorrido. Confira o papel e a fila do Windows antes de reimprimir; não haverá reenvio automático. ${cause}`
+        : `Pedido #${claim.order.order_number}: impressão não enviada. ${cause}`;
+      try {
+        await failPrintJob(client, claim, failure);
+      } catch {
+        // Sem confirmação do banco, preservar o claim; nunca devolver a pending.
+        throw new Error(`${failure} Não foi possível registrar o resultado no servidor; solicite conferência operacional.`);
+      }
+      throw new Error(failure);
     }
   }
   return printed;

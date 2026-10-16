@@ -70,7 +70,7 @@ test("o QZ se recusa a processar no banco atual sem a RPC de segurança", () => 
   assert.match(qz, /if \(!\(await kitchenPrintIsEnabled\(client\)\)\) return 0;/);
   assert.ok(qz.indexOf("kitchenPrintIsEnabled(client)") < qz.indexOf("let printed = 0;"));
   assert.match(qz, /client\.rpc\("admin_verify_print_claim"/);
-  assert.ok(qz.indexOf('client.rpc("admin_verify_print_claim"') < qz.indexOf("await printClaim(claim)"));
+  assert.ok(qz.indexOf('client.rpc("admin_verify_print_claim"') < qz.indexOf("await printClaim(claim,"));
   assert.match(qz, /if \(verifyError \|\| stillEligible !== true\)/);
   assert.match(qz, /failPrintJob\(client, claim, "Comanda bloqueada/);
   assert.match(qz, /await completePrintJob\(client, claim\)/);

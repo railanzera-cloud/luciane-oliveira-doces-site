@@ -265,3 +265,14 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **Aplicação uniforme:** confirmação `Adicionado ao pedido` e área `Adicionar mais itens` do carrinho usam `addMoreButtonLabel` (uma única lógica).
 - **Testes:** `tests/order-building-ux.test.mjs` cobre carrinho vazio, Gourmet, fatia, Crocante isolado e pedido misto, além de verificar as três áreas de botões. Registrar como validado somente após CI passar.
 - **Implantação:** branch editorial existente, `main` preservada, Cloudflare Pages continua sob publicação manual; nenhuma alteração no Supabase ou na branch isolada da impressora.
+
+
+## Integração QZ — checkpoint de homologação em 15/10/2026
+
+Trabalho exclusivo em `work/cozinha-integracao-segura-20261015`, incorporando a
+base comercial `cf7932fd953c7aaadb865cc9265616bd0b6e2c44`. Nenhuma alteração de
+vitrine, imagens, catálogo ou preços. Segredos QZ salvos apenas no Supabase;
+fila desativada e histórico preservado. Aviso de envio incerto refinado, com 10
+novos testes de execução. 482 testes, TypeScript, build e SQL descartável aprovados.
+Sem publicação; login administrativo e acesso Cloudflare ainda impedem terminar
+as validações externas. Estado completo em `docs/COZINHA-IMPRESSAO-CONTINUIDADE.md`.
