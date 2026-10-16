@@ -1,3 +1,56 @@
+# Correção vigente da assinatura QZ — 15/10/2026, 22h02 (America/Belem)
+
+**Backend atual: `qz-sign` v7 ACTIVE. Frontend publicado pelo responsável:
+checkpoint `0c4c60131d0713a1edb0493cbc14611bd8cd46da`, sem nova publicação nesta correção.**
+Esta seção prevalece sobre os estados anteriores.
+
+## Causa comprovada do HTTP 503
+
+Os POSTs de 21h51min52s e 21h52min27s (00h51min52s e 00h52min27s UTC,
+16/10) atingiram a v4 com sessão da Luciane autenticada. A configuração dos
+segredos estava presente e os digests permanecem os já conferidos.
+
+A reprodução no Deno **2.1.4** isolou o problema: `X509Certificate.toString()`
+lança `Not implemented: crypto.X509Certificate.prototype.toString`.
+O `catch` convertia essa incompatibilidade em `invalid_qz_keypair` / 503,
+mesmo com certificado e chave correspondentes. A indicação inicial de falha
+na derivação/verificação foi descartada após reprodução: ambas funcionam;
+a etapa seguinte, serialização do certificado, era a causa real.
+
+## Correção mínima e evidência
+
+- `checkedSigningPair` conserva parser X.509, comparação das chaves públicas
+  e assinatura RSA-SHA512; devolve o **PEM original validado e aparado**, sem
+  chamar o método de serialização incompatível.
+- Autoteste por isolate registra somente booleanos de presença, correspondência
+  e verificação criptográfica. Não registra chave, certificado, payload, token
+  ou assinatura. Não cria pedido nem chama impressora.
+- Deno 2.1.4 com os anexos reais: certificado HTTP 200, PEM correspondente,
+  assinatura HTTP 200 e verificação criptográfica `true` (Auth simulado somente
+  nesse ensaio local; nenhuma sessão criada no Supabase).
+- Supabase **v7**, log de 16/10/2026 01:02:25.795 UTC: `certificatePresent=true`,
+  `privateKeyPresent=true`, `adminListPresent=true`, `pairValid=true`,
+  `signatureValid=true`, usando os segredos reais do ambiente.
+- Chamadas HTTP reais negativas mantiveram 401 sem autenticação, 401 com token
+  inválido e 403 para origem não autorizada; CORS do domínio comercial preservado.
+- 486 testes de regressão e TypeScript aprovados. Incluem reprodução do método
+  X.509 indisponível, par RSA divergente, autorização administrativa e CORS.
+- Nenhuma outra Edge Function, chave, frontend, pedido, pagamento ou disponibilidade
+  foi alterada. **Fila `enabled=false`; 1 comanda histórica `pending` preservada.**
+
+## Próxima ação física
+
+No notebook Windows da Luciane, atualizar o painel com Ctrl+F5, conectar impressão
+58 mm e conferir `POS-58(copy of 1)` e automação desativada. Se conectar, clicar
+somente **Imprimir teste local** e conferir papel **TESTE LOCAL**. Se ainda houver
+solicitação anônima, fechar essa solicitação e registrar a mensagem exata antes
+de qualquer autorização. Não usar a comanda histórica e não ativar automação.
+
+O autoteste comprova a assinatura no runtime, mas não substitui o próximo retorno
+HTTP autenticado do notebook, a conexão QZ nem a confirmação física do papel.
+
+---
+
 # Estado vigente — 15/10/2026 (America/Belem)
 
 Esta seção prevalece sobre as notas históricas abaixo. Branch exclusiva:

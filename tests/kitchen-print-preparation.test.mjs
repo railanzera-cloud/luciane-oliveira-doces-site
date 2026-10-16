@@ -221,3 +221,9 @@ test("assinatura QZ falha fechada se par de chaves estiver ausente ou divergente
   assert.match(signer, /Deno\.env\.get\("SUPABASE_ANON_KEY"\)/);
   assert.doesNotMatch(qz, /private-key\.pem|QZ_PRIVATE_KEY_PEM/);
 });
+
+
+test("certificado validado retorna PEM original sem serialização X509 incompatível com Deno", () => {
+  assert.doesNotMatch(signer, /certificate\.toString\(\)/);
+  assert.match(signer, /certificate: certificatePem\.trim\(\)/);
+});

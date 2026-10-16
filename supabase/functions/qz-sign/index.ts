@@ -1,6 +1,6 @@
 // Authenticated signing bridge for QZ Tray. The private key never reaches the
 // browser; without the optional QZ secrets the rest of the order system works.
-import { createPrivateKey, createPublicKey, createSign, X509Certificate } from "node:crypto";
+import { createPrivateKey, createPublicKey, createSign, verify, X509Certificate } from "node:crypto";
 
 const DEFAULT_ALLOWED_ORIGINS = [
   "https://lucianeoliveiradoces.pages.dev",
@@ -83,11 +83,38 @@ function checkedSigningPair(): { certificate: string; privateKeyPem: string } {
     if (expected !== actual) {
       throw new HttpError(503, "qz_pair_mismatch", "Certificado e chave QZ não correspondem.");
     }
-    return { certificate: certificate.toString(), privateKeyPem };
+    // Deno 2.1.4 parses X.509 but X509Certificate.toString() is not implemented.
+    // Return the validated original PEM instead of serializing the native object.
+    return { certificate: certificatePem.trim(), privateKeyPem };
   } catch (error) {
     if (error instanceof HttpError) throw error;
     throw new HttpError(503, "invalid_qz_keypair", "Certificado ou chave QZ inválidos.");
   }
+}
+
+// Runtime-only self-check: emits booleans, never secrets or signatures.
+try {
+  const pair = checkedSigningPair();
+  const probe = "LOD QZ runtime self-check";
+  const signer = createSign("RSA-SHA512");
+  signer.update(probe, "utf8");
+  signer.end();
+  const signature = signer.sign(createPrivateKey(pair.privateKeyPem));
+  console.info("qz-sign runtime self-check", {
+    certificatePresent: Boolean(Deno.env.get("QZ_CERTIFICATE")),
+    privateKeyPresent: Boolean(Deno.env.get("QZ_PRIVATE_KEY_PEM")),
+    adminListPresent: Boolean(Deno.env.get("LOD_ADMIN_USER_IDS")),
+    pairValid: true,
+    signatureValid: verify("RSA-SHA512", new TextEncoder().encode(probe), new X509Certificate(pair.certificate).publicKey, signature),
+  });
+} catch (error) {
+  console.error("qz-sign runtime self-check failed", {
+    certificatePresent: Boolean(Deno.env.get("QZ_CERTIFICATE")),
+    privateKeyPresent: Boolean(Deno.env.get("QZ_PRIVATE_KEY_PEM")),
+    adminListPresent: Boolean(Deno.env.get("LOD_ADMIN_USER_IDS")),
+    code: error instanceof HttpError ? error.code : "crypto_runtime_failure",
+    errorType: error instanceof Error ? error.name : "unknown",
+  });
 }
 
 Deno.serve(async (request: Request) => {

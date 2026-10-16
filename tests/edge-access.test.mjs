@@ -34,7 +34,7 @@ try {
   rmSync(qzTestDir, { recursive: true, force: true });
 }
 
-function harness(source, { user = null, environment = {}, snapshot = {} } = {}) {
+function harness(source, { user = null, environment = {}, snapshot = {}, certificateSerializationUnsupported = false } = {}) {
   const calls = [];
   const env = {
     SUPABASE_URL: "https://database.example.invalid",
@@ -50,9 +50,13 @@ function harness(source, { user = null, environment = {}, snapshot = {} } = {}) 
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
   }).outputText;
   vm.runInNewContext(code, {
-    createPrivateKey, createPublicKey, createSign, X509Certificate, crypto: webcrypto,
+    createPrivateKey, createPublicKey, createSign, verify,
+    X509Certificate: certificateSerializationUnsupported ? class extends X509Certificate {
+      toString() { throw new Error("Not implemented: crypto.X509Certificate.prototype.toString"); }
+    } : X509Certificate,
+    crypto: webcrypto,
     Request, Response, Headers, AbortController, AbortSignal, TextEncoder,
-    setTimeout, clearTimeout, console: { error() {} },
+    setTimeout, clearTimeout, console: { error() {}, info() {} },
     Deno: { env: { get: (key) => env[key] }, serve: (fn) => { handler = fn; } },
     fetch: async (url, options) => {
       calls.push({ url, body: options.body ? JSON.parse(options.body) : null });
@@ -115,6 +119,38 @@ test("QZ never returns a private key accidentally saved as its public certificat
   const response = await h.invoke({ action: "certificate" }, { authorization: "Bearer fixture-admin" });
   assert.equal(response.status, 503);
   assert.equal((await response.text()).includes("PRIVATE KEY"), false);
+});
+
+test("QZ validates and signs when X509Certificate.toString is not implemented by the runtime", async () => {
+  const h = harness(qzSource, { user: { id: adminId }, certificateSerializationUnsupported: true });
+  const certificate = await h.invoke({ action: "certificate" }, { authorization: "Bearer fixture-admin" });
+  assert.equal(certificate.status, 200);
+  assert.equal((await certificate.json()).certificate.trim(), testCertificatePem.trim());
+  const payload = "QZ compatibility regression";
+  const response = await h.invoke({ action: "sign", request: payload }, { authorization: "Bearer fixture-admin" });
+  assert.equal(response.status, 200);
+  assert.equal(verify("RSA-SHA512", Buffer.from(payload), publicKey, Buffer.from((await response.json()).signature, "base64")), true);
+});
+
+test("QZ cryptographic correspondence rejects a valid but unrelated RSA key", async () => {
+  const otherKey = generateKeyPairSync("rsa", { modulusLength: 2048 }).privateKey.export({ type: "pkcs8", format: "pem" });
+  const h = harness(qzSource, { user: { id: adminId }, environment: { QZ_PRIVATE_KEY_PEM: otherKey } });
+  const response = await h.invoke({ action: "certificate" }, { authorization: "Bearer fixture-admin" });
+  assert.equal(response.status, 503);
+  const body = await response.json();
+  assert.equal(body.error.code, "qz_pair_mismatch");
+  assert.equal(JSON.stringify(body).includes(otherKey), false);
+});
+
+test("QZ denies disallowed origins before authentication and preserves configured CORS", async () => {
+  const h = harness(qzSource, { user: { id: adminId } });
+  const rejected = await h.invoke({ action: "certificate" }, { origin: "https://untrusted.example.invalid", authorization: "Bearer fixture-admin" });
+  assert.equal(rejected.status, 403);
+  assert.equal(rejected.headers.get("Access-Control-Allow-Origin"), null);
+  assert.equal(h.calls.length, 0);
+  const allowed = await h.invoke({ action: "certificate" }, { authorization: "Bearer fixture-admin" });
+  assert.equal(allowed.headers.get("Access-Control-Allow-Origin"), origin);
+  assert.equal(allowed.headers.get("Cache-Control"), "no-store");
 });
 
 test("QZ rejects unsupported actions and excessive signing payloads", async () => {

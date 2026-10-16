@@ -1,3 +1,10 @@
+> **Correção em 15/10/2026: `qz-sign` v7 ACTIVE.** O HTTP 503 vinha de
+> `X509Certificate.toString()` indisponível no Deno 2.1.4. O PEM validado agora
+> é devolvido diretamente. Assinatura real validada no autoteste do Supabase.
+> Não reinstalar QZ/driver, não trocar segredos, não republicar frontend.
+> Atualizar o painel no notebook e repetir apenas conexão + teste local.
+> Automação continua desligada; confirmação física pendente.
+
 > **Atualização 15/10/2026:** os dois segredos QZ já foram configurados no Supabase,
 > e a lista administrativa existente foi preservada. Não repetir essa configuração.
 > A validação positiva remota e a impressão física seguem pendentes; fila desligada.
