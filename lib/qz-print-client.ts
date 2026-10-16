@@ -183,7 +183,7 @@ function receipt(claim: PrintClaim): string {
     const title = item.quantity + "x " + (isSlice ? "FATIA - " : "") + item.name
       + (!isSlice && item.size_label ? " " + item.size_label : "");
     lines.push(bold + wrap(title).join("\n") + normal);
-    for (const option of item.option_names ?? []) lines.push(...wrap(isSlice ? "  " + option : "+ " + option));
+    for (const option of item.option_names ?? []) lines.push(...wrap(isSlice ? "> " + option : "+ " + option));
     lines.push("");
   }
 
