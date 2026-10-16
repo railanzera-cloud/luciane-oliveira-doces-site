@@ -31,6 +31,7 @@ export type MenuAvailabilityRow = {
 export type AvailabilitySnapshot = {
   ordersOpen: boolean;
   statuses: Record<string, AvailabilityStatus>;
+  quantities: Record<string, number>;
   source: "fallback" | "supabase";
   loadedAt: number;
 };
@@ -142,14 +143,18 @@ export function createFallbackAvailability(): AvailabilitySnapshot {
   return {
     ordersOpen: STORE_CONFIG.acceptingOrders,
     statuses,
+    quantities: Object.fromEntries(Object.values(CROCANTES_ITEM_KEYS).map((key) => [key, 0])),
     source: "fallback",
     loadedAt: Date.now(),
   };
 }
 
+export type CrocantePublicStock = { item_key: string; available: number };
+
 export function mergeRemoteAvailability(
   rows: MenuAvailabilityRow[],
   ordersOpen: boolean,
+  crocanteStock: CrocantePublicStock[] = [],
 ): AvailabilitySnapshot {
   const fallback = createFallbackAvailability();
   const statuses = { ...fallback.statuses };
@@ -162,9 +167,24 @@ export function mergeRemoteAvailability(
     }
   }
 
+  const quantities: Record<string, number> = { ...fallback.quantities };
+  for (const row of crocanteStock) {
+    if (Object.values(CROCANTES_ITEM_KEYS).includes(row.item_key)) {
+      const count = Number.isInteger(row.available) ? Math.max(0, row.available) : 0;
+      quantities[row.item_key] = count;
+      // O menu continua decidindo se um produto pode ser visto ou pausado.
+      // A quantidade zero apenas impede a compra; nunca libera um item oculto.
+      if (count === 0) statuses[row.item_key] = "sold_out";
+    }
+  }
+  // Um RPC ausente jamais deve liberar os copos no novo frontend.
+  for (const key of Object.values(CROCANTES_ITEM_KEYS)) {
+    if (!crocanteStock.some((row) => row.item_key === key)) statuses[key] = "sold_out";
+  }
   return {
     ordersOpen,
     statuses,
+    quantities,
     source: "supabase",
     loadedAt: Date.now(),
   };
