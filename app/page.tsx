@@ -317,6 +317,12 @@ function cartAvailabilityIssues(
     if ((product.id === "crocante-ninho" || product.id === "crocante-chocolate")) {
       const key = CROCANTES_ITEM_KEYS[product.id];
       if (snapshot.source !== "supabase" || !key || !isItemAvailable(snapshot, key)) reasons.push("Copo indisponível no momento.");
+      else {
+        const totalSelected = cart.filter((candidate) => candidate.productId === product.id)
+          .reduce((total, candidate) => total + candidate.quantity, 0);
+        const availableCount = snapshot.quantities[key] ?? 0;
+        if (totalSelected > availableCount) reasons.push(`Apenas ${availableCount} ${availableCount === 1 ? "copo disponível" : "copos disponíveis"} deste sabor.`);
+      }
     } else if (product.kind === "popcorn") {
       const sizeKey = POPCORN_SIZE_ITEM_KEYS[variant.id];
       if (sizeKey && !isItemAvailable(snapshot, sizeKey)) {
@@ -492,10 +498,10 @@ export default function Home() {
   const cupLaunchCopy = cupPhase === "closed"
     ? { eyebrow: "EDIÇÃO LIMITADA · LOJA FECHADA", description: "As vendas estão pausadas. Você ainda pode conhecer os sabores." }
     : cupPhase === "sold-out"
-      ? { eyebrow: "EDIÇÃO LIMITADA · ESGOTADA", description: "A edição em copos chegou ao fim, sem reposição." }
+      ? { eyebrow: "EDIÇÃO LIMITADA · ESGOTADA", description: "Copos esgotados no momento. Consulte novamente após a produção." }
       : cupPhase === "unavailable"
         ? { eyebrow: "EDIÇÃO LIMITADA · INDISPONÍVEL", description: "Copos indisponíveis no momento. Consulte novamente mais tarde." }
-        : { eyebrow: "EDIÇÃO LIMITADA · DISPONÍVEL", description: "Escolha seus copos, adicione ao pedido e finalize no WhatsApp. Sem reposição." };
+        : { eyebrow: "EDIÇÃO LIMITADA · DISPONÍVEL", description: "Escolha os sabores disponíveis e finalize pelo WhatsApp. Quantidades limitadas." };
   const visibleCategories = publicCategories(availability);
   const activeCategory = hasResolvedAvailability ? resolveMenuCategory(availability, requestedCategory) : null;
   const checkoutStartedRef = useRef(false);
@@ -776,8 +782,12 @@ export default function Home() {
   const cartContainsCrocantes = cart.some((item) => (item.productId === "crocante-ninho" || item.productId === "crocante-chocolate"));
   const cupProductId = cupFlavorPreview === "ninho" ? "crocante-ninho" : cupFlavorPreview === "chocolate" ? "crocante-chocolate" : "";
   const cupStockKey = cupProductId ? CROCANTES_ITEM_KEYS[cupProductId] : "";
+  const cupQuantityInCart = cupProductId
+    ? cart.filter((item) => item.productId === cupProductId).reduce((sum, item) => sum + item.quantity, 0) : 0;
+  const selectedCupAvailable = cupStockKey ? Math.max(0, availability.quantities[cupStockKey] ?? 0) : 0;
   const cupCanOrder = cupSalesEnabled && pipocasAvailable && availability.ordersOpen && availability.source === "supabase"
-    && Boolean(cupStockKey && isItemAvailable(availability, cupStockKey));
+    && Boolean(cupStockKey && isItemAvailable(availability, cupStockKey))
+    && cupQuantity + cupQuantityInCart <= selectedCupAvailable;
   const cupCanBeAddedFromCheckout = cupSalesEnabled && pipocasAvailable && availability.ordersOpen && availability.source === "supabase"
     && Object.values(CROCANTES_ITEM_KEYS).some((key) => isItemAvailable(availability, key));
   useEffect(() => {
@@ -1256,6 +1266,11 @@ export default function Home() {
       return;
     }
     const qty = Math.min(99, Math.max(1, cupQuantity));
+    const otherQty = cart.filter((item) => item.productId === product.id).reduce((sum, item) => sum + item.quantity, 0);
+    if (qty + otherQty > (latest.snapshot.quantities[CROCANTES_ITEM_KEYS[product.id]] ?? 0)) {
+      setCupAddedNotice("A quantidade disponível mudou. Reduza os copos ou escolha outro sabor.");
+      return;
+    }
     setCart((current) => [...current, { id: makeCartId(), productId: product.id, variantId: variant.id, optionIds: [], quantity: qty }]);
     trackMetaEvent("AddToCart", metaProductPayload(product, variant, qty));
     setAddedNotice({
@@ -1435,6 +1450,13 @@ export default function Home() {
   function changeCartQuantity(id: string, delta: number) {
     const itemIssue = cartIssues.find((issue) => issue.cartItemId === id);
     if (delta > 0 && (!availability.ordersOpen || itemIssue)) return;
+    const editing = cart.find((item) => item.id === id);
+    const crocanteKey = editing ? CROCANTES_ITEM_KEYS[editing.productId] : undefined;
+    if (delta > 0 && crocanteKey) {
+      const selected = cart.filter((item) => item.productId === editing?.productId)
+        .reduce((sum, item) => sum + item.quantity, 0);
+      if (selected + delta > (availability.quantities[crocanteKey] ?? 0)) return;
+    }
     if (delta > 0 && availability.ordersOpen) {
       const item = cart.find((candidate) => candidate.id === id);
       const product = PRODUCTS.find((candidate) => candidate.id === item?.productId);
@@ -1947,19 +1969,20 @@ export default function Home() {
                       <div className="mini-quantity" role="group" aria-label="Quantidade de copos" aria-disabled={cupPhase !== "available"}>
                         <Button type="button" variant="ghost" size="icon" aria-label="Diminuir quantidade de copos" disabled={cupPhase !== "available" || cupQuantity <= 1 || cupAdding} onClick={() => setCupQuantity((n) => Math.max(1, n - 1))}><Minus size={16} /></Button>
                         <strong aria-live="polite">{cupQuantity}</strong>
-                        <Button type="button" variant="ghost" size="icon" aria-label="Aumentar quantidade de copos" disabled={cupPhase !== "available" || cupQuantity >= 99 || cupAdding} onClick={() => setCupQuantity((n) => Math.min(99, n + 1))}><Plus size={16} /></Button>
+                        <Button type="button" variant="ghost" size="icon" aria-label="Aumentar quantidade de copos" disabled={cupPhase !== "available" || cupQuantity >= 99 || cupAdding || (Boolean(cupFlavorPreview) && cupQuantity + cupQuantityInCart >= selectedCupAvailable)} onClick={() => setCupQuantity((n) => Math.min(99, n + 1))}><Plus size={16} /></Button>
                       </div>
                       <Button type="button" className="limited-cup-buy-cta" disabled={cupAdding || cupPhase !== "available" || (Boolean(cupFlavorPreview) && !cupCanOrder)} onClick={handleCupPurchaseAction}>
                         {cupFlavorPreview ? <ShoppingBag size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
                         {cupAdding ? "Conferindo estoque…" : !cupFlavorPreview ? "Escolher meu sabor" : cupCanOrder ? `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "copo" : "copos"} · ${currency.format(15.9 * cupQuantity)}` : "Sabor indisponível"}
                       </Button>
                     </div>
-                    {cartContainsCrocantes && <button type="button" className="limited-cup-to-cart" onClick={() => requestScroll("carrinho")}>Ver carrinho e continuar pedido <ChevronRight size={15} aria-hidden="true" /></button>}
+                    {cupFlavorPreview && <p className="limited-cup-stock-note" role="status">{selectedCupAvailable > 0 ? `${Math.max(0, selectedCupAvailable - cupQuantityInCart)} ${selectedCupAvailable - cupQuantityInCart === 1 ? "unidade disponível" : "unidades disponíveis"} deste sabor` : "Sabor esgotado por enquanto"}</p>}
+                     {cartContainsCrocantes && <button type="button" className="limited-cup-to-cart" onClick={() => requestScroll("carrinho")}>Ver carrinho e continuar pedido <ChevronRight size={15} aria-hidden="true" /></button>}
                   </div>
                 )}
                 {cupAddedNotice && <p className="limited-cup-buy-feedback" role="status">{cupAddedNotice}</p>}
                 {cupPhase === "available" ? (
-                  <p className="limited-cup-stock-note"><span aria-hidden="true">✦</span> Edição limitada · enquanto durarem os copos, sem reposição.</p>
+                  <p className="limited-cup-stock-note"><span aria-hidden="true">✦</span> Edição limitada · disponibilidade conforme a produção.</p>
                 ) : (
                 <div className={`limited-cup-story-availability is-current ${cupPhase === "closed" ? "is-closed" : ""}`}>
                   <span className="limited-cup-story-availability-kicker">
