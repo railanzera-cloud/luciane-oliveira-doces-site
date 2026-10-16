@@ -238,7 +238,7 @@ export default function AdminPage() {
 
   async function updateCupStock(row: CrocanteInventoryRow, nextEnabled = row.enabled) {
     if (!session || cupStockSaving) return;
-    const amount = Number(cupStockDraft[row.item_key] ?? row.total);
+    const amount = Number(nextEnabled !== row.enabled ? row.total : (cupStockDraft[row.item_key] ?? row.total));
     if (!Number.isSafeInteger(amount) || amount < 0 || amount > 100000) {
       setLoadError("Informe uma quantidade inteira igual ou maior que zero.");
       return;
