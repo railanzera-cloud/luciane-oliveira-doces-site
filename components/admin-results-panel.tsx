@@ -1,18 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { AlertCircle, LoaderCircle, RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  belemToday, formatResultsRange, resultsPresetRange, resultsRangeError,
+  type ResultsPreset, type ResultsRange,
+} from "@/lib/admin-results-dates";
 import { loadAdminResults } from "@/lib/admin-results-client";
 import {
   channelDescription, resultsMoney, trackingEvidenceDescription,
-  trackingEvidenceExplanation, type ResultsOverview, type ResultsPeriod,
+  trackingEvidenceExplanation, type ResultsOverview,
   type TrackingEvidenceKind,
 } from "@/lib/admin-results-model";
 
-const PERIODS: ResultsPeriod[] = [7, 30, 90];
+const PERIODS: Array<{ id: ResultsPreset; label: string }> = [
+  { id: "today", label: "Hoje" },
+  { id: "yesterday", label: "Ontem" },
+  { id: "last7", label: "7 dias" },
+  { id: "last30", label: "30 dias" },
+  { id: "last90", label: "90 dias" },
+  { id: "custom", label: "Personalizado" },
+];
 const MAX_VISIBLE_CAMPAIGNS = 12;
 const EVIDENCE_ORDER: TrackingEvidenceKind[] = [
   "tintim_campaign", "saved_utm_campaign", "meta_link_identifier",
@@ -32,7 +44,10 @@ function Stat({ title, value, subtitle }: {
 }
 
 export function AdminResultsPanel({ client }: { client: SupabaseClient }) {
-  const [days, setDays] = useState<ResultsPeriod>(30);
+  const [preset, setPreset] = useState<ResultsPreset>("last30");
+  const [range, setRange] = useState<ResultsRange>(() => resultsPresetRange("last30"));
+  const [draft, setDraft] = useState<ResultsRange>(() => resultsPresetRange("last30"));
+  const [dateError, setDateError] = useState("");
   const [revision, setRevision] = useState(0);
   const [view, setView] = useState<"signals" | "site">("signals");
   const [overview, setOverview] = useState<ResultsOverview | null>(null);
@@ -46,7 +61,7 @@ export function AdminResultsPanel({ client }: { client: SupabaseClient }) {
       setError("");
       setOverview(null);
       try {
-        const next = await loadAdminResults(client, days);
+        const next = await loadAdminResults(client, range);
         if (active) setOverview(next);
       } catch (cause) {
         if (active) setError(cause instanceof Error ? cause.message : "Não foi possível carregar os resultados.");
@@ -56,7 +71,28 @@ export function AdminResultsPanel({ client }: { client: SupabaseClient }) {
     };
     void run();
     return () => { active = false; };
-  }, [client, days, revision]);
+  }, [client, range, revision]);
+
+  const today = belemToday();
+  function choosePreset(next: ResultsPreset) {
+    setPreset(next);
+    setDateError("");
+    if (next === "custom") {
+      setDraft(range);
+    } else {
+      setRange(resultsPresetRange(next));
+    }
+  }
+  function applyCustomRange(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const problem = resultsRangeError(draft);
+    if (problem) {
+      setDateError(problem);
+      return;
+    }
+    setDateError("");
+    setRange({ ...draft });
+  }
 
   const s = overview?.summary;
   return (
@@ -73,13 +109,36 @@ export function AdminResultsPanel({ client }: { client: SupabaseClient }) {
         </Button>
       </header>
 
-      <div className="admin-results-periods" role="group" aria-label="Período do relatório">
-        {PERIODS.map(period => (
-          <button key={period} type="button"
-            className={days === period ? "is-selected" : ""}
-            aria-pressed={days === period}
-            onClick={() => setDays(period)}>{period} dias</button>
-        ))}
+      <div className="admin-results-date-filter">
+        <div className="admin-results-periods" role="group" aria-label="Período do relatório">
+          {PERIODS.map(period => (
+            <button key={period.id} type="button"
+              className={preset === period.id ? "is-selected" : ""}
+              aria-pressed={preset === period.id}
+              onClick={() => choosePreset(period.id)}>{period.label}</button>
+          ))}
+        </div>
+        {preset === "custom" && (
+          <form className="admin-results-custom-dates" onSubmit={applyCustomRange}>
+            <div className="admin-results-date-fields">
+              <label htmlFor="results-date-from">De
+                <Input id="results-date-from" type="date" value={draft.startDate}
+                  max={today} required
+                  onChange={event => { setDateError(""); setDraft(current => ({ ...current, startDate: event.target.value })); }} />
+              </label>
+              <label htmlFor="results-date-to">Até
+                <Input id="results-date-to" type="date" value={draft.endDate}
+                  max={today} required
+                  onChange={event => { setDateError(""); setDraft(current => ({ ...current, endDate: event.target.value })); }} />
+              </label>
+            </div>
+            {dateError && <p className="admin-results-date-error" role="alert">{dateError}</p>}
+            <Button type="submit" className="admin-results-date-apply">Aplicar período</Button>
+          </form>
+        )}
+        <p className="admin-results-range-active" role="status">
+          <strong>Período exibido:</strong> {formatResultsRange(range)} · Datas de criação dos pedidos (horário de Paragominas).
+        </p>
       </div>
 
       <div className="admin-results-views" role="group" aria-label="Tipo de relatório">

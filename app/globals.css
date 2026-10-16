@@ -4116,3 +4116,37 @@ footer {
 @media (max-width: 400px) {
   .admin-results-views button { font-size: .81rem; }
 }
+
+/* Resultados: seletores por dia civil e intervalo inclusivo, com controles nativos no iPhone. */
+.admin-results-date-filter { display: grid; gap: 12px; }
+.admin-results-periods { grid-template-columns: repeat(3, minmax(0,1fr)); }
+.admin-results-periods button { padding: 8px 4px; font-size: .88rem; }
+.admin-results-custom-dates {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(220,170,116,.28);
+  border-radius: 12px;
+  background: #30221a;
+}
+.admin-results-date-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.admin-results-date-fields label { display: grid; gap: 6px; min-width: 0; font-size: .83rem; color: #ead2ba; font-weight: 600; }
+.admin-results-date-fields input {
+  display: block;
+  min-width: 0;
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid #825f43;
+  color: #ffe9d2;
+  background: #231812;
+  color-scheme: dark;
+  font-size: 16px;
+}
+.admin-results-date-apply { width: 100%; min-height: 44px; }
+.admin-results-date-error { margin: 0; color: #ffcab6; font-size: .84rem; }
+.admin-results-range-active { margin: 0; color: #cbb6a5; font-size: .83rem; line-height: 1.5; }
+.admin-results-range-active strong { color: #f4d49f; }
+@media (max-width: 360px) {
+  .admin-results-periods button { font-size: .76rem; }
+  .admin-results-date-fields { grid-template-columns: 1fr; }
+}

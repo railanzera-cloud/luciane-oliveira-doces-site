@@ -1,5 +1,5 @@
 // Dados agregados, sem nome, telefone ou identidade dos clientes.
-export type ResultsPeriod = 7 | 30 | 90;
+// Intervalos civis arbitrários são definidos em lib/admin-results-dates.ts.
 export type ResultsSummary = {
   orders: number;
   paid_orders: number;
@@ -76,7 +76,9 @@ export type ResultsCampaign = {
 };
 export type ResultsDaily = { day: string; orders: number; paid_orders: number };
 export type ResultsOverview = {
-  period_days: ResultsPeriod;
+  period_days: number;
+  period_start: string;
+  period_end: string;
   generated_at: string;
   summary: ResultsSummary;
   channels: ResultsChannel[];
@@ -116,7 +118,16 @@ function validNumber(value: unknown): boolean {
     && value !== "" && Number.isFinite(Number(value)) && Number(value) >= 0;
 }
 export function parseResultsOverview(value: unknown): ResultsOverview {
-  if (!record(value) || ![7,30,90].includes(Number(value.period_days))
+  if (!record(value) || !Number.isInteger(Number(value.period_days))
+    || Number(value.period_days) < 1 || Number(value.period_days) > 3660
+    || typeof value.period_start !== "string" || typeof value.period_end !== "string"
+    || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value.period_start)
+    || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value.period_end)
+    || !Number.isFinite(Date.parse(value.period_start + "T12:00:00Z"))
+    || !Number.isFinite(Date.parse(value.period_end + "T12:00:00Z"))
+    || new Date(value.period_start + "T12:00:00Z").toISOString().slice(0, 10) !== value.period_start
+    || new Date(value.period_end + "T12:00:00Z").toISOString().slice(0, 10) !== value.period_end
+    || (Date.parse(value.period_end + "T12:00:00Z") - Date.parse(value.period_start + "T12:00:00Z")) / 86400000 + 1 !== Number(value.period_days)
     || typeof value.generated_at !== "string" || !record(value.summary)) {
     throw new Error("O relatório de resultados veio incompleto. Atualize a página.");
   }
@@ -157,7 +168,9 @@ export function parseResultsOverview(value: unknown): ResultsOverview {
     throw new Error("Os totais de rastreamento não estão consistentes. Atualize o relatório.");
   }
   return {
-    period_days: Number(value.period_days) as ResultsPeriod,
+    period_days: Number(value.period_days),
+    period_start: value.period_start,
+    period_end: value.period_end,
     generated_at: value.generated_at,
     summary,
     channels: (value.channels as ResultsChannel[]),
