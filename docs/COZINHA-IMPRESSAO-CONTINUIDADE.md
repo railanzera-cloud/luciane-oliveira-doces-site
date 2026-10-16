@@ -1,3 +1,18 @@
+# Correção de legibilidade de fatias e clientes — 16/10/2026
+
+**Relato real:** Luciane confundiu a linha `1x Chocolate com Morango 1 fatia` com uma segunda unidade, porque o WhatsApp mostrava `1x Chocolate com Morango` e depois `Com calda de chocolate`. O pedido #1275 foi consultado em modo leitura no Supabase: `quantity=1`, `size_label='1 fatia'`, `option_names=['Com calda de chocolate']`. Portanto, não existe duplicação de itens: o problema está somente na apresentação.
+
+**Correção na branch `work/crocantes-estoque-20261016`:**
+- Na comanda ESC/POS 58 mm, um item cujo `size_label` é `1 fatia` aparece como `1x FATIA - Chocolate com Morango`, seguido por `> Com calda de chocolate`. O título não repete `1 fatia`, independentemente da quantidade 1x, 2x etc.
+- Nomes do cliente ficam em **negrito e tamanho duplo (altura e largura)**, com quebra a cada 16 colunas para não cortar nomes longos. Título, pagamento, endereço, observações, troco e total preservados.
+- Pipocas Gourmet e copos Crocantes mantêm tamanho e complementos nos mesmos formatos anteriores (ex.: `1x Pipoca Gourmet 500 ml`, `+ Leitinho`).
+- Sem alteração de dados do pedido, checkout, fila `print_jobs`, Supabase, QZ signer, impressora selecionada, pagamento ou publicação automática.
+- Regressão: `tests/kitchen-receipt-fatias-legibilidade.test.mjs` simula a comanda real em memória, cobrindo 1x/2x fatias, calda/sem calda, pipocas, nome curto/longo e ausência de acesso ao banco.
+- **Publicação:** exige novo ZIP Cloudflare Pages da branch final validada. Não há instalação adicional no Windows ou no QZ Tray. O formato só alcança novas impressões após atualização do painel; não reimprimir o pedido #1275 automaticamente.
+- **Validação ainda necessária:** após a publicação manual, atualizar `/admin` no Windows (Ctrl+F5), conferir que a impressora `POS-58(copy of 1)` segue selecionada e observar uma próxima comanda real de fatia. O teste automatizado não comprova legibilidade física.
+
+---
+
 # Estado vigente — seleção explícita de impressora 58 mm (15/10/2026)
 
 Base desta correção: `4f9b04e0046ef2de591987ef01a51dbe52422c4e`.
