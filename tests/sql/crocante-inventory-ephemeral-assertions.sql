@@ -141,3 +141,13 @@ begin
  if (select status::text from public.menu_availability where item_key='category_pipocas')<>'available'
  then raise exception 'categoria Pipocas foi alterada indevidamente'; end if;
 end $$;
+
+-- Permissoes: a vitrine somente le saldo; clientes anon nao editam estoque.
+do $$
+begin
+ if not has_function_privilege('anon', 'public.public_crocante_inventory()', 'execute')
+   or has_function_privilege('anon','public.admin_set_crocante_inventory(text,integer,bigint,boolean)','execute')
+   or has_function_privilege('anon','public.admin_get_crocante_inventory()','execute') then
+    raise exception 'ACL insegura: RPC de estoque administrativo disponivel publicamente';
+ end if;
+end $$;
