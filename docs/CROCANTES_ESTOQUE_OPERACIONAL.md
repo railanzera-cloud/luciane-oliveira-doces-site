@@ -46,3 +46,7 @@ Branch isolada: `work/crocantes-estoque-20261016` (base `work/cozinha-integracao
 - **GitHub:** branch `work/crocantes-estoque-20261016`; testes SQL em PostgreSQL efêmero, fila da cozinha, TypeScript e suíte de regressão passaram no checkpoint de implementação.
 - **Cloudflare Pages:** site público **não foi publicado automaticamente**. Entregar e aplicar manualmente ZIP validado do commit final da branch. Até aplicar o novo frontend, manter os Copos Crocantes em `sold_out` e não lançar saldo positivo no banco.
 - **Estoque físico:** nenhuma unidade é presumida; quando houver produção confirmada, a Luciane define a quantidade pelo novo painel após a publicação. Não registrar 2 unidades de Chocolate apenas por relato anterior à conferência atual.
+
+### Segurança RPC — revisão final de 16/10/2026
+
+Migração complementar `20261016161000_crocante_inventory_rpc_permissions.sql` aplicada ao Supabase comercial com sucesso. Permissões verificadas diretamente: `anon` pode executar somente `public_crocante_inventory()` (saldo agregado); não pode invocar `admin_get_crocante_inventory()` nem `admin_set_crocante_inventory(...)`. `authenticated` pode invocar os RPCs administrativos, que validam `auth.uid()` no servidor. O teste PostgreSQL efêmero validou essas restrições juntamente com as regras de reserva, pagamento e cancelamento.
