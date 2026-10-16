@@ -36,3 +36,13 @@ Branch isolada: `work/crocantes-estoque-20261016` (base `work/cozinha-integracao
 - O estoque exibido no site nunca substitui a validação atômica no servidor.
 - Atualização da interface leva no máximo o ciclo de consulta/refresh; checkout sempre decide pelo banco.
 - Os testes automatizados não equivalem ao Safari físico. Registrar separadamente a homologação manual.
+
+## Implantação verificada em 16/10/2026
+
+- **Banco comercial atualizado:** tabelas `crocante_inventory` e `crocante_inventory_holds`, funções RPC e gatilhos ativos. Não reaplicar a migração.
+- **Estoque registrado:** Ninho 0, Chocolate 0; sem reservas. `menu_availability` dos copos em `sold_out`, `category_pipocas` em `available`, `orders_open = true`.
+- **Pedidos legados:** havia itens anteriores à instalação; a rotina considera `installed_at` e não exige reserva retroativa.
+- **Edge Function `create-whatsapp-order`:** versão 21 ACTIVE, com tratamento HTTP 409 para `crocante_sem_estoque`. Os três módulos compartilhados foram comparados com a versão anterior e não tiveram mudanças.
+- **GitHub:** branch `work/crocantes-estoque-20261016`; testes SQL em PostgreSQL efêmero, fila da cozinha, TypeScript e suíte de regressão passaram no checkpoint de implementação.
+- **Cloudflare Pages:** site público **não foi publicado automaticamente**. Entregar e aplicar manualmente ZIP validado do commit final da branch. Até aplicar o novo frontend, manter os Copos Crocantes em `sold_out` e não lançar saldo positivo no banco.
+- **Estoque físico:** nenhuma unidade é presumida; quando houver produção confirmada, a Luciane define a quantidade pelo novo painel após a publicação. Não registrar 2 unidades de Chocolate apenas por relato anterior à conferência atual.
