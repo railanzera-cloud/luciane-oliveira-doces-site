@@ -287,3 +287,17 @@ Vitrine e dados comerciais preservados. 492 testes, TypeScript e build aprovados
 Novo ZIP necessário somente para essa interface; backend continua qz-sign v7,
 com HTTP 200 observado no notebook. Fila desativada e histórico preservado.
 Homologação física pendente. Detalhes em docs/COZINHA-IMPRESSAO-CONTINUIDADE.md.
+
+## Estoque dos Copos Crocantes — 16/10/2026
+
+**Área comercial, sem modificações à vitrine fotográfica Premium aprovada.** Trabalho isolado na branch `work/crocantes-estoque-20261016`, derivada da integração QZ; não confundir com o checkpoint visual editorial nem com a `main`.
+
+- Problema: o painel só exibia controles de Pipocas Gourmet normais; ao ativar a categoria, os dois copos eram vendidos independentemente de produção/estoque físico.
+- Mitigação **aplicada ao Supabase comercial**: `crocante_copo_ninho` e `crocante_copo_chocolate` com `sold_out`; `category_pipocas` permanece `available`, loja permanece aberta.
+- Controle de estoque implantado no Supabase `edqiwvccmboyayojvuea`: ambos sabores começam com **0 unidades**, reservas atomizadas por pedido, expiração aos 30 minutos, baixa ao pagar/confirmar, fila protegida para Pix tardio sem estoque, reimpressões históricas preservadas.
+- Edge Function `create-whatsapp-order` atualizada para v21, mantendo todos os arquivos compartilhados e retornando HTTP 409 para último copo indisponível.
+- Código de painel administrativo e vitrine alterado na branch isolada; copos vendidos por sabor/quantidade, sem interferir em potes Gourmet.
+- **Cloudflare não publicado automaticamente**: a operação real exige que o ZIP final compilado e validado seja publicado manualmente. Só depois a Luciane verá o painel novo. Não inserir estoque positivo antes da publicação, para evitar o site antigo permitir seleção sem contador.
+- Testes CI: PostgreSQL efêmero, TypeScript, build e regressão. A URL de produção e o checkout são preservados. Conferência física no Safari permanece fora da CI.
+- Procedimento detalhado e regras operacionais em `docs/CROCANTES_ESTOQUE_OPERACIONAL.md`. O histórico QZ e as fotografias aprovadas permanecem intactos.
+
