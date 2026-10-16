@@ -301,3 +301,7 @@ Homologação física pendente. Detalhes em docs/COZINHA-IMPRESSAO-CONTINUIDADE.
 - Testes CI: PostgreSQL efêmero, TypeScript, build e regressão. A URL de produção e o checkout são preservados. Conferência física no Safari permanece fora da CI.
 - Procedimento detalhado e regras operacionais em `docs/CROCANTES_ESTOQUE_OPERACIONAL.md`. O histórico QZ e as fotografias aprovadas permanecem intactos.
 
+
+### Segurança complementar da implantação
+
+A migração `20261016161000_crocante_inventory_rpc_permissions.sql` foi aplicada e validada: acesso `anon` permanece permitido somente ao RPC de saldo público; leitura e escrita administrativas são restritas à autenticação. Ensaios no PostgreSQL efêmero, build e TypeScript passaram na branch isolada. O frontend continua reservado à publicação manual no Cloudflare, sem alterar `main`.
