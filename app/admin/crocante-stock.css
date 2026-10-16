@@ -1,0 +1,15 @@
+.admin-crocante-stock-editor { display: grid; gap: .85rem; margin-top: 1rem; }
+.admin-crocante-stock-editor > label { font-size: .88rem; font-weight: 600; line-height: 1.5; }
+.admin-crocante-stock-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .65rem; }
+.admin-crocante-stock-actions input { width: 7.5rem; max-width: 100%; min-height: 2.7rem; text-align: center; font-variant-numeric: tabular-nums; }
+.admin-crocante-stock-actions button { min-height: 2.7rem; }
+.admin-crocante-stock-meta { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .75rem; font-size: .82rem; }
+.admin-crocante-stock-meta span { opacity: .83; }
+.admin-crocante-stock-meta button { appearance: none; border: 0; padding: .35rem 0; background: transparent; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font: inherit; color: inherit; }
+.admin-crocante-stock-meta button:disabled { opacity: .5; cursor: wait; }
+.admin-crocante-stock-editor .admin-error { display: flex; gap: .5rem; align-items: start; }
+@media(max-width:450px) {
+  .admin-crocante-stock-actions { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .admin-crocante-stock-actions input { width: 100%; }
+  .admin-crocante-stock-actions button { width: 100%; }
+}
