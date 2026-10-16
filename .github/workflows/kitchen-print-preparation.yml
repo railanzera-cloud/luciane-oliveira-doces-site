@@ -89,5 +89,7 @@ jobs:
         run: psql -h 127.0.0.1 -U postgres -d stock_test -v ON_ERROR_STOP=1 -f tests/sql/crocante-inventory-ephemeral-schema.sql
       - name: Aplicar estoque de copos SOMENTE no banco descartavel
         run: psql -h 127.0.0.1 -U postgres -d stock_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261016133000_crocante_inventory_individual.sql
+      - name: Aplicar restricao de invocacao de RPCs administrativas
+        run: psql -h 127.0.0.1 -U postgres -d stock_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261016161000_crocante_inventory_rpc_permissions.sql
       - name: Exercitar pagamento reservas e limites de estoque
         run: psql -h 127.0.0.1 -U postgres -d stock_test -v ON_ERROR_STOP=1 -f tests/sql/crocante-inventory-ephemeral-assertions.sql
