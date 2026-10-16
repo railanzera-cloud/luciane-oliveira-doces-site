@@ -24,3 +24,12 @@ Não muda vitrine, pedidos, estoque, Tintim, Meta, Pix, faturamento contábil ne
 ## Verificações
 - Testes focados `tests/admin-results-overview.test.mjs` e `tests/admin-results-dates.test.mjs` adicionados/atualizados.
 - Checar CI/TypeScript/build do commit para validação final; Safari físico depende de homologação pela operação.
+
+## Complemento comercial — vendas realmente concluídas (16/10/2026)
+- O painel abre com **Hoje → Vendas**; as outras duas leituras (**Anúncios**, **Registros**) foram preservadas.
+- Card principal agrega somente pedidos **criados no período escolhido**, com `order_status='completed'` e `payment_status='paid'`. Usa `total` do pedido (inclui entrega, não é lucro). É o valor de vendas **registradas no painel**, não o faturamento total fora dele nem extrato bancário.
+- Exibe separadamente concluídos sem confirmação de pagamento, pagos em andamento e pedidos antigos concluídos dentro do período; não soma esses grupos silenciosamente ao total principal.
+- Data de inclusão principal = `created_at`; `completed_at` só serve para a lista separada de pedidos antigos concluídos. Datas civis em `America/Belem`.
+- Nova RPC read-only `admin_get_sales_summary_v1(date,date)`; não altera pedidos, histórico de status, pagamentos ou a RPC existente de atribuição/relatório.
+- Condição real do banco em 16/10: havia 12 pedidos criados no dia, concluídos e pagos, totalizando R$ 450,58, e um concluído com pagamento ainda pendente (R$ 30,00). Os dados podem mudar, inclusive pela confirmação posterior de pagamentos, e incluem possíveis testes.
+- Aplicar a nova migration no Supabase comercial antes de publicar a nova interface; manter `main` e Cloudflare intocados até autorização. CI automatizada e conferência no Safari pendentes para o commit deste complemento.

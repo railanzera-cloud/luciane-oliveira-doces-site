@@ -11,6 +11,8 @@ import {
   type ResultsPreset, type ResultsRange,
 } from "@/lib/admin-results-dates";
 import { loadAdminResults } from "@/lib/admin-results-client";
+import { loadAdminSalesSummary } from "@/lib/admin-sales-client";
+import type { AdminSalesSummary } from "@/lib/admin-sales-model";
 import {
   channelDescription, resultsMoney, trackingEvidenceDescription,
   trackingEvidenceExplanation, type ResultsOverview,
@@ -44,13 +46,14 @@ function Stat({ title, value, subtitle }: {
 }
 
 export function AdminResultsPanel({ client }: { client: SupabaseClient }) {
-  const [preset, setPreset] = useState<ResultsPreset>("last30");
-  const [range, setRange] = useState<ResultsRange>(() => resultsPresetRange("last30"));
-  const [draft, setDraft] = useState<ResultsRange>(() => resultsPresetRange("last30"));
+  const [preset, setPreset] = useState<ResultsPreset>("today");
+  const [range, setRange] = useState<ResultsRange>(() => resultsPresetRange("today"));
+  const [draft, setDraft] = useState<ResultsRange>(() => resultsPresetRange("today"));
   const [dateError, setDateError] = useState("");
   const [revision, setRevision] = useState(0);
-  const [view, setView] = useState<"signals" | "site">("signals");
+  const [view, setView] = useState<"sales" | "signals" | "site">("sales");
   const [overview, setOverview] = useState<ResultsOverview | null>(null);
+  const [sales, setSales] = useState<AdminSalesSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -60,9 +63,16 @@ export function AdminResultsPanel({ client }: { client: SupabaseClient }) {
       setLoading(true);
       setError("");
       setOverview(null);
+      setSales(null);
       try {
-        const next = await loadAdminResults(client, range);
-        if (active) setOverview(next);
+        const [next, nextSales] = await Promise.all([
+          loadAdminResults(client, range),
+          loadAdminSalesSummary(client, range),
+        ]);
+        if (active) {
+          setOverview(next);
+          setSales(nextSales);
+        }
       } catch (cause) {
         if (active) setError(cause instanceof Error ? cause.message : "Não foi possível carregar os resultados.");
       } finally {
@@ -101,7 +111,7 @@ export function AdminResultsPanel({ client }: { client: SupabaseClient }) {
         <div>
           <p className="eyebrow">Pedidos e mensuração</p>
           <h1 id="admin-results-heading">Resultados</h1>
-          <p>Veja os registros que o site conseguiu captar — não o faturamento total da loja.</p>
+          <p>Confira as vendas dos pedidos registrados no painel. Vendas fora do sistema não estão incluídas.</p>
         </div>
         <Button type="button" variant="outline" disabled={loading}
           onClick={() => setRevision(n => n + 1)}>
@@ -142,14 +152,15 @@ export function AdminResultsPanel({ client }: { client: SupabaseClient }) {
       </div>
 
       <div className="admin-results-views" role="group" aria-label="Tipo de relatório">
+        <button type="button" className={view === "sales" ? "is-selected" : ""}
+          aria-label="Vendas concluídas" aria-pressed={view === "sales"}
+          onClick={() => setView("sales")}>Vendas</button>
         <button type="button" className={view === "signals" ? "is-selected" : ""}
-          aria-pressed={view === "signals"} onClick={() => setView("signals")}>
-          Sinais de anúncios
-        </button>
+          aria-label="Sinais de anúncios" aria-pressed={view === "signals"}
+          onClick={() => setView("signals")}>Anúncios</button>
         <button type="button" className={view === "site" ? "is-selected" : ""}
-          aria-pressed={view === "site"} onClick={() => setView("site")}>
-          Registros do site
-        </button>
+          aria-label="Registros do site" aria-pressed={view === "site"}
+          onClick={() => setView("site")}>Registros</button>
       </div>
 
       {loading && (
@@ -166,15 +177,52 @@ export function AdminResultsPanel({ client }: { client: SupabaseClient }) {
         </div>
       )}
 
-      {overview && s && (
+      {overview && sales && s && (
         <>
-          <p className="admin-results-caution" role="note">
+          {view === "signals" && <p className="admin-results-caution" role="note">
             <strong>Dados parciais.</strong> A integração recente com o Tintim ainda não cobre
             o histórico completo de conversas e pagamentos. “Origem não identificada” não é
             sinônimo de venda orgânica, e um sinal da Meta não comprova sozinho venda causada por anúncio.
-          </p>
+          </p>}
 
-          {view === "signals" ? (
+          {view === "sales" ? (
+            <div className="admin-results-sales">
+              <div className="admin-results-sales-heading">
+                <h2>Vendas concluídas e pagas</h2>
+                <p>Dos <strong>{sales.orders_created} pedidos criados no período</strong>, estes já estão marcados
+                  como concluídos e com pagamento confirmado no painel.</p>
+              </div>
+              <div className="admin-results-sales-total">
+                <span>Valor dos pedidos concluídos e pagos</span>
+                <strong>{resultsMoney(sales.completed_paid_amount)}</strong>
+                <small>{sales.completed_paid_orders} {sales.completed_paid_orders === 1 ? "pedido concluído e pago" : "pedidos concluídos e pagos"}</small>
+              </div>
+              <div className="admin-results-stats">
+                <Stat title="Concluídos sem pagamento confirmado"
+                  value={String(sales.completed_unpaid_orders)}
+                  subtitle={`${resultsMoney(sales.completed_unpaid_amount)} fora do total de vendas confirmadas.`} />
+                <Stat title="Pagos, mas ainda não concluídos"
+                  value={String(sales.paid_in_progress_orders)}
+                  subtitle={`${resultsMoney(sales.paid_in_progress_amount)} fora do total de vendas concluídas.`} />
+              </div>
+              <p className="admin-results-sales-note">
+                O valor acima considera somente pedidos <strong>criados nas datas escolhidas</strong> e que
+                agora estão concluídos e pagos. Não inclui cancelados nem os sem confirmação de pagamento.
+                O registro do pagamento e da entrega precisa estar correto no painel.
+              </p>
+              {sales.previous_completed_paid_orders > 0 && (
+                <details className="admin-results-more">
+                  <summary>Pedidos anteriores finalizados neste período</summary>
+                  <p className="admin-results-help">
+                    Além do total acima, {sales.previous_completed_paid_orders} pedidos criados antes da data inicial foram
+                    marcados como concluídos neste período, com pagamento confirmado:
+                    {" "}<strong>{resultsMoney(sales.previous_completed_paid_amount)}</strong>.
+                    Aparecem separados para não misturar pedidos antigos com pedidos feitos nas datas escolhidas.
+                  </p>
+                </details>
+              )}
+            </div>
+          ) : view === "signals" ? (
             <>
               <div className="admin-results-stats">
                 <Stat title="Pedidos com algum sinal de campanha ou Meta"
