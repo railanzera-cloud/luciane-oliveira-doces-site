@@ -181,7 +181,7 @@ test("ativação cria corte novo e não retroage sobre pedidos antigos", () => {
 test("comanda imprime detalhes necessários para cozinha, sem criar pedido novo", () => {
   assert.match(sql, /'notes', o\.notes/);
   assert.match(sql, /'cash_change_for', o\.cash_change_for/);
-  assert.match(qz, /lines\.push\("OBSERVACOES:"\)/);
+  assert.match(qz, /lines\.push\(bold, "OBSERVACOES"/);
   assert.match(qz, /wrap\(claim\.order\.notes\)/);
   assert.match(qz, /TROCO PARA: R\$/);
   assert.match(qz, /REIMPRESSAO/);
