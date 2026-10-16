@@ -1,11 +1,11 @@
 -- Acoes e verificacoes apenas no banco descartavel da CI.
 -- Reimpressao de uma compra anterior ao inicio do estoque segue possivel.
-do $
+do $$
 begin
  if not public.lod_crocante_print_allocation_ready((select id from public.orders where order_id='legacy')) then
    raise exception 'pedido historico foi bloqueado pelo novo estoque';
  end if;
-end $;
+end $$;
 
 do $$
 begin
