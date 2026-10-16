@@ -168,27 +168,27 @@ function receipt(claim: PrintClaim): string {
   }).format(new Date(claim.order.created_at)).replace(",", "");
   const fulfillment = claim.order.fulfillment_type === "pickup" ? "RETIRADA" : "ENTREGA";
   const lines = [
-    esc + "@", center, bold, "LUCIANE OLIVEIRA DOCES", normal,
-    enlarged, "PEDIDO #" + claim.order.order_number, regular,
-    ...(claim.job.kind === "reprint" ? [bold, "*** REIMPRESSAO ***", normal] : []),
-    createdAt, left, divider,
-    center, bold, fulfillment, normal, paymentLine(claim),
-    left, divider, "",
+    esc + "@" + center + bold + "LUCIANE OLIVEIRA DOCES" + normal,
+    enlarged + "PEDIDO #" + claim.order.order_number + regular,
+    ...(claim.job.kind === "reprint" ? [bold + "*** REIMPRESSAO ***" + normal] : []),
+    createdAt, left + divider,
+    center + bold + fulfillment + normal,
+    paymentLine(claim), left + divider, "",
   ];
 
   for (const item of claim.items) {
-    lines.push(bold, ...wrap(item.quantity + "x " + item.name + (item.size_label ? " " + item.size_label : "")), normal);
+    lines.push(bold + wrap(item.quantity + "x " + item.name + (item.size_label ? " " + item.size_label : "")).join("\n") + normal);
     for (const option of item.option_names ?? []) lines.push(...wrap("+ " + option));
     lines.push("");
   }
 
-  lines.push(divider, bold, "CLIENTE", normal);
+  lines.push(divider, bold + "CLIENTE" + normal);
   lines.push(...wrap(claim.order.customer_name || "Nao informado"));
   const phone = plain(claim.order.customer_phone);
   lines.push(...wrap(phone ? "Telefone: " + phone : "Telefone: nao informado"));
 
   if (claim.order.fulfillment_type === "delivery") {
-    lines.push(bold, "ENDERECO DE ENTREGA", normal);
+    lines.push(bold + "ENDERECO DE ENTREGA" + normal);
     const street = plain(claim.order.street);
     const number = plain(claim.order.street_number);
     lines.push(...wrap(street ? street + (number ? ", " + number : ", S/N") : "Endereco nao informado"));
@@ -197,10 +197,10 @@ function receipt(claim: PrintClaim): string {
     if (claim.order.reference) lines.push(...wrap("Referencia: " + claim.order.reference));
   }
   if (claim.order.notes) {
-    lines.push(bold, "OBSERVACOES", normal, ...wrap(claim.order.notes));
+    lines.push(bold + "OBSERVACOES" + normal, ...wrap(claim.order.notes));
   }
 
-  lines.push(divider, bold, "TOTAL: R$ " + money(claim.order.total), normal);
+  lines.push(divider, bold + "TOTAL: R$ " + money(claim.order.total) + normal);
   if (claim.order.payment_method === "cash" && claim.order.cash_change_for) {
     lines.push(...wrap("TROCO PARA: R$ " + money(claim.order.cash_change_for)));
   }
