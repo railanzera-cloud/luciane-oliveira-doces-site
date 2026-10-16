@@ -177,13 +177,20 @@ function receipt(claim: PrintClaim): string {
   ];
 
   for (const item of claim.items) {
-    lines.push(bold + wrap(item.quantity + "x " + item.name + (item.size_label ? " " + item.size_label : "")).join("\n") + normal);
-    for (const option of item.option_names ?? []) lines.push(...wrap("+ " + option));
+    // Nas fatias, "1 fatia" e a unidade cadastrada, nao mais um produto.
+    // A quantidade ja aparece no prefixo (1x, 2x...): nao repeti-la ao lado do nome.
+    const isSlice = /^1 fatia$/i.test(plain(item.size_label));
+    const title = item.quantity + "x " + (isSlice ? "FATIA - " : "") + item.name
+      + (!isSlice && item.size_label ? " " + item.size_label : "");
+    lines.push(bold + wrap(title).join("\n") + normal);
+    for (const option of item.option_names ?? []) lines.push(...wrap(isSlice ? "  " + option : "+ " + option));
     lines.push("");
   }
 
   lines.push(divider, bold + "CLIENTE" + normal);
-  lines.push(...wrap(claim.order.customer_name || "Nao informado"));
+  // Papel 58 mm: em largura dupla cabem 16 colunas. Nome grande e
+  // quebrado sem cortar, facilitando a separacao das entregas.
+  lines.push(bold + enlarged + wrap(claim.order.customer_name || "Nao informado", 16).join("\n") + regular + normal);
   const phone = plain(claim.order.customer_phone);
   lines.push(...wrap(phone ? "Telefone: " + phone : "Telefone: nao informado"));
 
