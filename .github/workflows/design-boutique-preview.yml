@@ -32,6 +32,7 @@ on:
       - supabase/functions/_shared/commerce-catalog.mjs
       - supabase/migrations/20261014190000_crocantes_lancamento.sql
       - ESTADO_ATUAL_VITRINE.md
+      - docs/RESULTADOS-PERIODOS-FLEXIVEIS-20261016.md
       # Todos os testes da vitrine ativam a CI; evita checkpoint sem ZIP.
       - 'tests/*.test.mjs'
       - tsconfig.boutique.json
