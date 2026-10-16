@@ -1986,7 +1986,7 @@ export default function Home() {
                 ) : (
                 <div className={`limited-cup-story-availability is-current ${cupPhase === "closed" ? "is-closed" : ""}`}>
                   <span className="limited-cup-story-availability-kicker">
-                    {cupPhase === "closed" ? "LOJA FECHADA" : cupPhase === "sold-out" ? "EDIÇÃO ENCERRADA" : "INDISPONÍVEL NO MOMENTO"}
+                    {cupPhase === "closed" ? "LOJA FECHADA" : cupPhase === "sold-out" ? "ESGOTADO NO MOMENTO" : "INDISPONÍVEL NO MOMENTO"}
                   </span>
                   <p>{cupLaunchCopy.description}</p>
                 </div>
