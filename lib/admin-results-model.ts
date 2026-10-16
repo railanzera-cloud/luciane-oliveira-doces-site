@@ -121,8 +121,8 @@ export function parseResultsOverview(value: unknown): ResultsOverview {
   if (!record(value) || !Number.isInteger(Number(value.period_days))
     || Number(value.period_days) < 1 || Number(value.period_days) > 3660
     || typeof value.period_start !== "string" || typeof value.period_end !== "string"
-    || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value.period_start)
-    || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value.period_end)
+    || !/^\d{4}-\d{2}-\d{2}$/.test(value.period_start)
+    || !/^\d{4}-\d{2}-\d{2}$/.test(value.period_end)
     || !Number.isFinite(Date.parse(value.period_start + "T12:00:00Z"))
     || !Number.isFinite(Date.parse(value.period_end + "T12:00:00Z"))
     || new Date(value.period_start + "T12:00:00Z").toISOString().slice(0, 10) !== value.period_start
