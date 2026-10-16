@@ -178,7 +178,7 @@ function receipt(claim: PrintClaim): string {
 
   for (const item of claim.items) {
     lines.push(bold, ...wrap(item.quantity + "x " + item.name + (item.size_label ? " " + item.size_label : "")), normal);
-    for (const option of item.option_names ?? []) lines.push(...wrap("  " + option));
+    for (const option of item.option_names ?? []) lines.push(...wrap("+ " + option));
     lines.push("");
   }
 
