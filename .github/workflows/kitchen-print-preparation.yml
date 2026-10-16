@@ -5,6 +5,7 @@ on:
     branches:
       - work/cozinha-qz-fila-segura-20261014
       - work/cozinha-integracao-segura-20261015
+      - work/crocantes-estoque-20261016
   workflow_dispatch:
 
 permissions:
@@ -58,3 +59,35 @@ jobs:
         run: psql -h 127.0.0.1 -U postgres -d kitchen_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261014230000_kitchen_print_preparation_DISABLED.sql
       - name: Simular pedidos e fila segura
         run: psql -h 127.0.0.1 -U postgres -d kitchen_test -v ON_ERROR_STOP=1 -f tests/sql/kitchen-print-ephemeral-assertions.sql
+
+  sql-estoque:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: kitchen-ci-only
+          POSTGRES_DB: stock_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d stock_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGPASSWORD: kitchen-ci-only
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar cliente PostgreSQL
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - name: Montar esquema base sintetico
+        run: psql -h 127.0.0.1 -U postgres -d stock_test -v ON_ERROR_STOP=1 -f tests/sql/kitchen-print-ephemeral-schema.sql
+      - name: Criar fila protegida no banco efemero
+        run: psql -h 127.0.0.1 -U postgres -d stock_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261014230000_kitchen_print_preparation_DISABLED.sql
+      - name: Preparar catalogo e itens em ambiente descartavel
+        run: psql -h 127.0.0.1 -U postgres -d stock_test -v ON_ERROR_STOP=1 -f tests/sql/crocante-inventory-ephemeral-schema.sql
+      - name: Aplicar estoque de copos SOMENTE no banco descartavel
+        run: psql -h 127.0.0.1 -U postgres -d stock_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261016133000_crocante_inventory_individual.sql
+      - name: Exercitar pagamento reservas e limites de estoque
+        run: psql -h 127.0.0.1 -U postgres -d stock_test -v ON_ERROR_STOP=1 -f tests/sql/crocante-inventory-ephemeral-assertions.sql
