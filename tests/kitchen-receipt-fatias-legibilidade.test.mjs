@@ -46,7 +46,7 @@ test("fatia única: 1x significa quantidade, não repetir '1 fatia' como segundo
     option_names: ["Com calda de chocolate"],
   }]));
   assert.match(print, /1x FATIA - Chocolate com Morango/);
-  assert.match(print, /  Com calda de chocolate/);
+  assert.match(print, /> Com calda de chocolate/);
   assert.doesNotMatch(print, /Chocolate com Morango 1 fatia/);
   assert.doesNotMatch(print, /2x FATIA/);
   assert.match(print, /PIX CONFIRMADO/);
@@ -60,8 +60,8 @@ test("duas fatias com e sem calda continuam duas unidades, sem rótulos duplicad
   ]));
   assert.match(print, /2x FATIA - Chocolate com Morango/);
   assert.match(print, /1x FATIA - Chocolatudo/);
-  assert.match(print, /  Com calda de chocolate/);
-  assert.match(print, /  Sem calda, por favor/);
+  assert.match(print, /> Com calda de chocolate/);
+  assert.match(print, /> Sem calda, por favor/);
   assert.doesNotMatch(print, /1 fatia/);
 });
 
