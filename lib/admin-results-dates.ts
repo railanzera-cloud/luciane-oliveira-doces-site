@@ -35,8 +35,8 @@ export function resultsPresetRange(
     : preset === "tomorrow" ? 1
     : preset === "last7" ? -6
     : preset === "last30" ? -29 : -89;
-  if (preset === "yesterday") {
-    const day = shiftCalendarDay(today, -1);
+  if (preset === "yesterday" || preset === "tomorrow") {
+    const day = shiftCalendarDay(today, preset === "yesterday" ? -1 : 1);
     return { startDate: day, endDate: day };
   }
   return { startDate: shiftCalendarDay(today, offset), endDate: today };
