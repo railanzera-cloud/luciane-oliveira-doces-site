@@ -17,21 +17,25 @@ function extract(source, name, dependencies) {
  return new Function(...Object.keys(dependencies), `${js}; return fn;`)(...Object.values(dependencies));
 }
 const deferred = () => { let resolve; const promise = new Promise(r => resolve=r); return {promise,resolve}; };
-test('admin refresh queries again, shows loading, ignores stale responses and alerts once per new order', async () => {
- const requests=[]; const busy=[]; let shown; let alerts=0;
+test('admin refresh handles stale responses and identifies new orders for persistent kitchen alerts', async () => {
+ const requests=[]; const busy=[]; let shown; let alerted=[];
  const reload=extract(admin,'reload',{
   loadSequenceRef:{current:0},setLoading:v=>busy.push(v),setError:()=>{},client:{},searchedNumber:undefined,
   loadAdminOrders:()=>{const d=deferred();requests.push(d);return d.promise;},
   loadAdminTintimTracking:async()=>new Map(),setTrackingError:()=>{},
-  actionable:o=>o.order_status==='new',initializedRef:{current:false},knownActionableRef:{current:new Set()},
-  playAlert:()=>alerts++,setOrders:v=>shown=v,printerReady:false,
+  alertStartedAtRef:{current:Date.now()-60000},acknowledgedAlertsRef:{current:new Set()},
+  pendingKitchenAlerts:rows=>rows.filter(row=>row.order_status!=='completed'),
+  setPendingAlertOrders:rows=>alerted=rows.map(row=>row.id),
+  setOrders:v=>shown=v,printerReady:false,
  });
  let p=reload();requests[0].resolve([]);await p;
  p=reload();requests[1].resolve([{id:'1004',order_status:'new'}]);await p;
- assert.equal(alerts,1);assert.deepEqual(busy,[true,false,true,false]);
- const older=reload(), newer=reload(); requests[3].resolve([{id:'1004',order_status:'preparing'}]);await newer;
+ assert.deepEqual(alerted,['1004']);assert.deepEqual(busy,[true,false,true,false]);
+ const older=reload(), newer=reload();
+ requests[3].resolve([{id:'1004',order_status:'preparing'}]);await newer;
  requests[2].resolve([{id:'1004',order_status:'new'}]);await older;
- assert.equal(shown[0].order_status,'preparing');assert.equal(alerts,1);assert.equal(requests.length,4);
+ assert.equal(shown[0].order_status,'preparing');
+ assert.deepEqual(alerted,['1004']);assert.equal(requests.length,4);
 });
 test('consumer refresh obtains confirmation, preparation, completion and later payment from backend', async () => {
  let latest,shown;let calls=0;const busy=[];
@@ -48,8 +52,9 @@ test('kitchen sound requires permission and a running audio context',()=>{
  let played=0;
  const context={state:'running',currentTime:0,destination:{},createOscillator:()=>({frequency:{setValueAtTime(){}},connect:()=>({connect(){}}),start:()=>played++,stop(){}}),createGain:()=>({gain:{setValueAtTime(){},exponentialRampToValueAtTime(){}}})};
  const audioRef={current:context};
- extract(admin,'playAlert',{audioRef,alertsEnabled:false})();assert.equal(played,0);
- const play=extract(admin,'playAlert',{audioRef,alertsEnabled:true});play();assert.equal(played,1);
+ extract(admin,'playAlert',{audioRef,alertsEnabled:false,alertVolume:'alto',playKitchenChime:()=>played++})();assert.equal(played,0);
+ const play=extract(admin,'playAlert',{audioRef,alertsEnabled:true,alertVolume:'alto',playKitchenChime:()=>played++});
+ play();assert.equal(played,1);
  context.state='suspended';play();assert.equal(played,1);
  let enabled;
  const get=extract(admin,'getAudioContext',{audioRef,createAudioContext:()=>context,setAlertsEnabled:v=>enabled=v});
