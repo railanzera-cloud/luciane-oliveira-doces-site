@@ -83,7 +83,7 @@ export function AdminTrufadasStock({ onChanged }: { onChanged?: () => Promise<vo
     const draft = drafts[row.item_key];
     if (!draft || pendingKey || loading) return;
     const value = draft.total.trim();
-    const total = /^\\d+$/.test(value) ? Number(value) : NaN;
+    const total = /^[0-9]+$/.test(value) ? Number(value) : NaN;
     if (!Number.isSafeInteger(total) || total < 0 || total > 100000) {
       setError("Informe uma quantidade inteira entre 0 e 100.000 pacotes.");
       return;
