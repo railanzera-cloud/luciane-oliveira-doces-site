@@ -1270,7 +1270,7 @@ export default function Home() {
     const qty = Math.min(99, Math.max(1, cupQuantity));
     const confirmedStock = latest.snapshot.stockRemaining[CROCANTES_ITEM_KEYS[product.id]] ?? 0;
     const alreadyInCart = cartStockCount(product.id);
-    if (latest.usedFallback || !latest.snapshot.stockChecked || !latest.snapshot.ordersOpen
+    if (latest.usedFallback || !latest.snapshot.ordersOpen || !latest.snapshot.stockChecked
       || !isItemAvailable(latest.snapshot, CATEGORY_ITEM_KEYS.pipocas)
       || !isItemAvailable(latest.snapshot, CROCANTES_ITEM_KEYS[product.id])
       || qty + alreadyInCart > confirmedStock) {
