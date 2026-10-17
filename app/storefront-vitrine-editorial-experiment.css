@@ -2175,3 +2175,13 @@
 @media (max-width:359px) {
   .storefront #configurador .limited-cup-flavor-summary { font-size: .73rem; }
 }
+
+
+/* Pipocas Trufadas · estreia 18/10/2026. Novo pacote com zíper, sem corte do produto. */
+.storefront .limited-cup-teaser-visual {background:linear-gradient(140deg,#bda792,#897363);}
+.storefront .limited-cup-teaser-shot,.storefront .limited-cup-teaser-shot.is-chocolate {background:#b39b84;}
+.storefront .limited-cup-teaser-shot img {object-fit:contain;object-position:center center;filter:saturate(.99) contrast(1.015) brightness(.99);}
+.storefront #configurador .limited-cup-duo-item,.storefront #configurador .limited-cup-duo-item.is-chocolate {background:#b39a85;}
+.storefront #configurador .limited-cup-duo-item > img {object-fit:contain;object-position:center center;filter:saturate(.99) contrast(1.015) brightness(.98);}
+.storefront .limited-cup-teaser-visual::before {background:linear-gradient(90deg,rgba(38,21,13,.25),transparent 25%);}
+@media (max-width:359px) {.storefront .limited-cup-teaser-visual {min-height:138px;}}
