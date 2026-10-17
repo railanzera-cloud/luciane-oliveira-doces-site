@@ -5,7 +5,7 @@ const file=(name)=>readFileSync(new URL("../"+name,import.meta.url),"utf8");
 const page=file("app/page.tsx"), catalog=file("app/catalog.ts"), back=file("supabase/functions/_shared/commerce-catalog.mjs"), rel=file("app/limited-cup-release.ts"), menu=file("app/menu-availability.ts"), edge=file("supabase/functions/create-whatsapp-order/index.ts"), sql=file("supabase/migrations/20261014190000_crocantes_lancamento.sql");
 test("dois copos independentes, mesmo preço, sem misturar sabores",()=>{
 for(const id of ["crocante-ninho","crocante-chocolate"]){assert.ok(catalog.includes('id: "'+id+'"'));assert.ok(back.includes('"'+id+'": Object.freeze'));}
-assert.ok(catalog.includes("price: 15.9"));assert.ok(back.includes("priceCents: 1590"));assert.ok(catalog.includes('label: "400 ml", whatsappLabel: "400 ml"'));assert.ok(back.includes('size_label: "400 ml"'));assert.ok(!catalog.includes("190 g"));assert.ok(!back.includes("190 g"));assert.ok(back.includes('optionIds.length !== 0'));assert.ok(back.includes('item_type: "popcorn"'));
+assert.ok(catalog.includes("price: 15.9"));assert.ok(back.includes("priceCents: 1590"));assert.ok(catalog.includes('label: "Pacote", whatsappLabel: "Pacote"'));assert.ok(back.includes('size_label: "Pacote"'));assert.ok(!catalog.includes("190 g"));assert.ok(!back.includes("190 g"));assert.ok(back.includes('optionIds.length !== 0'));assert.ok(back.includes('item_type: "popcorn"'));
 });
 test("controle operacional substitui data, com estoque e loja no backend",()=>{
 assert.ok(rel.includes('if (!ordersOpen) return "closed"'));
