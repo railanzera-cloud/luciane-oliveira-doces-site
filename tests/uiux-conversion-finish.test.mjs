@@ -46,6 +46,6 @@ test("acabamento acessível é isolado à vitrine sem alterar fotos ou lançamen
   assert.ok(!css.includes('.admin-'));
   assert.ok(page.includes("/images/categoria-pipocas-editorial-enquadrada-v107.webp"));
   assert.ok(page.includes("/images/categoria-fatias-editorial.webp"));
-  assert.ok(page.includes('EDIÇÃO LIMITADA · DISPONÍVEL'));
+  assert.ok(page.includes('PIPOCAS TRUFADAS · DISPONÍVEL'));
   assert.ok(release.includes('if (!ordersOpen) return "closed"'));
 });
