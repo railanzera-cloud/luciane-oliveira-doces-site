@@ -1,5 +1,8 @@
 name: Preview Vitrine Editorial Experimental - Cloudflare
 on:
+  pull_request:
+    branches:
+      - design/luciane-editorial-vitrine-experiment-20261013
   push:
     branches:
       - design/luciane-boutique-v3-20261012
