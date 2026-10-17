@@ -495,7 +495,6 @@ export default function Home() {
     // Escolher novamente o mesmo sabor não desfaz o pedido em montagem.
     if (cupFlavorPreview === flavor) return;
     setCupFlavorPreview(flavor);
-    setCupQuantity(1);
     setCupAddedNotice("");
     requestScroll("crocantes-quantidade");
   }
