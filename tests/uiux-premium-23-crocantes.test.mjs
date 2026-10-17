@@ -14,12 +14,12 @@ test("dois sabores continuam como seleção informativa, fotos e preço intactos
   assert.ok(story.includes('aria-pressed={cupFlavorPreview === "chocolate"}'));
   assert.ok(story.includes('selectCupFlavor("ninho")'));
   assert.ok(story.includes('selectCupFlavor("chocolate")'));
-  assert.ok(story.includes("Caramelo com Leite Ninho"));
-  assert.ok(story.includes("Caramelo com Chocolate"));
-  assert.ok(story.includes("/images/edicao-crocante-ninho.webp"));
-  assert.ok(story.includes("/images/edicao-crocante-chocolate.webp"));
+  assert.ok(story.includes("Caramelo e Ninho"));
+  assert.ok(story.includes("Caramelo e Chocolate"));
+  assert.ok(story.includes("/images/pipocas-trufadas-ninho.avif"));
+  assert.ok(story.includes("/images/pipocas-trufadas-chocolate.avif"));
   assert.ok(story.includes('<strong>R$ 15,90</strong>'));
-  assert.ok(story.includes("400 ml"));
+  assert.ok(story.includes("Pacote com zíper"));
   assert.ok(!story.includes("190 g"));
   assert.ok(story.includes('aria-atomic="true"'));
   assert.ok(story.includes('className="limited-cup-flavor-details"'));
