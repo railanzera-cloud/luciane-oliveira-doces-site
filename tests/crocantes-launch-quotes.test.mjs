@@ -30,6 +30,6 @@ test("o servidor continua rejeitando SKU, sabor, tamanho e quantidades inválida
 });
 test("o fluxo mantém registro comercial e integração Tintim",()=>{
   const page=readFileSync(new URL("../app/page.tsx",import.meta.url),"utf8");
-  assert.ok(page.includes('return `Pipocas Crocantes — ${product.name}`'));
+  assert.ok(page.includes('return `Pipocas Trufadas — ${product.name}`'));
   assert.ok(page.includes("tintimWhatsAppUrl(buildRegisteredOrderMessage"));
 });

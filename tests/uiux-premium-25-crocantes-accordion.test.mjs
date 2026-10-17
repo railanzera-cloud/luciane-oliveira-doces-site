@@ -46,11 +46,11 @@ test("detalhes tem altura equilibrada e segue fluxo da pagina", () => {
 });
 
 test("preço, fotos e checkout dos copos mantidos, sem data automática", () => {
-  assert.ok(story.includes('R$ 15,90 por copo'));
-  assert.ok(story.includes('400 ml'));
+  assert.ok(story.includes('R$ 15,90 por pacote'));
+  assert.ok(story.includes('Pacote com zíper'));
   assert.ok(!story.includes('190 g'));
-  assert.ok(story.includes('/images/edicao-crocante-ninho.webp'));
-  assert.ok(story.includes('/images/edicao-crocante-chocolate.webp'));
+  assert.ok(story.includes('/images/pipocas-trufadas-ninho.avif'));
+  assert.ok(story.includes('/images/pipocas-trufadas-chocolate.avif'));
   assert.ok(story.includes('onClick={() => selectCategory("pipocas")}'));
   assert.ok(release.includes('if (!ordersOpen) return "closed"'));
   assert.doesNotMatch(release,/launchDayStart/);

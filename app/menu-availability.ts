@@ -28,7 +28,12 @@ export type MenuAvailabilityRow = {
   updated_by?: string | null;
 };
 
+export type PublicTrufadasStockRow = { item_key: string; available: number };
+
 export type AvailabilitySnapshot = {
+  /** Estoque disponível após descontar reservas válidas, informado pelo Supabase. */
+  stockRemaining: Record<string, number>;
+  stockChecked: boolean;
   ordersOpen: boolean;
   statuses: Record<string, AvailabilityStatus>;
   source: "fallback" | "supabase";
@@ -109,8 +114,8 @@ const SLICE_ITEMS: MenuAvailabilityItem[] = SLICES.map((slice) => ({
 
 export const MENU_AVAILABILITY_ITEMS: MenuAvailabilityItem[] = [
   ...CATEGORY_ITEMS,
-  { itemKey: CROCANTES_ITEM_KEYS["crocante-ninho"], name: "Crocantes — Ninho (400 ml)", itemType: "product", categoryKey: CATEGORY_ITEM_KEYS.pipocas },
-  { itemKey: CROCANTES_ITEM_KEYS["crocante-chocolate"], name: "Crocantes — Chocolate (400 ml)", itemType: "product", categoryKey: CATEGORY_ITEM_KEYS.pipocas },
+  { itemKey: CROCANTES_ITEM_KEYS["crocante-ninho"], name: "Trufadas — Caramelo e Ninho (pacote)", itemType: "product", categoryKey: CATEGORY_ITEM_KEYS.pipocas },
+  { itemKey: CROCANTES_ITEM_KEYS["crocante-chocolate"], name: "Trufadas — Caramelo e Chocolate (pacote)", itemType: "product", categoryKey: CATEGORY_ITEM_KEYS.pipocas },
   ...POPCORN_SIZE_ITEMS,
   ...POPCORN_FLAVOR_ITEMS,
   ...SLICE_ITEMS,
@@ -143,6 +148,8 @@ export function createFallbackAvailability(): AvailabilitySnapshot {
     ordersOpen: STORE_CONFIG.acceptingOrders,
     statuses,
     source: "fallback",
+    stockRemaining: {},
+    stockChecked: false,
     loadedAt: Date.now(),
   };
 }
@@ -150,6 +157,7 @@ export function createFallbackAvailability(): AvailabilitySnapshot {
 export function mergeRemoteAvailability(
   rows: MenuAvailabilityRow[],
   ordersOpen: boolean,
+  trufadasStock?: PublicTrufadasStockRow[] | null,
 ): AvailabilitySnapshot {
   const fallback = createFallbackAvailability();
   const statuses = { ...fallback.statuses };
@@ -162,9 +170,28 @@ export function mergeRemoteAvailability(
     }
   }
 
+  const stockRemaining: Record<string, number> = {};
+  let stockChecked = false;
+  // Em caso de falha na consulta de quantidade, somente os Trufados ficam bloqueados.
+  // Produtos Gourmet e fatias continuam com a disponibilidade própria.
+  if (trufadasStock !== undefined) {
+    const valid = Array.isArray(trufadasStock)
+      && Object.values(CROCANTES_ITEM_KEYS).every(key => trufadasStock.filter(row =>
+        row?.item_key === key && Number.isSafeInteger(row.available) && row.available >= 0,
+      ).length === 1);
+    stockChecked = Boolean(valid);
+    for (const key of Object.values(CROCANTES_ITEM_KEYS)) {
+      const remaining = valid ? (trufadasStock as PublicTrufadasStockRow[]).find(row => row.item_key === key)!.available : 0;
+      stockRemaining[key] = remaining;
+      if (remaining === 0 && statuses[key] !== "hidden") statuses[key] = "sold_out";
+    }
+  }
+
   return {
     ordersOpen,
     statuses,
+    stockRemaining,
+    stockChecked,
     source: "supabase",
     loadedAt: Date.now(),
   };

@@ -13,9 +13,9 @@ const focused = css.split("UI/UX PREMIUM 2.4 — clareza")[1]?.split("UI/UX PREM
 
 test("vitrine distingue dois copos para escolher, sem sugerir mistura no mesmo copo", () => {
   assert.ok(page.includes('Escolha entre 2 sabores'));
-  assert.ok(page.includes('Pipocas crocantes caramelizadas, em dois sabores para escolher: Ninho ou Chocolate.'));
+  assert.ok(page.includes('Nossas pipocas caramelizadas e trufadas ganharam uma nova apresentação: pacotes com zíper, nos sabores Ninho e Chocolate.'));
   assert.ok(page.includes('className="limited-cup-teaser-price"'));
-  assert.ok(story.includes('EDIÇÃO LIMITADA</span>'));
+  assert.ok(story.includes('PIPOCAS TRUFADAS</span>'));
   assert.ok(page.includes("R$ 15,90"));
   assert.ok(focused.includes(".limited-cup-teaser-price"));
 });
@@ -24,7 +24,7 @@ test("detalhe escolhido substitui instrução, com altura em fluxo natural", () 
   assert.ok(story.includes('id="limited-cup-flavor-panel" className="limited-cup-flavor-slot"'));
   assert.ok(story.includes('{cupFlavorPreview ? ('));
   assert.ok(story.includes(') : ('));
-  assert.ok(story.includes('Toque em um copo para ver os detalhes do sabor.'));
+  assert.ok(story.includes('Escolha um dos sabores para conhecer os detalhes.'));
   assert.ok(!story.includes('Selecione o outro copo para comparar os sabores.'));
   assert.ok(story.includes('cupFlavorPreview === "ninho" ? "Selecionado" : "Escolher Ninho"'));
   assert.ok(story.includes('cupFlavorPreview === "chocolate" ? "Selecionado" : "Escolher Chocolate"'));
@@ -39,7 +39,7 @@ test("detalhe escolhido substitui instrução, com altura em fluxo natural", () 
 test("mensagens da edição limitada acompanham a loja, não a data", () => {
   assert.ok(story.includes('LOJA FECHADA'));
   assert.ok(page.includes('As vendas estão pausadas. Você ainda pode conhecer os sabores.'));
-  assert.ok(page.includes('A edição em copos chegou ao fim, sem reposição.'));
+  assert.ok(page.includes('Os dois sabores estão esgotados no momento.'));
   assert.ok(story.includes('<p>{cupLaunchCopy.description}</p>'));
   assert.doesNotMatch(page,/ESTREIA · QUINTA, 15\/10/);
   assert.ok(release.includes('if (!ordersOpen) return "closed"'));
@@ -49,8 +49,8 @@ test("mensagens da edição limitada acompanham a loja, não a data", () => {
 test("atalho para potes e fotos mantêm fluxo e recursos aprovados", () => {
   assert.ok(story.includes('onClick={() => selectCategory("pipocas")}'));
   assert.ok(story.includes('Escolher tamanho <ChevronRight'));
-  assert.ok(story.includes("/images/edicao-crocante-ninho.webp"));
-  assert.ok(story.includes("/images/edicao-crocante-chocolate.webp"));
+  assert.ok(story.includes("/images/pipocas-trufadas-ninho.avif"));
+  assert.ok(story.includes("/images/pipocas-trufadas-chocolate.avif"));
   assert.ok(page.includes("/images/categoria-pipocas-editorial-enquadrada-v107.webp"));
   assert.ok(page.includes("/images/categoria-fatias-editorial.webp"));
   assert.ok(focused.includes(".limited-cup-story-footer"));

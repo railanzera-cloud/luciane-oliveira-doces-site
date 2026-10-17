@@ -2175,3 +2175,31 @@
 @media (max-width:359px) {
   .storefront #configurador .limited-cup-flavor-summary { font-size: .73rem; }
 }
+
+
+/* Pipocas Trufadas · reenquadramento das fotografias (17/10/2026).
+ * Fotografia íntegra: sem cortar zíper, bordas da embalagem ou base.
+ * Fundos tonais e bordas suaves substituem o aspecto de foto colada. */
+.storefront .limited-cup-teaser-visual {
+  background:linear-gradient(180deg,#b99a80 0%,#ad886c 72%,#cda788 100%);
+}
+.storefront .limited-cup-teaser-shot {background:linear-gradient(180deg,#b89a80,#a88468 72%,#d2ac8b);}
+.storefront .limited-cup-teaser-shot.is-chocolate {background:linear-gradient(180deg,#aa886e,#a27d62 72%,#d4ad8e);}
+.storefront .limited-cup-teaser-shot img {
+  object-fit:contain;object-position:center center;
+  filter:saturate(.99) contrast(1.015) brightness(.99);
+}
+.storefront #configurador .limited-cup-duo-item {
+  background:linear-gradient(180deg,#b89a80,#a88468 72%,#d2ac8b);
+}
+.storefront #configurador .limited-cup-duo-item.is-chocolate {
+  background:linear-gradient(180deg,#aa886e,#a27d62 72%,#d4ad8e);
+}
+.storefront #configurador .limited-cup-duo-item > img {
+  object-fit:contain;object-position:center center;
+  filter:saturate(.99) contrast(1.015) brightness(.98);
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 6%,#000 94%,transparent 100%);
+  mask-image:linear-gradient(90deg,transparent 0%,#000 6%,#000 94%,transparent 100%);
+}
+.storefront .limited-cup-teaser-visual::before {background:linear-gradient(90deg,rgba(38,21,13,.21),transparent 25%);}
+@media (max-width:359px) {.storefront .limited-cup-teaser-visual {min-height:138px;}}

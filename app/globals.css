@@ -4116,3 +4116,59 @@ footer {
 @media (max-width: 400px) {
   .admin-results-views button { font-size: .81rem; }
 }
+
+/* Pipocas Trufadas — estoque individual, sem misturar com disponibilidade dos potes. */
+.admin-trufadas-stock .admin-category-heading { align-items: center; gap: 12px; flex-wrap: wrap; }
+.admin-trufadas-stock .admin-category-heading > button {
+  min-height: 42px; gap: 6px; border-color: rgba(216,158,91,.29);
+  color: #ecd0ac; font-size: .73rem;
+}
+.admin-stock-intro, .admin-stock-footnote {
+  color: #b9a898; font-size: .73rem; line-height: 1.58;
+}
+.admin-stock-intro { margin: 0 0 17px; }
+.admin-stock-footnote { margin: 15px 1px 0; font-size: .66rem; }
+.admin-stock-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+.admin-stock-card {
+  display: grid; align-content: start; gap: 13px; min-width: 0; padding: 17px;
+  border: 1px solid rgba(210,151,89,.23); border-radius: 17px;
+  background: linear-gradient(148deg, rgba(106,63,32,.17), rgba(24,16,12,.7) 66%);
+}
+.admin-stock-card > strong {
+  color: #fff0df; font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.17rem; font-weight: 500;
+}
+.admin-stock-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.admin-stock-summary > span {
+  display: flex; flex-direction: column; gap: 4px; padding: 10px 12px;
+  border: 1px solid rgba(238,196,146,.15); border-radius: 11px;
+  background: rgba(255,255,255,.035);
+}
+.admin-stock-summary small { color: #c4aa8e; font-size: .65rem; }
+.admin-stock-summary b { color: #f6d7ad; font-size: 1.52rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.admin-stock-label { color: #f1dcc1; font-size: .75rem; font-weight: 750; }
+.admin-stock-input {
+  width: 100%; min-height: 48px; padding: 8px 13px;
+  color: #fff2df; font-size: 1.12rem; font-variant-numeric: tabular-nums;
+  background: #160e0a; border: 1px solid rgba(211,158,99,.35);
+  border-radius: 11px; outline-offset: 2px;
+}
+.admin-stock-input:focus-visible { outline: 2px solid #dea76a; }
+.admin-stock-input:disabled { opacity: .65; }
+.admin-stock-toggle { display: flex; align-items: center; gap: 11px; min-height: 36px; color: #dfcab1; font-size: .74rem; cursor: pointer; }
+.admin-stock-toggle input { width: 19px; height: 19px; accent-color: #bd854e; }
+.admin-stock-card > button {
+  gap: 8px; min-height: 46px; color: #1e1108; background: #e9b77d;
+  border-radius: 12px; font-size: .77rem; font-weight: 790;
+}
+.admin-stock-card > button:disabled { opacity: .58; cursor: not-allowed; }
+.admin-stock-warning { color: #eab09c; line-height: 1.4; }
+.admin-stock-placeholder { color: #b8a390; font-size: .73rem; }
+.admin-stock-notice {
+  display: flex; align-items: center; gap: 9px; margin: 0 0 12px;
+  padding: 10px 12px; background: rgba(36,112,68,.17); border: 1px solid rgba(83,165,105,.35);
+  border-radius: 11px; color: #c3e1c4; font-size: .72rem; line-height: 1.4;
+}
+@media (min-width: 600px) {
+  .admin-stock-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}

@@ -204,19 +204,19 @@ test("v8 remove foco azul programático apenas dos títulos e acomoda viewport c
   assert.ok(css.includes('height: clamp(214px, 58vw, 308px)'));
   assert.ok(css.includes('border-color: rgba(208, 149, 94, .30)'));
   assert.ok(page.includes('onClick={returnToCategories}'));
-  assert.ok(page.includes('onClick={openLimitedCupEdition}>Ver edição limitada'));
+  assert.ok(page.includes('onClick={openLimitedCupEdition}>Conhecer Trufadas'));
   assert.ok(page.includes('R$ 15,90'));
 });
 
-test("v7 nomeia lançamento Pipocas Crocantes e dá saída clara em todos os caminhos", () => {
-  assert.ok(page.includes('<strong>Pipocas <em>Crocantes</em></strong>'));
-  assert.ok(page.includes('<h2>Pipocas <em>Crocantes</em></h2>'));
-  assert.ok(page.includes('showLimitedCupView ? "Pipocas Crocantes"'));
+test("v7 nomeia lançamento Pipocas Trufadas e dá saída clara em todos os caminhos", () => {
+  assert.ok(page.includes('<strong>Pipocas <em>Trufadas</em></strong>'));
+  assert.ok(page.includes('<h2>Pipocas <em>Trufadas</em></h2>'));
+  assert.ok(page.includes('showLimitedCupView ? "Pipocas Trufadas"'));
   assert.ok(!page.includes("O lado crocante da Luciane"));
   assert.ok(page.includes('function returnToCategories()'));
   assert.ok(page.includes('onClick={returnToCategories}'));
-  assert.ok(page.includes('onClick={openLimitedCupEdition}>Ver edição limitada'));
-  assert.ok(page.includes('aria-label="Navegação da edição"'));
+  assert.ok(page.includes('onClick={openLimitedCupEdition}>Conhecer Trufadas'));
+  assert.ok(page.includes('aria-label="Navegação das Pipocas Trufadas"'));
   assert.ok(page.includes('aria-label="Navegação das pipocas"'));
   assert.ok(page.includes('aria-label="Navegação das fatias"'));
   assert.ok(page.includes('window.history.pushState'));
@@ -243,8 +243,8 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes('id="tamanhos"'));
   assert.ok(page.includes('onClick={() => selectCategory("pipocas")}')); 
   assert.ok(page.includes('<span>Prefere os potes recheados?</span>'));
-  assert.ok(page.includes('Toque em um copo para ver os detalhes do sabor.'));
-  assert.ok(!page.includes("Conhecer os sabores"));
+  assert.ok(page.includes('Escolha um dos sabores para conhecer os detalhes.'));
+  assert.ok(page.includes("Conhecer os sabores"));
   assert.ok(!page.includes('className="limited-cup-story-primary"'));
   assert.ok(page.includes('aria-pressed={cupFlavorPreview === "ninho"}'));
   assert.ok(page.includes('aria-pressed={cupFlavorPreview === "chocolate"}'));
@@ -257,10 +257,10 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes('setShowLimitedCupView(requestedCategory === "pipocas" && window.history.state?.lucianeCrocante === true)'));
   assert.ok(!page.includes('href="#potes-recheados"'));
   assert.ok(page.includes("R$ 15,90"));
-  assert.ok(page.includes("400 ml"));
+  assert.ok(page.includes("Pacote com zíper"));
   assert.ok(!page.includes("190 g"));
-  assert.ok(page.includes("/images/edicao-crocante-ninho.webp"));
-  assert.ok(page.includes("/images/edicao-crocante-chocolate.webp"));
+  assert.ok(page.includes("/images/pipocas-trufadas-ninho.avif"));
+  assert.ok(page.includes("/images/pipocas-trufadas-chocolate.avif"));
   assert.ok(!page.includes("edicao-crocante-copos-reais.webp"));
   assert.ok(css.includes(".limited-cup-flavor-hint"));
   assert.ok(css.includes(".limited-cup-story-footer > button:focus-visible"));
@@ -321,15 +321,15 @@ test("fotografias comerciais aprovadas sempre acompanham o codigo e o ZIP do Clo
   assert.ok(page.includes("/images/categoria-fatias-editorial.webp"));
   assert.ok(page.includes("/images/categoria-pipocas-editorial-enquadrada-v107.webp"));
   assert.ok(page.includes("/images/categoria-pipocas-editorial.webp"));
-  assert.ok(page.includes("/images/edicao-crocante-ninho.webp"));
-  assert.ok(page.includes("/images/edicao-crocante-chocolate.webp"));
+  assert.ok(page.includes("/images/pipocas-trufadas-ninho.avif"));
+  assert.ok(page.includes("/images/pipocas-trufadas-chocolate.avif"));
 });
 
 test("v107: fotografia e enquadramento preservados na liberação operacional", async () => {
   const release = await readFile(new URL("../app/limited-cup-release.ts", import.meta.url), "utf8");
   assert.ok(page.includes("/images/categoria-pipocas-editorial-enquadrada-v107.webp"));
-  assert.ok(page.includes("EDIÇÃO LIMITADA · DISPONÍVEL"));
-  assert.ok(page.includes("EDIÇÃO LIMITADA · LOJA FECHADA"));
+  assert.ok(page.includes("PIPOCAS TRUFADAS · DISPONÍVEL"));
+  assert.ok(page.includes("PIPOCAS TRUFADAS · LOJA FECHADA"));
   assert.doesNotMatch(page,/ESTREIA · QUINTA, 15\/10/);
   assert.ok(release.includes('if (!ordersOpen) return "closed"'));
   const lastPotRule = css.slice(css.lastIndexOf(".category-option:first-child .category-option-media img"));
