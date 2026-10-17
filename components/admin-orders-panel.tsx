@@ -23,6 +23,14 @@ import {
 
 import { Button } from "@/components/ui/button";
 import {
+  KITCHEN_ALERT_REPEAT_MS, pendingKitchenAlerts, playKitchenChime,
+  type KitchenAlertOrder,
+} from "@/lib/kitchen-alert";
+import {
+  loadKitchenAutoMode, setKitchenAutoMode, setKitchenPrintQueue,
+  type KitchenAutoMode,
+} from "@/lib/kitchen-auto-client";
+import {
   confirmOfflinePayment,
   createReprint,
   loadAdminOrders,
@@ -34,6 +42,9 @@ import {
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const ALERT_PREFERENCE_KEY = "lod-kitchen-alerts-enabled";
+const ALERT_STARTED_KEY = "lod-kitchen-alerts-start-v2";
+const ALERT_ACK_KEY = "lod-kitchen-alerts-acknowledged-v2";
+const ALERT_VOLUME_KEY = "lod-kitchen-alerts-volume-v2";
 
 function createAudioContext(): AudioContext {
   const Constructor = window.AudioContext
@@ -149,11 +160,16 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const [realtimeState, setRealtimeState] = useState("Conectando…");
   const [alertsEnabled, setAlertsEnabled] = useState(false);
   const [alertsPreferred, setAlertsPreferred] = useState(false);
+  const [alertVolume, setAlertVolume] = useState<"normal" | "alto">("alto");
+  const [pendingAlertOrders, setPendingAlertOrders] = useState<KitchenAlertOrder[]>([]);
+  const [kitchenMode, setKitchenMode] = useState<KitchenAutoMode | null>(null);
+  const [kitchenModeBusy, setKitchenModeBusy] = useState(false);
+  const [kitchenModeError, setKitchenModeError] = useState("");
   const [printerReady, setPrinterReady] = useState(false);
   const [printerName, setPrinterName] = useState("");
   const [printing, setPrinting] = useState(false);
-  const knownActionableRef = useRef(new Set<string>());
-  const initializedRef = useRef(false);
+  const acknowledgedAlertsRef = useRef(new Set<string>());
+  const alertStartedAtRef = useRef(0);
   const audioRef = useRef<AudioContext | null>(null);
   const printingRef = useRef(false);
   const effectsRunningRef = useRef(false);
@@ -184,24 +200,35 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const playAlert = useCallback(() => {
     const context = audioRef.current;
     if (!alertsEnabled || !context || context.state !== "running") return;
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(880, context.currentTime);
-    gain.gain.setValueAtTime(0.0001, context.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.18, context.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.55);
-    oscillator.connect(gain).connect(context.destination);
-    oscillator.start();
-    oscillator.stop(context.currentTime + 0.58);
-  }, [alertsEnabled]);
+    playKitchenChime(context, alertVolume);
+  }, [alertsEnabled, alertVolume]);
+
+  const pendingAlertKey = pendingAlertOrders.map(order => order.id).join(",");
+  useEffect(() => {
+    if (!alertsEnabled || !pendingAlertKey) return;
+    playAlert();
+    const interval = window.setInterval(playAlert, KITCHEN_ALERT_REPEAT_MS);
+    return () => window.clearInterval(interval);
+  }, [alertsEnabled, pendingAlertKey, playAlert]);
+
+  function acknowledgeKitchenAlerts() {
+    if (!pendingAlertOrders.length) return;
+    pendingAlertOrders.forEach(order => acknowledgedAlertsRef.current.add(order.id));
+    try {
+      window.localStorage.setItem(ALERT_ACK_KEY,
+        JSON.stringify([...acknowledgedAlertsRef.current].slice(-400)));
+    } catch { /* A confirmação desta sessão ainda interrompe o som. */ }
+    setPendingAlertOrders([]);
+    setNotice("Aviso recebido. Os pedidos continuam disponíveis no painel.");
+  }
 
   const processPrints = useCallback(async () => {
     if (!printerReady || printingRef.current) return;
     printingRef.current = true;
     setPrinting(true);
     try {
-      const { drainPrintQueue } = await import("@/lib/qz-print-client");
+      const { ensureKitchenPrinterConnected, drainPrintQueue } = await import("@/lib/qz-print-client");
+      await ensureKitchenPrinterConnected(session.access_token);
       const count = await drainPrintQueue(client);
       if (count > 0) setNotice(`${count} ${count === 1 ? "comanda impressa" : "comandas impressas"}.`);
     } catch (printError) {
@@ -210,11 +237,11 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       printingRef.current = false;
       setPrinting(false);
     }
-  }, [client, printerReady]);
+  }, [client, printerReady, session.access_token]);
 
-  const reload = useCallback(async () => {
+  const reload = useCallback(async (silent = false) => {
     const sequence = ++loadSequenceRef.current;
-    setLoading(true);
+    if (!silent) setLoading(true);
     setError("");
     try {
       const nextOrders = await loadAdminOrders(client, searchedNumber);
@@ -228,14 +255,10 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
         if (sequence === loadSequenceRef.current) setTrackingError("Mensuração do Tintim indisponível; pedidos preservados.");
       }
       if (sequence !== loadSequenceRef.current) return;
-      const actionableIds = nextOrders.filter(actionable).map((order) => order.id);
-      if (!initializedRef.current) {
-        actionableIds.forEach((id) => knownActionableRef.current.add(id));
-        initializedRef.current = true;
-      } else {
-        const hasNew = actionableIds.some((id) => !knownActionableRef.current.has(id));
-        actionableIds.forEach((id) => knownActionableRef.current.add(id));
-        if (hasNew) playAlert();
+      if (searchedNumber === undefined) {
+        setPendingAlertOrders(pendingKitchenAlerts(
+          nextOrders, alertStartedAtRef.current, acknowledgedAlertsRef.current,
+        ));
       }
       setOrders(ordersWithTracking);
       if (printerReady) window.setTimeout(() => void processPrints(), 0);
@@ -244,7 +267,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     } finally {
       if (sequence === loadSequenceRef.current) setLoading(false);
     }
-  }, [client, playAlert, printerReady, processPrints, searchedNumber]);
+  }, [client, printerReady, processPrints, searchedNumber]);
 
   useEffect(() => {
     let listening = false;
@@ -259,6 +282,18 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       try { preferred = window.localStorage.getItem(ALERT_PREFERENCE_KEY) === "true"; }
       catch { /* Browser preferences are optional. */ }
       setAlertsPreferred(preferred);
+      try {
+        const started = Date.parse(window.localStorage.getItem(ALERT_STARTED_KEY) || "");
+        if (Number.isFinite(started)) alertStartedAtRef.current = started;
+        else if (preferred) {
+          alertStartedAtRef.current = Date.now();
+          window.localStorage.setItem(ALERT_STARTED_KEY, new Date(alertStartedAtRef.current).toISOString());
+        }
+        const saved = JSON.parse(window.localStorage.getItem(ALERT_ACK_KEY) || "[]");
+        if (Array.isArray(saved)) acknowledgedAlertsRef.current = new Set(
+          saved.filter((id): id is string => typeof id === "string").slice(-400));
+        setAlertVolume(window.localStorage.getItem(ALERT_VOLUME_KEY) === "normal" ? "normal" : "alto");
+      } catch { /* Preferências não devem bloquear pedidos. */ }
       if (!preferred) return;
       listening = true;
       document.addEventListener("pointerdown", unlock, { once: true, capture: true });
@@ -282,7 +317,20 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   }, [processEffects]);
 
   useEffect(() => {
+    let active = true;
+    void loadKitchenAutoMode(client).then(value => {
+      if (active) { setKitchenMode(value); setKitchenModeError(""); }
+    }).catch(err => { if (active) setKitchenModeError(err instanceof Error ? err.message : "Modo Cozinha indisponível."); });
+    return () => { active = false; };
+  }, [client]);
+
+  useEffect(() => {
     const initialLoad = window.setTimeout(() => void reload(), 0);
+    // Realtime é imediato quando disponível; polling protege contra desconexões silenciosas.
+    const fallback = window.setInterval(() => void reload(true), 20000);
+    const printFallback = window.setInterval(() => {
+      if (printerReady) void processPrints();
+    }, 12000);
     const channel = client.channel("admin-orders-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => void reload())
       .on("postgres_changes", { event: "*", schema: "public", table: "print_jobs" }, () => { if (printerReady) void processPrints(); })
@@ -297,6 +345,8 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     document.addEventListener("visibilitychange", visibility);
     return () => {
       window.clearTimeout(initialLoad);
+      window.clearInterval(fallback);
+      window.clearInterval(printFallback);
       window.removeEventListener("focus", focus);
       document.removeEventListener("visibilitychange", visibility);
       void client.removeChannel(channel);
@@ -308,19 +358,68 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       const context = getAudioContext();
       await context.resume();
       if (context.state !== "running") throw new Error("Audio suspended");
+      const freshActivation = !alertsPreferred || alertStartedAtRef.current === 0;
+      if (freshActivation) {
+        alertStartedAtRef.current = Date.now();
+        acknowledgedAlertsRef.current.clear();
+        setPendingAlertOrders([]);
+      }
       setAlertsEnabled(true);
       setAlertsPreferred(true);
-      try { window.localStorage.setItem(ALERT_PREFERENCE_KEY, "true"); }
-      catch { /* Audio can work even without a persisted preference. */ }
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      gain.gain.value = 0.06;
-      oscillator.connect(gain).connect(context.destination);
-      oscillator.start(); oscillator.stop(context.currentTime + 0.12);
-      setNotice("Alertas da cozinha ativados.");
+      try {
+        window.localStorage.setItem(ALERT_PREFERENCE_KEY, "true");
+        window.localStorage.setItem(ALERT_STARTED_KEY, new Date(alertStartedAtRef.current).toISOString());
+        if (freshActivation) window.localStorage.setItem(ALERT_ACK_KEY, "[]");
+      } catch { /* Áudio funciona mesmo sem armazenamento local. */ }
+      playKitchenChime(context, alertVolume); // Teste real, após gesto do operador.
+      setNotice("Som liberado. Mantenha este painel aberto no Windows.");
     } catch {
       setError("O navegador bloqueou o som. Toque novamente em ativar alertas.");
     }
+  }
+
+  async function pauseAlerts() {
+    setAlertsPreferred(false);
+    setPendingAlertOrders([]);
+    try { window.localStorage.setItem(ALERT_PREFERENCE_KEY, "false"); }
+    catch { /* opcional */ }
+    try { await audioRef.current?.suspend(); } catch { /* browser lifecycle */ }
+    setAlertsEnabled(false);
+    setNotice("Alerta sonoro pausado. Pedidos e impressão continuam funcionando.");
+  }
+
+  async function toggleAutoMode(enabled: boolean) {
+    if (enabled && !printerReady) {
+      setKitchenModeError("Conecte a impressora 58 mm neste notebook antes de ativar o automático.");
+      return;
+    }
+    if (enabled && !window.confirm(
+      "Ativar cozinha automática? Novos pedidos do WhatsApp serão aceitos e entrarão na fila de impressão, mesmo com Pix pendente. O pagamento NÃO será confirmado. O estoque segue as regras atuais. Continuar?"
+    )) return;
+    setKitchenModeBusy(true);
+    setKitchenModeError("");
+    try {
+      await setKitchenAutoMode(client, enabled);
+      setKitchenMode(await loadKitchenAutoMode(client));
+      setNotice(enabled ? "Modo automático ligado apenas para pedidos novos." : "Modo automático desligado; pedidos antigos preservados.");
+    } catch (cause) {
+      setKitchenModeError(cause instanceof Error ? cause.message : "Não foi possível mudar o modo.");
+    } finally { setKitchenModeBusy(false); }
+  }
+
+  async function togglePrintQueue(enabled: boolean) {
+    if (!enabled && !window.confirm(
+      "Pausar a fila de impressão? Novas comandas não serão enviadas até você reativá-la. O histórico permanece intacto."
+    )) return;
+    setKitchenModeBusy(true);
+    setKitchenModeError("");
+    try {
+      await setKitchenPrintQueue(client, enabled);
+      setKitchenMode(await loadKitchenAutoMode(client));
+      setNotice(enabled ? "Fila reativada só para novos trabalhos elegíveis." : "Impressões pausadas. Nenhum pedido foi apagado.");
+    } catch (cause) {
+      setKitchenModeError(cause instanceof Error ? cause.message : "Falha ao mudar a fila.");
+    } finally { setKitchenModeBusy(false); }
   }
 
   async function enablePrinter() {
@@ -395,8 +494,57 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       </div>
 
       <div className="admin-kitchen-tools">
-        <Button type="button" variant={alertsEnabled ? "default" : "outline"} onClick={() => void enableAlerts()}><BellRing size={17} /> {alertsEnabled ? "Alertas ativados" : alertsPreferred ? "Reativar alertas" : "Ativar alertas da cozinha"}</Button>
+        <Button type="button" variant={alertsEnabled ? "default" : "outline"} onClick={() => void enableAlerts()}><BellRing size={17} /> {alertsEnabled ? "Testar som da cozinha" : alertsPreferred ? "Reativar alertas" : "Ativar alertas da cozinha"}</Button>
+        {alertsPreferred && <Button type="button" variant="outline" onClick={() => void pauseAlerts()}>Pausar som</Button>}
         <Button type="button" variant={printerReady ? "default" : "outline"} onClick={() => printerReady ? void processPrints() : void enablePrinter()} disabled={printing}>{printing ? <LoaderCircle className="admin-spinner" size={17} /> : <Printer size={17} />} {printerReady ? printerName || "Processar impressão" : "Conectar impressão 58 mm"}</Button>
+      </div>
+      <div className="admin-kitchen-settings">
+        <div className="admin-kitchen-settings-heading">
+          <strong><BellRing size={18} /> Modo Cozinha</strong>
+          <span>Som: <select aria-label="Volume do alerta" value={alertVolume}
+            onChange={event => {
+              const value = event.target.value === "normal" ? "normal" : "alto";
+              setAlertVolume(value);
+              try { window.localStorage.setItem(ALERT_VOLUME_KEY, value); } catch { /* opcional */ }
+            }}>
+            <option value="alto">Alto</option><option value="normal">Normal</option>
+          </select></span>
+        </div>
+        <p>Deixe esta aba aberta no notebook Windows. O som toca novamente a cada 8 segundos
+          até reconhecer o aviso. Para ouvir, clique em “Ativar alertas” uma vez após abrir o navegador.</p>
+        {pendingAlertOrders.length > 0 && (
+          <div className="admin-kitchen-incoming" role="alert" aria-live="assertive">
+            <strong>🔔 {pendingAlertOrders.length} {pendingAlertOrders.length === 1 ? "pedido precisa de atenção" : "pedidos precisam de atenção"}</strong>
+            <span>{pendingAlertOrders.slice(0, 5).map(order => `#${order.order_number}`).join(", ")}</span>
+            <Button type="button" onClick={acknowledgeKitchenAlerts}>Reconhecer aviso e parar som</Button>
+          </div>
+        )}
+        <div className="admin-kitchen-automation">
+          <div><strong>Impressão automática de novos pedidos WhatsApp</strong>
+            <small>{kitchenMode
+              ? kitchenMode.enabled && kitchenMode.print_queue_enabled
+                ? "Ligada — aceita pedidos novos e imprime sem confirmar o pagamento."
+                : kitchenMode.enabled
+                  ? "Suspensa — a fila de impressão está pausada."
+                  : "Desligada — fluxo de confirmação manual preservado."
+              : "Aguardando consulta do controle no Supabase."}</small></div>
+          <Button type="button" variant={kitchenMode?.enabled ? "default" : "outline"}
+            onClick={() => void toggleAutoMode(!kitchenMode?.enabled)}
+            disabled={kitchenModeBusy || !kitchenMode}>
+            {kitchenMode?.enabled ? "Desligar automático" : "Ligar automático"}
+          </Button>
+        </div>
+        <div className="admin-kitchen-queue-controls">
+          <span>Fila da impressora: <strong>{kitchenMode?.print_queue_enabled ? "Ligada" : "Pausada"}</strong></span>
+          <Button type="button" variant="outline" disabled={kitchenModeBusy || !kitchenMode}
+            onClick={() => void togglePrintQueue(!kitchenMode?.print_queue_enabled)}>
+            {kitchenMode?.print_queue_enabled ? "Pausar impressão" : "Reativar impressão"}
+          </Button>
+        </div>
+        {kitchenModeError && <p className="admin-kitchen-error" role="alert">{kitchenModeError}</p>}
+        <small>Som depende do navegador e do volume do Windows. Fila e modo automático dependem do
+          notebook ligado, navegador ativo, QZ Tray e impressora conectada. Pedidos pagos online só
+          entram na fila após aprovação do Mercado Pago; Pix manual impresso pendente exige conferência.</small>
       </div>
 
       {notice && <div className="admin-notice" role="status"><Check size={16} />{notice}</div>}

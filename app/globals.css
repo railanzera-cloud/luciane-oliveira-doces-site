@@ -4234,3 +4234,44 @@ footer {
   .admin-results-views button { font-size: .82rem; }
   .admin-results-sales-total { padding: 18px 15px; }
 }
+
+/* Operação de cozinha: sinal inequívoco sem afetar vitrine/checkout. */
+.admin-kitchen-settings { display: grid; gap: 12px; margin: 14px 0 18px;
+  padding: 16px; border: 1px solid #745238; border-radius: 16px; background: #2d1e16; }
+.admin-kitchen-settings-heading { display: flex; align-items: center; flex-wrap: wrap;
+  justify-content: space-between; gap: 12px; }
+.admin-kitchen-settings-heading > strong { display: flex; align-items: center; gap: 8px;
+  color: #f9dbac; font-size: 1.05rem; }
+.admin-kitchen-settings-heading > span { display: inline-flex; align-items: center; gap: 8px;
+  color: #e2c7ad; font-size: .8rem; }
+.admin-kitchen-settings select { min-height: 40px; min-width: 92px; color: #f8e2ca;
+  background: #20150f; border: 1px solid #987047; border-radius: 9px; padding: 6px; }
+.admin-kitchen-settings > p { margin: 0; color: #dbc2ab; line-height: 1.55; font-size: .83rem; }
+.admin-kitchen-settings > small { color: #bfa894; font-size: .77rem; line-height: 1.55; }
+.admin-kitchen-incoming { display: grid; gap: 8px; padding: 17px; border-radius: 13px;
+  background: #8e3c16; border: 2px solid #f4bc65; color: #fff5e6;
+  animation: kitchen-incoming-pulse 1.4s ease-in-out infinite; }
+.admin-kitchen-incoming strong { font-size: 1.07rem; }
+.admin-kitchen-incoming span { font-size: .89rem; }
+.admin-kitchen-incoming button { background: #fff0d4; color: #39210f; min-height: 44px; }
+@keyframes kitchen-incoming-pulse {
+  0%, 100% { border-color: #f4bc65; }
+  50% { border-color: #fff4d8; }
+}
+.admin-kitchen-automation { display: grid; grid-template-columns: minmax(0,1fr) auto;
+  gap: 12px; align-items: center; padding: 13px; border: 1px solid #7a5537; border-radius: 12px;
+  background: #35251b; }
+.admin-kitchen-automation > div { display: grid; gap: 5px; }
+.admin-kitchen-automation > div > strong { color: #ffe0b7; font-size: .87rem; }
+.admin-kitchen-automation > div > small { color: #dbc3ad; line-height: 1.5; font-size: .76rem; }
+.admin-kitchen-automation button,.admin-kitchen-queue-controls button { min-height: 44px; }
+.admin-kitchen-queue-controls { display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: 10px; color: #d8bca0; font-size: .84rem; }
+.admin-kitchen-error { color: #ffd0bc; font-size: .85rem; margin: 0; }
+@media (max-width: 560px) {
+  .admin-kitchen-automation { grid-template-columns: minmax(0,1fr); }
+  .admin-kitchen-automation > button { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-kitchen-incoming { animation: none; }
+}

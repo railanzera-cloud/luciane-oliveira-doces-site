@@ -10,6 +10,7 @@ import { getSupabasePublicConfiguration } from "@/lib/supabase-config";
 
 let configured = false;
 let selectedPrinter = "";
+let currentAccessToken = "";
 const workerId = `lod-kitchen-${crypto.randomUUID()}`;
 
 function edgeUrl() {
@@ -43,15 +44,16 @@ async function qzModule() {
 }
 
 export async function connectKitchenPrinter(accessToken: string): Promise<string> {
+  currentAccessToken = accessToken;
   const qz = await qzModule();
   if (!configured) {
     qz.security.setCertificatePromise(() => (resolve, reject) => {
-      void signedRequest(accessToken, { action: "certificate" })
+      void signedRequest(currentAccessToken, { action: "certificate" })
         .then((result) => resolve(String(result.certificate ?? ""))).catch(reject);
     });
     qz.security.setSignatureAlgorithm("SHA512");
     qz.security.setSignaturePromise((request) => (resolve, reject) => {
-      void signedRequest(accessToken, { action: "sign", request })
+      void signedRequest(currentAccessToken, { action: "sign", request })
         .then((result) => resolve(String(result.signature ?? ""))).catch(reject);
     });
     configured = true;
@@ -64,6 +66,14 @@ export async function connectKitchenPrinter(accessToken: string): Promise<string
   selectedPrinter = printer;
   window.localStorage.setItem("lod-qz-printer", printer);
   return printer;
+}
+
+// Antes de tomar um trabalho da fila, restabelece a conexão QZ quando necessário.
+export async function ensureKitchenPrinterConnected(accessToken: string): Promise<void> {
+  const qz = await qzModule();
+  if (!selectedPrinter) throw new Error("Conecte a impressora pelo botão da cozinha.");
+  currentAccessToken = accessToken;
+  if (!qz.websocket.isActive()) await connectKitchenPrinter(accessToken);
 }
 
 function plain(value: unknown): string {
@@ -87,8 +97,10 @@ function wrap(value: string, width = 32): string[] {
 function paymentLine(claim: PrintClaim): string {
   const { payment_method: method, payment_status: status, fulfillment_type: fulfillment } = claim.order;
   if (status === "paid") return method === "mercado_pago_pix" ? "PAGO - PIX" : method === "mercado_pago_card" ? "PAGO - CARTAO ONLINE" : "PAGAMENTO CONFIRMADO";
-  if (method === "cash") return `DINHEIRO NA ${fulfillment === "pickup" ? "RETIRADA" : "ENTREGA"}`;
-  return `CARTAO NA ${fulfillment === "pickup" ? "RETIRADA" : "ENTREGA"}`;
+  if (method === "manual_pix") return "PIX PENDENTE - CONFERIR";
+  if (method === "cash") return `DINHEIRO NA ${fulfillment === "pickup" ? "RETIRADA" : "ENTREGA"} - PENDENTE`;
+  if (method === "card_on_delivery") return `CARTAO NA ${fulfillment === "pickup" ? "RETIRADA" : "ENTREGA"} - PENDENTE`;
+  return "PAGAMENTO PENDENTE - CONFERIR";
 }
 
 function receipt(claim: PrintClaim): string {
