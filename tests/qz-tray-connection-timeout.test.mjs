@@ -34,7 +34,7 @@ test("carregamento e falhas da conexão exibem a etapa sem afetar pedidos",()=>{
  assert.match(source,/qz\.printers\.getDefault\(\)/);
  assert.match(panel,/printerConnectStage/);
  assert.match(panel,/setPrinterConnectError\(explanation\)/);
- assert.match(panel,/if \(!silent\) \{[\s\S]{0,70}setError\(" "\)/).not;
+ assert.match(panel,/if \(!silent\) \{\s*setLoading\(true\);\s*setError\(""\);/);
  assert.match(panel,/if \(!silent\) \{/);
  assert.match(panel,/setPrinterReady\(true\)/);
  assert.doesNotMatch(panel,/const printer = await connectKitchenPrinter[\s\S]{0,180}await drainPrintQueue/);
