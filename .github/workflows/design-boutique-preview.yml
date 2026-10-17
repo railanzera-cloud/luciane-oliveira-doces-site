@@ -105,7 +105,6 @@ jobs:
               assert 'admin_set_kitchen_auto_mode_v1' in js, 'alternância de cozinha ausente'
               assert 'Reconhecer aviso e parar som' in js, 'aviso sonoro ausente'
               assert 'PIX PENDENTE - CONFERIR' in js, 'comanda pendente precisa ser identificada'
-              assert 'admin-kitchen-incoming' in css, 'alerta visual de cozinha ausente'
               assert 'Marcados como pagos no painel' in js, 'rotulo correto de pagamentos ausente'
               assert 'Campanhas registradas no Tintim' in js, 'visao de campanhas ausente'
               assert 'Sinais de anúncios' in js, 'aba de sinais ausente'
@@ -118,6 +117,7 @@ jobs:
               assert 'https://edqiwvccmboyayojvuea.supabase.co' in js, 'Supabase ausente'
               assert 'sb_publishable_' in js, 'chave publica ausente'
               css='\n'.join(z.read(n).decode('utf8','replace') for n in names if n.startswith('assets/') and n.endswith('.css'))
+              assert 'admin-kitchen-incoming' in css, 'alerta visual de cozinha ausente'
               assert '--boutique-night' in css, 'paleta boutique nao compilada'
               assert 'boutique-checkout-progress' in css, 'navegacao de checkout ausente'
               assert 'boutique-flavor-impact' in css, 'impacto de preco da combinacao ausente'
