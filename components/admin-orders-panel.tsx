@@ -167,6 +167,8 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const [kitchenModeError, setKitchenModeError] = useState("");
   const [printerReady, setPrinterReady] = useState(false);
   const [printerName, setPrinterName] = useState("");
+  const [printerConnectStage, setPrinterConnectStage] = useState("");
+  const [printerConnectError, setPrinterConnectError] = useState("");
   const [printing, setPrinting] = useState(false);
   const acknowledgedAlertsRef = useRef(new Set<string>());
   const alertStartedAtRef = useRef(0);
@@ -241,8 +243,10 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
 
   const reload = useCallback(async (silent = false) => {
     const sequence = ++loadSequenceRef.current;
-    if (!silent) setLoading(true);
-    setError("");
+    if (!silent) {
+      setLoading(true);
+      setError("");
+    }
     try {
       const nextOrders = await loadAdminOrders(client, searchedNumber);
       // A mensuração é auxiliar: falha da consulta nunca bloqueia a cozinha.
@@ -423,21 +427,31 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   }
 
   async function enablePrinter() {
+    if (printingRef.current) return;
     printingRef.current = true;
     setPrinting(true);
+    setPrinterReady(false);
+    setPrinterName("");
+    setPrinterConnectError("");
+    setPrinterConnectStage("Carregando módulo da impressora…");
     setError("");
     try {
-      const { connectKitchenPrinter, drainPrintQueue } = await import("@/lib/qz-print-client");
-      const printer = await connectKitchenPrinter(session.access_token);
+      const { connectKitchenPrinter } = await import("@/lib/qz-print-client");
+      const printer = await connectKitchenPrinter(session.access_token, (stage) => {
+        setPrinterConnectStage(stage === "loading" ? "Carregando módulo da impressora…"
+          : stage === "websocket" ? "Conectando ao QZ Tray no notebook (até 20 segundos)…"
+          : "Consultando a impressora do Windows (até 15 segundos)…");
+      });
       setPrinterName(printer);
       setPrinterReady(true);
-      const count = await drainPrintQueue(client);
-      setNotice(count > 0
-        ? `Impressão conectada: ${printer}. ${count} ${count === 1 ? "comanda impressa" : "comandas impressas"}.`
-        : `Impressão conectada: ${printer}.`);
-    } catch (printerError) {
-      setError(printerError instanceof Error ? printerError.message : "Não foi possível conectar ao QZ Tray.");
+      setNotice(`Impressora identificada: ${printer}. A fila será conferida automaticamente.`);
+    } catch (cause) {
+      const explanation = cause instanceof Error ? cause.message : "Não foi possível conectar ao QZ Tray.";
+      setPrinterConnectError(explanation);
+      setError(explanation);
+      setPrinterReady(false);
     } finally {
+      setPrinterConnectStage("");
       printingRef.current = false;
       setPrinting(false);
     }
@@ -498,6 +512,15 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
         {alertsPreferred && <Button type="button" variant="outline" onClick={() => void pauseAlerts()}>Pausar som</Button>}
         <Button type="button" variant={printerReady ? "default" : "outline"} onClick={() => printerReady ? void processPrints() : void enablePrinter()} disabled={printing}>{printing ? <LoaderCircle className="admin-spinner" size={17} /> : <Printer size={17} />} {printerReady ? printerName || "Processar impressão" : "Conectar impressão 58 mm"}</Button>
       </div>
+      {(printerConnectStage || printerConnectError) && (
+        <div className="admin-kitchen-connection-state" role="status" aria-live="polite">
+          {printerConnectStage && <p><LoaderCircle className="admin-spinner" size={16} /> {printerConnectStage}</p>}
+          {printerConnectError && <p className="admin-kitchen-error">
+            <strong>A conexão não foi concluída.</strong> {printerConnectError}
+            <span>Confira se o QZ Tray está aberto perto do relógio do Windows. Não é necessário desconectar a impressora USB nem confirmar pagamentos.</span>
+          </p>}
+        </div>
+      )}
       <div className="admin-kitchen-settings">
         <div className="admin-kitchen-settings-heading">
           <strong><BellRing size={18} /> Modo Cozinha</strong>

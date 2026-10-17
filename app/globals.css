@@ -4275,3 +4275,13 @@ footer {
 @media (prefers-reduced-motion: reduce) {
   .admin-kitchen-incoming { animation: none; }
 }
+
+/* Diagnóstico não bloqueante da conexão local com QZ Tray no Windows. */
+.admin-kitchen-connection-state { padding: 12px 14px; border: 1px solid #866243; border-radius: 12px;
+ background: #302119; margin: 8px 0 14px; }
+.admin-kitchen-connection-state p { margin: 0; display: flex; align-items: center; gap: 9px;
+ color: #f2ddc7; font-size: .86rem; line-height: 1.55; }
+.admin-kitchen-connection-state p.admin-kitchen-error { display: block; color: #ffd0bc; }
+.admin-kitchen-connection-state .admin-kitchen-error strong { display: block; margin-bottom: 6px; }
+.admin-kitchen-connection-state .admin-kitchen-error span { display: block; margin-top: 6px;
+ color: #ead0b6; }

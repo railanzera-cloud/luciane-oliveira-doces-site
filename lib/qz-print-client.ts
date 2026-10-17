@@ -13,6 +13,26 @@ let selectedPrinter = "";
 let currentAccessToken = "";
 const workerId = `lod-kitchen-${crypto.randomUUID()}`;
 
+export type KitchenPrinterConnectionStage = "loading" | "websocket" | "printers";
+export type KitchenPrinterProgress = (stage: KitchenPrinterConnectionStage) => void;
+
+/** A conexão local nunca deve prender o botão de operação por tempo indeterminado. */
+export async function kitchenConnectionDeadline<T>(
+  operation: Promise<T>, milliseconds: number, failure: string,
+): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      operation,
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(() => reject(new Error(failure)), milliseconds);
+      }),
+    ]);
+  } finally {
+    if (timeout !== undefined) clearTimeout(timeout);
+  }
+}
+
 function edgeUrl() {
   const { url } = getSupabasePublicConfiguration();
   if (!url) throw new Error("Supabase não configurado.");
@@ -21,7 +41,11 @@ function edgeUrl() {
 
 async function signedRequest(accessToken: string, body: Record<string, unknown>) {
   const { publishableKey } = getSupabasePublicConfiguration();
-  const response = await fetch(edgeUrl(), {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+  let response: Response;
+  try {
+    response = await fetch(edgeUrl(), {
     method: "POST",
     headers: {
       apikey: publishableKey,
@@ -29,8 +53,21 @@ async function signedRequest(accessToken: string, body: Record<string, unknown>)
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
-  });
-  const result = await response.json().catch(() => null) as Record<string, unknown> | null;
+    signal: controller.signal,
+    });
+  } catch (cause) {
+    if (controller.signal.aborted) {
+      throw new Error("O Supabase demorou a responder à assinatura QZ. Tente novamente.");
+    }
+    throw cause;
+  } finally {
+    clearTimeout(timeout);
+  }
+  const result = await kitchenConnectionDeadline(
+    response.json().catch(() => null) as Promise<Record<string, unknown> | null>,
+    8000,
+    "Tempo esgotado ao ler a resposta de assinatura QZ.",
+  );
   if (!response.ok || result?.ok !== true) {
     const error = result?.error && typeof result.error === "object" ? result.error as Record<string, unknown> : {};
     throw new Error(typeof error.message === "string" ? error.message : "Assinatura QZ indisponível.");
@@ -43,9 +80,15 @@ async function qzModule() {
   return imported.default;
 }
 
-export async function connectKitchenPrinter(accessToken: string): Promise<string> {
+export async function connectKitchenPrinter(
+  accessToken: string,
+  onProgress?: KitchenPrinterProgress,
+): Promise<string> {
   currentAccessToken = accessToken;
-  const qz = await qzModule();
+  onProgress?.("loading");
+  const qz = await kitchenConnectionDeadline(
+    qzModule(), 12000, "O módulo da impressora não carregou. Atualize o painel e tente novamente.",
+  );
   if (!configured) {
     qz.security.setCertificatePromise(() => (resolve, reject) => {
       void signedRequest(currentAccessToken, { action: "certificate" })
@@ -58,13 +101,34 @@ export async function connectKitchenPrinter(accessToken: string): Promise<string
     });
     configured = true;
   }
-  if (!qz.websocket.isActive()) await qz.websocket.connect({ retries: 2, delay: 1 });
-  const saved = window.localStorage.getItem("lod-qz-printer")?.trim();
-  const found = await qz.printers.find(saved || undefined);
+  onProgress?.("websocket");
+  if (!qz.websocket.isActive()) {
+    try {
+      await kitchenConnectionDeadline(
+        qz.websocket.connect({ retries: 1, delay: 1 }), 20000,
+        "O QZ Tray não respondeu em 20 segundos. Verifique o ícone do QZ Tray junto ao relógio do Windows, reinicie o QZ Tray e tente novamente. Se persistir, confira se o Chrome permite conexões locais.",
+      );
+    } catch (cause) {
+      // O QZ pode ter completado a conexão enquanto a tentativa anterior expirava.
+      if (!qz.websocket.isActive()) throw cause;
+    }
+  }
+  onProgress?.("printers");
+  let saved = "";
+  try { saved = window.localStorage.getItem("lod-qz-printer")?.trim() ?? ""; }
+  catch { /* Preferência local opcional. */ }
+  const found = await kitchenConnectionDeadline(
+    saved ? qz.printers.find(saved) : qz.printers.getDefault(),
+    15000,
+    "QZ Tray abriu, mas não respondeu à consulta de impressoras em 15 segundos. Confira se há uma janela de autorização do QZ Tray atrás do Chrome.",
+  );
   const printer = Array.isArray(found) ? found[0] : found;
-  if (!printer) throw new Error("Nenhuma impressora padrão foi encontrada no QZ Tray.");
+  if (typeof printer !== "string" || !printer.trim()) {
+    throw new Error("QZ Tray conectado, mas não encontrou uma impressora. Confira a impressora padrão no Windows.");
+  }
   selectedPrinter = printer;
-  window.localStorage.setItem("lod-qz-printer", printer);
+  try { window.localStorage.setItem("lod-qz-printer", printer); }
+  catch { /* A sessão de impressão permanece válida. */ }
   return printer;
 }
 

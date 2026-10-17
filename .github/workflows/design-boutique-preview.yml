@@ -11,6 +11,7 @@ on:
       - feature/pipocas-trufadas-pacotes-20261017
       - work/resultados-vendas-restaurados-trufadas-20261017
       - work/cozinha-alerta-modo-automatico-20261017
+      - work/qz-tray-conexao-diagnostico-20261017
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -105,6 +106,8 @@ jobs:
               assert 'admin_set_kitchen_auto_mode_v1' in js, 'alternância de cozinha ausente'
               assert 'Reconhecer aviso e parar som' in js, 'aviso sonoro ausente'
               assert 'PIX PENDENTE - CONFERIR' in js, 'comanda pendente precisa ser identificada'
+              assert 'Conectando ao QZ Tray no notebook' in js, 'etapa local QZ ausente'
+              assert 'QZ Tray não respondeu em 20 segundos' in js, 'timeout de QZ ausente'
               assert 'Marcados como pagos no painel' in js, 'rotulo correto de pagamentos ausente'
               assert 'Campanhas registradas no Tintim' in js, 'visao de campanhas ausente'
               assert 'Sinais de anúncios' in js, 'aba de sinais ausente'
