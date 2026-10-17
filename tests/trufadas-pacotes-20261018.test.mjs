@@ -11,13 +11,13 @@ test("nova identidade visual sem mudar IDs do estoque nem preço", () => {
   for (const name of ["Pipocas Trufadas", "Caramelo e Ninho", "Caramelo e Chocolate"]) {
     assert.ok(page.includes(name) || catalog.includes(name), `não encontrou ${name}`);
   }
-  assert.match(page, /Pipocas <em>Trufadas<\\/em>/);
+  assert.match(page, /Pipocas <em>Trufadas<\/em>/);
   assert.match(page, /Pacote com zíper/);
   assert.doesNotMatch(page, /R$ 15,90 por copo|QUANTOS COPOS/);
   assert.match(catalog, /id: "crocante-ninho"/);
   assert.match(catalog, /id: "crocante-chocolate"/);
   assert.match(catalog, /id: "400ml", label: "Pacote"/);
-  assert.match(catalog, /price: 15\\.9/);
+  assert.match(catalog, /price: 15\.9/);
   assert.match(backend, /itemKey: "crocante_copo_ninho"/);
   assert.match(backend, /itemKey: "crocante_copo_chocolate"/);
   assert.match(backend, /priceCents: 1590/);
