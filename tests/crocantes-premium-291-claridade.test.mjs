@@ -45,7 +45,7 @@ test("escolha é identificável e a numeração fica exclusivamente nas etapas",
   assert.ok(section.includes('<small>CHOCOLATE</small>'));
   assert.doesNotMatch(section, /<small>0[12] · (?:NINHO|CHOCOLATE)<\/small>/);
   assert.ok(section.includes('01 · ESCOLHA SEU SABOR'));
-  assert.ok(section.includes('02 · QUANTOS COPOS?'));
+  assert.ok(section.includes('02 · QUANTOS PACOTES?'));
   assert.ok(css.includes('.limited-cup-duo-item.is-selected .limited-cup-duo-disclosure svg {\n  transform: none;'));
 });
 
