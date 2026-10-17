@@ -216,7 +216,7 @@ test("v7 nomeia lançamento Pipocas Trufadas e dá saída clara em todos os cami
   assert.ok(page.includes('function returnToCategories()'));
   assert.ok(page.includes('onClick={returnToCategories}'));
   assert.ok(page.includes('onClick={openLimitedCupEdition}>Conhecer Trufadas'));
-  assert.ok(page.includes('aria-label="Navegação da edição"'));
+  assert.ok(page.includes('aria-label="Navegação das Pipocas Trufadas"'));
   assert.ok(page.includes('aria-label="Navegação das pipocas"'));
   assert.ok(page.includes('aria-label="Navegação das fatias"'));
   assert.ok(page.includes('window.history.pushState'));
