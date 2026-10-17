@@ -10,24 +10,24 @@ const css = read("app/storefront-vitrine-editorial-experiment.css");
 const quoteSource = read("supabase/functions/_shared/commerce-catalog.mjs");
 const section = page.slice(page.indexOf('<section className="limited-cup-story"'), page.indexOf('{activeCategory === "fatias" && ('));
 
-test("somente volume de 400 ml, sem peso na vitrine, carrinho ou pedido estruturado", () => {
-  assert.ok(section.includes('<span>400 ml</span><strong>R$ 15,90 por copo</strong>'));
+test("pacote com zíper sem gramagem incerta na vitrine, carrinho ou pedido estruturado", () => {
+  assert.ok(section.includes('<span>Pacote com zíper</span><strong>R$ 15,90 por pacote</strong>'));
   assert.doesNotMatch(section, /190\s*g|190 gramas/);
-  assert.equal((catalog.match(/label: "400 ml", whatsappLabel: "400 ml"/g) ?? []).length, 2);
-  assert.ok(quoteSource.includes('size_label: "400 ml"'));
+  assert.equal((catalog.match(/label: "Pacote", whatsappLabel: "Pacote"/g) ?? []).length, 2);
+  assert.ok(quoteSource.includes('size_label: "Pacote"'));
   assert.doesNotMatch(quoteSource, /190\s*g/);
   for (const product_id of ["crocante-ninho", "crocante-chocolate"]) {
     const [item] = quoteCartItems([{ product_id, variant_id: "400ml", option_ids: [], quantity: 1 }]).items;
-    assert.equal(item.size_label, "400 ml");
+    assert.equal(item.size_label, "Pacote");
     assert.equal(item.unit_price_cents, 1590);
     assert.equal(item.line_total_cents, 1590);
   }
 });
 
-test("02 Quantos copos aparece só para a edição disponível para compra", () => {
+test("02 Quantos pacotes aparece só para a edição disponível para compra", () => {
   assert.ok(section.includes('cupSalesEnabled && cupPhase === "available" && ('));
   assert.ok(section.includes('<div className="limited-cup-buy" id="crocantes-quantidade"'));
-  assert.ok(section.includes("02 · QUANTOS COPOS?"));
+  assert.ok(section.includes("02 · QUANTOS PACOTES?"));
   assert.ok(section.includes('cupSalesEnabled && cupPhase !== "available" && ('));
   assert.ok(section.includes('className="limited-cup-flavor-summary" id="crocantes-quantidade"'));
   assert.ok(section.includes('Caramelizadas com leite em pó.'));
