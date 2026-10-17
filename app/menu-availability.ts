@@ -114,8 +114,8 @@ const SLICE_ITEMS: MenuAvailabilityItem[] = SLICES.map((slice) => ({
 
 export const MENU_AVAILABILITY_ITEMS: MenuAvailabilityItem[] = [
   ...CATEGORY_ITEMS,
-  { itemKey: CROCANTES_ITEM_KEYS["crocante-ninho"], name: "Crocantes — Ninho (400 ml)", itemType: "product", categoryKey: CATEGORY_ITEM_KEYS.pipocas },
-  { itemKey: CROCANTES_ITEM_KEYS["crocante-chocolate"], name: "Crocantes — Chocolate (400 ml)", itemType: "product", categoryKey: CATEGORY_ITEM_KEYS.pipocas },
+  { itemKey: CROCANTES_ITEM_KEYS["crocante-ninho"], name: "Trufadas — Caramelo e Ninho (pacote)", itemType: "product", categoryKey: CATEGORY_ITEM_KEYS.pipocas },
+  { itemKey: CROCANTES_ITEM_KEYS["crocante-chocolate"], name: "Trufadas — Caramelo e Chocolate (pacote)", itemType: "product", categoryKey: CATEGORY_ITEM_KEYS.pipocas },
   ...POPCORN_SIZE_ITEMS,
   ...POPCORN_FLAVOR_ITEMS,
   ...SLICE_ITEMS,
