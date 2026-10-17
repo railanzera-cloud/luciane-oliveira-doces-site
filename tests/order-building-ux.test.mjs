@@ -101,5 +101,5 @@ test("additional category labels use actual items in cart, not the last added ca
   assert.match(page, /\{addMoreButtonLabel\("pipocas", cart\)\}/);
   assert.match(page, /\{addMoreButtonLabel\(category, cart\)\}/);
   // A regra específica de copos permanece intacta.
-  assert.equal((page.match(/cartContainsCrocantes \? "Adicionar outro copo" : "Adicionar copo Crocante"/g) ?? []).length, 2);
+  assert.equal((page.match(/cartContainsCrocantes \? "Adicionar outro pacote" : "Adicionar pacote Trufado"/g) ?? []).length, 2);
 });
