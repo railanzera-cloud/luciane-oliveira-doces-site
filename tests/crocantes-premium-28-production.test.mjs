@@ -51,11 +51,11 @@ test("e-commerce Crocantes conciso, sem bloquear por estreia",()=>{
   assert.ok(page.includes('Caramelizadas com leite em pó.'));
   assert.ok(page.includes('LOJA FECHADA'));
   assert.ok(!page.includes('ESTREIA · QUINTA, 15/10, ÀS 12H'));
-  assert.ok(page.includes('R$ 15,90 por copo'));
+  assert.ok(page.includes('R$ 15,90 por pacote'));
   assert.ok(css.includes('.limited-cup-sale-compact'));
 });
 test("compras adicionais identificam outro copo e mantêm o fluxo original",()=>{
-  assert.equal((page.match(/cartContainsCrocantes \? "Adicionar outro copo" : "Adicionar copo Crocante"/g)||[]).length,2);
+  assert.equal((page.match(/cartContainsCrocantes \? "Adicionar outro pacote" : "Adicionar pacote Trufado"/g)||[]).length,2);
   assert.ok(page.includes('className="crocantes-cross-sell"'));
   assert.ok(page.includes('onClick={startAnotherCrocantes}'));
   assert.ok(page.includes('PIX_DETAILS), attribution'));
