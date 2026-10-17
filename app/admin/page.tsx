@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminOrdersPanel } from "@/components/admin-orders-panel";
 import { AdminResultsPanel } from "@/components/admin-results-panel";
+import { AdminTrufadasStock } from "@/components/admin-trufadas-stock";
 import {
   loadRemoteAvailability,
   updateMenuItemStatus,
@@ -326,6 +327,8 @@ export default function AdminPage() {
             {popcornFlavors.map((item) => <AvailabilityControl item={item} status={categoryStatus(item.itemKey)} pending={pendingKeys.includes(item.itemKey)} onChange={(status) => changeItemStatus(item, status)} key={item.itemKey} />)}
           </div>
         </section>
+
+        <AdminTrufadasStock onChanged={reloadMenu} />
 
         <section className="admin-category-section" aria-labelledby="admin-slices-title">
           <div className="admin-category-heading"><div><p className="eyebrow">Categoria</p><h2 id="admin-slices-title">Fatias Artesanais</h2></div></div>
