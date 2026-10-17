@@ -9,6 +9,7 @@ on:
       - design/luciane-boutique-v4-20261013
       - design/luciane-editorial-vitrine-experiment-20261013
       - feature/pipocas-trufadas-pacotes-20261017
+      - work/resultados-vendas-restaurados-trufadas-20261017
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -16,6 +17,17 @@ on:
       - app/catalog.ts
       - app/layout.tsx
       - app/page.tsx
+      - app/admin/page.tsx
+      - app/globals.css
+      - components/admin-results-panel.tsx
+      - lib/admin-results-client.ts
+      - lib/admin-results-model.ts
+      - lib/admin-results-dates.ts
+      - lib/admin-sales-client.ts
+      - lib/admin-sales-model.ts
+      - supabase/migrations/20261016220000_admin_results_custom_dates_v3.sql
+      - supabase/migrations/20261016224500_admin_sales_summary_v1.sql
+      - docs/RESULTADOS-RESTAURACAO-PACOTES-20261017.md
       - 'public/images/pipocas-trufadas-*.avif'
       - supabase/functions/create-whatsapp-order/index.ts
       - supabase/functions/_shared/commerce-catalog.mjs
@@ -78,7 +90,10 @@ jobs:
               assert 'Histórico de visitas identificadas' in js, 'rotulo de historico ausente'
               assert 'O identificador de clique deste pedido coincide' in js, 'evidencia de clique ausente'
               assert 'admin_get_tintim_order_tracking_v3' in js, 'consulta de historico por pedido ausente'
-              assert 'admin_get_results_overview_v2' in js, 'consulta de Resultados v2 ausente'
+              assert 'admin_get_results_overview_v3' in js, 'consulta de Resultados com datas ausente'
+              assert 'admin_get_sales_summary_v1' in js, 'consulta de vendas concluídas ausente'
+              assert 'Personalizado' in js and 'Amanhã' in js and 'Hoje' in js, 'filtros flexíveis ausentes'
+              assert 'Vendas concluídas e pagas' in js, 'visão de vendas ausente'
               assert 'Marcados como pagos no painel' in js, 'rotulo correto de pagamentos ausente'
               assert 'Campanhas registradas no Tintim' in js, 'visao de campanhas ausente'
               assert 'Sinais de anúncios' in js, 'aba de sinais ausente'

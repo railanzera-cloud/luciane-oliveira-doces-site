@@ -14,6 +14,8 @@ const {
 
 const sample = () => ({
   period_days: 30,
+  period_start: "2026-09-13",
+  period_end: "2026-10-12",
   generated_at: "2026-10-12T20:00:00Z",
   data_scope: "orders_created_in_supabase_only",
   sales_coverage: "incomplete_tintim_confirmations_not_synced",
@@ -76,7 +78,9 @@ test("recusa excesso de fbclid nas visitas pela bio", () => {
 
 test("recusa período arbitrário ou formato incompleto", () => {
   assert.throws(() => parseResultsOverview(null), /incompleto/);
-  assert.throws(() => parseResultsOverview({...sample(), period_days:365}), /incompleto/);
+  assert.throws(() => parseResultsOverview({...sample(), period_days:3661}), /incompleto/);
+  assert.throws(() => parseResultsOverview({...sample(), period_days:31}), /incompleto/);
+  assert.throws(() => parseResultsOverview({...sample(), period_start:"2026-09-31"}), /incompleto/);
   assert.throws(() => parseResultsOverview({...sample(), campaigns:null}), /validar/);
   assert.throws(() => parseResultsOverview({...sample(), sales_coverage:"complete"}), /validar/);
 });
@@ -112,8 +116,8 @@ test("interface mostra cobertura parcial sem criar venda ou disparar evento Meta
   assert.ok(admin.includes('<TabsTrigger value="results">'));
   assert.ok(admin.includes('<TabsTrigger value="orders">'));
   assert.ok(admin.includes('<TabsTrigger value="availability">'));
-  assert.ok(ui.includes("loadAdminResults(client, days)"));
-  assert.ok(client.includes('client.rpc("admin_get_results_overview_v2"'));
+  assert.ok(ui.includes("loadAdminResults(client, range)"));
+  assert.ok(client.includes('client.rpc("admin_get_results_overview_v3"'));
   assert.ok(ui.includes("Sinais de anúncios"));
   assert.ok(ui.includes("Registros do site"));
   assert.ok(ui.includes("Origem não identificada"));
