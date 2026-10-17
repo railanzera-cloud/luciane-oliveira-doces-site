@@ -1890,7 +1890,7 @@ export default function Home() {
         <div className="page-shell builder-shell">
           {activeCategory === "pipocas" && showLimitedCupView && (
             <section className="limited-cup-story" id="edicao-crocante" aria-label="Pipocas Trufadas em pacotes com zíper">
-              <nav className="v7-navigation v7-navigation-edition" aria-label="Navegação da edição">
+              <nav className="v7-navigation v7-navigation-edition" aria-label="Navegação das Pipocas Trufadas">
                 <button type="button" onClick={returnToCategories}><ArrowLeft size={15} aria-hidden="true" /> Voltar às categorias</button>
               </nav>
               <div className="limited-cup-story-heading">
@@ -1916,7 +1916,7 @@ export default function Home() {
                   </div>
                 ) : (
                 <div className="limited-cup-story-sale">
-                  <div className="limited-cup-story-price"><span>EDIÇÃO ESPECIAL</span><strong>R$ 15,90</strong><small>por pacote</small></div>
+                  <div className="limited-cup-story-price"><span>PIPOCAS TRUFADAS</span><strong>R$ 15,90</strong><small>por pacote</small></div>
                   <div className="limited-cup-story-measure" aria-label="Nova embalagem"><span>Pacote com zíper</span></div>
                 </div>
                 )}
@@ -1963,7 +1963,7 @@ export default function Home() {
                 ) : (
                 <div className={`limited-cup-story-availability is-current ${cupPhase === "closed" ? "is-closed" : ""}`}>
                   <span className="limited-cup-story-availability-kicker">
-                    {cupPhase === "closed" ? "LOJA FECHADA" : cupPhase === "sold-out" ? "EDIÇÃO ENCERRADA" : "INDISPONÍVEL NO MOMENTO"}
+                    {cupPhase === "closed" ? "LOJA FECHADA" : cupPhase === "sold-out" ? "ESGOTADO NO MOMENTO" : "INDISPONÍVEL NO MOMENTO"}
                   </span>
                   <p>{cupLaunchCopy.description}</p>
                 </div>
