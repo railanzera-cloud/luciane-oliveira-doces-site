@@ -113,14 +113,14 @@ export const PRODUCTS: Product[] = [
   {
     id: "crocante-ninho", kind: "popcorn", category: "Pipocas Trufadas",
     name: "Caramelo e Ninho", available: true,
-    image: "/images/pipocas-trufadas-ninho.avif", imageAlt: "Pacote com zíper de Pipocas Trufadas de Caramelo e Ninho",
+    image: "/images/pipocas-trufadas-ninho.avif?v=20261017-zoom2", imageAlt: "Pacote com zíper de Pipocas Trufadas de Caramelo e Ninho",
     variants: [{ id: "400ml", label: "Pacote", whatsappLabel: "Pacote", price: 15.9, maxOptions: 0, available: true }],
     options: [],
   },
   {
     id: "crocante-chocolate", kind: "popcorn", category: "Pipocas Trufadas",
     name: "Caramelo e Chocolate", available: true,
-    image: "/images/pipocas-trufadas-chocolate.avif", imageAlt: "Pacote com zíper de Pipocas Trufadas de Caramelo e Chocolate",
+    image: "/images/pipocas-trufadas-chocolate.avif?v=20261017-zoom2", imageAlt: "Pacote com zíper de Pipocas Trufadas de Caramelo e Chocolate",
     variants: [{ id: "400ml", label: "Pacote", whatsappLabel: "Pacote", price: 15.9, maxOptions: 0, available: true }],
     options: [],
   },

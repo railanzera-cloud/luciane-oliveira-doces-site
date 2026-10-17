@@ -35,3 +35,14 @@ test("duas fotografias otimizadas presentes e utilizadas nas duas superfícies",
   }
   assert.match(css, /object-fit:contain/);
 });
+
+test("reenquadramento fechado em ambos os sabores sem cortar o pacote e com cache renovado", () => {
+  for (const flavor of ["ninho", "chocolate"]) {
+    const url = `/images/pipocas-trufadas-${flavor}.avif?v=20261017-zoom2`;
+    assert.ok(page.includes(url), `a vitrine deve buscar foto atualizada de ${flavor}`);
+    assert.ok(catalog.includes(url), `a foto atualizada de ${flavor} deve chegar ao carrinho`);
+  }
+  assert.equal((page.match(/width="840" height="1050"/g) ?? []).length, 4);
+  assert.match(css, /object-fit:contain;object-position:center center/);
+  assert.match(css, /-webkit-mask-image:linear-gradient/);
+});

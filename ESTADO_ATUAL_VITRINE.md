@@ -304,3 +304,11 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **Backend comercial já implantado no passo anterior:** Edge Function `create-whatsapp-order` versão 22 ACTIVE, com foto/nome comercial de pacote, chave e preço preservados. Nenhum novo deploy de função foi necessário nesta etapa.
 - **Verificações:** `tests/trufadas-stock-controls.test.mjs` adiciona verificações direcionadas; testes históricos de seleção, fechamento e checagem de quantidade foram mantidos/adaptados para cobrir a proteção adicional. Exigir CI com testes, TypeScript, build e ZIP da mesma revisão antes da entrega.
 - **Status de implantação:** o frontend **ainda não foi publicado no Cloudflare**. Entregar ZIP do GitHub Actions associado ao HEAD validado; não publicar nem alterar `main` sem ferramenta de publicação compatível. Homologação final da interface em Safari/iPhone com a Luciane continua pendente.
+
+
+## Refinamento fotográfico — reenquadramento próximo dos pacotes (17/10/2026)
+
+- Usuário aprovou duas novas fotos em estúdio, mais próximas, com a embalagem totalmente visível e menos lateral de fundo: sabores Caramelo e Ninho / Caramelo e Chocolate. São as imagens exatas da geração aprovada, otimizadas para AVIF 840x1050 (35.865 e 41.462 bytes respectivamente). A etiqueta e o produto das fotos permanecem como aprovados, sem novos sabores, preços ou quantidades.
+- Substituídos os binários em `public/images/pipocas-trufadas-ninho.avif` e `public/images/pipocas-trufadas-chocolate.avif`. URLs de home, detalhes e catálogo receberam `?v=20261017-zoom2` para evitar cache persistente das fotos antigas.
+- Proporção declarada das quatro imagens no JSX corrigida de 840x1260 para 840x1050. CSS de vitrine mantém `object-fit:contain` (embalagem completa), equilibra o fundo bege dos componentes com a fotografia e suaviza apenas as laterais de fundo em detalhe, sem esconder zíper, etiqueta nem base.
+- Não houve alterações de Supabase, estoque individual, status dos produtos, preço, pedidos, jornada do carrinho ou checkout. Branch isolada de homologação; CI (build, TypeScript, testes e ZIP) é pré-requisito para publicação manual no Cloudflare Pages.

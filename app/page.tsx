@@ -1855,8 +1855,8 @@ export default function Home() {
                 <span className="limited-cup-teaser-cta">Conhecer os sabores <ChevronRight size={16} aria-hidden="true" /></span>
               </span>
               <span className="limited-cup-teaser-visual" aria-hidden="true">
-                <span className="limited-cup-teaser-shot is-ninho"><img src="/images/pipocas-trufadas-ninho.avif" alt="" width="840" height="1260" loading="eager" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} /></span>
-                <span className="limited-cup-teaser-shot is-chocolate"><img src="/images/pipocas-trufadas-chocolate.avif" alt="" width="840" height="1260" loading="eager" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} /></span>
+                <span className="limited-cup-teaser-shot is-ninho"><img src="/images/pipocas-trufadas-ninho.avif?v=20261017-zoom2" alt="" width="840" height="1050" loading="eager" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} /></span>
+                <span className="limited-cup-teaser-shot is-chocolate"><img src="/images/pipocas-trufadas-chocolate.avif?v=20261017-zoom2" alt="" width="840" height="1050" loading="eager" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} /></span>
               </span>
             </button>
           )}
@@ -1930,11 +1930,11 @@ export default function Home() {
               <div className="limited-cup-selection-heading" id="crocantes-sabores"><span>01 · ESCOLHA SEU SABOR</span><small>{cupPhase === "available" ? "Toque no pacote que deseja adicionar." : "Toque em um sabor para conhecer os detalhes."}</small></div>
               <div className="limited-cup-duo" aria-label="Escolha um sabor de Pipocas Trufadas">
                 <button type="button" disabled={cupAdding} className={cupFlavorPreview === "ninho" ? "limited-cup-duo-item is-ninho is-selected" : "limited-cup-duo-item is-ninho"} aria-pressed={cupFlavorPreview === "ninho"} aria-controls="crocantes-quantidade" onClick={() => selectCupFlavor("ninho")}>
-                  <img src="/images/pipocas-trufadas-ninho.avif" alt="Pacote com zíper de Pipocas Trufadas de Caramelo e Ninho" width="840" height="1260" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
+                  <img src="/images/pipocas-trufadas-ninho.avif?v=20261017-zoom2" alt="Pacote com zíper de Pipocas Trufadas de Caramelo e Ninho" width="840" height="1050" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
                   <span className="limited-cup-duo-caption"><small>NINHO</small><strong>Caramelo e Ninho</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "ninho" ? "Selecionado" : "Escolher Ninho"} {cupFlavorPreview === "ninho" ? <Check size={13} aria-hidden="true" /> : <ChevronRight size={13} aria-hidden="true" />}</span></span>
                 </button>
                 <button type="button" disabled={cupAdding} className={cupFlavorPreview === "chocolate" ? "limited-cup-duo-item is-chocolate is-selected" : "limited-cup-duo-item is-chocolate"} aria-pressed={cupFlavorPreview === "chocolate"} aria-controls="crocantes-quantidade" onClick={() => selectCupFlavor("chocolate")}>
-                  <img src="/images/pipocas-trufadas-chocolate.avif" alt="Pacote com zíper de Pipocas Trufadas de Caramelo e Chocolate" width="840" height="1260" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
+                  <img src="/images/pipocas-trufadas-chocolate.avif?v=20261017-zoom2" alt="Pacote com zíper de Pipocas Trufadas de Caramelo e Chocolate" width="840" height="1050" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
                   <span className="limited-cup-duo-caption"><small>CHOCOLATE</small><strong>Caramelo e Chocolate</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "chocolate" ? "Selecionado" : "Escolher Chocolate"} {cupFlavorPreview === "chocolate" ? <Check size={13} aria-hidden="true" /> : <ChevronRight size={13} aria-hidden="true" />}</span></span>
                 </button>
               </div>
