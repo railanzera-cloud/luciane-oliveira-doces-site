@@ -316,7 +316,16 @@ function cartAvailabilityIssues(
 
     if ((product.id === "crocante-ninho" || product.id === "crocante-chocolate")) {
       const key = CROCANTES_ITEM_KEYS[product.id];
-      if (snapshot.source !== "supabase" || !key || !isItemAvailable(snapshot, key)) reasons.push("Pacote indisponível no momento.");
+      if (snapshot.source !== "supabase" || !key || !isItemAvailable(snapshot, key) || !snapshot.stockChecked) {
+        reasons.push("Pacote indisponível no momento.");
+      } else {
+        // Soma as quantidades do mesmo sabor no carrinho: a reserva no banco
+        // acontece somente na finalização, nunca ao tocar em "adicionar".
+        const requested = cart.filter(entry => entry.productId === item.productId)
+          .reduce((sum, entry) => sum + entry.quantity, 0);
+        const left = snapshot.stockRemaining[key] ?? 0;
+        if (requested > left) reasons.push(`Há apenas ${left} ${left === 1 ? "pacote disponível" : "pacotes disponíveis"} deste sabor. Ajuste a quantidade.`);
+      }
     } else if (product.kind === "popcorn") {
       const sizeKey = POPCORN_SIZE_ITEM_KEYS[variant.id];
       if (sizeKey && !isItemAvailable(snapshot, sizeKey)) {
@@ -486,6 +495,7 @@ export default function Home() {
     // Escolher novamente o mesmo sabor não desfaz o pedido em montagem.
     if (cupFlavorPreview === flavor) return;
     setCupFlavorPreview(flavor);
+    setCupQuantity(1);
     setCupAddedNotice("");
     requestScroll("crocantes-quantidade");
   }
@@ -776,10 +786,19 @@ export default function Home() {
   const cartContainsCrocantes = cart.some((item) => (item.productId === "crocante-ninho" || item.productId === "crocante-chocolate"));
   const cupProductId = cupFlavorPreview === "ninho" ? "crocante-ninho" : cupFlavorPreview === "chocolate" ? "crocante-chocolate" : "";
   const cupStockKey = cupProductId ? CROCANTES_ITEM_KEYS[cupProductId] : "";
+  const cartStockCount = (productId: string) => cart
+    .filter(item => item.productId === productId).reduce((sum, item) => sum + item.quantity, 0);
+  const remainingForFlavor = (productId: string) => {
+    const key = CROCANTES_ITEM_KEYS[productId];
+    return availability.stockChecked && key
+      ? Math.max(0, (availability.stockRemaining[key] ?? 0) - cartStockCount(productId))
+      : 0;
+  };
+  const cupRemaining = cupProductId ? remainingForFlavor(cupProductId) : 0;
   const cupCanOrder = cupSalesEnabled && pipocasAvailable && availability.ordersOpen && availability.source === "supabase"
-    && Boolean(cupStockKey && isItemAvailable(availability, cupStockKey));
+    && Boolean(cupStockKey && isItemAvailable(availability, cupStockKey) && cupRemaining >= cupQuantity);
   const cupCanBeAddedFromCheckout = cupSalesEnabled && pipocasAvailable && availability.ordersOpen && availability.source === "supabase"
-    && Object.values(CROCANTES_ITEM_KEYS).some((key) => isItemAvailable(availability, key));
+    && Object.keys(CROCANTES_ITEM_KEYS).some(productId => isItemAvailable(availability, CROCANTES_ITEM_KEYS[productId]) && remainingForFlavor(productId) > 0);
   useEffect(() => {
     if (cartContainsCrocantes && checkoutChannel !== "whatsapp") {
       setCheckoutChannel("whatsapp");
@@ -1249,13 +1268,16 @@ export default function Home() {
     setCupAdding(true);
     try {
     const latest = await refreshAvailability();
-    if (latest.usedFallback || !latest.snapshot.ordersOpen
+    const qty = Math.min(99, Math.max(1, cupQuantity));
+    const confirmedStock = latest.snapshot.stockRemaining[CROCANTES_ITEM_KEYS[product.id]] ?? 0;
+    const alreadyInCart = cartStockCount(product.id);
+    if (latest.usedFallback || !latest.snapshot.stockChecked || !latest.snapshot.ordersOpen
       || !isItemAvailable(latest.snapshot, CATEGORY_ITEM_KEYS.pipocas)
-      || !isItemAvailable(latest.snapshot, CROCANTES_ITEM_KEYS[product.id])) {
-      setCupAddedNotice("A disponibilidade mudou. Confira novamente antes de pedir.");
+      || !isItemAvailable(latest.snapshot, CROCANTES_ITEM_KEYS[product.id])
+      || qty + alreadyInCart > confirmedStock) {
+      setCupAddedNotice("Estoque insuficiente para essa quantidade. Atualize a seleção ou escolha outro sabor.");
       return;
     }
-    const qty = Math.min(99, Math.max(1, cupQuantity));
     setCart((current) => [...current, { id: makeCartId(), productId: product.id, variantId: variant.id, optionIds: [], quantity: qty }]);
     trackMetaEvent("AddToCart", metaProductPayload(product, variant, qty));
     setAddedNotice({
@@ -1435,6 +1457,14 @@ export default function Home() {
   function changeCartQuantity(id: string, delta: number) {
     const itemIssue = cartIssues.find((issue) => issue.cartItemId === id);
     if (delta > 0 && (!availability.ordersOpen || itemIssue)) return;
+    if (delta > 0) {
+      const selected = cart.find(item => item.id === id);
+      const key = selected ? CROCANTES_ITEM_KEYS[selected.productId] : undefined;
+      if (key && (!availability.stockChecked || cartStockCount(selected!.productId) >= (availability.stockRemaining[key] ?? 0))) {
+        setCheckoutAvailabilityMessage("Não há mais pacotes disponíveis deste sabor para aumentar a quantidade.");
+        return;
+      }
+    }
     if (delta > 0 && availability.ordersOpen) {
       const item = cart.find((candidate) => candidate.id === id);
       const product = PRODUCTS.find((candidate) => candidate.id === item?.productId);
@@ -1947,13 +1977,14 @@ export default function Home() {
                       <div className="mini-quantity" role="group" aria-label="Quantidade de pacotes" aria-disabled={cupPhase !== "available"}>
                         <Button type="button" variant="ghost" size="icon" aria-label="Diminuir quantidade de pacotes" disabled={cupPhase !== "available" || cupQuantity <= 1 || cupAdding} onClick={() => setCupQuantity((n) => Math.max(1, n - 1))}><Minus size={16} /></Button>
                         <strong aria-live="polite">{cupQuantity}</strong>
-                        <Button type="button" variant="ghost" size="icon" aria-label="Aumentar quantidade de pacotes" disabled={cupPhase !== "available" || cupQuantity >= 99 || cupAdding} onClick={() => setCupQuantity((n) => Math.min(99, n + 1))}><Plus size={16} /></Button>
+                        <Button type="button" variant="ghost" size="icon" aria-label="Aumentar quantidade de pacotes" disabled={cupPhase !== "available" || !cupFlavorPreview || cupQuantity >= Math.min(99, cupRemaining) || cupAdding} onClick={() => setCupQuantity((n) => Math.min(99, cupRemaining, n + 1))}><Plus size={16} /></Button>
                       </div>
                       <Button type="button" className="limited-cup-buy-cta" disabled={cupAdding || cupPhase !== "available" || (Boolean(cupFlavorPreview) && !cupCanOrder)} onClick={handleCupPurchaseAction}>
                         {cupFlavorPreview ? <ShoppingBag size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
                         {cupAdding ? "Conferindo estoque…" : !cupFlavorPreview ? "Escolher meu sabor" : cupCanOrder ? `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "pacote" : "pacotes"} · ${currency.format(15.9 * cupQuantity)}` : "Sabor indisponível"}
                       </Button>
                     </div>
+                    {cupFlavorPreview && availability.stockChecked && <p className="limited-cup-stock-note" role="status">{cupRemaining > 0 ? `${cupRemaining} ${cupRemaining === 1 ? "pacote disponível" : "pacotes disponíveis"} deste sabor para adicionar ao pedido.` : "Esse sabor está esgotado ou já está totalmente no seu carrinho."}</p>}
                     {cartContainsCrocantes && <button type="button" className="limited-cup-to-cart" onClick={() => requestScroll("carrinho")}>Ver carrinho e continuar pedido <ChevronRight size={15} aria-hidden="true" /></button>}
                   </div>
                 )}
