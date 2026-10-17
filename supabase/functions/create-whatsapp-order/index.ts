@@ -141,6 +141,7 @@ async function rest<T>(path: string, options: RequestInit = {}): Promise<T> {
     if (!result.ok) {
       if (body?.message === "orders_closed") throw new HttpError(409, "orders_closed", "Os pedidos foram encerrados por enquanto.");
       if (body?.message === "menu_changed") throw new HttpError(409, "menu_changed", "Um item ficou indisponível. Revise o carrinho.");
+      if (body?.message === "crocante_sem_estoque") throw new HttpError(409, "crocante_sem_estoque", "O último pacote deste sabor acabou de ser reservado. Atualize o pedido e escolha outra opção.");
       if (body?.message === "order_id_payload_conflict") throw new HttpError(409, "order_conflict", "Esta solicitação já foi registrada com outros dados. Acompanhe o pedido salvo ou inicie um novo pedido.");
       throw new HttpError(502, "database_error", "Não foi possível registrar o pedido.", { databaseCode: body?.code });
     }
