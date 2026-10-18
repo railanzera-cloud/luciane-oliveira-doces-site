@@ -162,7 +162,7 @@ jobs:
               assert 'limited-cup-card-check' in css, 'estado premium de selecao trufadas ausente'
               assert 'limited-cup-more-intro' in js, 'cross-sell de categorias ausente'
               assert 'trufadas-subtotal-update' in css, 'microinteracao de subtotal ausente'
-              assert 'checkout-premium-20261018' in css, 'camada premium checkout ausente'
+              assert '.mobile-sticky-bar.is-checkout-flow' in css, 'camada visual checkout nao compilada'
               assert 'is-checkout-flow' in js, 'barra visual checkout ausente'
               assert 'boutique-final-action' in js, 'regiao de CTA contextual ausente'
               assert 'category-option-media' in css, 'cartoes fotograficos ausentes'
