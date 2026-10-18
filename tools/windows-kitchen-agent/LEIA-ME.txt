@@ -1,0 +1,56 @@
+LUCIANE OLIVEIRA DOCES — AGENTE LOCAL DE IMPRESSÃO WINDOWS
+==========================================================
+VERSÃO PILOTO — NÃO é uma atualização Cloudflare
+
+O QUE RESOLVE
+- O agente verifica a fila de comandas do Supabase mesmo com a aba de pedidos fechada.
+- Envia comanda ESC/POS premium diretamente à impressora instalada no Windows.
+- Não exige QZ Tray, Chrome aberto ou pagamento de serviço adicional.
+- Usa a MESMA fila do painel, com bloqueio e token por trabalho. Não cria pedidos.
+- Salva apenas uma sessão criptografada com DPAPI vinculada ao usuário Windows.
+- Não guarda a senha e não embute service_role, certificado ou chave privada.
+
+O QUE NÃO É POSSÍVEL
+- Windows suspenso, desligado, em hibernação ou sem internet NÃO imprime.
+- Tela apagada funciona SE o computador continuar ACORDADO.
+- O spooler aceitar trabalho não garante que o papel saiu fisicamente.
+- Não garante operação contínua após logout do usuário; começa ao fazer login.
+
+ANTES DE INSTALAR
+1. Conferir se a impressora aparece EXATAMENTE como POS-58(copy of 1) em
+   Configurações -> Bluetooth e dispositivos -> Impressoras e scanners.
+2. Conectar o notebook à tomada e verificar cabo USB/driver/rolo.
+3. Configurações -> Sistema -> Energia e bateria -> Tela, suspensão e hibernação:
+   para ENERGIA ELÉTRICA, SUSPENDER = NUNCA. Pode desligar a tela, se desejar.
+4. Se fechar a tampa do notebook, configurar ação da tampa "Nada a fazer"
+   no Painel de Controle / Opções de energia, com ventilação adequada.
+5. Não faça a primeira instalação durante pedidos críticos; combine um teste
+   controlado com a operadora.
+
+COMO INSTALAR
+1. Extraia TODO o ZIP em uma pasta normal do notebook.
+2. Clique em Instalar.cmd e faça login com uma conta autorizada do PAINEL COMERCIAL.
+3. A senha será digitada apenas no Windows, não no ChatGPT; não é armazenada.
+4. O agente será copiado para %LOCALAPPDATA%\LucianeKitchenAgent\app.
+5. Será criado um atalho na pasta Inicializar do Windows para esse usuário.
+6. Clique em Status.cmd depois de 20 segundos. A mensagem "ready" indica que
+   a fila local está aguardando pedidos; "offline" indica falha local/rede/login.
+7. Durante um pedido REAL autorizado, conferir comanda no papel e status na fila.
+
+MANUTENÇÃO
+- Se alterar a senha/revogar a sessão, executar Instalar.cmd novamente.
+- Ao reiniciar Windows e entrar nesse mesmo usuário, o agente reinicia.
+- Se o navegador também estiver imprimindo, ambos disputam a MESMA fila
+  de maneira transacional: um único processo pode reivindicar cada job.
+- Para remover a inicialização, executar Remover.cmd. Pode apagar a sessão local.
+- Registros sem dados de clientes em %LOCALAPPDATA%\LucianeKitchenAgent\agent.log.
+
+CUIDADOS
+- O agente envia ao spooler Windows e informa "printed" no servidor após
+  aceitação pelo spooler, não depois de confirmação física do papel.
+- Se houver dúvida de impressão, NÃO reimprimir automaticamente, conferir papel.
+- Se um pedido estiver preso em "printing", pedir auditoria antes de reprocessar.
+- Esta versão não altera o banco, site, campanhas, pagamentos nem estoque.
+- O login do agente precisa ser autorizado para claim_print_job no Supabase.
+
+Checkpoint: branch work/windows-impressao-independente-do-navegador-20261018

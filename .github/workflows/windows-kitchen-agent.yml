@@ -1,0 +1,73 @@
+name: Windows Kitchen Agent (no production deploy)
+on:
+  push:
+    branches:
+      - work/windows-impressao-independente-do-navegador-20261018
+    paths:
+      - tools/windows-kitchen-agent/**
+      - .github/workflows/windows-kitchen-agent.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-and-package:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verificar sintaxe PowerShell e preservação das proteções
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $folder = "tools/windows-kitchen-agent"
+          foreach ($file in @("Worker.ps1","Install.ps1","Remove.ps1")) {
+            $tokens = $null; $errors = $null
+            $ast = [System.Management.Automation.Language.Parser]::ParseFile(
+              (Join-Path (Resolve-Path $folder) $file), [ref]$tokens, [ref]$errors
+            )
+            if ($errors.Count -gt 0) {
+              $errors | Format-Table | Out-String | Write-Host
+              throw "Falha de sintaxe no arquivo $file"
+            }
+          }
+          $script=Get-Content (Join-Path $folder "Worker.ps1") -Raw
+          if($script -notmatch 'claim_print_job' -or $script -notmatch 'complete_print_job' -or
+            $script -notmatch 'fail_print_job' -or $script -notmatch 'Get-ValidAuth' -and $script -notmatch 'ValidAuth'){
+            throw "RPCs e autenticação obrigatórias ausentes"
+          }
+          if($script -match 'service_role' -or $script -match 'qz\.print'){
+            throw "O agente não pode usar segredo administrativo nem depender do QZ"
+          }
+          $cfg=Get-Content (Join-Path $folder "config.public.json") -Raw | ConvertFrom-Json
+          if($cfg.printerName -ne "POS-58(copy of 1)" -or
+            -not $cfg.publishableKey.StartsWith("sb_publishable_")){
+            throw "Configuração pública não confere"
+          }
+      - name: Autoteste de renderização e código nativo, sem imprimir
+        shell: powershell
+        run: |
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File "tools/windows-kitchen-agent/Worker.ps1" selftest
+          if ($LASTEXITCODE -ne 0) { throw "Autoteste Windows falhou" }
+      - name: Gerar ZIP de instalação local
+        shell: powershell
+        run: |
+          $out="Luciane_Agente_Impressao_Windows.zip"
+          $files=@(
+            "Worker.ps1","config.public.json","Install.ps1","Remove.ps1",
+            "Instalar.cmd","Status.cmd","Remover.cmd","LEIA-ME.txt"
+          )
+          $source=Join-Path (Get-Location) "tools/windows-kitchen-agent"
+          foreach($f in $files){if(-not(Test-Path (Join-Path $source $f))){throw "Falta $f"}}
+          Compress-Archive -Path ($files | ForEach-Object {Join-Path $source $_}) -DestinationPath $out -Force
+          $zip=[IO.Compression.ZipFile]::OpenRead((Join-Path (Get-Location) $out))
+          try {
+            $names=@($zip.Entries | ForEach-Object {$_.Name})
+            foreach($required in $files){if($names -notcontains $required){throw "ZIP incompleto: $required"}}
+            if($names.Count -ne $files.Count){throw "Arquivos inesperados no ZIP"}
+          } finally {$zip.Dispose()}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: luciane-windows-agent-installador
+          path: Luciane_Agente_Impressao_Windows.zip
+          retention-days: 14
