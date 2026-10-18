@@ -19,6 +19,7 @@ on:
       - work/cozinha-windows-reconexao-estavel-20261017
       - work/whatsapp-trufadas-sem-pacote-20261018
       - work/trufadas-refinamento-premium-mobile-20261018
+      - work/trufadas-experiencia-premium-viva-20261018
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -156,6 +157,9 @@ jobs:
               assert 'Pote fica ' in js, 'preco final da combinacao ausente'
               assert 'Valor por pacote' in js, 'subtotal contextual trufadas ausente'
               assert 'limited-cup-buy-composition' in css, 'refinamento premium trufadas ausente'
+              assert 'limited-cup-card-check' in css, 'estado premium de selecao trufadas ausente'
+              assert 'limited-cup-more-intro' in js, 'cross-sell de categorias ausente'
+              assert 'trufadas-subtotal-update' in css, 'microinteracao de subtotal ausente'
               assert 'boutique-final-action' in js, 'regiao de CTA contextual ausente'
               assert 'category-option-media' in css, 'cartoes fotograficos ausentes'
               assert 'prefers-reduced-motion' in css, 'acessibilidade de movimento ausente'

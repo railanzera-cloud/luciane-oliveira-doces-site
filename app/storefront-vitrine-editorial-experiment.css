@@ -2405,3 +2405,321 @@
   .storefront #configurador .limited-cup-buy-cta,
   .storefront #configurador .limited-cup-duo-item {transition: none !important; transform: none !important;}
 }
+
+/*
+ * TRUFADAS PREMIUM VIVAS — 18/10/2026
+ * Toques, foco, leitura e compra cruzada com regras originais intactas.
+ * Animação apenas por interação, com reduced-motion e sem loop decorativo.
+ */
+.storefront #configurador .limited-cup-selection-heading {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 8px;
+}
+.storefront #configurador .limited-cup-selection-heading > small {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+.storefront #configurador .limited-cup-choice-confirmed {
+  grid-column: 2;
+  grid-row: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  border: 1px solid rgba(243, 200, 146, .54);
+  border-radius: 100px;
+  background: rgba(94, 57, 34, .73);
+  color: #ffe7c8;
+  font-size: .65rem;
+  font-weight: 725;
+  letter-spacing: 0;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+.storefront #configurador .limited-cup-duo-item {
+  transform: translateZ(0);
+  transition: transform 190ms cubic-bezier(.2,.75,.3,1), border-color 190ms ease, box-shadow 190ms ease;
+}
+.storefront #configurador .limited-cup-card-check {
+  position: absolute;
+  z-index: 4;
+  top: 11px;
+  right: 11px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(255, 229, 186, .88);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #f7cf97, #c98d53);
+  color: #321a0e;
+  box-shadow: 0 5px 17px rgba(27, 13, 7, .37), inset 0 1px rgba(255, 248, 222, .73);
+  opacity: 0;
+  transform: translateY(-5px) scale(.84);
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(.2,.8,.3,1);
+}
+.storefront #configurador .limited-cup-duo-item.is-selected .limited-cup-card-check {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.storefront #configurador .limited-cup-duo-item.is-selected {
+  box-shadow: 0 0 0 2px rgba(243, 189, 122, .76), 0 14px 29px rgba(19, 7, 3, .34), inset 0 1px rgba(255, 241, 214, .36);
+}
+.storefront #configurador .limited-cup-duo-item.is-selected::after {
+  box-shadow: inset 0 0 0 2px rgba(255, 228, 181, .34), inset 0 1px rgba(255, 246, 226, .52);
+}
+.storefront #configurador .limited-cup-duo-item.is-selected .limited-cup-duo-disclosure {
+  background: linear-gradient(145deg, rgba(124, 75, 43, .95), rgba(88, 49, 28, .97));
+  border-color: #f8d2a1;
+  box-shadow: inset 0 1px rgba(255, 228, 192, .18);
+}
+.storefront #configurador .limited-cup-sale-compact {
+  color: #d8b79a;
+  font-size: .76rem;
+  border-bottom-color: rgba(231, 174, 117, .26);
+}
+.storefront #configurador .limited-cup-sale-compact strong {
+  font-size: .82rem;
+  font-weight: 670;
+  color: #ebcba6;
+}
+.storefront #configurador .limited-cup-buy {
+  border-color: rgba(235, 188, 132, .55);
+  background: radial-gradient(ellipse at 100% 0%, rgba(192, 117, 67, .13), transparent 64%), linear-gradient(145deg, rgba(100, 60, 37, .43), rgba(37, 21, 15, .94));
+  box-shadow: inset 0 1px rgba(255, 234, 199, .17), 0 15px 32px rgba(13, 6, 3, .19);
+}
+.storefront #configurador .limited-cup-quantity-label,
+.storefront #configurador .limited-cup-buy-estimate > span {
+  font-weight: 660;
+  color: #e9caaa;
+}
+.storefront #configurador .limited-cup-buy-actions .mini-quantity {
+  overflow: hidden;
+  background: rgba(24, 12, 9, .49);
+  border-color: rgba(240, 192, 141, .57);
+  box-shadow: inset 0 2px 7px rgba(9, 5, 3, .18), inset 0 1px rgba(255, 226, 189, .07);
+}
+.storefront #configurador .limited-cup-buy-actions .mini-quantity strong {
+  color: #ffe7c2;
+  font-size: 1.14rem;
+  font-weight: 740;
+}
+.storefront #configurador .limited-cup-buy-actions .mini-quantity button {
+  border: 0;
+  border-radius: 9px;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+.storefront #configurador .limited-cup-buy-actions .mini-quantity button:not(:disabled) {
+  color: #ffe1b7;
+}
+.storefront #configurador .limited-cup-buy-actions .mini-quantity button:disabled {
+  color: rgba(228, 189, 149, .36);
+  opacity: .46;
+}
+.storefront #configurador .limited-cup-buy-actions .mini-quantity button:focus-visible {
+  outline: 2px solid #ffdda8;
+  outline-offset: -3px;
+}
+.storefront #configurador .limited-cup-buy-estimate > strong {
+  color: #ffe1ae;
+  text-shadow: 0 2px 14px rgba(234, 151, 65, .13);
+}
+.storefront #configurador .limited-cup-buy-cta:not(:disabled) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(118deg, #f5c78e 0%, #f8d6a1 35%, #e7ae70 100%);
+  color: #2c180e;
+  border: 1px solid rgba(255, 228, 185, .90);
+  box-shadow: inset 0 1px rgba(255, 249, 225, .77), inset 0 -2px rgba(126, 69, 34, .13), 0 9px 21px rgba(21, 9, 4, .27);
+  transition: transform 170ms ease, filter 170ms ease, box-shadow 170ms ease;
+}
+.storefront #configurador .limited-cup-buy-cta:not(:disabled)::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: -54%;
+  width: 36%;
+  background: linear-gradient(90deg, transparent, rgba(255, 251, 231, .26), transparent);
+  transform: skewX(-18deg);
+  pointer-events: none;
+}
+.storefront #configurador .limited-cup-buy-cta:not(:disabled):active {
+  transform: translateY(1px) scale(.986);
+  filter: brightness(.98);
+  box-shadow: inset 0 2px 7px rgba(133, 80, 39, .22), 0 3px 10px rgba(16, 7, 4, .20);
+}
+.storefront #configurador .limited-cup-stock-note[role="status"] {
+  display: flex;
+  align-items: center;
+  min-height: 24px;
+  color: #edd0b0;
+}
+.storefront #configurador .limited-cup-stock-note[role="status"]::before {
+  content: "";
+  flex: 0 0 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e6b779;
+  box-shadow: 0 0 0 3px rgba(230, 183, 121, .11);
+}
+.storefront #configurador .limited-cup-to-cart {
+  min-height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 10px 13px;
+  border: 1px solid rgba(232, 182, 122, .54);
+  border-radius: 11px;
+  background: linear-gradient(120deg, rgba(216, 153, 93, .13), rgba(39, 22, 15, .42));
+  color: #ffe0b7;
+  font-size: .79rem;
+  line-height: 1.35;
+  font-weight: 720;
+  text-decoration: none;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+.storefront #configurador .limited-cup-to-cart > span {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+.storefront #configurador .limited-cup-to-cart:active {
+  transform: translateY(1px) scale(.992);
+}
+.storefront #configurador .limited-cup-story-footer {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(227, 173, 116, .22);
+}
+.storefront #configurador .limited-cup-more-intro {
+  display: grid;
+  gap: 3px;
+  padding: 0 2px 4px;
+}
+.storefront #configurador .limited-cup-more-intro > span {
+  color: #e9bb86;
+  font-size: .62rem;
+  font-weight: 770;
+  letter-spacing: .11em;
+}
+.storefront #configurador .limited-cup-more-intro > strong {
+  color: #ffe5c2;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.16rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+.storefront #configurador .limited-cup-more-intro > p {
+  margin: 0;
+  color: #dcbfa4;
+  font-size: .75rem;
+  line-height: 1.44;
+}
+.storefront #configurador .limited-cup-story-footer > button {
+  min-width: 0;
+  min-height: 59px;
+  gap: 10px;
+  text-decoration: none;
+  background: linear-gradient(128deg, rgba(195, 127, 75, .13), rgba(46, 27, 19, .65));
+  transition: transform 165ms ease, border-color 165ms ease, background 165ms ease, box-shadow 165ms ease;
+}
+.storefront #configurador .limited-cup-story-footer > button > span {
+  font-weight: 670;
+}
+.storefront #configurador .limited-cup-story-footer > button strong {
+  font-weight: 760;
+}
+.storefront #configurador .limited-cup-story-footer > button:active {
+  transform: translateY(1px) scale(.992);
+}
+.storefront .mobile-sticky-bar.is-crocantes-step {
+  border-color: rgba(246, 192, 126, .66);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .38), inset 0 1px rgba(255, 238, 202, .14);
+}
+.storefront .mobile-sticky-bar.is-crocantes-step button:not(:disabled):active {
+  transform: translateY(1px) scale(.99);
+}
+.storefront #configurador.is-cup-discovery {
+  padding-bottom: clamp(24px, 4vw, 44px);
+}
+@media (hover: hover) and (pointer: fine) {
+  .storefront #configurador .limited-cup-duo-item:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 31px rgba(19, 8, 3, .31), 0 0 0 1px rgba(252, 211, 155, .43);
+  }
+  .storefront #configurador .limited-cup-duo-item.is-selected:hover:not(:disabled) {
+    box-shadow: 0 16px 32px rgba(19, 8, 3, .34), 0 0 0 2px rgba(246, 193, 126, .76);
+  }
+  .storefront #configurador .limited-cup-buy-actions .mini-quantity button:not(:disabled):hover {
+    background: rgba(217, 156, 91, .20);
+    color: #fff4d9;
+  }
+  .storefront #configurador .limited-cup-buy-cta:not(:disabled):hover {
+    filter: brightness(1.04);
+    transform: translateY(-1px);
+    box-shadow: inset 0 1px rgba(255, 249, 225, .85), 0 11px 25px rgba(21, 9, 4, .30);
+  }
+  .storefront #configurador .limited-cup-buy-cta:not(:disabled):hover::before {
+    left: 115%;
+    transition: left 550ms ease;
+  }
+  .storefront #configurador .limited-cup-to-cart:hover,
+  .storefront #configurador .limited-cup-story-footer > button:hover {
+    border-color: rgba(253, 208, 157, .83);
+    background: rgba(109, 68, 42, .54);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes trufadas-subtotal-update {
+    from {opacity: .65; transform: translateY(4px);}
+    to {opacity: 1; transform: translateY(0);}
+  }
+  .storefront #configurador .limited-cup-buy-estimate > strong {
+    animation: trufadas-subtotal-update 240ms cubic-bezier(.2,.7,.2,1) both;
+  }
+}
+@media (max-width: 699px) {
+  .storefront #configurador .limited-cup-story-footer > button {
+    flex-wrap: wrap;
+    row-gap: 5px;
+  }
+}
+@media (max-width: 359px) {
+  .storefront #configurador .limited-cup-choice-confirmed {
+    font-size: .59rem;
+    padding: 5px 6px;
+  }
+  .storefront #configurador .limited-cup-card-check {
+    width: 25px; height: 25px; top: 8px; right: 8px;
+  }
+  .storefront #configurador .limited-cup-to-cart {
+    padding-inline: 10px;
+    font-size: .73rem;
+  }
+  .storefront #configurador .limited-cup-story-footer > button {
+    padding: 12px 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront #configurador .limited-cup-duo-item,
+  .storefront #configurador .limited-cup-card-check,
+  .storefront #configurador .limited-cup-buy-cta,
+  .storefront #configurador .limited-cup-buy-estimate > strong,
+  .storefront #configurador .limited-cup-to-cart,
+  .storefront #configurador .limited-cup-story-footer > button,
+  .storefront .mobile-sticky-bar.is-crocantes-step button {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}

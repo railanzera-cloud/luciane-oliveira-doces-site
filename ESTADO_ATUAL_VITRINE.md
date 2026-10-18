@@ -324,3 +324,17 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **Limites:** somente `app/page.tsx`, CSS editorial e teste específico; não altera banco, estado operacional, catálogo, IDs, WhatsApp, Meta, estoque, QZ, cozinha, pagamentos, Resultados ou Cloudflare.
 - **Testes:** CI deve executar TypeScript/build/testes e produzir pacote ZIP do mesmo commit. Confirmar status real no GitHub Actions antes de declarar aprovado.
 - **Homologação manual:** Safari no iPhone (320–430px), sabores Ninho e Chocolate, aumento/diminuição de quantidade, giro/rolagem, estados esgotado/loja fechada, rolagem que oculta/mostra a barra, teclado do checkout e adição ao carrinho. Nenhuma publicação automática.
+
+
+## Trufadas Premium Vivas — refinamento da categoria permanente (18/10/2026)
+
+- Base consultada e CI aprovado: `work/trufadas-refinamento-premium-mobile-20261018` / `a736ea75b35045627c63cd392e8cf6f8e718eb04`.
+- Branch desta rodada: `work/trufadas-experiencia-premium-viva-20261018`. Conferir HEAD remoto antes da próxima tarefa.
+- Objetivo: amadurecer Pipocas Trufadas como categoria permanente, com respostas ao toque, destaque inequívoco do sabor, controles +/- mais legíveis, subtotal com microanimação curta, status de estoque discreto e CTAs com acabamento premium.
+- No bloco de escolha, chips e marca superior ficam visíveis apenas para o sabor efetivamente selecionado; `aria-pressed`, clique e avanço automático continuam os mesmos.
+- A ação de adicionar mantém `handleCupPurchaseAction` e checagem de estoque real antes do carrinho; estado ocupado ganha spinner, sem simular confirmação.
+- O link de carrinho permanece contextual e leva a `carrinho`; a área final passa a oferecer exploração voluntária de Pipocas Gourmet e, somente quando `fatiasAvailable`, Fatias Artesanais, mantendo os handlers existentes e a disponibilidade.
+- Ajuste de respiro apenas em `#configurador.is-cup-discovery` para aproximar visualmente o checkout. Não alterar a rolagem automática nem os observers: `threshold: 0.45` e `rootMargin: "0px 0px -68px 0px"`.
+- Fotos AVIF já aprovadas intactas, mesmo preço de R$ 15,90, IDs, quantidade limitada por estoque, Meta, WhatsApp, pagamentos, cozinha, QZ Tray, resultados e Supabase sem mudança.
+- Animar apenas interações breves; respeitar `prefers-reduced-motion`, `:focus-visible`, estados desabilitados e telas de 320–430px.
+- CI do commit gerado deve aprovar build, TypeScript, regressão e ZIP; homologação Safari físico continua indispensável. Sem deploy, sem merge em main.

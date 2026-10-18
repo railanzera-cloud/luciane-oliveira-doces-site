@@ -1929,14 +1929,24 @@ export default function Home() {
                 <h2>Pipocas <em>Trufadas</em></h2>
                 <p>Pipocas caramelizadas e trufadas em pacotes com zíper. Escolha entre Ninho e Chocolate.</p>
               </div>
-              <div className="limited-cup-selection-heading" id="crocantes-sabores"><span>01 · ESCOLHA SEU SABOR</span><small>{cupPhase === "available" ? "Toque em Ninho ou Chocolate para continuar." : "Toque em um sabor para conhecer os detalhes."}</small></div>
+              <div className="limited-cup-selection-heading" id="crocantes-sabores">
+                <span>01 · ESCOLHA SEU SABOR</span>
+                <small>{cupPhase === "available" ? "Toque em Ninho ou Chocolate para continuar." : "Toque em um sabor para conhecer os detalhes."}</small>
+                {cupPhase === "available" && cupFlavorPreview && (
+                  <span className="limited-cup-choice-confirmed" role="status">
+                    <Check size={13} aria-hidden="true" /> {cupFlavorPreview === "ninho" ? "Ninho escolhido" : "Chocolate escolhido"}
+                  </span>
+                )}
+              </div>
               <div className="limited-cup-duo" aria-label="Escolha um sabor de Pipocas Trufadas">
                 <button type="button" disabled={cupAdding} className={cupFlavorPreview === "ninho" ? "limited-cup-duo-item is-ninho is-selected" : "limited-cup-duo-item is-ninho"} aria-pressed={cupFlavorPreview === "ninho"} aria-controls="crocantes-quantidade" onClick={() => selectCupFlavor("ninho")}>
                   <img src="/images/pipocas-trufadas-ninho.avif?v=20261017-zoom2" alt="Pacote com zíper de Pipocas Trufadas de Caramelo e Ninho" width="840" height="1050" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
+                  <span className="limited-cup-card-check" aria-hidden="true"><Check size={16} /></span>
                   <span className="limited-cup-duo-caption"><small>NINHO</small><strong>Caramelo e Ninho</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "ninho" ? "Selecionado" : "Escolher Ninho"} {cupFlavorPreview === "ninho" ? <Check size={13} aria-hidden="true" /> : <ChevronRight size={13} aria-hidden="true" />}</span></span>
                 </button>
                 <button type="button" disabled={cupAdding} className={cupFlavorPreview === "chocolate" ? "limited-cup-duo-item is-chocolate is-selected" : "limited-cup-duo-item is-chocolate"} aria-pressed={cupFlavorPreview === "chocolate"} aria-controls="crocantes-quantidade" onClick={() => selectCupFlavor("chocolate")}>
                   <img src="/images/pipocas-trufadas-chocolate.avif?v=20261017-zoom2" alt="Pacote com zíper de Pipocas Trufadas de Caramelo e Chocolate" width="840" height="1050" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
+                  <span className="limited-cup-card-check" aria-hidden="true"><Check size={16} /></span>
                   <span className="limited-cup-duo-caption"><small>CHOCOLATE</small><strong>Caramelo e Chocolate</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "chocolate" ? "Selecionado" : "Escolher Chocolate"} {cupFlavorPreview === "chocolate" ? <Check size={13} aria-hidden="true" /> : <ChevronRight size={13} aria-hidden="true" />}</span></span>
                 </button>
               </div>
@@ -1986,16 +1996,16 @@ export default function Home() {
                         </div>
                         <div className="limited-cup-buy-estimate" aria-live="polite" aria-atomic="true">
                           <span>{cupFlavorPreview ? "Subtotal" : "Valor por pacote"}</span>
-                          <strong>{currency.format(15.9 * (cupFlavorPreview ? cupQuantity : 1))}</strong>
+                          <strong key={`${cupFlavorPreview ?? "unit"}-${cupQuantity}`}>{currency.format(15.9 * (cupFlavorPreview ? cupQuantity : 1))}</strong>
                         </div>
                       </div>
                       <Button type="button" className="limited-cup-buy-cta" disabled={cupAdding || cupPhase !== "available" || (Boolean(cupFlavorPreview) && !cupCanOrder)} onClick={handleCupPurchaseAction}>
-                        {cupFlavorPreview ? <ShoppingBag size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
+                        {cupAdding ? <LoaderCircle className="admin-spinner" size={16} aria-hidden="true" /> : cupFlavorPreview ? <ShoppingBag size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
                         {cupAdding ? "Conferindo estoque…" : !cupFlavorPreview ? "Escolher meu sabor" : cupCanOrder ? `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "pacote" : "pacotes"} ao pedido` : "Sabor indisponível"}
                       </Button>
                     </div>
                     {cupFlavorPreview && availability.stockChecked && <p className="limited-cup-stock-note" role="status">{cupRemaining > 0 ? `${cupRemaining} ${cupRemaining === 1 ? "pacote disponível" : "pacotes disponíveis"} deste sabor para adicionar ao pedido.` : "Esse sabor está esgotado ou já está totalmente no seu carrinho."}</p>}
-                    {cartContainsCrocantes && <button type="button" className="limited-cup-to-cart" onClick={() => requestScroll("carrinho")}>Ver carrinho e continuar pedido <ChevronRight size={15} aria-hidden="true" /></button>}
+                    {cartContainsCrocantes && <button type="button" className="limited-cup-to-cart" onClick={() => requestScroll("carrinho")}><ShoppingBag size={16} aria-hidden="true" /><span>Ver carrinho e continuar pedido</span><ChevronRight size={16} aria-hidden="true" /></button>}
                   </div>
                 )}
                 {cupAddedNotice && <p className="limited-cup-buy-feedback" role="status">{cupAddedNotice}</p>}
@@ -2010,10 +2020,23 @@ export default function Home() {
                 </div>
                 )}
                 <div className="limited-cup-story-footer">
-                  <button type="button" onClick={() => selectCategory("pipocas")}>
-                    <span>Prefere os potes recheados?</span>
-                    <strong>Escolher tamanho <ChevronRight size={15} aria-hidden="true" /></strong>
-                  </button>
+                  <div className="limited-cup-more-intro">
+                    <span>CONTINUE EXPLORANDO</span>
+                    <strong>Que tal mais uma delícia?</strong>
+                    <p>Conheça outras opções e monte seu pedido no seu ritmo.</p>
+                  </div>
+                  {categoryIsAvailable("pipocas") && (
+                    <button type="button" onClick={() => selectCategory("pipocas")}>
+                      <span>Prefere os potes recheados?</span>
+                      <strong>Escolher tamanho <ChevronRight size={15} aria-hidden="true" /></strong>
+                    </button>
+                  )}
+                  {fatiasAvailable && (
+                    <button type="button" className="limited-cup-more-slices" onClick={() => selectCategory("fatias")}>
+                      <span>Quer conhecer as Fatias Artesanais?</span>
+                      <strong>Escolher minha fatia <ChevronRight size={15} aria-hidden="true" /></strong>
+                    </button>
+                  )}
                 </div>
               </div>
             </section>
