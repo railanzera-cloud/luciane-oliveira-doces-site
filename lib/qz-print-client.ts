@@ -146,22 +146,38 @@ function plain(value: unknown): string {
     .replace(/[^\x20-\x7E]/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function wrap(value: string, width = 32): string[] {
+/** Nao perder palavras compridas em enderecos, complementos ou observacoes. */
+function wrap(value: unknown, width = 32): string[] {
   const words = plain(value).split(" ").filter(Boolean);
   const lines: string[] = [];
   let line = "";
-  for (const word of words) {
-    if (!line) line = word.slice(0, width);
-    else if (`${line} ${word}`.length <= width) line += ` ${word}`;
-    else { lines.push(line); line = word.slice(0, width); }
+  for (const rawWord of words) {
+    let word = rawWord;
+    while (word.length > width) {
+      if (line) { lines.push(line); line = ""; }
+      lines.push(word.slice(0, width));
+      word = word.slice(width);
+    }
+    if (!word) continue;
+    if (!line) line = word;
+    else if (line.length + 1 + word.length <= width) line += " " + word;
+    else { lines.push(line); line = word; }
   }
   if (line) lines.push(line);
   return lines;
 }
 
+function money(value: number | string): string {
+  return Number(value).toFixed(2).replace(".", ",");
+}
+
 function paymentLine(claim: PrintClaim): string {
   const { payment_method: method, payment_status: status, fulfillment_type: fulfillment } = claim.order;
-  if (status === "paid") return method === "mercado_pago_pix" ? "PAGO - PIX" : method === "mercado_pago_card" ? "PAGO - CARTAO ONLINE" : "PAGAMENTO CONFIRMADO";
+  if (status === "paid") {
+    if (method === "mercado_pago_pix" || method === "manual_pix") return "PIX CONFIRMADO";
+    if (method === "mercado_pago_card") return "CARTAO ONLINE CONFIRMADO";
+    return "PAGAMENTO CONFIRMADO";
+  }
   if (method === "manual_pix") return "PIX PENDENTE - CONFERIR";
   if (method === "cash") return `DINHEIRO NA ${fulfillment === "pickup" ? "RETIRADA" : "ENTREGA"} - PENDENTE`;
   if (method === "card_on_delivery") return `CARTAO NA ${fulfillment === "pickup" ? "RETIRADA" : "ENTREGA"} - PENDENTE`;
@@ -169,34 +185,64 @@ function paymentLine(claim: PrintClaim): string {
 }
 
 function receipt(claim: PrintClaim): string {
+  const esc = "\x1B";
+  const normal = esc + "E\x00";
+  const bold = esc + "E\x01";
+  const center = esc + "a\x01";
+  const left = esc + "a\x00";
+  const enlarged = "\x1D\x21\x11"; // 2x altura/largura; usado apenas no numero curto
+  const regular = "\x1D\x21\x00";
+  const divider = "--------------------------------";
+  const createdAt = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Belem", day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+  }).format(new Date(claim.order.created_at)).replace(",", "");
+  const fulfillment = claim.order.fulfillment_type === "pickup" ? "RETIRADA" : "ENTREGA";
   const lines = [
-    "\x1B\x40",
-    "\x1B\x61\x01",
-    "LUCIANE OLIVEIRA DOCES",
-    `PEDIDO #${claim.order.order_number}`,
-    new Date(claim.order.created_at).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
-    paymentLine(claim),
-    "\x1B\x61\x00",
-    "--------------------------------",
+    esc + "@" + center + bold + "LUCIANE OLIVEIRA DOCES" + normal,
+    enlarged + "PEDIDO #" + claim.order.order_number + regular,
+    ...(claim.job.kind === "reprint" ? [bold + "*** REIMPRESSAO ***" + normal] : []),
+    createdAt, left + divider,
+    center + bold + fulfillment + normal,
+    paymentLine(claim), left + divider, "",
   ];
+
   for (const item of claim.items) {
-    lines.push(...wrap(`${item.quantity}x ${item.name}${item.size_label ? ` ${item.size_label}` : ""}`));
-    for (const option of item.option_names ?? []) lines.push(...wrap(`  ${option}`));
+    // Nas fatias, "1 fatia" e a unidade cadastrada, nao mais um produto.
+    // A quantidade ja aparece no prefixo (1x, 2x...): nao repeti-la ao lado do nome.
+    const isSlice = /^1 fatia$/i.test(plain(item.size_label));
+    const title = item.quantity + "x " + (isSlice ? "FATIA - " : "") + item.name
+      + (!isSlice && item.size_label ? " " + item.size_label : "");
+    lines.push(bold + wrap(title).join("\n") + normal);
+    for (const option of item.option_names ?? []) lines.push(...wrap(isSlice ? "> " + option : "+ " + option));
     lines.push("");
   }
-  lines.push("--------------------------------");
-  lines.push(claim.order.fulfillment_type === "pickup" ? "RETIRADA" : "ENTREGA");
-  lines.push(...wrap(`Nome: ${claim.order.customer_name}`));
-  lines.push(...wrap(`Telefone: ${claim.order.customer_phone}`));
+
+  lines.push(divider, bold + "CLIENTE" + normal);
+  // Papel 58 mm: em largura dupla cabem 16 colunas. Nome grande e
+  // quebrado sem cortar, facilitando a separacao das entregas.
+  lines.push(bold + enlarged + wrap(claim.order.customer_name || "Nao informado", 16).join("\n") + regular + normal);
+  const phone = plain(claim.order.customer_phone);
+  lines.push(...wrap(phone ? "Telefone: " + phone : "Telefone: nao informado"));
+
   if (claim.order.fulfillment_type === "delivery") {
-    lines.push(...wrap(`${claim.order.street}, ${claim.order.street_number}`));
-    if (claim.order.complement) lines.push(...wrap(claim.order.complement));
-    if (claim.order.neighborhood) lines.push(...wrap(claim.order.neighborhood));
-    if (claim.order.reference) lines.push(...wrap(`Ref: ${claim.order.reference}`));
+    lines.push(bold + "ENDERECO DE ENTREGA" + normal);
+    const street = plain(claim.order.street);
+    const number = plain(claim.order.street_number);
+    lines.push(...wrap(street ? street + (number ? ", " + number : ", S/N") : "Endereco nao informado"));
+    if (claim.order.neighborhood) lines.push(...wrap("Bairro: " + claim.order.neighborhood));
+    if (claim.order.complement) lines.push(...wrap("Complemento: " + claim.order.complement));
+    if (claim.order.reference) lines.push(...wrap("Referencia: " + claim.order.reference));
   }
-  lines.push("--------------------------------");
-  lines.push(`TOTAL: R$ ${Number(claim.order.total).toFixed(2).replace(".", ",")}`);
-  lines.push("", "", "\x1B\x64\x04");
+  if (claim.order.notes) {
+    lines.push(bold + "OBSERVACOES" + normal, ...wrap(claim.order.notes));
+  }
+
+  lines.push(divider, bold + "TOTAL: R$ " + money(claim.order.total) + normal);
+  if (claim.order.payment_method === "cash" && claim.order.cash_change_for) {
+    lines.push(...wrap("TROCO PARA: R$ " + money(claim.order.cash_change_for)));
+  }
+  lines.push("", "", esc + "d\x04");
   return lines.join("\n");
 }
 
@@ -204,7 +250,8 @@ async function printClaim(claim: PrintClaim): Promise<void> {
   const qz = await qzModule();
   if (!selectedPrinter) throw new Error("Impressora QZ não selecionada.");
   const config = qz.configs.create(selectedPrinter, {
-    encoding: "UTF-8",
+    // O modelo premium original foi homologado com ESC/POS e ISO-8859-1 na POS-58.
+    encoding: "ISO-8859-1",
     copies: 1,
     jobName: `Luciane Pedido ${claim.order.order_number}`,
   });

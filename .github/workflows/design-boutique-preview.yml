@@ -13,6 +13,7 @@ on:
       - work/cozinha-alerta-modo-automatico-20261017
       - work/qz-tray-conexao-diagnostico-20261017
       - work/cozinha-completa-qz-assinado-20261017
+      - work/etiqueta-premium-restaurada-cozinha-20261017
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -29,6 +30,7 @@ on:
       - lib/qz-print-client.ts
       - lib/qz-security.ts
       - docs/COZINHA-ASSINATURA-QZ-RETOMADA-20261017.md
+      - docs/ETIQUETA-PREMIUM-RESTAURADA-20261017.md
       - supabase/migrations/20261017233000_kitchen_auto_mode_optin.sql
       - docs/COZINHA-AUTOMATICA-CONTINUIDADE-20261017.md
       - lib/admin-results-client.ts
@@ -113,6 +115,9 @@ jobs:
               assert 'QZ Tray não respondeu em 20 segundos' in js, 'timeout de QZ ausente'
               assert 'Certificado de impressão QZ ausente ou inválido' in js, 'certificado assinado QZ ausente'
               assert 'O Supabase retornou uma assinatura QZ inválida' in js, 'checagem de assinatura QZ ausente'
+              assert 'ENDERECO DE ENTREGA' in js, 'endereco estruturado da comanda original ausente'
+              assert 'REIMPRESSAO' in js and 'OBSERVACOES' in js, 'layout original ESC/POS ausente'
+              assert 'PIX CONFIRMADO' in js and 'PIX PENDENTE - CONFERIR' in js, 'rotulos de pagamento das comandas ausentes'
               assert 'Modo Cozinha' in js and 'Ligar automático' in js, 'modo cozinha perdido na integração'
               assert 'Marcados como pagos no painel' in js, 'rotulo correto de pagamentos ausente'
               assert 'Campanhas registradas no Tintim' in js, 'visao de campanhas ausente'
