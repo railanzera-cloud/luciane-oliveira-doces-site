@@ -11,8 +11,8 @@ test("hotfix altera somente elegibilidade de reserva, sem mutações em pedidos 
   assert.match(migration,/CREATE OR REPLACE FUNCTION public\.lod_crocante_print_allocation_ready\(p_order_uuid uuid\)/);
   assert.match(migration,/RETURNS boolean[\s\S]*LANGUAGE sql STABLE SECURITY DEFINER/);
   assert.doesNotMatch(migration,/\b(INSERT|UPDATE|DELETE|TRUNCATE|DROP|ALTER)\b\s+(FROM\s+|INTO\s+)?public\./i);
-  assert.doesNotMatch(migration,/^\\s*(?:REVOKE|GRANT)\\b/im);
-  assert.doesNotMatch(migration,/payment_status\s*=/i);
+  assert.doesNotMatch(migration,/^\s*(?:REVOKE|GRANT)\b/im);
+  assert.doesNotMatch(migration,/\bSET\s+(?:payment_status|paid_at)\s*=/i);
 });
 test("impede estoque inexistente, reserva insuficiente, cancelada ou expirada",()=>{
   assert.match(migration,/JOIN public\.crocante_inventory inv ON inv\.item_key = i\.item_key/);
