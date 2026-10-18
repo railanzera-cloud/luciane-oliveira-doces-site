@@ -349,7 +349,7 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - CI deve validar build, TypeScript, testes, ZIP e preservação de rotas/ativos; não publicar no Cloudflare, não fazer merge na main.
 - Homologação Safari iPhone: quantidade e remover, adição de itens por atalhos, botão flutuante contextual, recebimento, campos de cliente, endereços, pagamentos e validação de resumo; conferir zoom, teclado e telas 320–430px. Sem presumir homologação física concluída.
 
-## Investigação de estoque Trufadas — 18/10/2026 (preparação; NÃO APLICADO)
+## Investigação de estoque Trufadas — 18/10/2026 (registro histórico anterior à aplicação)
 
 - Branch técnica isolada `fix/trufadas-recontagem-sem-dupla-baixa-20261018`, baseada na versão comercial unificada `work/checkout-premium-unificado-20261018` (`f64443a76c93d15cc5b63e0c107e795e15f6c0c4`). Não mesclar com main sem aprovação.
 - Migração da cozinha ainda divergente incorporada como arquivo e teste da branch `fix/cozinha-trufadas-impressao-reserva-pendente-20261018`, já presente no runtime do Supabase; preservar no próximo merge.
@@ -360,3 +360,15 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - Migração NÃO repõe estoque automaticamente, NÃO altera pagamentos, NÃO atualiza pedidos históricos e NÃO retrocede histórico. O usuário ainda NÃO autorizou DDL nem reposição em produção.
 - Antes de autorização: confirmar se os 6/5 são pacotes livres e descompromissados fisicamente; reavaliar novos pedidos e versões; preservar snapshot das funções para rollback. Depois de autorização: migração, restauração por RPC administrativa sob verificação, testes de consultas e reconciliação sem vendas artificiais.
 - Diferenciar pacotes que saíram fisicamente de pagamentos pendentes no banco. Sem deploy ou merge de main.
+
+## Estoque Trufadas — Produção corrigida e reconciliada (18/10/2026)
+
+- **Supabase comercial `edqiwvccmboyayojvuea`:** migrado em produção; sem alterações financeiras, de pedidos históricos ou de QZ/Meta/Tintim; nenhum deploy Cloudflare.
+- Duas migrações registradas no banco: `20261018214151` (reconciliação e reserva) e `20261018214755` (preservação do marco e proteção contra reserva reativada sem estoque).
+- **Marco físico registrado:** 18/10/2026 18:43:08 (America/Belem). Último pedido de Trufadas #1374 contém 1 Ninho, já pago/contabilizado, e não foi deduzido novamente.
+- **Saldos após a intervenção:** Ninho = total 5, reservados 0, disponíveis 5, versão 12; Chocolate = total 5, reservados 0, disponíveis 5, versão 13. A função pública foi testada sob o papel anon e devolveu 5/5.
+- Históricos `held` anteriores ao marco continuam preservados (20 reservas / 22 unidades) mas deixam de consumir as quantidades recontadas. Se um desses pedidos for confirmado posteriormente, o estoque NÃO deve sofrer nova baixa física.
+- Os próximos pedidos com reservas novas passam a ser descontados durante a preparação/aceitação até pagamento confirmado ou conclusão operacional. Controle de versão continua válido.
+- A partir dessa migração, atualizações comuns em `Pacotes em estoque` mantêm o marco congelado e devem considerar as reservas novas no **total** cadastrado; o painel calcula `Disponíveis = total - reservado`. Se necessário, melhorar o texto do painel em uma intervenção UI posterior, sem alteração financeira.
+- CI da branch `fix/trufadas-recontagem-sem-dupla-baixa-20261018` no commit `f4ff201753f19a342bbd9eff01c61436d2156dcc`: 512/512 testes, build/TypeScript, ZIP de build, aprovado. Não publicar ZIP sem necessidade; revisão foi somente de backend.
+- Nota: a homologação real de uma próxima venda e confirmação antiga ainda depende da operação (não foram criados pedidos de teste em produção). Consultar `docs/TRUFADAS-ESTOQUE-RECONCILIACAO-20261018.md` para detalhes.

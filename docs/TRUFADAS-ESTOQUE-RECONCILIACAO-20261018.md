@@ -1,5 +1,21 @@
 # Reconciliação de Pipocas Trufadas — Plano controlado
 
+## STATUS FINAL — APLICADO EM PRODUÇÃO EM 18/10/2026
+
+- **Autorização:** usuário autorizou correção da base comercial e reconciliação, confirmando 5 Ninho e 5 Chocolate livres para novas vendas após #1374.
+- **Projeto exclusivo:** Supabase `edqiwvccmboyayojvuea`; sem publicação de frontend Cloudflare.
+- **Primeira migração aplicada:** `trufadas_stocktake_reservation_reconcile_20261018` versão `20261018214151`. Corrige reserva de pedidos confirmados e impede dupla baixa dos pedidos históricos anteriores à contagem física. Função auxiliar protegida de acesso anon/authenticated direto.
+- **Reconciliação transacional concluída:** travas por sabor, verificação de versões e de novas movimentações. Última contagem física reconciliada em `2026-10-18 18:43:08 America/Belem`. Ninho de total_stock 1→5 (versão 11→12); Chocolate de 3→5 (versão 12→13).
+- **Segunda migração aplicada:** `trufadas_stocktake_cutoff_stability_20261018` versão `20261018214755`. Congela a referência histórica para que novas edições de estoque não libertem reservas pós-contagem e impede reativação de reservas vencidas sem estoque livre.
+- **Validação real, somente leitura:** `public_crocante_inventory()` chamada com role `anon` retornou **5 Ninho / 5 Chocolate**. `lod_crocante_active_reserved` retornou 0 de reserva pós-contagem. A função admin_set preserva `last_physical_recount_at` e o trigger de ordem exige saldo para renovar reserva vencida.
+- **Histórico preservado:** 20 holds antigos em estado `held` (22 unidades), vinculados a pagamentos ainda pendentes no banco. Eles permanecem auditáveis e não são subtraídos novamente da contagem física. Nenhum pagamento foi alterado.
+- **CI completo:** execução `39169350254`, commit `f4ff201753f19a342bbd9eff01c61436d2156dcc`, **512 testes aprovados / 0 falhas**, build/TS/ZIP válidos. A migração foi aplicada no Supabase e verificada; o ZIP NÃO precisa ser publicado, pois não houve alteração do frontend para esta correção.
+- **Limites de evidência:** não geramos pedido real para teste; confirmação financeira de pedido histórico após a correção precisa de monitoramento operacional por amostra. Não declarar homologação da impressora ou fluxo financeiro nesta intervenção.
+- **Próxima operação da Luciane:** atualizar a aba Disponibilidade para carregar os novos números. Futuras edições de `Pacotes em estoque` representam o total físico cadastrado **incluindo reservas novas ativas**, pois `Disponíveis` é calculado descontando essas reservas. Contagem anterior à reconciliação ficou isolada pelo marco histórico.
+
+---
+
+
 Data: 18/10/2026; fuso America/Belem. Supabase: edqiwvccmboyayojvuea.
 
 ## Evidências
@@ -8,8 +24,8 @@ Luciane contou fisicamente 6 Ninho e 5 Chocolate, sem saída posterior segundo o
 ## Estratégia
 As contagens administrativas são **absolutas** (não acréscimos). O campo last_physical_recount_at cria marco para evitar nova baixa de pedidos criados antes da contagem. Helper único para estoque disponível calcula reservas confirmadas sem permitir expiração silenciosa enquanto pedido estiver ativo. O estado operacional completed ou pagamento realmente paid aciona consumo, sem fabricar payment_status/paid_at. Cancelamento libera a reserva, sem restauração fictícia de pacote já consumido.
 
-## Não aplicado
-A migration no GitHub é candidata, não existe execução em produção autorizada. Não ajustar estoque nem marcar pagamentos. Desenhar teste de integração em banco isolado antes de executar em produção.
+## Registro histórico — antes da aplicação
+Antes da autorização, a migration no GitHub era candidata. Esse estado foi superado pela aplicação documentada no STATUS FINAL acima. Não ajustar estoque nem marcar pagamentos. Desenhar teste de integração em banco isolado antes de executar em produção.
 
 ## Pré-condições para aplicação
 1. Confirmar se os 6/5 são unidades **livres para novas vendas**, já excluindo pacotes separados para encomendas ainda não entregues.
