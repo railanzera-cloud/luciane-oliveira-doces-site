@@ -13,7 +13,8 @@ test("Recontagem é marca temporal segura, não altera estoque/pedidos históric
   assert.match(migration,/v_rec.last_physical_recount_at/);
   assert.doesNotMatch(migration,/UPDATE public\.orders\s+SET/);
   assert.doesNotMatch(migration,/UPDATE public\.crocante_inventory_holds\s+SET state='committed'[\s\S]*WHERE state='held';/);
-  assert.doesNotMatch(migration,/\bGRANT\b|\bREVOKE\b/);
+  assert.match(migration,/REVOKE ALL ON FUNCTION public\.lod_crocante_active_reserved\(text,uuid\) FROM PUBLIC/);
+  assert.match(migration,/REVOKE ALL ON FUNCTION public\.lod_crocante_active_reserved\(text,uuid\) FROM anon, authenticated/);
   assert.match(admin,/client\.rpc\("admin_set_crocante_inventory"/);
 });
 
