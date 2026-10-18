@@ -16,6 +16,7 @@ on:
       - work/etiqueta-premium-restaurada-cozinha-20261017
       - work/etiqueta-premium-confirmacao-pedido-20261017
       - work/cozinha-alertas-inteligentes-20261017
+      - work/cozinha-windows-reconexao-estavel-20261017
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -30,6 +31,7 @@ on:
       - lib/kitchen-alert.ts
       - lib/kitchen-print-health.ts
       - docs/COZINHA-ALERTAS-INTELIGENTES-20261017.md
+      - docs/COZINHA-RECONEXAO-WINDOWS-20261017.md
       - lib/kitchen-auto-client.ts
       - lib/qz-print-client.ts
       - lib/qz-security.ts
@@ -116,6 +118,9 @@ jobs:
               assert 'Este aviso desaparece sozinho' in js, 'aviso normal efemero ausente'
               assert 'Silenciar alerta por 5 minutos' in js, 'alerta de falha independente ausente'
               assert 'Atenção à impressão' in js, 'diagnóstico de falha na impressão ausente'
+              assert 'Manter tela ativa durante a cozinha' in js, 'controle de Wake Lock ausente'
+              assert 'Reconectando QZ Tray em segundo plano' in js, 'recuperação automática QZ ausente'
+              assert 'Confira se o papel saiu antes de pedir reimpressão' in js, 'timeout seguro da impressão ausente'
               assert 'Reconhecer aviso e parar som' not in js, 'versao com reconhecimento manual retornou'
               assert 'PEDIDO CONFIRMADO' in js, 'comanda deve confirmar pedido sem exigir Pix'
               assert 'Conectando ao QZ Tray no notebook' in js, 'etapa local QZ ausente'

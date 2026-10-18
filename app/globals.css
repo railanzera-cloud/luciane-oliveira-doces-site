@@ -4319,3 +4319,26 @@ footer {
 .admin-kitchen-print-issue small { color: #f2c1ae; font-size: .77rem; }
 .admin-kitchen-print-issue button { justify-self: start; min-height: 44px; }
 .admin-kitchen-health-note { color: #e5ca9e; font-size: .79rem; margin: 0; }
+
+/* Operação contínua: reconexão QZ sem spinner de processamento da fila. */
+.admin-kitchen-awake-controls {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px; padding: 13px 14px;
+  border: 1px solid #735439; border-radius: 12px;
+  background: #32241a;
+}
+.admin-kitchen-awake-controls > div { display: grid; gap: 4px; min-width: 0; flex: 1; }
+.admin-kitchen-awake-controls strong { font-size: .87rem; color: #ffdcaf; }
+.admin-kitchen-awake-controls small {
+  font-size: .78rem; color: #e0c7b0; line-height: 1.5;
+}
+.admin-kitchen-awake-controls button { min-height: 44px; }
+.admin-kitchen-reconnect-note {
+  margin: 0; padding: 10px 13px; border: 1px solid #977247;
+  border-radius: 10px; background: #453221; color: #f7dfbf;
+  font-size: .82rem; line-height: 1.5;
+}
+@media (max-width: 560px) {
+ .admin-kitchen-awake-controls { display: grid; }
+ .admin-kitchen-awake-controls button { width: 100%; }
+}

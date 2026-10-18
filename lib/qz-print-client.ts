@@ -11,6 +11,7 @@ import { installKitchenQzSecurity } from "@/lib/qz-security";
 
 let selectedPrinter = "";
 let currentAccessToken = "";
+let connectionInProgress: Promise<string> | null = null;
 const workerId = `lod-kitchen-${crypto.randomUUID()}`;
 
 export type KitchenPrinterConnectionStage = "loading" | "websocket" | "printers";
@@ -85,6 +86,20 @@ export async function connectKitchenPrinter(
   onProgress?: KitchenPrinterProgress,
 ): Promise<string> {
   currentAccessToken = accessToken;
+  // QZ suporta apenas uma sessão WebSocket. Evita tentativas concorrentes entre
+  // clique manual, retorno de suspensão e consultas periódicas.
+  if (connectionInProgress) return connectionInProgress;
+  const attempt = connectKitchenPrinterOnce(accessToken, onProgress);
+  connectionInProgress = attempt;
+  try { return await attempt; }
+  finally { if (connectionInProgress === attempt) connectionInProgress = null; }
+}
+
+async function connectKitchenPrinterOnce(
+  accessToken: string,
+  onProgress?: KitchenPrinterProgress,
+): Promise<string> {
+  currentAccessToken = accessToken;
   onProgress?.("loading");
   const qz = await kitchenConnectionDeadline(
     qzModule(), 12000, "O módulo da impressora não carregou. Atualize o painel e tente novamente.",
@@ -133,9 +148,18 @@ export async function connectKitchenPrinter(
   return printer;
 }
 
+// Read-only: detectar queda sem criar impressão, cobrar token ou assinar pedidos.
+export async function isKitchenPrinterOnline(): Promise<boolean> {
+  if (!selectedPrinter) return false;
+  try {
+    const qz = await kitchenConnectionDeadline(qzModule(), 12000, "QZ indisponível.");
+    return qz.websocket.isActive();
+  } catch { return false; }
+}
+
 // Antes de tomar um trabalho da fila, restabelece a conexão QZ quando necessário.
 export async function ensureKitchenPrinterConnected(accessToken: string): Promise<void> {
-  const qz = await qzModule();
+  const qz = await kitchenConnectionDeadline(qzModule(), 12000, "O QZ Tray não carregou.");
   if (!selectedPrinter) throw new Error("Conecte a impressora pelo botão da cozinha.");
   currentAccessToken = accessToken;
   if (!qz.websocket.isActive()) await connectKitchenPrinter(accessToken);
@@ -254,7 +278,14 @@ async function printClaim(claim: PrintClaim): Promise<void> {
     copies: 1,
     jobName: `Luciane Pedido ${claim.order.order_number}`,
   });
-  await qz.print(config, [{ type: "raw", format: "plain", data: receipt(claim) }]);
+  // O aplicativo local pode parar de responder após suspensão. Não manter
+  // processamento bloqueado indefinidamente; não reimprimir automaticamente
+  // em caso de timeout, pois a saída física do papel pode ser incerta.
+  await kitchenConnectionDeadline(
+    qz.print(config, [{ type: "raw", format: "plain", data: receipt(claim) }]),
+    45000,
+    "A impressão não respondeu em 45 segundos. Confira se o papel saiu antes de pedir reimpressão.",
+  );
 }
 
 export async function drainPrintQueue(client: SupabaseClient, maxJobs = 10): Promise<number> {

@@ -50,6 +50,9 @@ const ALERT_PREFERENCE_KEY = "lod-kitchen-alerts-enabled";
 const ALERT_STARTED_KEY = "lod-kitchen-alerts-start-v2";
 const ALERT_ACK_KEY = "lod-kitchen-alerts-acknowledged-v2";
 const ALERT_VOLUME_KEY = "lod-kitchen-alerts-volume-v2";
+const PRINTER_RECONNECT_KEY = "lod-qz-auto-reconnect-v1";
+const KEEP_SCREEN_AWAKE_KEY = "lod-kitchen-keep-screen-awake-v1";
+const PRINTER_RETRY_INTERVAL_MS = 60 * 1000;
 
 function createAudioContext(): AudioContext {
   const Constructor = window.AudioContext
@@ -179,6 +182,11 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const [printerConnectStage, setPrinterConnectStage] = useState("");
   const [printerConnectError, setPrinterConnectError] = useState("");
   const [printing, setPrinting] = useState(false);
+  const [connectingPrinter, setConnectingPrinter] = useState(false);
+  const [printerOnline, setPrinterOnline] = useState(false);
+  const [printerReconnectInfo, setPrinterReconnectInfo] = useState("");
+  const [keepScreenAwake, setKeepScreenAwake] = useState(true);
+  const [screenAwakeStatus, setScreenAwakeStatus] = useState<"on" | "off" | "blocked">("off");
   const acknowledgedAlertsRef = useRef(new Set<string>());
   const initialOrdersLoadedRef = useRef(false);
   const lastNormalBurstRef = useRef(0);
@@ -187,6 +195,8 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const alertStartedAtRef = useRef(0);
   const audioRef = useRef<AudioContext | null>(null);
   const printingRef = useRef(false);
+  const connectingRef = useRef(false);
+  const lastReconnectAttemptRef = useRef(0);
   const effectsRunningRef = useRef(false);
   const loadSequenceRef = useRef(0);
   const manualRefreshRef = useRef(false);
@@ -268,13 +278,19 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     try {
       const { ensureKitchenPrinterConnected, drainPrintQueue } = await import("@/lib/qz-print-client");
       await ensureKitchenPrinterConnected(session.access_token);
+      setPrinterOnline(true);
       const count = await drainPrintQueue(client);
       if (count > 0) {
         setNotice(`${count} ${count === 1 ? "comanda enviada ao QZ Tray" : "comandas enviadas ao QZ Tray"}.`);
         setLastPrintInfo(`${count} ${count === 1 ? "comanda enviada" : "comandas enviadas"} nesta sessão`);
       }
     } catch (printError) {
-      setError(printError instanceof Error ? printError.message : "A impressão falhou. O pedido continua salvo.");
+      const message = printError instanceof Error ? printError.message : "A impressão falhou. O pedido continua salvo.";
+      setError(message);
+      // Falha de impressão não prova desconexão, mas a saúde do QZ é conferida.
+      void import("@/lib/qz-print-client").then(async m => {
+        if (!(await m.isKitchenPrinterOnline())) setPrinterOnline(false);
+      }).catch(() => setPrinterOnline(false));
     } finally {
       printingRef.current = false;
       setPrinting(false);
@@ -342,6 +358,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       catch { /* Browser preferences are optional. */ }
       setAlertsPreferred(preferred);
       try {
+        setKeepScreenAwake(window.localStorage.getItem(KEEP_SCREEN_AWAKE_KEY) !== "false");
         const started = Date.parse(window.localStorage.getItem(ALERT_STARTED_KEY) || "");
         if (Number.isFinite(started)) alertStartedAtRef.current = started;
         else if (preferred) {
@@ -452,7 +469,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   }
 
   async function toggleAutoMode(enabled: boolean) {
-    if (enabled && !printerReady) {
+    if (enabled && (!printerReady || !printerOnline)) {
       setKitchenModeError("Conecte a impressora 58 mm neste notebook antes de ativar o automático.");
       return;
     }
@@ -516,36 +533,132 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     return () => window.clearInterval(interval);
   }, [refreshPrintHealth]);
 
-  async function enablePrinter() {
-    if (printingRef.current) return;
-    printingRef.current = true;
-    setPrinting(true);
-    setPrinterReady(false);
-    setPrinterName("");
-    setPrinterConnectError("");
-    setPrinterConnectStage("Carregando módulo da impressora…");
-    setError("");
+  async function enablePrinter(background = false) {
+    if (connectingRef.current) return;
+    // A fila e a sessão QZ são processos independentes: a conexão não fica
+    // visualmente "girando" enquanto consulta ou imprime outros trabalhos.
+    connectingRef.current = true;
+    setConnectingPrinter(true);
+    if (!background) {
+      setPrinterConnectError("");
+      setPrinterConnectStage("Carregando módulo da impressora…");
+      setError("");
+    } else {
+      setPrinterReconnectInfo("Reconectando QZ Tray em segundo plano…");
+    }
     try {
       const { connectKitchenPrinter } = await import("@/lib/qz-print-client");
-      const printer = await connectKitchenPrinter(session.access_token, (stage) => {
+      const printer = await connectKitchenPrinter(session.access_token, background ? undefined : (stage) => {
         setPrinterConnectStage(stage === "loading" ? "Carregando módulo da impressora…"
           : stage === "websocket" ? "Conectando ao QZ Tray no notebook (até 20 segundos)…"
           : "Consultando a impressora do Windows (até 15 segundos)…");
       });
       setPrinterName(printer);
       setPrinterReady(true);
-      setNotice(`Impressora identificada: ${printer}. A fila será conferida automaticamente.`);
+      setPrinterOnline(true);
+      setPrinterReconnectInfo("");
+      setPrinterConnectError("");
+      lastReconnectAttemptRef.current = 0;
+      try { window.localStorage.setItem(PRINTER_RECONNECT_KEY, "true"); } catch { /* opcional */ }
+      if (!background) setNotice(`Impressora identificada: ${printer}. A fila será conferida automaticamente.`);
     } catch (cause) {
       const explanation = cause instanceof Error ? cause.message : "Não foi possível conectar ao QZ Tray.";
-      setPrinterConnectError(explanation);
-      setError(explanation);
-      setPrinterReady(false);
+      setPrinterOnline(false);
+      if (background) {
+        setPrinterReconnectInfo("Impressora desconectada; o painel tentará novamente em até 1 minuto.");
+      } else {
+        setPrinterConnectError(explanation);
+        setError(explanation);
+      }
     } finally {
       setPrinterConnectStage("");
-      printingRef.current = false;
-      setPrinting(false);
+      connectingRef.current = false;
+      setConnectingPrinter(false);
     }
   }
+
+  // Detecta o retorno da suspensão e restaura a sessão QZ sem pedir
+  // que a Luciane pressione novamente o botão. Nunca reimprime jobs concluídos.
+  useEffect(() => {
+    if (!kitchenMode?.enabled) return;
+    let active = true;
+    const check = async () => {
+      if (!active || document.visibilityState !== "visible" || connectingRef.current) return;
+      let remembered = false;
+      try {
+        remembered = window.localStorage.getItem(PRINTER_RECONNECT_KEY) === "true"
+          || Boolean(window.localStorage.getItem("lod-qz-printer"));
+      } catch { /* Sem armazenamento, reconectar manualmente. */ }
+      if (!remembered && !printerReady) return;
+      try {
+        const { isKitchenPrinterOnline } = await import("@/lib/qz-print-client");
+        if (!active) return;
+        if (await isKitchenPrinterOnline()) {
+          if (!active) return;
+          setPrinterOnline(true);
+          setPrinterReconnectInfo("");
+          return;
+        }
+        if (!active) return;
+        setPrinterOnline(false);
+        const now = Date.now();
+        if (now - lastReconnectAttemptRef.current < PRINTER_RETRY_INTERVAL_MS) return;
+        lastReconnectAttemptRef.current = now;
+        await enablePrinter(true);
+      } catch {
+        if (active) setPrinterOnline(false);
+      }
+    };
+    const interval = window.setInterval(() => void check(), 30000);
+    const onResume = () => void check();
+    document.addEventListener("visibilitychange", onResume);
+    window.addEventListener("focus", onResume);
+    void check();
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onResume);
+      window.removeEventListener("focus", onResume);
+    };
+  }, [kitchenMode?.enabled, printerReady, session.access_token]);
+
+  // Complemento opcional ao Windows, nunca substitui a configuração de
+  // suspensão no sistema. Wake Lock só opera com aba visível e HTTPS.
+  useEffect(() => {
+    if (!keepScreenAwake || !kitchenMode?.enabled || !printerReady) {
+      setScreenAwakeStatus("off");
+      return;
+    }
+    let disposed = false;
+    let lock: WakeLockSentinel | null = null;
+    const acquire = async () => {
+      if (disposed || document.visibilityState !== "visible" || lock) return;
+      if (!navigator.wakeLock) {
+        setScreenAwakeStatus("blocked");
+        return;
+      }
+      try {
+        const next = await navigator.wakeLock.request("screen");
+        if (disposed) { await next.release(); return; }
+        lock = next;
+        setScreenAwakeStatus("on");
+        next.addEventListener("release", () => {
+          if (lock === next) lock = null;
+          if (!disposed) setScreenAwakeStatus("blocked");
+        });
+      } catch {
+        if (!disposed) setScreenAwakeStatus("blocked");
+      }
+    };
+    const visible = () => { if (document.visibilityState === "visible") void acquire(); };
+    document.addEventListener("visibilitychange", visible);
+    void acquire();
+    return () => {
+      disposed = true;
+      document.removeEventListener("visibilitychange", visible);
+      if (lock) void lock.release();
+    };
+  }, [keepScreenAwake, kitchenMode?.enabled, printerReady]);
 
   async function runOrderAction(order: AdminOrder, status: AdminOrder["order_status"], label: string) {
     if (status === "cancelled" && !window.confirm(`Cancelar o pedido #${order.order_number}? Essa ação não estorna pagamentos automaticamente.`)) return;
@@ -600,7 +713,11 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       <div className="admin-kitchen-tools">
         <Button type="button" variant={alertsEnabled ? "default" : "outline"} onClick={() => void enableAlerts()}><BellRing size={17} /> {alertsEnabled ? "Testar som da cozinha" : alertsPreferred ? "Reativar alertas" : "Ativar alertas da cozinha"}</Button>
         {alertsPreferred && <Button type="button" variant="outline" onClick={() => void pauseAlerts()}>Pausar som</Button>}
-        <Button type="button" variant={printerReady ? "default" : "outline"} onClick={() => printerReady ? void processPrints() : void enablePrinter()} disabled={printing}>{printing ? <LoaderCircle className="admin-spinner" size={17} /> : <Printer size={17} />} {printerReady ? printerName || "Processar impressão" : "Conectar impressão 58 mm"}</Button>
+        <Button type="button" variant={printerOnline ? "default" : "outline"}
+          onClick={() => printerOnline ? void processPrints() : void enablePrinter()}
+          disabled={connectingPrinter}>
+          <Printer size={17} /> {connectingPrinter ? "Conectando impressora…" : printerOnline ? printerName || "Processar impressão" : "Conectar impressão 58 mm"}
+        </Button>
       </div>
       {(printerConnectStage || printerConnectError) && (
         <div className="admin-kitchen-connection-state" role="status" aria-live="polite">
@@ -629,7 +746,8 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
         <div className="admin-kitchen-operation-status">
           <span><span className={kitchenMode?.enabled ? "admin-status-dot is-online" : "admin-status-dot"} />
             Automático: <strong>{kitchenMode?.enabled ? "Ligado" : "Desligado"}</strong></span>
-          <span><Printer size={15} /> Impressora: <strong>{printerReady ? printerName : "Não conectada neste navegador"}</strong></span>
+          <span><Printer size={15} /> Impressora: <strong>{printerOnline ? printerName : printerReady ? "Desconectada — tentando recuperar" : "Não conectada"}</strong></span>
+          <span><Check size={15} /> Fila: <strong>{printing ? "Processando em segundo plano" : "Aguardando novos pedidos"}</strong></span>
           <span><BellRing size={15} /> Aviso normal: <strong>2 toques e silêncio</strong></span>
           {lastPrintInfo && <span><Check size={15} /> {lastPrintInfo}</span>}
         </div>
@@ -640,6 +758,21 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
             <small>A comanda segue automaticamente para a fila. Este aviso desaparece sozinho.</small>
           </div>
         )}
+        <div className="admin-kitchen-awake-controls">
+          <div><strong>Manter tela ativa durante a cozinha</strong>
+            <small>{keepScreenAwake
+              ? screenAwakeStatus === "on" ? "Proteção de tela ativa nesta aba."
+                : screenAwakeStatus === "blocked" ? "Navegador não conseguiu impedir a tela de apagar; configure a suspensão do Windows."
+                  : "A proteção será solicitada quando a impressora e o automático estiverem ativos."
+              : "Proteção de tela desligada."}</small>
+          </div>
+          <Button type="button" variant="outline" onClick={() => {
+            const next = !keepScreenAwake;
+            setKeepScreenAwake(next);
+            try { window.localStorage.setItem(KEEP_SCREEN_AWAKE_KEY, String(next)); } catch { /* opcional */ }
+          }}>{keepScreenAwake ? "Desativar proteção" : "Manter tela ativa"}</Button>
+        </div>
+        {printerReconnectInfo && <p className="admin-kitchen-reconnect-note" role="status">{printerReconnectInfo}</p>}
         {printIssue && (
           <div className="admin-kitchen-print-issue" role="alert">
             <strong><AlertCircle size={18} /> Atenção à impressão</strong>
