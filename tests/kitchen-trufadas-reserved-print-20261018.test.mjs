@@ -34,7 +34,7 @@ test("reserva temporária impressa só no modo cozinha explicitamente ativado",(
   assert.match(migration,/o\.created_at >= ctl\.accept_new_after/);
   assert.match(old,/auto_mode_enabled boolean NOT NULL DEFAULT false/);
 });
-test("mantém versão recente do painel, comanda premium, QZ e mensagens",()=>{
+test("mantém versão recente do painel, comanda premium, QZ e mensagens",async()=>{
   assert.match(qz,/installKitchenQzSecurity/);
   assert.match(qz,/PEDIDO CONFIRMADO/);
   assert.match(qz,/ENDERECO DE ENTREGA/);
