@@ -17,6 +17,7 @@ on:
       - work/etiqueta-premium-confirmacao-pedido-20261017
       - work/cozinha-alertas-inteligentes-20261017
       - work/cozinha-windows-reconexao-estavel-20261017
+      - work/whatsapp-trufadas-sem-pacote-20261018
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -24,6 +25,7 @@ on:
       - app/catalog.ts
       - app/layout.tsx
       - app/page.tsx
+      - app/order-checkout.ts
       - app/admin/page.tsx
       - app/globals.css
       - components/admin-results-panel.tsx

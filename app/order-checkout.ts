@@ -214,7 +214,12 @@ export function buildRegisteredOrderMessage(order: CheckoutDetails, number: numb
   const lines = ["Olá! Finalizei meu pedido pelo site da Luciane Oliveira Doces.", "", `*PEDIDO #${number}*`, "", `Cliente: ${cleanWhatsAppField(order.customer_name ?? "")}`, ""];
   if (isHomologation) lines.unshift("*TESTE DE HOMOLOGAÇÃO — NÃO PREPARAR / NÃO COBRAR*", "");
   for (const item of order.items) {
-    lines.push(`${item.quantity}x ${item.name}${item.kind === "slice" ? "" : ` ${item.size}`}`);
+    // As duas Pipocas Trufadas já são identificadas pelo sabor.
+    // Ocultar apenas o sufixo "Pacote" no texto enviado pelo WhatsApp.
+    // O rótulo no catálogo e os dados do pedido/estoque permanecem intactos.
+    const isTrufada = item.product_id === "crocante-ninho" || item.product_id === "crocante-chocolate";
+    const showSize = item.kind !== "slice" && !(isTrufada && item.size.trim().toLowerCase() === "pacote");
+    lines.push(`${item.quantity}x ${item.name}${showSize ? ` ${item.size}` : ""}`);
     if (item.options.length) lines.push(item.options.join(" + "));
     lines.push("");
   }
