@@ -13,7 +13,7 @@ const focused = css.split("UI/UX PREMIUM 2.4 — clareza")[1]?.split("UI/UX PREM
 
 test("vitrine distingue dois copos para escolher, sem sugerir mistura no mesmo copo", () => {
   assert.ok(page.includes('Escolha entre 2 sabores'));
-  assert.ok(page.includes('Nossas pipocas caramelizadas e trufadas ganharam uma nova apresentação: pacotes com zíper, nos sabores Ninho e Chocolate.'));
+  assert.ok(page.includes('Pipocas caramelizadas e trufadas em pacotes com zíper. Escolha entre Ninho e Chocolate.'));
   assert.ok(page.includes('className="limited-cup-teaser-price"'));
   assert.ok(story.includes('PIPOCAS TRUFADAS</span>'));
   assert.ok(page.includes("R$ 15,90"));
