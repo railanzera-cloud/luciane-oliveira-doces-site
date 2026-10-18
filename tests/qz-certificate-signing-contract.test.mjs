@@ -71,5 +71,6 @@ test("QZ original usava sintaxe incorreta; a nova consulta certificado antes do 
   assert.match(panel,/Modo Cozinha/);
   assert.match(panel,/Conectar impressão 58 mm/);
   assert.match(panel,/Ligar automático/);
-  assert.match(panel,/Reconhecer aviso e parar som/);
+  assert.doesNotMatch(panel,/Reconhecer aviso e parar som/);
+  assert.match(panel,/Este aviso desaparece sozinho/);
 });
