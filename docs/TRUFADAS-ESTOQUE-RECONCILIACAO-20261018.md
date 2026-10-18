@@ -27,3 +27,8 @@ A migration no GitHub é candidata, não existe execução em produção autoriz
 - **Contagem física deduzida:** Ninho **5** (6 - 1) e Chocolate **5**, ainda condicionada à confirmação de que as unidades não estão fisicamente separadas/comprometidas para outros pedidos.
 - Diferença nessa leitura: Ninho +4 e Chocolate +2 em relação aos números do banco. NÃO aplicar reposição sem autorização e novo snapshot, sob pena de corrida/dupla baixa.
 - Migração anteriormente preparada segue **não aplicada e candidata a testes de integração no banco**; asserções estáticas em CI não garantem correção operacional de migração.
+
+## Blindagem posterior à aplicação do marco físico
+- Migração complementar `20261018222000_trufadas_stocktake_cutoff_stability.sql`: depois de definir o marco histórico de contagem, mudanças administrativas comuns de estoque preservam esse marco e continuam contabilizando reservas de pedidos futuros. Sem essa proteção, um ajuste posterior poderia inadvertidamente tornar reserva ativa disponível.
+- Se pedido futuro tinha reserva vencida e só foi confirmado tarde, ela só passa a reserva sem prazo se a quantidade disponível comportar. Caso contrário, passa a `shortage`, sem inventar pagamento ou criar pedido adicional.
+- Não gera mudança em saldos ou pedidos na execução. Aprovação/validação de CI é pré-requisito para aplicar.

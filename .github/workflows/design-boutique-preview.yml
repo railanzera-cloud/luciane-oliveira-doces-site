@@ -60,6 +60,7 @@ on:
       - supabase/migrations/20261014190000_crocantes_lancamento.sql
       - supabase/migrations/20261018164000_kitchen_trufadas_reserved_print.sql
       - supabase/migrations/20261018185000_trufadas_stocktake_reservation_reconcile.sql
+      - supabase/migrations/20261018222000_trufadas_stocktake_cutoff_stability.sql
       - ESTADO_ATUAL_VITRINE.md
       # Todos os testes da vitrine ativam a CI; evita checkpoint sem ZIP.
       - 'tests/*.test.mjs'
