@@ -50,7 +50,7 @@ test("escolha é identificável e a numeração fica exclusivamente nas etapas",
 });
 
 test("loja fechada comunica consulta, bloqueia quantidade e oculta a barra da edição", () => {
-  assert.ok(page.includes('cupPhase === "available" ? "Toque no pacote que deseja adicionar." : "Toque em um sabor para conhecer os detalhes."'));
+  assert.ok(page.includes('cupPhase === "available" ? "Toque em Ninho ou Chocolate para continuar." : "Toque em um sabor para conhecer os detalhes."'));
   assert.ok(page.includes('aria-disabled={cupPhase !== "available"}'));
   assert.ok(page.includes('cupSalesEnabled && cupPhase !== "available" && ('));
   assert.ok(page.includes('cupSalesEnabled && cupPhase === "available" && ('));
