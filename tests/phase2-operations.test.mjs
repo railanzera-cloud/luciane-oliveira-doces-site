@@ -14,6 +14,7 @@ const home = await read("../app/page.tsx");
 const cardBrick = await read("../components/mercado-pago-card-form.tsx");
 const admin = await read("../components/admin-orders-panel.tsx");
 const qzClient = await read("../lib/qz-print-client.ts");
+const qzSecurity = await readFile(new URL("../lib/qz-security.ts", import.meta.url), "utf8");
 const packageScript = await read("../scripts/package-cloudflare.mjs");
 
 test("all new TypeScript and TSX sources are syntactically valid", () => {
@@ -100,8 +101,11 @@ test("QZ private key stays server-side and the browser uses authenticated signin
   assert.match(qzSign, /QZ_PRIVATE_KEY_PEM/);
   assert.match(qzSign, /createSign\("RSA-SHA512"\)/);
   assert.match(qzSign, /auth\/v1\/user/);
-  assert.match(qzClient, /setCertificatePromise/);
-  assert.match(qzClient, /setSignaturePromise/);
+  assert.match(qzClient, /installKitchenQzSecurity/);
+  assert.match(qzClient, /action: "certificate"/);
+  assert.match(qzClient, /action: "sign"/);
+  assert.match(qzSecurity, /setCertificatePromise\(\(resolve, reject\)/);
+  assert.match(qzSecurity, /setSignaturePromise\(\(request\) => \(resolve, reject\)/);
   assert.doesNotMatch(qzClient, /PRIVATE KEY|QZ_PRIVATE_KEY_PEM/);
   assert.doesNotMatch(home, /QZ_PRIVATE_KEY|META_CAPI_ACCESS_TOKEN|MP_ACCESS_TOKEN_TEST/);
 });

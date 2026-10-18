@@ -69,7 +69,6 @@ test("QZ original usava sintaxe incorreta; a nova consulta certificado antes do 
   assert.ok(idxCert>=0 && idxConnect>idxCert,"certificate must load before websocket");
   assert.match(qzCode,/currentAccessToken = accessToken/);
   assert.match(panel,/Modo Cozinha/);
-  assert.doesNotMatch(panel,/Ligar automático/);
   assert.match(panel,/Conectar impressão 58 mm/);
   assert.match(panel,/Ligar automático/);
   assert.match(panel,/Reconhecer aviso e parar som/);
