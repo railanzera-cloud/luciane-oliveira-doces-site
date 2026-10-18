@@ -35,6 +35,11 @@ AS $fn$
     );
 $fn$;
 
+-- Bloquear chamada direta via API à função auxiliar SECURITY DEFINER.
+-- As RPCs existentes continuam executando-a sob o proprietário do banco.
+REVOKE ALL ON FUNCTION public.lod_crocante_active_reserved(text,uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.lod_crocante_active_reserved(text,uuid) FROM anon, authenticated;
+
 -- RPC pública existente permanece compatível.
 CREATE OR REPLACE FUNCTION public.public_crocante_inventory()
 RETURNS jsonb
