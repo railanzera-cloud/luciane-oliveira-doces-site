@@ -52,6 +52,9 @@ function Login {
   $response=Request "/auth/v1/token?grant_type=password" @{email=$email;password=$password}
  }finally{$password=$null;[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)}
  if(!$response.access_token -or !$response.refresh_token){throw "Autenticação falhou."}
+ # Validar autorização de equipe SEM reivindicar nenhum trabalho de produção.
+ $authorized=Request "/rest/v1/rpc/admin_get_kitchen_print_control" @{} $response.access_token
+ if($null -eq $authorized){throw "Conta sem permissão para administrar a fila de impressão."}
  StoreAuth @{access_token=$response.access_token;refresh_token=$response.refresh_token;expires_at=([DateTimeOffset]::UtcNow.ToUnixTimeSeconds()+[long]$response.expires_in)}
  if(!(Test-Path $deviceFile)){[IO.File]::WriteAllText($deviceFile,("lod-win-"+[guid]::NewGuid().ToString("N")))}
  Write-Host "Sessão protegida no Windows. Sua senha não foi gravada."
