@@ -348,3 +348,15 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - Preservados: fotos, preços, IDs, estoque, carrinho, entrega, retirada, taxas, Pix, Mercado Pago, WhatsApp, Meta/Tintim, QZ Tray, Modo Cozinha, pedidos históricos, admin, dados de clientes e Supabase.
 - CI deve validar build, TypeScript, testes, ZIP e preservação de rotas/ativos; não publicar no Cloudflare, não fazer merge na main.
 - Homologação Safari iPhone: quantidade e remover, adição de itens por atalhos, botão flutuante contextual, recebimento, campos de cliente, endereços, pagamentos e validação de resumo; conferir zoom, teclado e telas 320–430px. Sem presumir homologação física concluída.
+
+## Investigação de estoque Trufadas — 18/10/2026 (preparação; NÃO APLICADO)
+
+- Branch técnica isolada `fix/trufadas-recontagem-sem-dupla-baixa-20261018`, baseada na versão comercial unificada `work/checkout-premium-unificado-20261018` (`f64443a76c93d15cc5b63e0c107e795e15f6c0c4`). Não mesclar com main sem aprovação.
+- Migração da cozinha ainda divergente incorporada como arquivo e teste da branch `fix/cozinha-trufadas-impressao-reserva-pendente-20261018`, já presente no runtime do Supabase; preservar no próximo merge.
+- Luciane conferiu fisicamente seis pacotes Ninho e cinco Chocolate depois das saídas, sem novas saídas físicas desde essa conferência, segundo o operador. Não significa pagamentos automaticamente confirmados.
+- Banco consultado sem alteração: por volta de 18h05, Ninho total_stock=2 version=10, Chocolate total_stock=3 version=12. Reconsultar imediatamente antes de qualquer reconciliação.
+- Diagnóstico: reservas com expires_at=30 minutos voltam à vitrine enquanto pedido confirmado continua em andamento; confirmação tardia pode baixar produtos já considerados na contagem manual, por falta de marco de inventário.
+- SQL proposto em `supabase/migrations/20261018185000_trufadas_stocktake_reservation_reconcile.sql`: marca `last_physical_recount_at`, helper de reservas, reservas mantidas durante pedido confirmado e consumo uma vez em `paid` ou `completed`; pedido pré-contagem resolve alocação sem baixa duplicada.
+- Migração NÃO repõe estoque automaticamente, NÃO altera pagamentos, NÃO atualiza pedidos históricos e NÃO retrocede histórico. O usuário ainda NÃO autorizou DDL nem reposição em produção.
+- Antes de autorização: confirmar se os 6/5 são pacotes livres e descompromissados fisicamente; reavaliar novos pedidos e versões; preservar snapshot das funções para rollback. Depois de autorização: migração, restauração por RPC administrativa sob verificação, testes de consultas e reconciliação sem vendas artificiais.
+- Diferenciar pacotes que saíram fisicamente de pagamentos pendentes no banco. Sem deploy ou merge de main.

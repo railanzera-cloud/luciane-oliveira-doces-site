@@ -21,6 +21,7 @@ on:
       - work/trufadas-refinamento-premium-mobile-20261018
       - work/trufadas-experiencia-premium-viva-20261018
       - work/checkout-premium-unificado-20261018
+      - fix/trufadas-recontagem-sem-dupla-baixa-20261018
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -57,6 +58,8 @@ on:
       - supabase/functions/create-whatsapp-order/index.ts
       - supabase/functions/_shared/commerce-catalog.mjs
       - supabase/migrations/20261014190000_crocantes_lancamento.sql
+      - supabase/migrations/20261018164000_kitchen_trufadas_reserved_print.sql
+      - supabase/migrations/20261018185000_trufadas_stocktake_reservation_reconcile.sql
       - ESTADO_ATUAL_VITRINE.md
       # Todos os testes da vitrine ativam a CI; evita checkpoint sem ZIP.
       - 'tests/*.test.mjs'
