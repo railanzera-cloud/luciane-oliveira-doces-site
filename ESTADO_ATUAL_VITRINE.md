@@ -338,3 +338,13 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - Fotos AVIF já aprovadas intactas, mesmo preço de R$ 15,90, IDs, quantidade limitada por estoque, Meta, WhatsApp, pagamentos, cozinha, QZ Tray, resultados e Supabase sem mudança.
 - Animar apenas interações breves; respeitar `prefers-reduced-motion`, `:focus-visible`, estados desabilitados e telas de 320–430px.
 - CI do commit gerado deve aprovar build, TypeScript, regressão e ZIP; homologação Safari físico continua indispensável. Sem deploy, sem merge em main.
+
+## Checkout Premium Unificado — 18/10/2026
+
+- Origem: `work/trufadas-experiencia-premium-viva-20261018` no commit `9ba4ffc1cd5a22e4c2d5674588f0b5ac18b8289d` (CI 496/496). Nova branch: `work/checkout-premium-unificado-20261018` (consultar HEAD antes da próxima tarefa).
+- Escopo: refinamento visual de cabeçalho, progresso, carrinho, quantidade, cards de produto, sugestões, confirmação de item, entrega/retirada, identificação, campos, pagamento, resumo, CTA principal e barra flutuante.
+- Implementação isolada no CSS novo `app/storefront-checkout-premium.css`, importado após o editorial; seleção e feedback continuam usando classes e handlers existentes. Barra fixa recebe somente classe visual `is-checkout-flow`, sem alterar observadores, thresholds, rotas ou ações.
+- Removido somente o texto redundante ` · pacote com zíper` de `addedNotice.description` nas Trufadas. Mensagem curta mantém quantidade, nome Pipocas Trufadas e sabor (`Caramelo e Ninho` ou `Caramelo e Chocolate`), sem modificar etiqueta estrutural, mensagem final, catálogo ou backend.
+- Preservados: fotos, preços, IDs, estoque, carrinho, entrega, retirada, taxas, Pix, Mercado Pago, WhatsApp, Meta/Tintim, QZ Tray, Modo Cozinha, pedidos históricos, admin, dados de clientes e Supabase.
+- CI deve validar build, TypeScript, testes, ZIP e preservação de rotas/ativos; não publicar no Cloudflare, não fazer merge na main.
+- Homologação Safari iPhone: quantidade e remover, adição de itens por atalhos, botão flutuante contextual, recebimento, campos de cliente, endereços, pagamentos e validação de resumo; conferir zoom, teclado e telas 320–430px. Sem presumir homologação física concluída.

@@ -20,10 +20,12 @@ on:
       - work/whatsapp-trufadas-sem-pacote-20261018
       - work/trufadas-refinamento-premium-mobile-20261018
       - work/trufadas-experiencia-premium-viva-20261018
+      - work/checkout-premium-unificado-20261018
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
       - app/storefront-vitrine-editorial-experiment.css
+      - app/storefront-checkout-premium.css
       - app/catalog.ts
       - app/layout.tsx
       - app/page.tsx
@@ -160,6 +162,8 @@ jobs:
               assert 'limited-cup-card-check' in css, 'estado premium de selecao trufadas ausente'
               assert 'limited-cup-more-intro' in js, 'cross-sell de categorias ausente'
               assert 'trufadas-subtotal-update' in css, 'microinteracao de subtotal ausente'
+              assert 'checkout-premium-20261018' in css, 'camada premium checkout ausente'
+              assert 'is-checkout-flow' in js, 'barra visual checkout ausente'
               assert 'boutique-final-action' in js, 'regiao de CTA contextual ausente'
               assert 'category-option-media' in css, 'cartoes fotograficos ausentes'
               assert 'prefers-reduced-motion' in css, 'acessibilidade de movimento ausente'
