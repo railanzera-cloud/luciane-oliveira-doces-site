@@ -18,6 +18,7 @@ on:
       - work/cozinha-alertas-inteligentes-20261017
       - work/cozinha-windows-reconexao-estavel-20261017
       - work/whatsapp-trufadas-sem-pacote-20261018
+      - fix/cozinha-trufadas-impressao-reserva-pendente-20261018
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -26,6 +27,7 @@ on:
       - app/layout.tsx
       - app/page.tsx
       - app/order-checkout.ts
+      - supabase/migrations/20261018164000_kitchen_trufadas_reserved_print.sql
       - app/admin/page.tsx
       - app/globals.css
       - components/admin-results-panel.tsx
