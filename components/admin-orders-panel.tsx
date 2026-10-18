@@ -23,13 +23,18 @@ import {
 
 import { Button } from "@/components/ui/button";
 import {
-  KITCHEN_ALERT_REPEAT_MS, pendingKitchenAlerts, playKitchenChime,
+  KITCHEN_ALERT_REPEAT_MS, KITCHEN_ALERT_GROUP_MS, KITCHEN_ALERT_VISIBLE_MS,
+  pendingKitchenAlerts, playKitchenChime, playKitchenErrorChime,
   type KitchenAlertOrder,
 } from "@/lib/kitchen-alert";
 import {
   loadKitchenAutoMode, setKitchenAutoMode, setKitchenPrintQueue,
   type KitchenAutoMode,
 } from "@/lib/kitchen-auto-client";
+import {
+  KITCHEN_ERROR_ALERT_INTERVAL_MS, loadKitchenPrintIssue,
+  type KitchenPrintIssue,
+} from "@/lib/kitchen-print-health";
 import {
   confirmOfflinePayment,
   createReprint,
@@ -162,6 +167,10 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const [alertsPreferred, setAlertsPreferred] = useState(false);
   const [alertVolume, setAlertVolume] = useState<"normal" | "alto">("alto");
   const [pendingAlertOrders, setPendingAlertOrders] = useState<KitchenAlertOrder[]>([]);
+  const [printIssue, setPrintIssue] = useState<KitchenPrintIssue | null>(null);
+  const [printHealthError, setPrintHealthError] = useState("");
+  const [printWarningMutedUntil, setPrintWarningMutedUntil] = useState(0);
+  const [lastPrintInfo, setLastPrintInfo] = useState("");
   const [kitchenMode, setKitchenMode] = useState<KitchenAutoMode | null>(null);
   const [kitchenModeBusy, setKitchenModeBusy] = useState(false);
   const [kitchenModeError, setKitchenModeError] = useState("");
@@ -171,6 +180,10 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const [printerConnectError, setPrinterConnectError] = useState("");
   const [printing, setPrinting] = useState(false);
   const acknowledgedAlertsRef = useRef(new Set<string>());
+  const initialOrdersLoadedRef = useRef(false);
+  const lastNormalBurstRef = useRef(0);
+  const secondChimeTimerRef = useRef<number | null>(null);
+  const normalBannerTimerRef = useRef<number | null>(null);
   const alertStartedAtRef = useRef(0);
   const audioRef = useRef<AudioContext | null>(null);
   const printingRef = useRef(false);
@@ -205,24 +218,48 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     playKitchenChime(context, alertVolume);
   }, [alertsEnabled, alertVolume]);
 
+  // Um lote normal recebe somente dois toques: agora e após 5 segundos.
+  // Reconhecimento é automático. Atualizações de pedido não repetem o som.
   const pendingAlertKey = pendingAlertOrders.map(order => order.id).join(",");
   useEffect(() => {
-    if (!alertsEnabled || !pendingAlertKey) return;
-    playAlert();
-    const interval = window.setInterval(playAlert, KITCHEN_ALERT_REPEAT_MS);
-    return () => window.clearInterval(interval);
+    if (!pendingAlertKey) return;
+    if (normalBannerTimerRef.current !== null) window.clearTimeout(normalBannerTimerRef.current);
+    normalBannerTimerRef.current = window.setTimeout(() => {
+      setPendingAlertOrders([]);
+      normalBannerTimerRef.current = null;
+    }, KITCHEN_ALERT_VISIBLE_MS);
+    const now = Date.now();
+    if (alertsEnabled && now - lastNormalBurstRef.current >= KITCHEN_ALERT_GROUP_MS) {
+      lastNormalBurstRef.current = now;
+      playAlert();
+      if (secondChimeTimerRef.current !== null) window.clearTimeout(secondChimeTimerRef.current);
+      secondChimeTimerRef.current = window.setTimeout(() => {
+        playAlert();
+        secondChimeTimerRef.current = null;
+      }, KITCHEN_ALERT_REPEAT_MS);
+    }
   }, [alertsEnabled, pendingAlertKey, playAlert]);
 
-  function acknowledgeKitchenAlerts() {
-    if (!pendingAlertOrders.length) return;
-    pendingAlertOrders.forEach(order => acknowledgedAlertsRef.current.add(order.id));
-    try {
-      window.localStorage.setItem(ALERT_ACK_KEY,
-        JSON.stringify([...acknowledgedAlertsRef.current].slice(-400)));
-    } catch { /* A confirmação desta sessão ainda interrompe o som. */ }
-    setPendingAlertOrders([]);
-    setNotice("Aviso recebido. Os pedidos continuam disponíveis no painel.");
-  }
+  useEffect(() => () => {
+    if (secondChimeTimerRef.current !== null) window.clearTimeout(secondChimeTimerRef.current);
+    if (normalBannerTimerRef.current !== null) window.clearTimeout(normalBannerTimerRef.current);
+  }, []);
+
+  // Falha persistente somente se a fila indicar trabalho falhado ou atrasado.
+  // Não presumimos que um HTTP/QZ OK garanta papel físico.
+  const issueId = printIssue?.id ?? "";
+  useEffect(() => {
+    if (!alertsEnabled || !issueId) return;
+    const warn = () => {
+      const context = audioRef.current;
+      if (Date.now() >= printWarningMutedUntil && context?.state === "running") {
+        playKitchenErrorChime(context, alertVolume);
+      }
+    };
+    warn();
+    const interval = window.setInterval(warn, KITCHEN_ERROR_ALERT_INTERVAL_MS);
+    return () => window.clearInterval(interval);
+  }, [alertsEnabled, issueId, alertVolume, printWarningMutedUntil]);
 
   const processPrints = useCallback(async () => {
     if (!printerReady || printingRef.current) return;
@@ -232,7 +269,10 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       const { ensureKitchenPrinterConnected, drainPrintQueue } = await import("@/lib/qz-print-client");
       await ensureKitchenPrinterConnected(session.access_token);
       const count = await drainPrintQueue(client);
-      if (count > 0) setNotice(`${count} ${count === 1 ? "comanda impressa" : "comandas impressas"}.`);
+      if (count > 0) {
+        setNotice(`${count} ${count === 1 ? "comanda enviada ao QZ Tray" : "comandas enviadas ao QZ Tray"}.`);
+        setLastPrintInfo(`${count} ${count === 1 ? "comanda enviada" : "comandas enviadas"} nesta sessão`);
+      }
     } catch (printError) {
       setError(printError instanceof Error ? printError.message : "A impressão falhou. O pedido continua salvo.");
     } finally {
@@ -260,9 +300,24 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       }
       if (sequence !== loadSequenceRef.current) return;
       if (searchedNumber === undefined) {
-        setPendingAlertOrders(pendingKitchenAlerts(
-          nextOrders, alertStartedAtRef.current, acknowledgedAlertsRef.current,
-        ));
+        if (!initialOrdersLoadedRef.current) {
+          // Ao abrir o painel, pedidos já existentes viram a linha de base.
+          // Isso evita que os 4 avisos antigos voltem a tocar após atualização.
+          initialOrdersLoadedRef.current = true;
+          nextOrders.forEach(order => acknowledgedAlertsRef.current.add(order.id));
+        } else {
+          const fresh = pendingKitchenAlerts(
+            nextOrders, alertStartedAtRef.current, acknowledgedAlertsRef.current,
+          );
+          if (fresh.length) {
+            fresh.forEach(order => acknowledgedAlertsRef.current.add(order.id));
+            setPendingAlertOrders(fresh);
+          }
+        }
+        try {
+          window.localStorage.setItem(ALERT_ACK_KEY,
+            JSON.stringify([...acknowledgedAlertsRef.current].slice(-400)));
+        } catch { /* Avisos continuam deduplicados durante esta sessão. */ }
       }
       setOrders(ordersWithTracking);
       if (printerReady) window.setTimeout(() => void processPrints(), 0);
@@ -385,6 +440,10 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   async function pauseAlerts() {
     setAlertsPreferred(false);
     setPendingAlertOrders([]);
+    if (secondChimeTimerRef.current !== null) {
+      window.clearTimeout(secondChimeTimerRef.current);
+      secondChimeTimerRef.current = null;
+    }
     try { window.localStorage.setItem(ALERT_PREFERENCE_KEY, "false"); }
     catch { /* opcional */ }
     try { await audioRef.current?.suspend(); } catch { /* browser lifecycle */ }
@@ -425,6 +484,37 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       setKitchenModeError(cause instanceof Error ? cause.message : "Falha ao mudar a fila.");
     } finally { setKitchenModeBusy(false); }
   }
+
+  // Leitura dos estados reais dos jobs, com RLS de equipe já existente.
+  const refreshPrintHealth = useCallback(async () => {
+    if (!kitchenMode?.print_queue_enabled) {
+      setPrintIssue(null);
+      setPrintHealthError("");
+      return;
+    }
+    const activeIds = new Set(orders.filter(order => {
+      if (["payment_pending", "completed", "cancelled"].includes(order.order_status)) return false;
+      if (["failed", "cancelled", "refunded"].includes(order.payment_status)) return false;
+      if (order.sales_channel === "site") return order.payment_status === "paid";
+      if (order.payment_method === "manual_pix") {
+        return order.payment_status === "paid" || Boolean(kitchenMode.enabled);
+      }
+      return order.payment_method === "cash" || order.payment_method === "card_on_delivery";
+    }).map(order => order.id));
+    try {
+      const next = await loadKitchenPrintIssue(client, kitchenMode.print_queue_cutoff, activeIds);
+      setPrintIssue(next);
+      setPrintHealthError("");
+    } catch {
+      setPrintHealthError("Não foi possível conferir o estado da fila agora. Os pedidos permanecem preservados.");
+    }
+  }, [client, kitchenMode?.enabled, kitchenMode?.print_queue_cutoff, kitchenMode?.print_queue_enabled, orders]);
+
+  useEffect(() => {
+    void refreshPrintHealth();
+    const interval = window.setInterval(() => void refreshPrintHealth(), 20000);
+    return () => window.clearInterval(interval);
+  }, [refreshPrintHealth]);
 
   async function enablePrinter() {
     if (printingRef.current) return;
@@ -533,15 +623,35 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
             <option value="alto">Alto</option><option value="normal">Normal</option>
           </select></span>
         </div>
-        <p>Deixe esta aba aberta no notebook Windows. O som toca novamente a cada 8 segundos
-          até reconhecer o aviso. Para ouvir, clique em “Ativar alertas” uma vez após abrir o navegador.</p>
+        <p>Com o notebook ativo, cada lote de pedidos novos toca duas vezes (agora e após 5 segundos),
+          parando sozinho. Não é necessário reconhecer pedidos manualmente para imprimir.
+          Clique em “Ativar alertas” uma vez após abrir o navegador.</p>
+        <div className="admin-kitchen-operation-status">
+          <span><span className={kitchenMode?.enabled ? "admin-status-dot is-online" : "admin-status-dot"} />
+            Automático: <strong>{kitchenMode?.enabled ? "Ligado" : "Desligado"}</strong></span>
+          <span><Printer size={15} /> Impressora: <strong>{printerReady ? printerName : "Não conectada neste navegador"}</strong></span>
+          <span><BellRing size={15} /> Aviso normal: <strong>2 toques e silêncio</strong></span>
+          {lastPrintInfo && <span><Check size={15} /> {lastPrintInfo}</span>}
+        </div>
         {pendingAlertOrders.length > 0 && (
-          <div className="admin-kitchen-incoming" role="alert" aria-live="assertive">
-            <strong>🔔 {pendingAlertOrders.length} {pendingAlertOrders.length === 1 ? "pedido precisa de atenção" : "pedidos precisam de atenção"}</strong>
+          <div className="admin-kitchen-incoming" role="status" aria-live="polite">
+            <strong>🔔 {pendingAlertOrders.length} {pendingAlertOrders.length === 1 ? "novo pedido registrado" : "novos pedidos registrados"}</strong>
             <span>{pendingAlertOrders.slice(0, 5).map(order => `#${order.order_number}`).join(", ")}</span>
-            <Button type="button" onClick={acknowledgeKitchenAlerts}>Reconhecer aviso e parar som</Button>
+            <small>A comanda segue automaticamente para a fila. Este aviso desaparece sozinho.</small>
           </div>
         )}
+        {printIssue && (
+          <div className="admin-kitchen-print-issue" role="alert">
+            <strong><AlertCircle size={18} /> Atenção à impressão</strong>
+            <p>{printIssue.message}</p>
+            <small>O alerta especial toca a cada 30 segundos até a fila voltar ao normal.
+              Verifique também papel e impressora: o QZ Tray não confirma a saída física do papel.</small>
+            <Button type="button" variant="outline" onClick={() => setPrintWarningMutedUntil(Date.now() + 5 * 60000)}>
+              Silenciar alerta por 5 minutos
+            </Button>
+          </div>
+        )}
+        {printHealthError && <p className="admin-kitchen-health-note" role="status">{printHealthError}</p>}
         <div className="admin-kitchen-automation">
           <div><strong>Impressão automática de novos pedidos WhatsApp</strong>
             <small>{kitchenMode

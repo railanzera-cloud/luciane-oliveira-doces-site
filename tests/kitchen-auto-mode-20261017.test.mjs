@@ -42,7 +42,7 @@ test("toque programa quatro notas e respeita audio suspenso",()=>{
   };
   playKitchenChime(context,"alto");
   assert.equal(schedule.filter(x=>x[0]==="start").length,4);
-  assert.equal(KITCHEN_ALERT_REPEAT_MS,8000);
+  assert.equal(KITCHEN_ALERT_REPEAT_MS,5000);
   context.state="suspended";
   schedule.length=0;playKitchenChime(context,"alto");
   assert.equal(schedule.length,0);
@@ -65,8 +65,12 @@ test("modo automático é opt-in autenticado, cronológico e mantém estado de p
  assert.doesNotMatch(sql,/delete from public\.orders/i);
  assert.match(sql,/REVOKE ALL ON FUNCTION public\.admin_set_kitchen_auto_mode_v1/);
  assert.match(panel,/setKitchenAutoMode\(client, enabled\)/);
- assert.match(panel,/Reconhecer aviso e parar som/);
+ assert.doesNotMatch(panel,/Reconhecer aviso e parar som/);
+ assert.match(panel,/Este aviso desaparece sozinho/);
  assert.match(panel,/KITCHEN_ALERT_REPEAT_MS/);
+ assert.doesNotMatch(panel,/setInterval\(playAlert, KITCHEN_ALERT_REPEAT_MS\)/);
+ assert.match(panel,/KITCHEN_ERROR_ALERT_INTERVAL_MS/);
+ assert.match(panel,/Silenciar alerta por 5 minutos/);
  assert.match(panel,/setInterval\(\(\) => void reload\(true\), 20000\)/);
  assert.match(panel,/ensureKitchenPrinterConnected/);
  assert.match(printer,/PEDIDO CONFIRMADO/);

@@ -17,25 +17,36 @@ function extract(source, name, dependencies) {
  return new Function(...Object.keys(dependencies), `${js}; return fn;`)(...Object.values(dependencies));
 }
 const deferred = () => { let resolve; const promise = new Promise(r => resolve=r); return {promise,resolve}; };
-test('admin refresh handles stale responses and identifies new orders for persistent kitchen alerts', async () => {
- const requests=[]; const busy=[]; let shown; let alerted=[];
+test('admin refresh uses initial snapshot as baseline and notifies each new order only once', async () => {
+ const requests=[]; const busy=[];let shown;const alerted=[];
+ const initialOrdersLoadedRef={current:false};
+ const seen=new Set();
  const reload=extract(admin,'reload',{
   loadSequenceRef:{current:0},setLoading:v=>busy.push(v),setError:()=>{},client:{},searchedNumber:undefined,
   loadAdminOrders:()=>{const d=deferred();requests.push(d);return d.promise;},
   loadAdminTintimTracking:async()=>new Map(),setTrackingError:()=>{},
-  alertStartedAtRef:{current:Date.now()-60000},acknowledgedAlertsRef:{current:new Set()},
-  pendingKitchenAlerts:rows=>rows.filter(row=>row.order_status!=='completed'),
-  setPendingAlertOrders:rows=>alerted=rows.map(row=>row.id),
+  alertStartedAtRef:{current:Date.now()-60*1000},acknowledgedAlertsRef:{current:seen},
+  initialOrdersLoadedRef,
+  window:{localStorage:{setItem:()=>{}}},
+  pendingKitchenAlerts:(rows,_at,known)=>rows.filter(o=>!known.has(o.id)),
+  setPendingAlertOrders:rows=>alerted.push(rows.map(o=>o.id)),
   setOrders:v=>shown=v,printerReady:false,
  });
- let p=reload();requests[0].resolve([]);await p;
- p=reload();requests[1].resolve([{id:'1004',order_status:'new'}]);await p;
- assert.deepEqual(alerted,['1004']);assert.deepEqual(busy,[true,false,true,false]);
- const older=reload(), newer=reload();
- requests[3].resolve([{id:'1004',order_status:'preparing'}]);await newer;
- requests[2].resolve([{id:'1004',order_status:'new'}]);await older;
- assert.equal(shown[0].order_status,'preparing');
- assert.deepEqual(alerted,['1004']);assert.equal(requests.length,4);
+ let p=reload();requests[0].resolve([{id:'old',order_status:'confirmed'}]);await p;
+ assert.equal(initialOrdersLoadedRef.current,true);
+ assert.deepEqual(alerted,[],'existing orders must not start a backlog');
+ assert.ok(seen.has('old'));
+ p=reload();requests[1].resolve([{id:'old',order_status:'confirmed'},{id:'fresh',order_status:'confirmed'}]);await p;
+ assert.deepEqual(alerted,[['fresh']]);
+ assert.ok(seen.has('fresh'));
+ p=reload();requests[2].resolve([{id:'fresh',order_status:'preparing'}]);await p;
+ assert.deepEqual(alerted,[['fresh']],'changing status does not replay sound');
+ const older=reload(),newer=reload();
+ requests[4].resolve([{id:'fresh',order_status:'ready'}]);await newer;
+ requests[3].resolve([{id:'fresh',order_status:'new'}]);await older;
+ assert.equal(shown[0].order_status,'ready');
+ assert.deepEqual(alerted,[['fresh']]);assert.equal(requests.length,5);
+ assert.deepEqual(busy,[true,false,true,false,true,false,true,true,false]);
 });
 test('consumer refresh obtains confirmation, preparation, completion and later payment from backend', async () => {
  let latest,shown;let calls=0;const busy=[];

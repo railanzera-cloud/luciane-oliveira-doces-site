@@ -4285,3 +4285,37 @@ footer {
 .admin-kitchen-connection-state .admin-kitchen-error strong { display: block; margin-bottom: 6px; }
 .admin-kitchen-connection-state .admin-kitchen-error span { display: block; margin-top: 6px;
  color: #ead0b6; }
+
+/* Cozinha 2.0: avisos normais efêmeros, falhas relevantes persistentes. */
+.admin-kitchen-incoming {
+  animation: none;
+  background: #483520;
+  border: 1px solid #af8556;
+  color: #faead4;
+}
+.admin-kitchen-incoming small { font-size: .79rem; line-height: 1.5; color: #f0d1ad; }
+.admin-kitchen-operation-status {
+  display: grid; gap: 10px; padding: 13px 14px;
+  border: 1px solid #72533d; border-radius: 12px;
+  background: #33241b; color: #e5d1bf; font-size: .83rem;
+}
+.admin-kitchen-operation-status > span {
+  display: flex; gap: 8px; align-items: center; min-width: 0; flex-wrap: wrap;
+}
+.admin-kitchen-operation-status strong { color: #f9dbb7; overflow-wrap: anywhere; }
+.admin-status-dot { height: 8px; width: 8px; border-radius: 50%; background: #aa8a6c; flex: 0 0 auto; }
+.admin-status-dot.is-online { background: #84c18b; }
+.admin-kitchen-print-issue {
+  display: grid; gap: 10px; padding: 16px;
+  border: 2px solid #cd7050; border-radius: 13px;
+  background: #47251f; color: #fff2e8;
+}
+.admin-kitchen-print-issue > strong {
+  display: flex; align-items: center; gap: 8px; color: #ffd5c0;
+}
+.admin-kitchen-print-issue p, .admin-kitchen-print-issue small {
+  margin: 0; line-height: 1.5; font-size: .84rem;
+}
+.admin-kitchen-print-issue small { color: #f2c1ae; font-size: .77rem; }
+.admin-kitchen-print-issue button { justify-self: start; min-height: 44px; }
+.admin-kitchen-health-note { color: #e5ca9e; font-size: .79rem; margin: 0; }
