@@ -18,6 +18,7 @@ on:
       - work/cozinha-alertas-inteligentes-20261017
       - work/cozinha-windows-reconexao-estavel-20261017
       - work/whatsapp-trufadas-sem-pacote-20261018
+      - work/trufadas-refinamento-premium-mobile-20261018
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -153,6 +154,8 @@ jobs:
               assert 'boutique-cart-image' in css, 'fotografia do carrinho ausente'
               assert 'Preço do pote com este sabor' in js, 'preco individual por sabor ausente'
               assert 'Pote fica ' in js, 'preco final da combinacao ausente'
+              assert 'Valor por pacote' in js, 'subtotal contextual trufadas ausente'
+              assert 'limited-cup-buy-composition' in css, 'refinamento premium trufadas ausente'
               assert 'boutique-final-action' in js, 'regiao de CTA contextual ausente'
               assert 'category-option-media' in css, 'cartoes fotograficos ausentes'
               assert 'prefers-reduced-motion' in css, 'acessibilidade de movimento ausente'
