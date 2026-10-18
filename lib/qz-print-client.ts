@@ -7,8 +7,8 @@ import {
   type PrintClaim,
 } from "@/lib/admin-orders-client";
 import { getSupabasePublicConfiguration } from "@/lib/supabase-config";
+import { installKitchenQzSecurity } from "@/lib/qz-security";
 
-let configured = false;
 let selectedPrinter = "";
 let currentAccessToken = "";
 const workerId = `lod-kitchen-${crypto.randomUUID()}`;
@@ -89,18 +89,19 @@ export async function connectKitchenPrinter(
   const qz = await kitchenConnectionDeadline(
     qzModule(), 12000, "O módulo da impressora não carregou. Atualize o painel e tente novamente.",
   );
-  if (!configured) {
-    qz.security.setCertificatePromise(() => (resolve, reject) => {
-      void signedRequest(currentAccessToken, { action: "certificate" })
-        .then((result) => resolve(String(result.certificate ?? ""))).catch(reject);
-    });
-    qz.security.setSignatureAlgorithm("SHA512");
-    qz.security.setSignaturePromise((request) => (resolve, reject) => {
-      void signedRequest(currentAccessToken, { action: "sign", request })
-        .then((result) => resolve(String(result.signature ?? ""))).catch(reject);
-    });
-    configured = true;
+  // Obter o certificado antes do handshake QZ; nunca iniciar impressão anônima.
+  const result = await signedRequest(currentAccessToken, { action: "certificate" });
+  const certificate = result.certificate;
+  if (typeof certificate !== "string") {
+    throw new Error("Certificado QZ não retornado pelo Supabase.");
   }
+  installKitchenQzSecurity(qz.security, certificate, async (request) => {
+    const signed = await signedRequest(currentAccessToken, { action: "sign", request });
+    if (typeof signed.signature !== "string") {
+      throw new Error("Assinatura QZ não retornada pelo Supabase.");
+    }
+    return signed.signature;
+  });
   onProgress?.("websocket");
   if (!qz.websocket.isActive()) {
     try {

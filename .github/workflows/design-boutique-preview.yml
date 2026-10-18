@@ -12,6 +12,7 @@ on:
       - work/resultados-vendas-restaurados-trufadas-20261017
       - work/cozinha-alerta-modo-automatico-20261017
       - work/qz-tray-conexao-diagnostico-20261017
+      - work/cozinha-completa-qz-assinado-20261017
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -26,6 +27,8 @@ on:
       - lib/kitchen-alert.ts
       - lib/kitchen-auto-client.ts
       - lib/qz-print-client.ts
+      - lib/qz-security.ts
+      - docs/COZINHA-ASSINATURA-QZ-RETOMADA-20261017.md
       - supabase/migrations/20261017233000_kitchen_auto_mode_optin.sql
       - docs/COZINHA-AUTOMATICA-CONTINUIDADE-20261017.md
       - lib/admin-results-client.ts
@@ -108,6 +111,9 @@ jobs:
               assert 'PIX PENDENTE - CONFERIR' in js, 'comanda pendente precisa ser identificada'
               assert 'Conectando ao QZ Tray no notebook' in js, 'etapa local QZ ausente'
               assert 'QZ Tray não respondeu em 20 segundos' in js, 'timeout de QZ ausente'
+              assert 'Certificado de impressão QZ ausente ou inválido' in js, 'certificado assinado QZ ausente'
+              assert 'O Supabase retornou uma assinatura QZ inválida' in js, 'checagem de assinatura QZ ausente'
+              assert 'Modo Cozinha' in js and 'Ligar automático' in js, 'modo cozinha perdido na integração'
               assert 'Marcados como pagos no painel' in js, 'rotulo correto de pagamentos ausente'
               assert 'Campanhas registradas no Tintim' in js, 'visao de campanhas ausente'
               assert 'Sinais de anúncios' in js, 'aba de sinais ausente'
