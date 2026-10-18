@@ -69,6 +69,6 @@ test("modo automático é opt-in autenticado, cronológico e mantém estado de p
  assert.match(panel,/KITCHEN_ALERT_REPEAT_MS/);
  assert.match(panel,/setInterval\(\(\) => void reload\(true\), 20000\)/);
  assert.match(panel,/ensureKitchenPrinterConnected/);
- assert.match(printer,/PIX PENDENTE - CONFERIR/);
+ assert.match(printer,/PEDIDO CONFIRMADO/);
  assert.match(printer,/currentAccessToken/);
 });

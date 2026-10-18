@@ -172,16 +172,15 @@ function money(value: number | string): string {
 }
 
 function paymentLine(claim: PrintClaim): string {
-  const { payment_method: method, payment_status: status, fulfillment_type: fulfillment } = claim.order;
+  const { payment_method: method, payment_status: status } = claim.order;
   if (status === "paid") {
     if (method === "mercado_pago_pix" || method === "manual_pix") return "PIX CONFIRMADO";
     if (method === "mercado_pago_card") return "CARTAO ONLINE CONFIRMADO";
     return "PAGAMENTO CONFIRMADO";
   }
-  if (method === "manual_pix") return "PIX PENDENTE - CONFERIR";
-  if (method === "cash") return `DINHEIRO NA ${fulfillment === "pickup" ? "RETIRADA" : "ENTREGA"} - PENDENTE`;
-  if (method === "card_on_delivery") return `CARTAO NA ${fulfillment === "pickup" ? "RETIRADA" : "ENTREGA"} - PENDENTE`;
-  return "PAGAMENTO PENDENTE - CONFERIR";
+  // Comanda de cozinha: pedido aceito não significa pagamento recebido.
+  // Não exigir conferência financeira para imprimir nem indicar Pix pago sem confirmação.
+  return "PEDIDO CONFIRMADO";
 }
 
 function receipt(claim: PrintClaim): string {

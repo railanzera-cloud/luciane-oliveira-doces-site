@@ -67,12 +67,13 @@ test("restaura nome grande, recheios, endereço rotulado e total sem inventar te
   for (const label of ["ENDERECO DE ENTREGA","Bairro: Bairro tropical","Complemento: Condominio Quartzo",
     "Referencia: Condominio fechado","TOTAL: R$ 66,00"]) assert.ok(raw.includes(label),label);
 });
-test("mantém pendências verdadeiras em cartões/dinheiro/PIX sem alterar pagamento",()=>{
-  let x=sample({payment_status:"pending",payment_method:"manual_pix"});
-  assert.equal(paymentLine(x),"PIX PENDENTE - CONFERIR");
-  assert.match(receipt(x),/PIX PENDENTE - CONFERIR/);
+test("aceita e imprime comanda sem esperar pagamento, sem registrar Pix fictício",()=>{
+  let x=sample({payment_status:"pending",payment_method:"manual_pix",order_status:"confirmed"});
+  assert.equal(paymentLine(x),"PEDIDO CONFIRMADO");
+  assert.match(receipt(x),/PEDIDO CONFIRMADO/);
+  assert.doesNotMatch(receipt(x),/PIX CONFIRMADO|PIX PENDENTE/);
   x=sample({payment_status:"pending",payment_method:"card_on_delivery",fulfillment_type:"pickup"});
-  assert.match(receipt(x),/CARTAO NA RETIRADA - PENDENTE/);
+  assert.match(receipt(x),/PEDIDO CONFIRMADO/);
   assert.doesNotMatch(receipt(x),/ENDERECO DE ENTREGA/);
   x=sample({payment_status:"paid",payment_method:"manual_pix"});
   assert.match(receipt(x),/PIX CONFIRMADO/);
@@ -88,7 +89,7 @@ test("não corta palavras ou números longos; mantém observações, troco e rei
   assert.match(raw,/OBSERVACOES/);
   assert.match(raw,/Sem cobertura/);
   assert.match(raw,/TROCO PARA: R\$ 100,00/);
-  assert.match(raw,/DINHEIRO NA ENTREGA - PENDENTE/);
+  assert.match(raw,/PEDIDO CONFIRMADO/);
 });
 test("altera apenas renderização da comanda; segurança QZ e cozinha preservados",async()=>{
   const panel=await readFile(new URL("../components/admin-orders-panel.tsx",import.meta.url),"utf8");
