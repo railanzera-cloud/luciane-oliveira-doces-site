@@ -2203,3 +2203,205 @@
 }
 .storefront .limited-cup-teaser-visual::before {background:linear-gradient(90deg,rgba(38,21,13,.21),transparent 25%);}
 @media (max-width:359px) {.storefront .limited-cup-teaser-visual {min-height:138px;}}
+
+
+/*
+ * Pipocas Trufadas — refinamento premium de hierarquia (18/10/2026).
+ * Alterações visuais isoladas ao configurador; fotos, observer, estoque,
+ * carrinho, precificação, pagamento e estados originais permanecem intactos.
+ */
+.storefront #configurador .limited-cup-story {
+  border-color: rgba(223, 174, 119, .57);
+  box-shadow: 0 20px 45px rgba(11, 5, 3, .31), inset 0 1px rgba(255, 228, 189, .12);
+}
+.storefront #configurador .limited-cup-story-heading {
+  padding: 24px 22px 20px;
+}
+.storefront #configurador .limited-cup-story-heading h2 {
+  margin: 6px 0 9px;
+  line-height: 1.08;
+}
+.storefront #configurador .limited-cup-story-heading p {
+  max-width: 44ch;
+  color: #edcfb2;
+  font-size: .89rem;
+  line-height: 1.57;
+}
+.storefront #configurador .limited-cup-selection-heading {
+  gap: 6px;
+  padding: 17px 20px 10px;
+}
+.storefront #configurador .limited-cup-selection-heading span {
+  color: #ffe3bd;
+  letter-spacing: .105em;
+}
+.storefront #configurador .limited-cup-selection-heading small {
+  color: #e6cbb1;
+  line-height: 1.45;
+}
+.storefront #configurador .limited-cup-duo {
+  gap: 10px;
+  padding: 2px 12px 15px;
+}
+.storefront #configurador .limited-cup-duo-item {
+  border-radius: 18px;
+  border-color: rgba(245, 207, 166, .34);
+  box-shadow: 0 8px 18px rgba(16, 7, 4, .18), inset 0 1px rgba(255, 228, 189, .17);
+}
+.storefront #configurador .limited-cup-duo-item.is-selected {
+  border-color: #ffdcaa;
+  box-shadow: 0 0 0 2px rgba(246, 194, 123, .62), 0 11px 25px rgba(18, 7, 3, .31), inset 0 1px rgba(255, 240, 207, .29);
+}
+.storefront #configurador .limited-cup-duo-caption {
+  gap: 6px;
+  padding: 12px 11px 13px;
+}
+.storefront #configurador .limited-cup-duo-caption strong {
+  line-height: 1.25;
+  font-weight: 700;
+  overflow-wrap: break-word;
+}
+.storefront #configurador .limited-cup-duo-disclosure {
+  min-height: 30px;
+  padding-inline: 9px;
+}
+.storefront #configurador .limited-cup-duo-item.is-selected .limited-cup-duo-disclosure {
+  background: rgba(101, 61, 37, .96);
+  box-shadow: inset 0 1px rgba(255, 229, 195, .18);
+}
+.storefront #configurador .limited-cup-story-bottom {
+  padding-top: 16px;
+}
+.storefront #configurador .limited-cup-sale-compact {
+  padding: 6px 0 13px;
+  column-gap: 10px;
+  border-color: rgba(227, 171, 112, .30);
+}
+.storefront #configurador .limited-cup-sale-compact strong {
+  color: #ffe4b8;
+  font-size: .93rem;
+}
+.storefront #configurador .limited-cup-buy {
+  gap: 12px;
+  margin-top: 14px;
+  padding: 16px;
+  border-color: rgba(241, 193, 140, .48);
+  border-radius: 17px;
+  background: linear-gradient(145deg, rgba(103, 62, 38, .45), rgba(44, 25, 18, .90));
+  box-shadow: inset 0 1px rgba(255, 227, 188, .15), 0 10px 25px rgba(13, 6, 4, .14);
+}
+.storefront #configurador .limited-cup-buy-heading {
+  gap: 5px;
+}
+.storefront #configurador .limited-cup-buy-heading small {
+  color: #e9c9aa;
+  font-size: .78rem;
+}
+.storefront #configurador .limited-cup-buy-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+.storefront #configurador .limited-cup-buy-composition {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 14px;
+  min-width: 0;
+}
+.storefront #configurador .limited-cup-quantity-control {
+  display: grid;
+  gap: 6px;
+  min-width: 144px;
+}
+.storefront #configurador .limited-cup-quantity-label,
+.storefront #configurador .limited-cup-buy-estimate > span {
+  color: #dfbfa1;
+  font-size: .72rem;
+  line-height: 1.2;
+}
+.storefront #configurador .limited-cup-buy-actions .mini-quantity {
+  min-width: 144px;
+  min-height: 48px;
+  border-radius: 12px;
+  border-color: rgba(249, 202, 153, .42);
+}
+.storefront #configurador .limited-cup-buy-actions .mini-quantity button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.storefront #configurador .limited-cup-buy-actions .mini-quantity strong {
+  font-size: 1.05rem;
+}
+.storefront #configurador .limited-cup-buy-estimate {
+  display: grid;
+  justify-items: end;
+  align-content: end;
+  gap: 4px;
+  min-width: 0;
+  padding-bottom: 3px;
+}
+.storefront #configurador .limited-cup-buy-estimate > strong {
+  font-family: Georgia, "Times New Roman", serif;
+  color: #ffe2b4;
+  font-size: clamp(1.35rem, 5.2vw, 1.75rem);
+  line-height: 1.1;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.025em;
+  white-space: nowrap;
+}
+.storefront #configurador .limited-cup-buy-cta {
+  width: 100%;
+  flex: none;
+  min-height: 53px;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: .87rem;
+  line-height: 1.3;
+}
+.storefront #configurador .limited-cup-buy-cta:not(:disabled):active {
+  transform: scale(.991);
+}
+.storefront #configurador .limited-cup-stock-note {
+  margin-top: 1px;
+  line-height: 1.48;
+}
+.storefront .mobile-sticky-bar.is-crocantes-step .mobile-sticky-price small {
+  line-height: 1.3;
+  letter-spacing: .005em;
+}
+@media (max-width: 699px) {
+  .storefront #configurador .limited-cup-duo-item {
+    height: clamp(224px, 62vw, 342px);
+  }
+  .storefront #configurador .limited-cup-story-bottom {
+    padding-inline: 17px;
+  }
+  .storefront #configurador .limited-cup-story-heading {
+    padding-inline: 19px;
+  }
+  .storefront #configurador .limited-cup-buy-estimate > strong {
+    font-size: clamp(1.35rem, 5.2vw, 1.63rem);
+  }
+}
+@media (max-width: 359px) {
+  .storefront #configurador .limited-cup-story-heading {padding: 20px 14px 16px;}
+  .storefront #configurador .limited-cup-selection-heading {padding: 14px 11px 9px;}
+  .storefront #configurador .limited-cup-duo {gap: 7px; padding: 2px 8px 12px;}
+  .storefront #configurador .limited-cup-duo-item {height: 214px; border-radius: 15px;}
+  .storefront #configurador .limited-cup-duo-caption {padding: 9px 8px 11px; gap: 5px;}
+  .storefront #configurador .limited-cup-duo-caption strong {font-size: .76rem;}
+  .storefront #configurador .limited-cup-story-bottom {padding-inline: 12px;}
+  .storefront #configurador .limited-cup-buy {padding: 12px 11px;}
+  .storefront #configurador .limited-cup-buy-composition {gap: 9px;}
+  .storefront #configurador .limited-cup-quantity-control {min-width: 124px;}
+  .storefront #configurador .limited-cup-buy-actions .mini-quantity {min-width: 124px;}
+  .storefront #configurador .limited-cup-buy-estimate > strong {font-size: 1.3rem;}
+  .storefront #configurador .limited-cup-buy-cta {padding-inline: 10px;}
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront #configurador .limited-cup-buy-cta,
+  .storefront #configurador .limited-cup-duo-item {transition: none !important; transform: none !important;}
+}

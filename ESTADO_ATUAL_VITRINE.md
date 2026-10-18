@@ -312,3 +312,15 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - Substituídos os binários em `public/images/pipocas-trufadas-ninho.avif` e `public/images/pipocas-trufadas-chocolate.avif`. URLs de home, detalhes e catálogo receberam `?v=20261017-zoom2` para evitar cache persistente das fotos antigas.
 - Proporção declarada das quatro imagens no JSX corrigida de 840x1260 para 840x1050. CSS de vitrine mantém `object-fit:contain` (embalagem completa), equilibra o fundo bege dos componentes com a fotografia e suaviza apenas as laterais de fundo em detalhe, sem esconder zíper, etiqueta nem base.
 - Não houve alterações de Supabase, estoque individual, status dos produtos, preço, pedidos, jornada do carrinho ou checkout. Branch isolada de homologação; CI (build, TypeScript, testes e ZIP) é pré-requisito para publicação manual no Cloudflare Pages.
+
+
+## Pipocas Trufadas — refinamento premium mobile (18/10/2026)
+
+- **Origem:** `work/whatsapp-trufadas-sem-pacote-20261018` no commit `b8e5093d37ff92cd0aa0834ee57a2218c5d9300f`. Nova branch: `work/trufadas-refinamento-premium-mobile-20261018`. Consultar seu HEAD antes de continuar.
+- **Escopo:** apresentar melhor os dois sabores já aprovados, reduzir repetição do texto, dar respiro às legendas, reforçar a seleção e reorganizar a quantidade com subtotal contextual e CTA de leitura direta.
+- **Seleção:** mesmo `cupFlavorPreview`, `aria-pressed`, mesmos componentes de imagem `pipocas-trufadas-ninho.avif`/`chocolate.avif`, sem alterar crop, fontes fotográficas ou preço unitário de R$ 15,90.
+- **Subtotal:** antes da escolha exibe valor unitário sem sugerir que já há um pacote selecionado; depois da escolha mostra `15.9 * cupQuantity`, sem alterar o cálculo comercial real. Botão principal mantém o handler `handleCupPurchaseAction` e a validação de estoque `addCrocantesCup`.
+- **Botão flutuante:** mantidos `IntersectionObserver`, threshold `0.45`, margem inferior `-68px` e condições de ocultação enquanto o botão embutido está visível. Rótulo antes da seleção passa a indicar `Preço por pacote`; após seleção, sabor e quantidade.
+- **Limites:** somente `app/page.tsx`, CSS editorial e teste específico; não altera banco, estado operacional, catálogo, IDs, WhatsApp, Meta, estoque, QZ, cozinha, pagamentos, Resultados ou Cloudflare.
+- **Testes:** CI deve executar TypeScript/build/testes e produzir pacote ZIP do mesmo commit. Confirmar status real no GitHub Actions antes de declarar aprovado.
+- **Homologação manual:** Safari no iPhone (320–430px), sabores Ninho e Chocolate, aumento/diminuição de quantidade, giro/rolagem, estados esgotado/loja fechada, rolagem que oculta/mostra a barra, teclado do checkout e adição ao carrinho. Nenhuma publicação automática.

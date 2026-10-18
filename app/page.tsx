@@ -910,7 +910,9 @@ export default function Home() {
       ? activeCategory === "pipocas" ? `A partir de ${currency.format(popcornPrice("500ml", [], promotionTime))}` : "A partir de R$20"
       : currency.format(draftSubtotal);
   const stickyPriceCaption = cupBuilderFlowActive
-    ? `Pacote Trufado · ${cupQuantity}x`
+    ? cupFlavorPreview
+      ? `${cupFlavorPreview === "ninho" ? "Ninho" : "Chocolate"} · ${cupQuantity} ${cupQuantity === 1 ? "pacote" : "pacotes"}`
+      : "Preço por pacote"
     : cart.length > 0 && !builderFlowActive
     ? hasEstimatedTotal ? "Total do pedido" : "Subtotal do pedido"
     : cart.length > 0 ? "Item em montagem" : activeCategory === "pipocas" ? "Sua pipoca" : "Sua fatia";
@@ -1925,9 +1927,9 @@ export default function Home() {
               <div className="limited-cup-story-heading">
                 <span className="limited-cup-story-kicker">PIPOCAS TRUFADAS</span>
                 <h2>Pipocas <em>Trufadas</em></h2>
-                <p>Nossas pipocas caramelizadas e trufadas ganharam uma nova apresentação: pacotes com zíper, nos sabores Ninho e Chocolate.</p>
+                <p>Pipocas caramelizadas e trufadas em pacotes com zíper. Escolha entre Ninho e Chocolate.</p>
               </div>
-              <div className="limited-cup-selection-heading" id="crocantes-sabores"><span>01 · ESCOLHA SEU SABOR</span><small>{cupPhase === "available" ? "Toque no pacote que deseja adicionar." : "Toque em um sabor para conhecer os detalhes."}</small></div>
+              <div className="limited-cup-selection-heading" id="crocantes-sabores"><span>01 · ESCOLHA SEU SABOR</span><small>{cupPhase === "available" ? "Toque em Ninho ou Chocolate para continuar." : "Toque em um sabor para conhecer os detalhes."}</small></div>
               <div className="limited-cup-duo" aria-label="Escolha um sabor de Pipocas Trufadas">
                 <button type="button" disabled={cupAdding} className={cupFlavorPreview === "ninho" ? "limited-cup-duo-item is-ninho is-selected" : "limited-cup-duo-item is-ninho"} aria-pressed={cupFlavorPreview === "ninho"} aria-controls="crocantes-quantidade" onClick={() => selectCupFlavor("ninho")}>
                   <img src="/images/pipocas-trufadas-ninho.avif?v=20261017-zoom2" alt="Pacote com zíper de Pipocas Trufadas de Caramelo e Ninho" width="840" height="1050" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
@@ -1973,14 +1975,23 @@ export default function Home() {
                   <div className="limited-cup-buy" id="crocantes-quantidade" aria-label="Quantidade e inclusão no pedido">
                     <div className="limited-cup-buy-heading"><strong>02 · QUANTOS PACOTES?</strong><small>{cupFlavorPreview ? (cupFlavorPreview === "ninho" ? "Ninho — caramelizadas com leite em pó." : "Chocolate — caramelizadas com crosta de chocolate.") : "Primeiro selecione Ninho ou Chocolate acima."}</small></div>
                     <div className="limited-cup-buy-actions">
-                      <div className="mini-quantity" role="group" aria-label="Quantidade de pacotes" aria-disabled={cupPhase !== "available"}>
-                        <Button type="button" variant="ghost" size="icon" aria-label="Diminuir quantidade de pacotes" disabled={cupPhase !== "available" || cupQuantity <= 1 || cupAdding} onClick={() => setCupQuantity((n) => Math.max(1, n - 1))}><Minus size={16} /></Button>
-                        <strong aria-live="polite">{cupQuantity}</strong>
-                        <Button type="button" variant="ghost" size="icon" aria-label="Aumentar quantidade de pacotes" disabled={cupPhase !== "available" || !cupFlavorPreview || cupQuantity >= Math.min(99, cupRemaining) || cupAdding} onClick={() => setCupQuantity((n) => Math.min(99, cupRemaining, n + 1))}><Plus size={16} /></Button>
+                      <div className="limited-cup-buy-composition">
+                        <div className="limited-cup-quantity-control">
+                          <span className="limited-cup-quantity-label">Quantidade</span>
+                          <div className="mini-quantity" role="group" aria-label="Quantidade de pacotes" aria-disabled={cupPhase !== "available"}>
+                            <Button type="button" variant="ghost" size="icon" aria-label="Diminuir quantidade de pacotes" disabled={cupPhase !== "available" || cupQuantity <= 1 || cupAdding} onClick={() => setCupQuantity((n) => Math.max(1, n - 1))}><Minus size={16} /></Button>
+                            <strong aria-live="polite">{cupQuantity}</strong>
+                            <Button type="button" variant="ghost" size="icon" aria-label="Aumentar quantidade de pacotes" disabled={cupPhase !== "available" || !cupFlavorPreview || cupQuantity >= Math.min(99, cupRemaining) || cupAdding} onClick={() => setCupQuantity((n) => Math.min(99, cupRemaining, n + 1))}><Plus size={16} /></Button>
+                          </div>
+                        </div>
+                        <div className="limited-cup-buy-estimate" aria-live="polite" aria-atomic="true">
+                          <span>{cupFlavorPreview ? "Subtotal" : "Valor por pacote"}</span>
+                          <strong>{currency.format(15.9 * (cupFlavorPreview ? cupQuantity : 1))}</strong>
+                        </div>
                       </div>
                       <Button type="button" className="limited-cup-buy-cta" disabled={cupAdding || cupPhase !== "available" || (Boolean(cupFlavorPreview) && !cupCanOrder)} onClick={handleCupPurchaseAction}>
                         {cupFlavorPreview ? <ShoppingBag size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
-                        {cupAdding ? "Conferindo estoque…" : !cupFlavorPreview ? "Escolher meu sabor" : cupCanOrder ? `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "pacote" : "pacotes"} · ${currency.format(15.9 * cupQuantity)}` : "Sabor indisponível"}
+                        {cupAdding ? "Conferindo estoque…" : !cupFlavorPreview ? "Escolher meu sabor" : cupCanOrder ? `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "pacote" : "pacotes"} ao pedido` : "Sabor indisponível"}
                       </Button>
                     </div>
                     {cupFlavorPreview && availability.stockChecked && <p className="limited-cup-stock-note" role="status">{cupRemaining > 0 ? `${cupRemaining} ${cupRemaining === 1 ? "pacote disponível" : "pacotes disponíveis"} deste sabor para adicionar ao pedido.` : "Esse sabor está esgotado ou já está totalmente no seu carrinho."}</p>}
