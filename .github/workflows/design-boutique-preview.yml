@@ -22,6 +22,7 @@ on:
       - work/trufadas-experiencia-premium-viva-20261018
       - work/checkout-premium-unificado-20261018
       - fix/trufadas-recontagem-sem-dupla-baixa-20261018
+      - fix/mp-orders-hmac-normalizacao-20261020
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
