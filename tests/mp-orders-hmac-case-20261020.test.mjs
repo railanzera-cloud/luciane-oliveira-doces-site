@@ -16,7 +16,7 @@ function fakeSdk() {
   const validator = ({ xSignature, xRequestId, dataId: id, secret: key }) => {
     seen.push(id);
     if (!xSignature) throw Object.assign(new Error("missing"), { reason: "MissingSignatureHeader" });
-    const match = xSignature.match(/\\bv1=([0-9a-f]{64})/);
+    const match = xSignature.match(/\bv1=([0-9a-f]{64})/);
     if (!match) throw Object.assign(new Error("malformed"), { reason: "MalformedSignatureHeader" });
     const actual = createHmac("sha256", key)
       .update(`id:${id};request-id:${xRequestId};ts:${ts};`).digest("hex");
@@ -84,10 +84,10 @@ test("lowercase URL ID uses only one validator attempt", () => {
 
 test("handler preserves original case for API lookup, DB event key, and payment data", () => {
   const source = readFileSync(new URL("../supabase/functions/mercadopago-webhook/index.ts", import.meta.url), "utf8");
-  assert.match(source, /validateOrdersNotificationSignature\\(\\{/);
-  assert.match(source, /fetchAuthoritativeOrder\\(dataId, accessToken\\)/);
+  assert.match(source, /validateOrdersNotificationSignature\(\{/);
+  assert.match(source, /fetchAuthoritativeOrder\(dataId, accessToken\)/);
   assert.match(source, /p_mp_order_id: dataId/);
   assert.match(source, /p_provider_event_key: providerEventKey/);
-  assert.match(source, /if \\(environment !== "test"\\)/);
-  assert.match(source, /if \\(applied.changed_to_paid === true\\) triggerOrderEffects\\(\\)/);
+  assert.match(source, /if \(environment !== "test"\)/);
+  assert.match(source, /if \(applied.changed_to_paid === true\) triggerOrderEffects\(\)/);
 });
