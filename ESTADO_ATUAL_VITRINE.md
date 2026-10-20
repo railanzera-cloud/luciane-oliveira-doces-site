@@ -372,3 +372,15 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - A partir dessa migração, atualizações comuns em `Pacotes em estoque` mantêm o marco congelado e devem considerar as reservas novas no **total** cadastrado; o painel calcula `Disponíveis = total - reservado`. Se necessário, melhorar o texto do painel em uma intervenção UI posterior, sem alteração financeira.
 - CI da branch `fix/trufadas-recontagem-sem-dupla-baixa-20261018` no commit `f4ff201753f19a342bbd9eff01c61436d2156dcc`: 512/512 testes, build/TypeScript, ZIP de build, aprovado. Não publicar ZIP sem necessidade; revisão foi somente de backend.
 - Nota: a homologação real de uma próxima venda e confirmação antiga ainda depende da operação (não foram criados pedidos de teste em produção). Consultar `docs/TRUFADAS-ESTOQUE-RECONCILIACAO-20261018.md` para detalhes.
+
+
+## Mercado Pago Orders API — correção HMAC em homologação (20/10/2026)
+
+- **Escopo exclusivo:** notificação de pagamentos de teste da Orders API; banco comercial `edqiwvccmboyayojvuea`; sem alteração em pedidos, Pix, cartões, QZ Tray, Estoque, Meta/Tintim ou Cloudflare.
+- **Origem:** `fix/trufadas-recontagem-sem-dupla-baixa-20261018` / `60b62fb9f48c1be755e106035ff444a5adca3444`. Branch isolada `fix/mp-orders-hmac-normalizacao-20261020` (verificar HEAD).
+- **Código de backend usado:** função remota `mercadopago-webhook` v24, ACTIVE, modo teste, comparada byte a byte com `diagnostic/mp-signature-20261007` antes da intervenção; não recuperar o entrypoint antigo presente na branch comercial.
+- **Correção preparada:** cálculo HMAC tenta `data.id` em minúsculas conforme orientação do Mercado Pago; fallback **somente com assinatura HMAC válida** sobre o ID original em caso de `SignatureMismatch`. O ID original continua no lookup de Orders, idempotência e RPC financeira. Não aceitar assinatura não verificada.
+- **Evidências de registros:** um diagnóstico de 26/09 mostrou HMAC válida; nove testes em 08/10 mostraram `SignatureMismatch` tanto no ID original quanto em minúsculas. O corpo dos testes de outubro indicava outra aplicação, mas **não está autenticado**. Conferir Webhook Secret, aplicação e ambiente sem extrair nem expor segredo.
+- **Testes:** oito testes sintéticos locais passaram; existe teste adicional estático sobre integridade do fluxo no GitHub. É obrigatório confirmar CI da branch, correta configuração do segredo e executar nova simulação autenticada pelo Mercado Pago antes de afirmar resolução.
+- **Publicação:** nenhum deploy de Supabase ou Cloudflare realizado nesta intervenção até a preparação do checkpoint; conferir novamente a versão ativa antes de agir. Sem merge em `main`.
+- **Handoff e rollback:** `docs/MP-ORDERS-HMAC-CONTINUIDADE-20261020.md` descreve evidências, sequência de testes e restauração segura da v24. Homologação de cartão/3DS vem depois da validação HMAC.
