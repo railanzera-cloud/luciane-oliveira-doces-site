@@ -1,7 +1,7 @@
 import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
-export const CATALOG_VERSION = "2026-10-18.trufadas-pacote";
+export const CATALOG_VERSION = "2026-10-24.fatia-coco-morango";
 export const CROCANTES = Object.freeze({
   "crocante-ninho": Object.freeze({ itemKey: "crocante_copo_ninho", name: "Pipocas Trufadas — Caramelo e Ninho", priceCents: 1590 }),
   "crocante-chocolate": Object.freeze({ itemKey: "crocante_copo_chocolate", name: "Pipocas Trufadas — Caramelo e Chocolate", priceCents: 1590 }),
@@ -41,6 +41,7 @@ export const SLICES = Object.freeze({
   "fatia-prestigio": Object.freeze({ id: "fatia-prestigio", itemKey: "slice_prestigio", name: "Prestígio", priceCents: 2000 }),
   "fatia-chocolate-maracuja": Object.freeze({ id: "fatia-chocolate-maracuja", itemKey: "slice_chocolate_maracuja", name: "Chocolate com Maracujá", priceCents: 2000 }),
   "fatia-chocolatudo": Object.freeze({ id: "fatia-chocolatudo", itemKey: "slice_chocolatudo", name: "Chocolatudo", priceCents: 2000 }),
+  "fatia-coco-cremoso-morango": Object.freeze({ id: "fatia-coco-cremoso-morango", itemKey: "slice_coco_cremoso_morango", name: "Coco cremoso com geleia de morango na massa branca", priceCents: 2000 }),
   "fatia-chocolate-cenoura": Object.freeze({ id: "fatia-chocolate-cenoura", itemKey: "slice_chocolate_cenoura", name: "Chocolate com Cenoura", priceCents: 2000 }),
 });
 

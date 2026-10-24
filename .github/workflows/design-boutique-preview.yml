@@ -22,12 +22,15 @@ on:
       - work/trufadas-experiencia-premium-viva-20261018
       - work/checkout-premium-unificado-20261018
       - fix/trufadas-recontagem-sem-dupla-baixa-20261018
+      - feature/fatia-coco-cremoso-morango-20261024
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
       - app/storefront-vitrine-editorial-experiment.css
       - app/storefront-checkout-premium.css
       - app/catalog.ts
+      - app/menu-availability.ts
+      - supabase/migrations/20261024153000_fatia_coco_cremoso_morango.sql
       - app/layout.tsx
       - app/page.tsx
       - app/order-checkout.ts
@@ -170,6 +173,8 @@ jobs:
               assert 'is-checkout-flow' in js, 'barra visual checkout ausente'
               assert 'boutique-final-action' in js, 'regiao de CTA contextual ausente'
               assert 'category-option-media' in css, 'cartoes fotograficos ausentes'
+              assert 'Coco cremoso com geleia de morango na massa branca' in js, 'fatia de coco ausente da vitrine'
+              assert 'fatia-coco-cremoso-morango.webp' in js, 'referencia de foto da fatia ausente'
               assert 'prefers-reduced-motion' in css, 'acessibilidade de movimento ausente'
               assert 'storefront' in css, 'escopo de estilo ausente'
               assert 'Sinais de anúncios' in js, 'CRM e rastreamento devem permanecer'

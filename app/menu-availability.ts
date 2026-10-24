@@ -73,6 +73,7 @@ export const SLICE_ITEM_KEYS: Record<string, string> = {
   "fatia-prestigio": "slice_prestigio",
   "fatia-chocolate-maracuja": "slice_chocolate_maracuja",
   "fatia-chocolatudo": "slice_chocolatudo",
+  "fatia-coco-cremoso-morango": "slice_coco_cremoso_morango",
   "fatia-chocolate-cenoura": "slice_chocolate_cenoura",
 };
 

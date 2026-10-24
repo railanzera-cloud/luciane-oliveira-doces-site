@@ -186,6 +186,17 @@ export const PRODUCTS: Product[] = [
     options: SLICE_OPTIONS,
   },
   {
+    id: "fatia-coco-cremoso-morango",
+    kind: "slice",
+    category: "Fatias Artesanais",
+    name: "Coco cremoso com geleia de morango na massa branca",
+    image: "/fatia-coco-cremoso-morango.webp",
+    imageAlt: "Fatia artesanal de massa branca com coco cremoso e geleia de morango",
+    available: true,
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
+    options: SLICE_OPTIONS,
+  },
+  {
     id: "fatia-chocolate-cenoura",
     kind: "slice",
     category: "Fatias Artesanais",

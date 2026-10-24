@@ -372,3 +372,14 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - A partir dessa migração, atualizações comuns em `Pacotes em estoque` mantêm o marco congelado e devem considerar as reservas novas no **total** cadastrado; o painel calcula `Disponíveis = total - reservado`. Se necessário, melhorar o texto do painel em uma intervenção UI posterior, sem alteração financeira.
 - CI da branch `fix/trufadas-recontagem-sem-dupla-baixa-20261018` no commit `f4ff201753f19a342bbd9eff01c61436d2156dcc`: 512/512 testes, build/TypeScript, ZIP de build, aprovado. Não publicar ZIP sem necessidade; revisão foi somente de backend.
 - Nota: a homologação real de uma próxima venda e confirmação antiga ainda depende da operação (não foram criados pedidos de teste em produção). Consultar `docs/TRUFADAS-ESTOQUE-RECONCILIACAO-20261018.md` para detalhes.
+
+
+## Nova fatia Coco Cremoso com Geleia de Morango — 24/10/2026
+
+- Implementação na branch `feature/fatia-coco-cremoso-morango-20261024`, base `60b62fb9f48c1be755e106035ff444a5adca3444`.
+- Nome comercial exato: **Coco cremoso com geleia de morango na massa branca**; preço unitário **R$ 20,00**; produto id `fatia-coco-cremoso-morango`; disponibilidade `slice_coco_cremoso_morango`.
+- Integração do catálogo público `app/catalog.ts`, disponibilidade `app/menu-availability.ts` e cotação autoritativa `supabase/functions/_shared/commerce-catalog.mjs`, compartilhada pela Edge Function `create-whatsapp-order`.
+- Mesmas opções e fluxo das demais fatias, com escolha de calda, quantidade, carrinho, WhatsApp, pedido e etiqueta. Os registros anteriores permanecem intocados.
+- Migração incremental `20261024153000_fatia_coco_cremoso_morango.sql`, insere somente o novo item com controle individual no /admin, sem reativar produtos ocultos.
+- Foto aprovada de origem `fatia_de_bolo_com_coco_e_frutas_vermelhas.png`. Assets de entrega `fatia-coco-cremoso-morango.webp` e `fatia-coco-cremoso-morango-card.webp` serão inseridos no ZIP de Cloudflare por empacotamento de assets aprovados; **os binários fotográficos não foram inseridos nesta branch do GitHub devido à limitação de transferência de mídia do conector**. Para qualquer build futura, os arquivos devem estar disponíveis em `public/` antes de empacotar.
+- Cloudflare não publicado automaticamente. Antes da homologação comercial, validar o deploy ativo, que a foto abre, que a fatia aparece e que backend aceita cotação R$20 sem pedido artificial.
