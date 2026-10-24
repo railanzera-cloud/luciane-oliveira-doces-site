@@ -383,3 +383,14 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - Migração incremental `20261024153000_fatia_coco_cremoso_morango.sql`, insere somente o novo item com controle individual no /admin, sem reativar produtos ocultos.
 - Foto aprovada de origem `fatia_de_bolo_com_coco_e_frutas_vermelhas.png`. Assets de entrega `fatia-coco-cremoso-morango.webp` e `fatia-coco-cremoso-morango-card.webp` serão inseridos no ZIP de Cloudflare por empacotamento de assets aprovados; **os binários fotográficos não foram inseridos nesta branch do GitHub devido à limitação de transferência de mídia do conector**. Para qualquer build futura, os arquivos devem estar disponíveis em `public/` antes de empacotar.
 - Cloudflare não publicado automaticamente. Antes da homologação comercial, validar o deploy ativo, que a foto abre, que a fatia aparece e que backend aceita cotação R$20 sem pedido artificial.
+
+
+### Homologação técnica e aplicação do backend — 24/10/2026
+- **Código do catálogo, disponibilidade, validador do backend e testes:** implementados e revisados no GitHub, sem alteração da `main`.
+- **Supabase comercial:** inserção idempotente da linha `slice_coco_cremoso_morango`, tipo `slice`, categoria `category_fatias`, status `available`. Migração de produção registrada como `20261024182017_add_fatia_coco_cremoso_morango_20261024`.
+- **Edge Function `create-whatsapp-order`:** versão 23 ativa. Foi alterado somente o catálogo compartilhado dessa função; os outros arquivos da versão 22 foram preservados e a configuração `verify_jwt=false` continuou igual por já usar autenticação própria com chave publicável.
+- **Teste real de leitura do banco:** `anon` consegue consultar a nova linha como `available`. Não foram criados pedidos fictícios, nem simulados pagamentos.
+- **CI:** execução `40119899885`, 515 testes aprovados, TypeScript/build íntegros e ZIP completo do código. Versão pronta para publicação manual.
+- **Fotografia:** principal `fatia-coco-cremoso-morango.webp` e card `fatia-coco-cremoso-morango-card.webp` são incorporadas e validadas no ZIP final de entrega, baseado no ZIP aprovado do CI. **A mídia binária ainda não está no repositório GitHub e deve ser preservada no ZIP de entrega ou enviada para `public/` no GitHub antes de uma compilação futura.** Nunca assumir que um ZIP reconstruído apenas com o GitHub já contém essa fotografia.
+- **Cloudflare:** NÃO foi publicado nesta intervenção. O novo produto só aparecerá na versão pública após o operador publicar o pacote consolidado. O estado Aberto/Fechado da loja não foi modificado.
+- **Homologação prática pendente:** verificar no Safari a miniatura, preço R$20, escolha de calda, quantidade, carrinho, entrega/retirada, checkout até WhatsApp e opção Disponível/Esgotado/Oculto no /admin; não marcar um pedido fictício em produção.
