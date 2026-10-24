@@ -23,6 +23,7 @@ on:
       - work/checkout-premium-unificado-20261018
       - fix/trufadas-recontagem-sem-dupla-baixa-20261018
       - feature/fatia-coco-cremoso-morango-20261024
+      - work/fatia-coco-nome-curto-vitrine-20261024
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css

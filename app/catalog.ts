@@ -27,6 +27,7 @@ export type Product = {
   kind: ProductKind;
   category: string;
   name: string;
+  cardName?: string; // Somente apresentação na vitrine; manter name nos pedidos.
   subtitle?: string;
   image?: string;
   cardImage?: string;
@@ -190,6 +191,8 @@ export const PRODUCTS: Product[] = [
     kind: "slice",
     category: "Fatias Artesanais",
     name: "Coco cremoso com geleia de morango na massa branca",
+    cardName: "Coco Cremoso com Morango",
+    subtitle: "Geleia de morango · Massa branca",
     image: "/fatia-coco-cremoso-morango.webp",
     imageAlt: "Fatia artesanal de massa branca com coco cremoso e geleia de morango",
     available: true,

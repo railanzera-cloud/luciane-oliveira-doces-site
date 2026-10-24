@@ -2278,7 +2278,7 @@ export default function Home() {
                         </span>
                         <span className="slice-card-copy">
                           <span className="boutique-slice-card-title">
-                            <strong>{slice.name}</strong>
+                            <strong>{slice.cardName ?? slice.name}</strong>
                             {selected && available && <span className="boutique-slice-selected-label">Selecionada</span>}
                           </span>
                           {slice.subtitle && <em>{slice.subtitle}</em>}

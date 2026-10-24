@@ -394,3 +394,12 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - **Fotografia:** principal `fatia-coco-cremoso-morango.webp` e card `fatia-coco-cremoso-morango-card.webp` são incorporadas e validadas no ZIP final de entrega, baseado no ZIP aprovado do CI. **A mídia binária ainda não está no repositório GitHub e deve ser preservada no ZIP de entrega ou enviada para `public/` no GitHub antes de uma compilação futura.** Nunca assumir que um ZIP reconstruído apenas com o GitHub já contém essa fotografia.
 - **Cloudflare:** NÃO foi publicado nesta intervenção. O novo produto só aparecerá na versão pública após o operador publicar o pacote consolidado. O estado Aberto/Fechado da loja não foi modificado.
 - **Homologação prática pendente:** verificar no Safari a miniatura, preço R$20, escolha de calda, quantidade, carrinho, entrega/retirada, checkout até WhatsApp e opção Disponível/Esgotado/Oculto no /admin; não marcar um pedido fictício em produção.
+
+### Refinamento final — título da fatia no cartão (24/10/2026)
+
+- Branch `work/fatia-coco-nome-curto-vitrine-20261024`, origem `c0a4ac0bf6c578568b6494977da61374a0ebe674`. Escopo **apenas visual** na vitrine Fatias Artesanais.
+- A fatia `fatia-coco-cremoso-morango` mantém `name: "Coco cremoso com geleia de morango na massa branca"` (catálogo de pedidos e backend).
+- Novo `cardName: "Coco Cremoso com Morango"` e `subtitle: "Geleia de morango · Massa branca"` para **o cartão de seleção somente**.
+- O cartão usa `slice.cardName ?? slice.name` para não alterar o texto das outras fatias. Escolha de calda, quantidade, carrinho, resumo, WhatsApp, preço R$20 e disponibilidade intactos.
+- Peso global `SLICE_WEIGHT_GRAMS=380` permanece como estava; confirmar peso real da nova fatia posteriormente, sem fabricar medida.
+- A foto oficial está presente no pacote de mídia aprovado, mas ainda não é versionada como binário no GitHub. Ao empacotar o build do mesmo commit, reinserir as duas imagens WebP aprovadas sem alterá-las e verificar ambos os recursos no ZIP final. Não publicar o Cloudflare automaticamente.
