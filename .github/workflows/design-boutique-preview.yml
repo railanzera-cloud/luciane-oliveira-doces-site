@@ -25,6 +25,7 @@ on:
       - feature/fatia-coco-cremoso-morango-20261024
       - work/fatia-coco-nome-curto-vitrine-20261024
       - fix/fatia-coco-sem-repeticao-checkout-20261024
+      - fix/admin-pedidos-quantidade-fatias-clara-20261024
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -40,6 +41,7 @@ on:
       - app/globals.css
       - components/admin-results-panel.tsx
       - components/admin-orders-panel.tsx
+      - lib/admin-order-item-display.ts
       - lib/kitchen-alert.ts
       - lib/kitchen-print-health.ts
       - docs/COZINHA-ALERTAS-INTELIGENTES-20261017.md

@@ -412,3 +412,12 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - Helper exclusivamente visual `productCheckoutLabel` usa `cardName` ("Coco Cremoso com Morango") no carrinho, aviso de adição e resumo. Detalhe editorial "Geleia de morango · Massa branca" fica em linha secundária própria, não dentro do título. A vitrine permanece idêntica.
 - WhatsApp usa nome oficial completo uma única vez, e a opção de calda no campo de acabamento; IDs, valores, disponibilidade, banco, cozinha e pixel preservados.
 - Nenhum deploy Cloudflare automático; as fotos WebP aprovadas seguem fora do repositório como binários e precisam entrar no ZIP do commit (mesmo conteúdo do pacote anterior).
+
+### Correção de rótulo no painel de Pedidos — 24/10/2026
+
+- Base: `c0a6ac88dce2af5138055b48a1f91cd34ae6f45d`; intervenção `fix/admin-pedidos-quantidade-fatias-clara-20261024`. Escopo apenas visual no componente `AdminOrdersPanel` e helper puro `lib/admin-order-item-display.ts`.
+- Caso real comprovado #1396: item Coco com `quantity=2`, `size_label="1 fatia"`, preço unitário R$ 20 e subtotal R$ 40; nenhum erro de quantidade armazenada. O painel mostrava `2x ... — 1 fatia`.
+- Agora exibe `2x Coco Cremoso com Morango` em destaque e `2 fatias · Com calda de chocolate` como detalhe. Para outras fatias, singular/plural de acordo com `quantity` e o mesmo texto original das opções.
+- Somente itens com variante `size_label="1 fatia"` recebem esse formato. Produtos com tamanho 750 ml e embalagens de pipoca conservam a exibição anterior.
+- Sem alterações em banco, itens históricos, fila de impressão, ESC/POS, WhatsApp, pagamentos, Meta, estoque, cozinha ou registro de pedidos. Não publicar em Cloudflare sem autorização.
+- O pacote Cloudflare completo precisa incluir as fotografias aprovadas `fatia-coco-cremoso-morango.webp` e `fatia-coco-cremoso-morango-card.webp`, ainda não versionadas como binários no GitHub. Validar rotas e imagens após empacotamento.

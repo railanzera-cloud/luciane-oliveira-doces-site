@@ -35,6 +35,7 @@ import {
   KITCHEN_ERROR_ALERT_INTERVAL_MS, loadKitchenPrintIssue,
   type KitchenPrintIssue,
 } from "@/lib/kitchen-print-health";
+import { formatAdminOrderItem } from "@/lib/admin-order-item-display";
 import {
   confirmOfflinePayment,
   createReprint,
@@ -852,7 +853,10 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
                 </header>
                 <div className="admin-order-customer"><strong>{order.customer_name}</strong><span>{order.customer_phone}</span></div>
                 <div className="admin-order-badges"><span>{order.fulfillment_type === "pickup" ? <ShoppingBag size={15} /> : <Truck size={15} />}{order.fulfillment_type === "pickup" ? "Retirada" : "Entrega"}</span><span className={order.payment_status === "paid" ? "is-paid" : "is-pay-later"}>{order.payment_method === "cash" ? <Banknote size={15} /> : <CreditCard size={15} />}{paymentLabel(order)}</span></div>
-                <div className="admin-order-items">{order.order_items.map((item) => <div key={item.id}><strong>{item.quantity}x {item.name}{item.size_label ? ` — ${item.size_label}` : ""}</strong>{item.option_names?.length > 0 && <span>{item.option_names.join(" + ")}</span>}</div>)}</div>
+                <div className="admin-order-items">{order.order_items.map((item) => {
+                  const display = formatAdminOrderItem(item);
+                  return <div key={item.id}><strong>{display.title}</strong>{display.detail && <span>{display.detail}</span>}</div>;
+                })}</div>
                 {order.fulfillment_type === "delivery" && <div className="admin-order-address"><MapPin size={16} /><span>{order.street}, {order.street_number}{order.complement ? ` — ${order.complement}` : ""}<br />{order.neighborhood}{order.reference ? ` · Ref.: ${order.reference}` : ""}</span></div>}
                 {order.payment_method === "cash" && order.cash_change_for && <p className="admin-order-change">Troco para: <strong>{money.format(Number(order.cash_change_for))}</strong></p>}
                 {order.notes && <p className="admin-order-change"><strong>Observação:</strong> {order.notes}</p>}
