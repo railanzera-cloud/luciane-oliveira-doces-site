@@ -47,7 +47,7 @@ test("backend catalog remains in exact commercial parity with the current fronte
     frontend.POPCORN.options.map(({ id, name, pricingGroup }) => ({ id, name, pricingGroup })),
   );
   assert.equal(Object.keys(POPCORN_FLAVORS).length, 8);
-  assert.equal(Object.keys(SLICES).length, 6);
+  assert.equal(Object.keys(SLICES).length, frontend.SLICES.length);
   assert.equal(Object.keys(DELIVERY_ZONES).length, frontend.DELIVERY_ZONES.length);
   for (const zone of frontend.DELIVERY_ZONES) {
     assert.equal(DELIVERY_ZONES[zone.id].priceCents, zone.price * 100);
