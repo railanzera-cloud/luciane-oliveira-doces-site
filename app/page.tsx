@@ -1397,7 +1397,7 @@ export default function Home() {
       setAddedNotice({
         category: "fatias",
         productId: selectedSlice.id,
-        description: `${sliceQuantity}x ${productCheckoutLabel(selectedSlice)} · ${SLICE_OPTIONS.find((option) => option.id === sliceOptionId)?.name ?? "Personalizada"}`,
+        description: `${sliceQuantity}x ${selectedSlice.cardName ?? productLabel(selectedSlice)} · ${SLICE_OPTIONS.find((option) => option.id === sliceOptionId)?.name ?? "Personalizada"}`,
       });
     }
     const destination = wasEditing ? "carrinho" : "recebimento";
