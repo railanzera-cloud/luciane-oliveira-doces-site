@@ -403,3 +403,12 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - O cartão usa `slice.cardName ?? slice.name` para não alterar o texto das outras fatias. Escolha de calda, quantidade, carrinho, resumo, WhatsApp, preço R$20 e disponibilidade intactos.
 - Peso global `SLICE_WEIGHT_GRAMS=380` permanece como estava; confirmar peso real da nova fatia posteriormente, sem fabricar medida.
 - A foto oficial está presente no pacote de mídia aprovado, mas ainda não é versionada como binário no GitHub. Ao empacotar o build do mesmo commit, reinserir as duas imagens WebP aprovadas sem alterá-las e verificar ambos os recursos no ZIP final. Não publicar o Cloudflare automaticamente.
+
+### Correção de repetição no pedido — Fatia Coco Cremoso (24/10/2026)
+
+- Origem validada: commit `43ab818358369039c5a28a74aab507f80c391251`; branch de correção `fix/fatia-coco-sem-repeticao-checkout-20261024`.
+- Causa: `productLabel()` concatenava `name + (subtitle)` inclusive quando o nome oficial já contém "geleia de morango na massa branca". Isso aparecia no carrinho, aviso após adição, resumo e payload WhatsApp.
+- Corrigido sem tocar no catálogo nem no backend: `productLabel` retorna `product.name` integral para `fatia-coco-cremoso-morango`, sem repetição. As outras fatias preservam sua concatenação anterior.
+- Helper exclusivamente visual `productCheckoutLabel` usa `cardName` ("Coco Cremoso com Morango") no carrinho, aviso de adição e resumo. Detalhe editorial "Geleia de morango · Massa branca" fica em linha secundária própria, não dentro do título. A vitrine permanece idêntica.
+- WhatsApp usa nome oficial completo uma única vez, e a opção de calda no campo de acabamento; IDs, valores, disponibilidade, banco, cozinha e pixel preservados.
+- Nenhum deploy Cloudflare automático; as fotos WebP aprovadas seguem fora do repositório como binários e precisam entrar no ZIP do commit (mesmo conteúdo do pacote anterior).

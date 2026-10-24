@@ -263,9 +263,17 @@ function productLabel(product: Product) {
   if (product.id === "crocante-ninho" || product.id === "crocante-chocolate") {
     return `Pipocas Trufadas — ${product.name}`;
   }
+  // A descrição editorial deste sabor já integra seu nome oficial.
+  // Não repetir "geleia de morango · massa branca" nos pedidos e no WhatsApp.
+  if (product.id === "fatia-coco-cremoso-morango") return product.name;
   return product.subtitle
     ? `${product.name} (${product.subtitle.toLowerCase()})`
     : product.name;
+}
+
+// Nome resumido somente para elementos visuais da compra.
+function productCheckoutLabel(product: Product) {
+  return product.cardName ?? productLabel(product);
 }
 
 function trackMetaEvent(eventName: MetaEventName, payload?: Record<string, unknown>) {
@@ -1389,7 +1397,7 @@ export default function Home() {
       setAddedNotice({
         category: "fatias",
         productId: selectedSlice.id,
-        description: `${sliceQuantity}x ${productLabel(selectedSlice)} · ${SLICE_OPTIONS.find((option) => option.id === sliceOptionId)?.name ?? "Personalizada"}`,
+        description: `${sliceQuantity}x ${productCheckoutLabel(selectedSlice)} · ${SLICE_OPTIONS.find((option) => option.id === sliceOptionId)?.name ?? "Personalizada"}`,
       });
     }
     const destination = wasEditing ? "carrinho" : "recebimento";
@@ -2455,7 +2463,8 @@ export default function Home() {
                             </span>
                             <div className="cart-item-info">
                             <span className="product-category">{product.category}</span>
-                            <h3>{productLabel(product)}</h3>
+                            <h3>{productCheckoutLabel(product)}</h3>
+                            {product.cardName && product.subtitle && <small className="cart-item-subtitle">{product.subtitle}</small>}
                             <div className="cart-item-specs">
                               <span>{variant.label}</span>
                               {product.kind === "slice" && <span>{SLICE_WEIGHT_GRAMS} g por fatia</span>}
@@ -2715,7 +2724,8 @@ export default function Home() {
                     <div className="summary-item-main">
                       <span className="summary-item-index" aria-hidden="true">{index + 1}</span>
                       <div>
-                        <strong>{productLabel(product)}</strong>
+                        <strong>{productCheckoutLabel(product)}</strong>
+                        {product.cardName && product.subtitle && <span className="summary-product-subtitle">{product.subtitle}</span>}
                         <span className="summary-variant">{variant.label}</span>
                         {names && product.optionLabel && <p>{product.optionLabel}: {names}</p>}
                         <small>Quantidade: {item.quantity}</small>

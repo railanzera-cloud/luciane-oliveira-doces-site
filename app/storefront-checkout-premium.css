@@ -212,3 +212,22 @@
     animation:none !important;transition:none !important;transform:none !important;
   }
 }
+
+/* Fatia coco: título curto, detalhe em linha secundária. Apenas no checkout. */
+.storefront #carrinho .cart-item-info .cart-item-subtitle {
+  display:block;
+  margin:5px 0 9px;
+  color:#82634b;
+  font-size:.78rem;
+  font-weight:500;
+  line-height:1.4;
+  overflow-wrap:anywhere;
+}
+.storefront #carrinho .summary-product-subtitle {
+  display:block;
+  color:#82634b;
+  font-size:.72rem;
+  font-weight:500;
+  line-height:1.35;
+  margin-top:3px;
+}

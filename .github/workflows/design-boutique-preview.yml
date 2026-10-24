@@ -24,6 +24,7 @@ on:
       - fix/trufadas-recontagem-sem-dupla-baixa-20261018
       - feature/fatia-coco-cremoso-morango-20261024
       - work/fatia-coco-nome-curto-vitrine-20261024
+      - fix/fatia-coco-sem-repeticao-checkout-20261024
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css

@@ -28,3 +28,20 @@ test("O fluxo de pedido e WhatsApp usa o nome comercial completo", () => {
   assert.ok(backend.includes(fullName));
   assert.doesNotMatch(backend, /Coco Cremoso com Morango/);
 });
+
+test("Fatia coco não repete massa branca e geleia no checkout ou WhatsApp", () => {
+  const page = readFileSync("app/page.tsx", "utf8");
+  const css = readFileSync("app/storefront-checkout-premium.css", "utf8");
+  assert.match(page, /if \(product\.id === "fatia-coco-cremoso-morango"\) return product\.name/);
+  assert.match(page, /function productCheckoutLabel\(product: Product\)/);
+  assert.match(page, /return product\.cardName \?\? productLabel\(product\)/);
+  assert.match(page, /description: \`\$\{sliceQuantity\}x \$\{productCheckoutLabel\(selectedSlice\)\}/);
+  assert.match(page, /<h3>\{productCheckoutLabel\(product\)\}<\/h3>/);
+  assert.match(page, /<strong>\{productCheckoutLabel\(product\)\}<\/strong>/);
+  assert.match(page, /className="cart-item-subtitle"/);
+  assert.match(page, /className="summary-product-subtitle"/);
+  assert.match(css, /\.cart-item-subtitle/);
+  assert.match(css, /\.summary-product-subtitle/);
+  assert.match(page, /name: productLabel\(product\), size: variant\.whatsappLabel/);
+  assert.match(page, /return product\.subtitle\s*\? \`\$\{product\.name\} \(\$\{product\.subtitle\.toLowerCase\(\)\}\)\`/);
+});
