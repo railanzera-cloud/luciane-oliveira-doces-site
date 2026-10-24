@@ -22,7 +22,7 @@ test("Nome abreviado aparece só na vitrine da nova fatia", () => {
 });
 
 test("O fluxo de pedido e WhatsApp usa o nome comercial completo", () => {
-  assert.match(page, /description: \x60\$\{sliceQuantity\}x \$\{productLabel\(selectedSlice\)\}/);
+  assert.match(page, /description: \x60\$\{sliceQuantity\}x \$\{selectedSlice\.cardName \?\? productLabel\(selectedSlice\)\}/);
   assert.match(page, /<strong>\{selectedSlice\.name\}<\/strong>/);
   assert.match(catalog, /name: "Coco cremoso com geleia de morango na massa branca"/);
   assert.ok(backend.includes(fullName));
@@ -35,7 +35,7 @@ test("Fatia coco não repete massa branca e geleia no checkout ou WhatsApp", () 
   assert.match(page, /if \(product\.id === "fatia-coco-cremoso-morango"\) return product\.name/);
   assert.match(page, /function productCheckoutLabel\(product: Product\)/);
   assert.match(page, /return product\.cardName \?\? productLabel\(product\)/);
-  assert.match(page, /description: \`\$\{sliceQuantity\}x \$\{productCheckoutLabel\(selectedSlice\)\}/);
+  assert.match(page, /description: \`\$\{sliceQuantity\}x \$\{selectedSlice\.cardName \?\? productLabel\(selectedSlice\)\}/);
   assert.match(page, /<h3>\{productCheckoutLabel\(product\)\}<\/h3>/);
   assert.match(page, /<strong>\{productCheckoutLabel\(product\)\}<\/strong>/);
   assert.match(page, /className="cart-item-subtitle"/);
