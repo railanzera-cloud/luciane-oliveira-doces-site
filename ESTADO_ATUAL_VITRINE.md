@@ -448,3 +448,13 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - Ao gerar ZIP completo, anexar as mesmas imagens aprovadas `fatia-coco-cremoso-morango.webp` e `fatia-coco-cremoso-morango-card.webp` apenas para não regredir outro sabor, sem tocar nele.
 
 - Complemento comercial (25/10): somente uma última fornada hoje (3 bolos, 21 fatias), encomenda para **entrega/retirada ainda hoje**, nunca para outro dia; previsão de prontidão 17h, sem prometer entrega pontual. Ajuste de texto na vitrine, carrinho e mensagem registrada no WhatsApp; nenhum ajuste de backend ou preços.
+
+## 25/10/2026 — Controle de fatias externas da pré-reserva Chocolate com Morango
+- Base: `3e16bcb8b129d552893a15c0ba195131194ba75a` branch `work/controle-whatsapp-externo-chocolate-morango-20261025`. **Não** alterar Coco Cremoso, fatias distintas, Pix, impressora ou preços.
+- A vitrine apresenta "Produção limitada para hoje · R$ 22 por fatia" **sem revelar contagem numérica**. O RPC público retorna restante para impedir esgotamento, mas a UI não exibe esse número.
+- Novo campo `slice_preorder_batches.external_reserved_units` registra somente fatias comprometidas **fora do checkout do site** (WhatsApp manual), sem criar pedidos, vendas contábeis ou pagamentos.
+- Estoque atomizado: `remaining=capacity-reserved_units-external_reserved_units`. Lock no trigger de reserva + CAS na operação administrativa. Trava lotação e registra auditoria de correções.
+- Componente isolado `AdminStrawberryPreorder` na aba Disponibilidade mostra fatias do site, WhatsApp externo e vagas disponíveis, com input do total externo, atualização protegida, refresh e erro explicativo.
+- Operação: registrar no campo o **TOTAL** comprometido fora do site, não o número do último pedido. Corrigir o total se cancelar venda externa; não duplicar pedido já registrado no painel Pedidos.
+- Admin mantém status físico "Esgotado" enquanto lote de pré-reserva ativo, e bloqueia ativação equivocada de pronta-entrega. Não abrir a loja nem ativar novo lote.
+- Migração `20261025163500_strawberry_preorder_external_units.sql` aplica manutenção sem zerar as reservas, não muda capacidade de 21.

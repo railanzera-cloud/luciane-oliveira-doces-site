@@ -2288,7 +2288,7 @@ export default function Home() {
                   <span className="slice-preorder-kicker">Última fornada de hoje · Pré-reserva</span>
                   <strong>Chocolate com Morango: garanta sua fatia para hoje</strong>
                   <p>As primeiras fatias esgotaram cedo. A Luciane está preparando mais 3 bolos, previstos para ficar prontos por volta das <b>17h</b>. Entrega ou retirada <b>ainda hoje</b>, após confirmação pelo WhatsApp.</p>
-                  <small>{strawberryPreorder.remaining} {strawberryPreorder.remaining===1 ? "fatia restante":"fatias restantes"} para reservar hoje · R$ 22 cada</small>
+                  <small>{strawberryPreorder.remaining > 0 ? "Produção limitada para hoje · R$ 22 por fatia" : "Pré-reservas esgotadas para hoje"}</small>
                 </aside>}
                 {!SLICES.some((slice) => sliceIsVisible(slice.id)) && <p className="selection-helper" role="status">Nenhuma fatia disponível no momento.</p>}
                 <RadioGroup className="slice-grid" value={sliceProductId} onValueChange={(value) => {

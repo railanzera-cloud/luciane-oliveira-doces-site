@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminOrdersPanel } from "@/components/admin-orders-panel";
 import { AdminResultsPanel } from "@/components/admin-results-panel";
 import { AdminTrufadasStock } from "@/components/admin-trufadas-stock";
+import { AdminStrawberryPreorder } from "@/components/admin-strawberry-preorder";
 import {
   loadRemoteAvailability,
   updateMenuItemStatus,
@@ -63,18 +64,20 @@ function AvailabilityControl({
   status,
   pending,
   onChange,
+  preorderActive = false,
 }: {
   item: MenuAvailabilityItem;
   status: AvailabilityStatus;
   pending: boolean;
   onChange: (status: AvailabilityStatus) => void;
+  preorderActive?: boolean;
 }) {
   return (
     <article className={`admin-item status-${status}`} aria-busy={pending}>
       <div className="admin-item-heading">
         <div>
           <strong>{item.name}</strong>
-          <span>{STATUS_LABELS[status]}</span>
+          <span>{preorderActive ? "Esgotado para pronta-entrega · pré-reserva ativa" : STATUS_LABELS[status]}</span>
         </div>
         {pending ? <LoaderCircle className="admin-spinner" size={18} aria-label="Salvando" /> : status === "available" ? <Check size={18} aria-hidden="true" /> : null}
       </div>
@@ -84,7 +87,8 @@ function AvailabilityControl({
             type="button"
             className={status === option.value ? "is-selected" : ""}
             aria-pressed={status === option.value}
-            disabled={pending}
+            disabled={pending || (preorderActive && option.value==="available")}
+            title={preorderActive && option.value==="available" ? "Encerre primeiro o lote de pré-reserva; ainda não é estoque pronto." : undefined}
             onClick={() => onChange(option.value)}
             key={option.value}
           >
@@ -145,13 +149,20 @@ export default function AdminPage() {
     setLoadError("");
     try {
       const snapshot = await loadRemoteAvailability();
+      // A loja permite reservar, mas o painel deve mostrar o estoque imediato REAL.
+      if (snapshot.slicePreorder?.active && supabase) {
+        const { data, error } = await supabase.from("menu_availability")
+          .select("status").eq("item_key", "slice_chocolate_morango").single();
+        if (error) throw error;
+        snapshot.statuses.slice_chocolate_morango = data.status as AvailabilityStatus;
+      }
       setAvailability(snapshot);
     } catch (error) {
       setLoadError(friendlyError(error));
     } finally {
       setLoadingMenu(false);
     }
-  }, [session]);
+  }, [session, supabase]);
 
   useEffect(() => {
     if (!session) return;
@@ -336,8 +347,9 @@ export default function AdminPage() {
             <AvailabilityControl item={item} status={categoryStatus(item.itemKey)} pending={pendingKeys.includes(item.itemKey)} onChange={(status) => changeItemStatus(item, status)} key={item.itemKey} />
           ))}
           <h3 className="admin-subheading">Fatias</h3>
+          {supabase && <AdminStrawberryPreorder client={supabase} onChanged={reloadMenu} />}
           <div className="admin-item-list">
-            {slices.map((item) => <AvailabilityControl item={item} status={categoryStatus(item.itemKey)} pending={pendingKeys.includes(item.itemKey)} onChange={(status) => changeItemStatus(item, status)} key={item.itemKey} />)}
+            {slices.map((item) => <AvailabilityControl item={item} status={categoryStatus(item.itemKey)} preorderActive={item.itemKey==="slice_chocolate_morango" && Boolean(availability.slicePreorder?.active)} pending={pendingKeys.includes(item.itemKey)} onChange={(status) => changeItemStatus(item, status)} key={item.itemKey} />)}
           </div>
         </section>
         </TabsContent>

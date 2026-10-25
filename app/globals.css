@@ -4342,3 +4342,22 @@ footer {
  .admin-kitchen-awake-controls { display: grid; }
  .admin-kitchen-awake-controls button { width: 100%; }
 }
+
+/* Controle discreto de fatias comprometidas fora do site (admin apenas). */
+.admin-preorder-stock{margin:14px 0 19px;padding:18px;border:1px solid rgba(214,160,98,.40);background:linear-gradient(140deg,#281b16,#1a1310);border-radius:18px;color:#f7e7d6}
+.admin-preorder-stock h3{margin:3px 0 8px;font-size:1.1rem;line-height:1.3;color:#fff0df}
+.admin-preorder-stock p{margin:4px 0 12px;font-size:.83rem;line-height:1.48;color:#cdb7a0}
+.admin-preorder-stock .preorder-eyebrow{font-size:.68rem;text-transform:uppercase;font-weight:800;letter-spacing:.12em;color:#e5b178}
+.admin-preorder-numbers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:13px 0}
+.admin-preorder-numbers div{border:1px solid rgba(224,176,124,.18);border-radius:11px;padding:11px 9px;background:rgba(255,255,255,.035)}
+.admin-preorder-numbers strong{font-size:1.24rem;color:#ffd092;display:block;font-variant-numeric:tabular-nums}
+.admin-preorder-numbers span{font-size:.67rem;line-height:1.3;color:#d4bba0;display:block}
+.admin-preorder-stock label{font-weight:700;display:block;font-size:.8rem;margin-bottom:8px}
+.admin-preorder-entry{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.admin-preorder-entry input{min-width:76px;max-width:114px;border:1px solid #8d6445;border-radius:11px;background:#fff5eb;color:#25150e;font-size:1.1rem;font-weight:700;padding:11px;flex:1;font-variant-numeric:tabular-nums}
+.admin-preorder-entry button{padding:11px 16px;border-radius:11px;border:1px solid #d29a5f;background:#cf8b44;color:#22150e;font-weight:800;min-height:46px}
+.admin-preorder-entry button:disabled{opacity:.42}
+.admin-preorder-stock .preorder-feedback{margin-top:10px;color:#c5e2bf}
+.admin-preorder-stock .preorder-error{margin-top:10px;color:#ffd1be}
+.admin-preorder-stock .preorder-note{font-size:.73rem;margin:10px 0 0}
+@media(max-width:390px){.admin-preorder-numbers{gap:5px}.admin-preorder-numbers div{padding:9px 6px}}
