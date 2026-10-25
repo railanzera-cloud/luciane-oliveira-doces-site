@@ -70,6 +70,7 @@ on:
       - supabase/migrations/20261018185000_trufadas_stocktake_reservation_reconcile.sql
       - supabase/migrations/20261018222000_trufadas_stocktake_cutoff_stability.sql
       - supabase/migrations/20261025154000_chocolate_morango_pre_reserva.sql
+      - supabase/migrations/20261025154500_strawberry_preorder_guard.sql
       - ESTADO_ATUAL_VITRINE.md
       # Todos os testes da vitrine ativam a CI; evita checkpoint sem ZIP.
       - 'tests/*.test.mjs'

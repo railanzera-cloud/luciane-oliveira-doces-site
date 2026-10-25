@@ -430,3 +430,12 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - O backend Edge revalida essa exceção em caso de `sold_out` e transforma erro de lote esgotado em mensagem amigável. O frontend exibe previsão, saldo de reservas e orientações, e mantém checkout/pagamento sem registrar pagamento fictício.
 - Lote inicia `enabled=false`: somente habilitar depois de Edge migrada, CI validada e ZIP publicado em Cloudflare. Não ativar loja nem disponibilizar imediatamente sem essas etapas; usuário publica Cloudflare manualmente.
 - Após contagem física da produção e atendimento, desabilitar o lote e administrar disponibilidade regular sem reabrir automaticamente se ainda indisponível.
+
+### Estado de produção — pré-reserva 25/10/2026, após validação
+- Migração SQL de pré-reserva aplicada no projeto comercial correto; lotes/ajustes de estoque isolados.
+- `create-whatsapp-order` versão **24** implantada com base no código desta branch, preservando os 3 arquivos auxiliares anteriormente implantados e o estado `verify_jwt=false` protegido por validação de publishable key.
+- Conferido com papel `anon`: `public_slice_preorder()` retornou `{active:true, remaining:21, ready_at:"2026-10-25T20:00:00+00:00"}` após habilitação do lote às 15:41 (America/Belem). Não foram criados pedidos artificiais.
+- `menu_availability.slice_chocolate_morango` permaneceu `sold_out` até publicação do frontend novo; somente frontend atualizado pode habilitar a seleção por RPC de pré-reserva.
+- Migração complementar `20261025154500_strawberry_preorder_guard.sql` impede trocar para venda pronta via painel enquanto o lote estiver habilitado.
+- **Pendência física**: aguardar produção e confirmar à Luciane depois das 17h; a previsão não dispara automaticamente liberação de impressão.
+- Não houve deploy no Cloudflare. O ZIP completo da mesma revisão deve receber as fotos WebP aprovadas e ser publicado manualmente. Não mudar main/merge.
