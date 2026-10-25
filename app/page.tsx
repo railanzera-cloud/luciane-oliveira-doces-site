@@ -1389,9 +1389,10 @@ export default function Home() {
       return;
     }
     if (!sliceReady) { setSelectionMessage("Escolha com calda de chocolate ou sem calda para continuar."); requestScroll("calda-fatias"); return; }
-    if (selectedSlice.id === "fatia-chocolate-morango" && strawberryPreorder) {
+    if (selectedSlice.id === "fatia-chocolate-morango" && availability.slicePreorder?.active) {
       const original=editingId ? cart.find(item=>item.id===editingId)?.quantity ?? 0 : 0;
-      if (reservedInCart-original+sliceQuantity > strawberryPreorder.remaining) {
+      const reserved=cart.filter(item=>item.productId==="fatia-chocolate-morango").reduce((sum,item)=>sum+item.quantity,0);
+      if (reserved-original+sliceQuantity > availability.slicePreorder.remaining) {
         setSelectionMessage("Limite da pré-reserva atingido. Reduza a quantidade.");return;
       }
     }
@@ -2373,7 +2374,11 @@ export default function Home() {
                   <div className="quantity-control" aria-label="Quantidade">
                     <Button type="button" variant="ghost" size="icon" onClick={() => setSliceQuantity((current) => Math.max(1, current - 1))} disabled={!sliceReady || sliceQuantity === 1} aria-label="Diminuir quantidade"><Minus size={18} /></Button>
                     <strong aria-live="polite">{sliceQuantity}</strong>
-                    <Button type="button" variant="ghost" size="icon" onClick={() => setSliceQuantity((current) => current + 1)} disabled={!sliceReady || (selectedSlice?.id==="fatia-chocolate-morango" && !!strawberryPreorder && sliceQuantity+reservedInCart-(editingId ? cart.find(item=>item.id===editingId)?.quantity ?? 0:0) >= (strawberryPreorder?.remaining??0))} aria-label="Aumentar quantidade"><Plus size={18} /></Button>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setSliceQuantity((current) => {
+                      const own=editingId ? cart.find(item=>item.id===editingId)?.quantity ?? 0:0;
+                      return selectedSlice?.id==="fatia-chocolate-morango" && strawberryPreorder
+                        && current+reservedInCart-own >= strawberryPreorder.remaining ? current : current+1;
+                    })} disabled={!sliceReady} aria-label="Aumentar quantidade"><Plus size={18} /></Button>
                   </div>
                   <div className="draft-total"><small>Subtotal</small><strong>{selectedSliceVariant ? currency.format(selectedSliceVariant.price * sliceQuantity) : "Escolha a fatia"}</strong></div>
                 </div>
