@@ -27,6 +27,7 @@ on:
       - fix/fatia-coco-sem-repeticao-checkout-20261024
       - fix/admin-pedidos-quantidade-fatias-clara-20261024
       - feature/pre-reserva-chocolate-morango-20261025
+      - work/pre-reserva-copy-premium-20261025
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css

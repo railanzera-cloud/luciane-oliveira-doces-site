@@ -439,3 +439,10 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - Migração complementar `20261025154500_strawberry_preorder_guard.sql` impede trocar para venda pronta via painel enquanto o lote estiver habilitado.
 - **Pendência física**: aguardar produção e confirmar à Luciane depois das 17h; a previsão não dispara automaticamente liberação de impressão.
 - Não houve deploy no Cloudflare. O ZIP completo da mesma revisão deve receber as fotos WebP aprovadas e ser publicado manualmente. Não mudar main/merge.
+
+## Refinamento de comunicação da pré-reserva Chocolate com Morango (25/10)
+- Origem confirmada `12606e969166650dd38aa2eec93376c43a03fdf8`. Só copy: convite da próxima fornada na vitrine, rótulos de CTA ao escolher Chocolate com Morango, aviso no carrinho e WhatsApp.
+- Sem alteração no checkout, quantidade de 21, estoque, horários, pagamento, redirecionamento Tintim, impressão, Supabase, regras de loja aberta ou outras fatias.
+- Rótulo “Finalizar pré-reserva no WhatsApp” só quando carrinho tiver Chocolate com Morango em pré-reserva; demais produtos usam rótulo antigo.
+- Evitar promessa de prontidão e pagamento confirmado: previsão 17h aproximada, loja confirma disponibilidade e entrega/retirada.
+- Ao gerar ZIP completo, anexar as mesmas imagens aprovadas `fatia-coco-cremoso-morango.webp` e `fatia-coco-cremoso-morango-card.webp` apenas para não regredir outro sabor, sem tocar nele.

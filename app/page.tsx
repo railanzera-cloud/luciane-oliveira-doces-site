@@ -849,6 +849,7 @@ export default function Home() {
     && popcornOptionIds.every((optionId) => popcornFlavorIsAvailable(optionId)),
   );
   const strawberryPreorder = availability.slicePreorder?.active ? availability.slicePreorder : null;
+  const cartHasStrawberryPreorder = Boolean(strawberryPreorder && cart.some(item=>item.productId==="fatia-chocolate-morango"));
   const reservedInCart = cart.filter(item=>item.productId==="fatia-chocolate-morango").reduce((sum,item)=>sum+item.quantity,0);
   const sliceReady = Boolean(
     availability.ordersOpen
@@ -940,7 +941,7 @@ export default function Home() {
       ? payment === "mercado_pago_pix" ? "Gerar Pix e confirmar pedido"
         : payment === "mercado_pago_card" ? "Preencher e pagar com cartão"
           : "Confirmar pedido"
-      : whatsAppRetryAvailable ? "Tentar novamente" : "Finalizar pedido no WhatsApp";
+      : whatsAppRetryAvailable ? "Tentar novamente" : cartHasStrawberryPreorder ? "Finalizar pré-reserva no WhatsApp" : "Finalizar pedido no WhatsApp";
   // A ação flutuante informa exatamente o que ainda falta preencher.
   // Não muda a função acionada: checkout incompleto continua rolando para o próximo campo.
   const checkoutNextActionLabel = !fulfillment
@@ -980,7 +981,9 @@ export default function Home() {
         : draftReady
       ? activeCategory === "pipocas"
         ? `Adicionar ${popcornQuantity} ${popcornQuantity === 1 ? "pipoca" : "pipocas"}`
-        : `Adicionar ${sliceQuantity} ${sliceQuantity === 1 ? "fatia" : "fatias"}`
+        : selectedSlice?.id==="fatia-chocolate-morango" && strawberryPreorder
+          ? `Adicionar ${sliceQuantity} ${sliceQuantity === 1 ? "fatia" : "fatias"} à pré-reserva`
+          : `Adicionar ${sliceQuantity} ${sliceQuantity === 1 ? "fatia" : "fatias"}`
       : builderFlowActive
         ? activeCategory === "pipocas"
           ? popcornVariant ? "Escolher meus sabores" : "Escolher tamanho"
@@ -2282,10 +2285,10 @@ export default function Home() {
               <section className={`step-block step-state-${sliceProductStepState}`} id="fatias" aria-labelledby="step-slice" aria-current={sliceProductStepState === "active" ? "step" : undefined}>
                 <div className="step-heading"><StepMarker number={1} state={sliceProductStepState} /><div><h3 id="step-slice">Escolha sua fatia</h3><p>Selecione um sabor por vez. Depois de adicionar, você poderá escolher outro.</p></div></div>
                 {strawberryPreorder && <aside className="slice-preorder-banner" role="status">
-                  <span className="slice-preorder-kicker">Produção de hoje · Pré-reserva</span>
-                  <strong>Chocolate com Morango volta por volta das 17h</strong>
-                  <p>Reserve suas fatias da próxima fornada. Entrega ou retirada após confirmação da Luciane no WhatsApp. Pagamento conforme a opção escolhida.</p>
-                  <small>{strawberryPreorder.remaining} {strawberryPreorder.remaining===1 ? "fatia restante":"fatias restantes"} para reserva · R$ 22 cada</small>
+                  <span className="slice-preorder-kicker">Próxima fornada · Pré-reserva</span>
+                  <strong>Chocolate com Morango: reserve sua fatia</strong>
+                  <p>A fornada pronta esgotou. A próxima produção está prevista por volta das <b>17h</b>. Escolha entrega ou retirada; a Luciane confirma a disponibilidade pelo WhatsApp.</p>
+                  <small>{strawberryPreorder.remaining} {strawberryPreorder.remaining===1 ? "fatia para pré-reserva":"fatias para pré-reserva"} · R$ 22 cada</small>
                 </aside>}
                 {!SLICES.some((slice) => sliceIsVisible(slice.id)) && <p className="selection-helper" role="status">Nenhuma fatia disponível no momento.</p>}
                 <RadioGroup className="slice-grid" value={sliceProductId} onValueChange={(value) => {
@@ -2387,7 +2390,9 @@ export default function Home() {
                     ? "Salvar alterações"
                     : !selectedSlice
                       ? "Escolha sua fatia acima"
-                      : `Adicionar ${sliceQuantity} ${sliceQuantity === 1 ? "fatia" : "fatias"} ao pedido`}
+                      : selectedSlice.id==="fatia-chocolate-morango" && strawberryPreorder
+                         ? `Adicionar ${sliceQuantity} ${sliceQuantity === 1 ? "fatia" : "fatias"} para pré-reserva`
+                         : `Adicionar ${sliceQuantity} ${sliceQuantity === 1 ? "fatia" : "fatias"} ao pedido`}
                 </Button>
                 {editingId && <Button type="button" variant="ghost" className="cancel-edit" onClick={clearDraft}>Cancelar edição</Button>}
               </section>
@@ -2524,7 +2529,7 @@ export default function Home() {
                     );
                   })}
                   {strawberryPreorder && cart.some(item=>item.productId==="fatia-chocolate-morango") && (
-                    <p className="slice-preorder-checkout-note"><strong>Seu pedido contém pré-reserva.</strong> Chocolate com Morango: produção prevista por volta das 17h. Entrega ou retirada após confirmação no WhatsApp. Pré-reserva não confirma pagamento.</p>
+                    <p className="slice-preorder-checkout-note"><strong>Pré-reserva de Chocolate com Morango.</strong> Próxima fornada prevista por volta das 17h. A Luciane confirma a disponibilidade e o horário de entrega ou retirada pelo WhatsApp. Pagamento somente conforme a forma escolhida.</p>
                   )}
                   <div className="cart-subtotal"><span>Subtotal dos produtos</span><strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(cartSubtotal)}</strong></div>
                   <details className="boutique-cart-details">
