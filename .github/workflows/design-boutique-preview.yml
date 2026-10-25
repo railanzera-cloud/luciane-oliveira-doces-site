@@ -29,6 +29,7 @@ on:
       - feature/pre-reserva-chocolate-morango-20261025
       - work/pre-reserva-copy-premium-20261025
       - work/controle-whatsapp-externo-chocolate-morango-20261025
+      - fix/pre-reserva-impressao-automatica-20261025
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -73,6 +74,7 @@ on:
       - supabase/migrations/20261018222000_trufadas_stocktake_cutoff_stability.sql
       - supabase/migrations/20261025154000_chocolate_morango_pre_reserva.sql
       - supabase/migrations/20261025154500_strawberry_preorder_guard.sql
+      - supabase/migrations/20261025165000_strawberry_preorder_kitchen_print.sql
       - ESTADO_ATUAL_VITRINE.md
       # Todos os testes da vitrine ativam a CI; evita checkpoint sem ZIP.
       - 'tests/*.test.mjs'
