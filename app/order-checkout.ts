@@ -219,10 +219,11 @@ export function buildRegisteredOrderMessage(order: CheckoutDetails, number: numb
     const forecast = Number.isFinite(date.getTime()) ? new Intl.DateTimeFormat("pt-BR", {
       timeZone:"America/Belem",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"
     }).format(date) : "hoje por volta das 17h";
-    lines.push("*PRÉ-RESERVA REGISTRADA — CHOCOLATE COM MORANGO*",
-      "Próxima fornada prevista: " + forecast + " (horário aproximado).",
-      "A Luciane confirma pelo WhatsApp quando estiver disponível para entrega ou retirada.",
-      "Pagamento conforme a opção escolhida. Esta reserva ainda não comprova pagamento.","");
+    lines.push("*PRÉ-RESERVA PARA HOJE — CHOCOLATE COM MORANGO*",
+      "Reserva registrada para a última fornada de hoje.",
+      "Fatias previstas para ficar prontas: " + forecast + " (horário aproximado).",
+      "Entrega ou retirada ainda hoje, após confirmação da Luciane pelo WhatsApp.",
+      "Pagamento conforme a opção escolhida. Pedido ainda não marcado como pago.","");
   }
   for (const item of order.items) {
     // As duas Pipocas Trufadas já são identificadas pelo sabor.
