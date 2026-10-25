@@ -29,11 +29,13 @@ export type MenuAvailabilityRow = {
 };
 
 export type PublicTrufadasStockRow = { item_key: string; available: number };
+export type PublicSlicePreorder = { item_key?: string; active: boolean; remaining: number; ready_at?: string };
 
 export type AvailabilitySnapshot = {
   /** Estoque disponível após descontar reservas válidas, informado pelo Supabase. */
   stockRemaining: Record<string, number>;
   stockChecked: boolean;
+  slicePreorder: PublicSlicePreorder | null;
   ordersOpen: boolean;
   statuses: Record<string, AvailabilityStatus>;
   source: "fallback" | "supabase";
@@ -151,6 +153,7 @@ export function createFallbackAvailability(): AvailabilitySnapshot {
     source: "fallback",
     stockRemaining: {},
     stockChecked: false,
+    slicePreorder: null,
     loadedAt: Date.now(),
   };
 }
@@ -159,6 +162,7 @@ export function mergeRemoteAvailability(
   rows: MenuAvailabilityRow[],
   ordersOpen: boolean,
   trufadasStock?: PublicTrufadasStockRow[] | null,
+  slicePreorder?: PublicSlicePreorder | null,
 ): AvailabilitySnapshot {
   const fallback = createFallbackAvailability();
   const statuses = { ...fallback.statuses };
@@ -171,6 +175,11 @@ export function mergeRemoteAvailability(
     }
   }
 
+  const verifiedPreorder = slicePreorder?.item_key === "slice_chocolate_morango"
+    && slicePreorder.active === true && Number.isSafeInteger(slicePreorder.remaining)
+    && slicePreorder.remaining >= 0 && Boolean(slicePreorder.ready_at) ? slicePreorder : null;
+  if (verifiedPreorder?.remaining && statuses.slice_chocolate_morango === "sold_out")
+    statuses.slice_chocolate_morango = "available";
   const stockRemaining: Record<string, number> = {};
   let stockChecked = false;
   // Em caso de falha na consulta de quantidade, somente os Trufados ficam bloqueados.
@@ -193,6 +202,7 @@ export function mergeRemoteAvailability(
     statuses,
     stockRemaining,
     stockChecked,
+    slicePreorder: verifiedPreorder,
     source: "supabase",
     loadedAt: Date.now(),
   };

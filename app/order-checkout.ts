@@ -34,6 +34,7 @@ export type OrderContext = {
 export type CheckoutDetails = {
   customer_name?: string;
   notes?: string;
+  preorderReadyAt?: string;
   items: Array<{
     product_id: string;
     variant_id: string;
@@ -213,6 +214,15 @@ export function buildRegisteredOrderMessage(order: CheckoutDetails, number: numb
   if (!Number.isSafeInteger(number) || number < 1) throw new Error("Pedido sem número confirmado.");
   const lines = ["Olá! Finalizei meu pedido pelo site da Luciane Oliveira Doces.", "", `*PEDIDO #${number}*`, "", `Cliente: ${cleanWhatsAppField(order.customer_name ?? "")}`, ""];
   if (isHomologation) lines.unshift("*TESTE DE HOMOLOGAÇÃO — NÃO PREPARAR / NÃO COBRAR*", "");
+  if (order.preorderReadyAt && order.items.some(item => item.product_id === "fatia-chocolate-morango")) {
+    const date = new Date(order.preorderReadyAt);
+    const forecast = Number.isFinite(date.getTime()) ? new Intl.DateTimeFormat("pt-BR", {
+      timeZone:"America/Belem",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"
+    }).format(date) : "hoje por volta das 17h";
+    lines.push("*PRÉ-RESERVA — CHOCOLATE COM MORANGO*",
+      "Produção prevista: " + forecast + " (aproximadamente).",
+      "Entrega ou retirada somente após confirmação da loja. Pagamento conforme a opção escolhida.","");
+  }
   for (const item of order.items) {
     // As duas Pipocas Trufadas já são identificadas pelo sabor.
     // Ocultar apenas o sufixo "Pacote" no texto enviado pelo WhatsApp.

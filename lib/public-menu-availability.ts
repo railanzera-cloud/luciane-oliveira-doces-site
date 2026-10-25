@@ -4,6 +4,7 @@ import {
   type AvailabilitySnapshot,
   type MenuAvailabilityRow,
   type PublicTrufadasStockRow,
+  type PublicSlicePreorder,
 } from "@/app/menu-availability";
 import {
   getSupabaseConfigurationIssue,
@@ -61,11 +62,12 @@ async function fetchSupabaseRows<T>(path: string): Promise<T> {
 export async function loadRemoteAvailability(): Promise<AvailabilitySnapshot> {
   const settingsQuery = "/rest/v1/store_settings?select=*&key=eq.orders_open&limit=1";
   const menuQuery = "/rest/v1/menu_availability?select=item_key,name,item_type,category_key,status,updated_at,updated_by";
-  const [settingsRows, menuRows, stockRows] = await Promise.all([
+  const [settingsRows, menuRows, stockRows, preorder] = await Promise.all([
     fetchSupabaseRows<StoreSettingRow[]>(settingsQuery),
     fetchSupabaseRows<MenuAvailabilityRow[]>(menuQuery),
     fetchSupabaseRows<PublicTrufadasStockRow[]>("/rest/v1/rpc/public_crocante_inventory").catch(() => null),
+    fetchSupabaseRows<PublicSlicePreorder>("/rest/v1/rpc/public_slice_preorder").catch(() => null),
   ]);
 
-  return mergeRemoteAvailability(menuRows, readOrdersOpen(settingsRows[0] ?? null), stockRows);
+  return mergeRemoteAvailability(menuRows, readOrdersOpen(settingsRows[0] ?? null), stockRows, preorder);
 }

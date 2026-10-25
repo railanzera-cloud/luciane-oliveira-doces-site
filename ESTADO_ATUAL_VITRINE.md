@@ -421,3 +421,12 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - Somente itens com variante `size_label="1 fatia"` recebem esse formato. Produtos com tamanho 750 ml e embalagens de pipoca conservam a exibição anterior.
 - Sem alterações em banco, itens históricos, fila de impressão, ESC/POS, WhatsApp, pagamentos, Meta, estoque, cozinha ou registro de pedidos. Não publicar em Cloudflare sem autorização.
 - O pacote Cloudflare completo precisa incluir as fotografias aprovadas `fatia-coco-cremoso-morango.webp` e `fatia-coco-cremoso-morango-card.webp`, ainda não versionadas como binários no GitHub. Validar rotas e imagens após empacotamento.
+
+## Chocolate com Morango — pré-reservas em 25/10/2026
+- 3 bolos × 7 fatias = 21 previstas, R$ 22 cada; estimativa de finalização às 17h (America/Belem).
+- SQL migração `20261025154000_chocolate_morango_pre_reserva.sql`: duas tabelas de lote/alocação com RLS e sem acesso público direto; RPC de quantidade não revela pedidos; reserva transacional no INSERT de item; cancelamento libera uma vez; atendimento/WhatsApp mantidos.
+- Em 25/10 às 15:28, marcado Chocolate com Morango `sold_out` no Supabase para evitar venda imediata enquanto a loja não tem fatias prontas.
+- A RPC `create_whatsapp_store_order` reconhece exclusivamente o lote válido e registra `PRÉ-RESERVA` nas notas do pedido; a cozinha não aceita automaticamente esse pedido, nem imprime até 17h e início manual de preparo.
+- O backend Edge revalida essa exceção em caso de `sold_out` e transforma erro de lote esgotado em mensagem amigável. O frontend exibe previsão, saldo de reservas e orientações, e mantém checkout/pagamento sem registrar pagamento fictício.
+- Lote inicia `enabled=false`: somente habilitar depois de Edge migrada, CI validada e ZIP publicado em Cloudflare. Não ativar loja nem disponibilizar imediatamente sem essas etapas; usuário publica Cloudflare manualmente.
+- Após contagem física da produção e atendimento, desabilitar o lote e administrar disponibilidade regular sem reabrir automaticamente se ainda indisponível.

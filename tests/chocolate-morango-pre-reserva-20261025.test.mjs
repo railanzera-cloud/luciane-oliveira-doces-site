@@ -1,0 +1,11 @@
+import assert from "node:assert/strict";import test from "node:test";import {readFileSync} from "node:fs";
+const sql=readFileSync("supabase/migrations/20261025154000_chocolate_morango_pre_reserva.sql","utf8");
+const catalog=readFileSync("app/catalog.ts","utf8");
+const page=readFileSync("app/page.tsx","utf8");
+const availability=readFileSync("app/menu-availability.ts","utf8");
+const edge=readFileSync("supabase/functions/create-whatsapp-order/index.ts","utf8");
+const whatsapp=readFileSync("app/order-checkout.ts","utf8");
+test("21 reservas e preço de 22 preservados",()=>{assert.match(catalog,/id: "fatia-chocolate-morango"/);assert.match(catalog,/price: 22/);assert.match(sql,/VALUES\('slice_chocolate_morango',21,0/);});
+test("Reserva atomicamente e devolve lote após cancelamento",()=>{assert.match(sql,/FOR UPDATE/);assert.match(sql,/v.capacity-v.reserved_units<NEW.quantity/);assert.match(sql,/slice_preorder_full/);assert.match(sql,/state='released'/);});
+test("Pré-reserva não libera impressão nem paga automaticamente",()=>{assert.match(sql,/IF NEW.notes LIKE 'PRÉ-RESERVA/);assert.match(sql,/now\(\) >= '2026-10-25 17:00:00-03'/);assert.doesNotMatch(sql,/SET payment_status=/);});
+test("Checkout comunica reserva e preço continua da vitrine",()=>{assert.match(availability,/slicePreorder: verifiedPreorder/);assert.match(page,/Pré-reserva · 17h/);assert.match(page,/reservedInCart >= strawberryPreorder.remaining/);assert.match(whatsapp,/PRÉ-RESERVA — CHOCOLATE COM MORANGO/);assert.match(edge,/slice_preorder_full/);});

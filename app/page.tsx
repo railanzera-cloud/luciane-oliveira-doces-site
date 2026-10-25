@@ -356,6 +356,11 @@ function cartAvailabilityIssues(
       if (sliceKey && !isItemAvailable(snapshot, sliceKey)) {
         reasons.push(unavailableReason(snapshot, sliceKey, productLabel(product)));
       }
+      if (product.id === "fatia-chocolate-morango" && snapshot.slicePreorder?.active) {
+        const requested = cart.filter(entry=>entry.productId===product.id).reduce((sum,entry)=>sum+entry.quantity,0);
+        if (requested > snapshot.slicePreorder.remaining)
+          reasons.push("Não há fatias suficientes para pré-reserva. Reduza a quantidade.");
+      }
     }
 
     const uniqueReasons = [...new Set(reasons)];
@@ -843,6 +848,8 @@ export default function Home() {
     && popcornOptionIds.length <= popcornMaxOptions
     && popcornOptionIds.every((optionId) => popcornFlavorIsAvailable(optionId)),
   );
+  const strawberryPreorder = availability.slicePreorder?.active ? availability.slicePreorder : null;
+  const reservedInCart = cart.filter(item=>item.productId==="fatia-chocolate-morango").reduce((sum,item)=>sum+item.quantity,0);
   const sliceReady = Boolean(
     availability.ordersOpen
     && fatiasAvailable
@@ -982,6 +989,7 @@ export default function Home() {
 
   const checkoutDetails: CheckoutDetails = {
     customer_name: customerName.trim(), notes: notes.trim(),
+    preorderReadyAt: cart.some(item=>item.productId==="fatia-chocolate-morango") && strawberryPreorder ? strawberryPreorder.ready_at : undefined,
     items: cart.map((item) => {
       const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
       const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
@@ -1381,6 +1389,12 @@ export default function Home() {
       return;
     }
     if (!sliceReady) { setSelectionMessage("Escolha com calda de chocolate ou sem calda para continuar."); requestScroll("calda-fatias"); return; }
+    if (selectedSlice.id === "fatia-chocolate-morango" && strawberryPreorder) {
+      const original=editingId ? cart.find(item=>item.id===editingId)?.quantity ?? 0 : 0;
+      if (reservedInCart-original+sliceQuantity > strawberryPreorder.remaining) {
+        setSelectionMessage("Limite da pré-reserva atingido. Reduza a quantidade.");return;
+      }
+    }
     const nextItem: Omit<CartItem, "id"> = {
       productId: selectedSlice.id,
       variantId: selectedSliceVariant.id,
@@ -1469,6 +1483,10 @@ export default function Home() {
     if (delta > 0) {
       const selected = cart.find(item => item.id === id);
       const key = selected ? CROCANTES_ITEM_KEYS[selected.productId] : undefined;
+      if (selected?.productId==="fatia-chocolate-morango" && strawberryPreorder
+        && reservedInCart >= strawberryPreorder.remaining) {
+        setCheckoutAvailabilityMessage("Não há mais fatias disponíveis para pré-reserva.");return;
+      }
       if (key && (!availability.stockChecked || cartStockCount(selected!.productId) >= (availability.stockRemaining[key] ?? 0))) {
         setCheckoutAvailabilityMessage("Não há mais pacotes disponíveis deste sabor para aumentar a quantidade.");
         return;
@@ -2262,6 +2280,12 @@ export default function Home() {
             <div className="builder-card slice-builder">
               <section className={`step-block step-state-${sliceProductStepState}`} id="fatias" aria-labelledby="step-slice" aria-current={sliceProductStepState === "active" ? "step" : undefined}>
                 <div className="step-heading"><StepMarker number={1} state={sliceProductStepState} /><div><h3 id="step-slice">Escolha sua fatia</h3><p>Selecione um sabor por vez. Depois de adicionar, você poderá escolher outro.</p></div></div>
+                {strawberryPreorder && <aside className="slice-preorder-banner" role="status">
+                  <span className="slice-preorder-kicker">Produção de hoje · Pré-reserva</span>
+                  <strong>Chocolate com Morango volta por volta das 17h</strong>
+                  <p>Reserve suas fatias da próxima fornada. Entrega ou retirada após confirmação da Luciane no WhatsApp. Pagamento conforme a opção escolhida.</p>
+                  <small>{strawberryPreorder.remaining} {strawberryPreorder.remaining===1 ? "fatia restante":"fatias restantes"} para reserva · R$ 22 cada</small>
+                </aside>}
                 {!SLICES.some((slice) => sliceIsVisible(slice.id)) && <p className="selection-helper" role="status">Nenhuma fatia disponível no momento.</p>}
                 <RadioGroup className="slice-grid" value={sliceProductId} onValueChange={(value) => {
                   if (!sliceIsAvailable(value) || !fatiasAvailable) return;
@@ -2288,6 +2312,7 @@ export default function Home() {
                           <span className="boutique-slice-card-title">
                             <strong>{slice.cardName ?? slice.name}</strong>
                             {selected && available && <span className="boutique-slice-selected-label">Selecionada</span>}
+                            {slice.id==="fatia-chocolate-morango" && strawberryPreorder && <span className="slice-preorder-tag">Pré-reserva · 17h</span>}
                           </span>
                           {slice.subtitle && <em>{slice.subtitle}</em>}
                           <span className="boutique-slice-card-footer">
@@ -2348,7 +2373,7 @@ export default function Home() {
                   <div className="quantity-control" aria-label="Quantidade">
                     <Button type="button" variant="ghost" size="icon" onClick={() => setSliceQuantity((current) => Math.max(1, current - 1))} disabled={!sliceReady || sliceQuantity === 1} aria-label="Diminuir quantidade"><Minus size={18} /></Button>
                     <strong aria-live="polite">{sliceQuantity}</strong>
-                    <Button type="button" variant="ghost" size="icon" onClick={() => setSliceQuantity((current) => current + 1)} disabled={!sliceReady} aria-label="Aumentar quantidade"><Plus size={18} /></Button>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setSliceQuantity((current) => current + 1)} disabled={!sliceReady || (selectedSlice?.id==="fatia-chocolate-morango" && !!strawberryPreorder && sliceQuantity+reservedInCart-(editingId ? cart.find(item=>item.id===editingId)?.quantity ?? 0:0) >= (strawberryPreorder?.remaining??0))} aria-label="Aumentar quantidade"><Plus size={18} /></Button>
                   </div>
                   <div className="draft-total"><small>Subtotal</small><strong>{selectedSliceVariant ? currency.format(selectedSliceVariant.price * sliceQuantity) : "Escolha a fatia"}</strong></div>
                 </div>
@@ -2493,6 +2518,9 @@ export default function Home() {
                       </article>
                     );
                   })}
+                  {strawberryPreorder && cart.some(item=>item.productId==="fatia-chocolate-morango") && (
+                    <p className="slice-preorder-checkout-note"><strong>Seu pedido contém pré-reserva.</strong> Chocolate com Morango: produção prevista por volta das 17h. Entrega ou retirada após confirmação no WhatsApp. Pré-reserva não confirma pagamento.</p>
+                  )}
                   <div className="cart-subtotal"><span>Subtotal dos produtos</span><strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(cartSubtotal)}</strong></div>
                   <details className="boutique-cart-details">
                     <summary><span>Informações sobre o pedido</span><ChevronDown size={17} aria-hidden="true" /></summary>

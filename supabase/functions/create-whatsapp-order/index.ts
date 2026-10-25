@@ -141,6 +141,7 @@ async function rest<T>(path: string, options: RequestInit = {}): Promise<T> {
     if (!result.ok) {
       if (body?.message === "orders_closed") throw new HttpError(409, "orders_closed", "Os pedidos foram encerrados por enquanto.");
       if (body?.message === "menu_changed") throw new HttpError(409, "menu_changed", "Um item ficou indisponível. Revise o carrinho.");
+      if (body?.message === "slice_preorder_full") throw new HttpError(409, "slice_preorder_full", "O lote de pré-reservas esgotou. Atualize o cardápio.");
       if (body?.message === "crocante_sem_estoque") throw new HttpError(409, "crocante_sem_estoque", "O último pacote deste sabor acabou de ser reservado. Atualize o pedido e escolha outra opção.");
       if (body?.message === "order_id_payload_conflict") throw new HttpError(409, "order_conflict", "Esta solicitação já foi registrada com outros dados. Acompanhe o pedido salvo ou inicie um novo pedido.");
       throw new HttpError(502, "database_error", "Não foi possível registrar o pedido.", { databaseCode: body?.code });
@@ -172,15 +173,17 @@ async function validatePublishableKey(request: Request): Promise<void> {
 
 async function revalidateAvailability(itemKeys: string[]): Promise<void> {
   const encodedKeys = itemKeys.map((key) => encodeURIComponent(key)).join(",");
-  const [settings, rows] = await Promise.all([
+  const [settings, rows, preorder] = await Promise.all([
     rest<Array<{ value: boolean }>>("store_settings?select=value&key=eq.orders_open"),
     rest<Array<{ item_key: string; status: string }>>(`menu_availability?select=item_key,status&item_key=in.(${encodedKeys})`),
+    rest<{active: boolean; remaining: number}>("rpc/public_slice_preorder").catch(() => ({ active:false,remaining:0 })),
   ]);
   if (settings.length !== 1 || settings[0].value !== true) {
     throw new HttpError(409, "orders_closed", "Os pedidos foram encerrados por enquanto.");
   }
   const statuses = new Map(rows.map((row) => [row.item_key, row.status]));
-  const unavailable = itemKeys.filter((key) => statuses.get(key) !== "available");
+  const unavailable = itemKeys.filter((key) => statuses.get(key) !== "available"
+    && !(key === "slice_chocolate_morango" && statuses.get(key) === "sold_out" && preorder.active && preorder.remaining > 0));
   if (unavailable.length) {
     throw new HttpError(409, "menu_changed", "Um item ficou indisponível. Revise o carrinho antes de continuar.", { itemKeys: unavailable });
   }
