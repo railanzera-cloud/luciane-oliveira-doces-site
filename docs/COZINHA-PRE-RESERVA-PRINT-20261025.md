@@ -1,0 +1,8 @@
+# Pré-reserva Chocolate com Morango — impressão automática (25/10/2026)
+Base GitHub: work/controle-whatsapp-externo-chocolate-morango-20261025 @ 61cc572fe10d58dc57f53f4aa1141ab51e9c180a.
+**Motivo:** migration de pré-reserva bloqueou propositalmente autoaceitação e impressão antes das 17h/preparo; pedidos reais reservados ficaram sem jobs.
+**Correção:** exceção de elegibilidade exclusivamente aos pedidos WhatsApp de 25/10 com alocação válida reservada, fila e modo cozinha ligados. Novo trigger de alocação cria job 'initial' idempotente após inserir item. Não muda order_status, payment_status, paid_at, catálogo, quantidades, reservas ou frontend. Reserva cancelada/refundada não pode ser reclamada.
+**Operação:** impressão física requer painel /admin aberto no Windows, QZ Tray conectado e fila sendo drenada. Recebimento de job no QZ não garante papel impresso. Pedidos já existentes só entram na fila por reconciliação pontual, com conferência de elegibilidade e ausência de job.
+**Janela:** somente reservas criadas de 25/10/2026, e excepcionalidade até 00:00 de 26/10 (America/Belem). As regras antigas de impressão após preparo continuam intactas. O lote e sua disponibilidade continuam sob controle administrativo; não desativar automaticamente antes do esgotamento acordado.
+**Risco visual:** comanda legada imprime "PEDIDO CONFIRMADO" para pagamento pendente (significa pedido registrado); as observações detalham a PRÉ-RESERVA. Melhorar rótulo "PRÉ-RESERVA" no frontend numa publicação futura autorizada.
+**Publicação:** patch SQL Supabase independente do Cloudflare. Não publicar frontend nem fazer merge automático.
