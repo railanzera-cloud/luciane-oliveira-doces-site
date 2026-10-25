@@ -169,7 +169,7 @@ CREATE OR REPLACE FUNCTION public.lod_kitchen_print_eligible(p_order public.orde
 RETURNS boolean LANGUAGE sql STABLE SET search_path='public','pg_temp'
 AS $$
  SELECT
- (p_order.notes NOT LIKE 'PRÉ-RESERVA — Chocolate com Morango:%'
+ (coalesce(p_order.notes,'') NOT LIKE 'PRÉ-RESERVA — Chocolate com Morango:%'
   OR (now() >= '2026-10-25 17:00:00-03'::timestamptz
       AND p_order.order_status IN ('preparing','ready','ready_for_pickup','out_for_delivery')))
  AND p_order.order_status IN ('new','confirmed','preparing','ready','ready_for_pickup','out_for_delivery')
