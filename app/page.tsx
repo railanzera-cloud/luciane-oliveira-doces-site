@@ -941,7 +941,7 @@ export default function Home() {
       ? payment === "mercado_pago_pix" ? "Gerar Pix e confirmar pedido"
         : payment === "mercado_pago_card" ? "Preencher e pagar com cartão"
           : "Confirmar pedido"
-      : whatsAppRetryAvailable ? "Tentar novamente" : cartHasStrawberryPreorder ? "Finalizar pré-reserva no WhatsApp" : "Finalizar pedido no WhatsApp";
+      : whatsAppRetryAvailable ? "Tentar novamente" : typeof cartHasStrawberryPreorder !== "undefined" && cartHasStrawberryPreorder ? "Finalizar pré-reserva no WhatsApp" : "Finalizar pedido no WhatsApp";
   // A ação flutuante informa exatamente o que ainda falta preencher.
   // Não muda a função acionada: checkout incompleto continua rolando para o próximo campo.
   const checkoutNextActionLabel = !fulfillment
@@ -2285,10 +2285,10 @@ export default function Home() {
               <section className={`step-block step-state-${sliceProductStepState}`} id="fatias" aria-labelledby="step-slice" aria-current={sliceProductStepState === "active" ? "step" : undefined}>
                 <div className="step-heading"><StepMarker number={1} state={sliceProductStepState} /><div><h3 id="step-slice">Escolha sua fatia</h3><p>Selecione um sabor por vez. Depois de adicionar, você poderá escolher outro.</p></div></div>
                 {strawberryPreorder && <aside className="slice-preorder-banner" role="status">
-                  <span className="slice-preorder-kicker">Próxima fornada · Pré-reserva</span>
-                  <strong>Chocolate com Morango: reserve sua fatia</strong>
-                  <p>A fornada pronta esgotou. A próxima produção está prevista por volta das <b>17h</b>. Escolha entrega ou retirada; a Luciane confirma a disponibilidade pelo WhatsApp.</p>
-                  <small>{strawberryPreorder.remaining} {strawberryPreorder.remaining===1 ? "fatia para pré-reserva":"fatias para pré-reserva"} · R$ 22 cada</small>
+                  <span className="slice-preorder-kicker">Última fornada de hoje · Pré-reserva</span>
+                  <strong>Chocolate com Morango: garanta sua fatia para hoje</strong>
+                  <p>As primeiras fatias esgotaram cedo. A Luciane está preparando mais 3 bolos, previstos para ficar prontos por volta das <b>17h</b>. Entrega ou retirada <b>ainda hoje</b>, após confirmação pelo WhatsApp.</p>
+                  <small>{strawberryPreorder.remaining} {strawberryPreorder.remaining===1 ? "fatia restante":"fatias restantes"} para reservar hoje · R$ 22 cada</small>
                 </aside>}
                 {!SLICES.some((slice) => sliceIsVisible(slice.id)) && <p className="selection-helper" role="status">Nenhuma fatia disponível no momento.</p>}
                 <RadioGroup className="slice-grid" value={sliceProductId} onValueChange={(value) => {
@@ -2529,7 +2529,7 @@ export default function Home() {
                     );
                   })}
                   {strawberryPreorder && cart.some(item=>item.productId==="fatia-chocolate-morango") && (
-                    <p className="slice-preorder-checkout-note"><strong>Pré-reserva de Chocolate com Morango.</strong> Próxima fornada prevista por volta das 17h. A Luciane confirma a disponibilidade e o horário de entrega ou retirada pelo WhatsApp. Pagamento somente conforme a forma escolhida.</p>
+                    <p className="slice-preorder-checkout-note"><strong>Chocolate com Morango reservado para hoje.</strong> Última fornada prevista para ficar pronta por volta das 17h. Entrega ou retirada ainda hoje, após confirmação da Luciane pelo WhatsApp. Pagamento conforme a opção escolhida.</p>
                   )}
                   <div className="cart-subtotal"><span>Subtotal dos produtos</span><strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(cartSubtotal)}</strong></div>
                   <details className="boutique-cart-details">
