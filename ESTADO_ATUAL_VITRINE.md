@@ -446,3 +446,5 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - Rótulo “Finalizar pré-reserva no WhatsApp” só quando carrinho tiver Chocolate com Morango em pré-reserva; demais produtos usam rótulo antigo.
 - Evitar promessa de prontidão e pagamento confirmado: previsão 17h aproximada, loja confirma disponibilidade e entrega/retirada.
 - Ao gerar ZIP completo, anexar as mesmas imagens aprovadas `fatia-coco-cremoso-morango.webp` e `fatia-coco-cremoso-morango-card.webp` apenas para não regredir outro sabor, sem tocar nele.
+
+- Complemento comercial (25/10): somente uma última fornada hoje (3 bolos, 21 fatias), encomenda para **entrega/retirada ainda hoje**, nunca para outro dia; previsão de prontidão 17h, sem prometer entrega pontual. Ajuste de texto na vitrine, carrinho e mensagem registrada no WhatsApp; nenhum ajuste de backend ou preços.
