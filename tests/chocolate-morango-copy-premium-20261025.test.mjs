@@ -9,7 +9,7 @@ test("Mensagem do novo lote é convidativa, mas não promete estoque pronto",()=
   assert.match(page,/Última fornada de hoje/);
   assert.match(page,/preparando mais 3 bolos/);
   assert.match(page,/Entrega ou retirada <b>ainda hoje<\/b>/);
-  assert.match(page,/fatias restantes/);
+  assert.match(page,/Produção limitada para hoje · R\$ 22 por fatia/);
   assert.match(page,/Finalizar pré-reserva no WhatsApp/);
   assert.match(page,/Finalizar pedido no WhatsApp/);
 });
