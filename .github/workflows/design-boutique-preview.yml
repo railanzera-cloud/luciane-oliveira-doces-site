@@ -36,6 +36,7 @@ on:
       - feature/crm-sinais-compra-20261026
       - feature/crm-tintim-live-sync-20261026
       - feature/crm-tintim-message-observability-20261026
+      - feature/crm-tintim-message-shape-diagnostics-20261026
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -54,6 +55,7 @@ on:
       - supabase/migrations/20261026203000_crm_followups_assistidos.sql
       - supabase/migrations/20261026235500_crm_tintim_live_sync.sql
       - supabase/migrations/20261027001000_crm_tintim_message_observe.sql
+      - supabase/migrations/20261027002000_crm_tintim_message_diagnostics.sql
       - docs/CRM-FOLLOWUPS-ASSISTIDOS-20261026.md
       - docs/ESTADO_INTEGRADO_COMERCIAL.md
       - app/globals.css

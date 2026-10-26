@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { normalizeTintimPayload, extractOrderReferenceFromTintim, extractTintimMessageSignal } from "./core.mjs";
+import { normalizeTintimPayload, extractOrderReferenceFromTintim, extractTintimMessageSignal, tintimMessageFieldFlags } from "./core.mjs";
 const EXPECTED_TOKEN_SHA256="c00669ce4b78a66371b6864b5f6cb31f850a7bb8ec7fb2b1a8a70ac0cde65c32";
 const headers={"content-type":"application/json; charset=utf-8","cache-control":"no-store"};
 const reply=(status,data)=>new Response(JSON.stringify(data),{status,headers});
@@ -14,12 +14,37 @@ Deno.serve(async req=>{
   const raw=await req.text();
   if(new TextEncoder().encode(raw).length>64000)return reply(413,{ok:false,error:"payload_too_large"});
   let payload;try{payload=JSON.parse(raw)}catch{return reply(400,{ok:false,error:"invalid_json"});}
-  const eventType=String(payload?.event_type??payload?.eventType??payload?.type??payload?.event??"").toLowerCase().replaceAll(".","_").replaceAll("-","_");
+  const eventType=String(payload?.event_type??payload?.["event-type"]??payload?.eventType??payload?.type??payload?.event??"").toLowerCase().replaceAll(".","_").replaceAll("-","_");
   const isMessage=eventType==="message_create";
   const data=isMessage?extractOrderReferenceFromTintim(payload):normalizeTintimPayload(payload);
   const signal=isMessage?extractTintimMessageSignal(payload):{ignored:true};
-  if(data.ignored && signal.ignored)return reply(200,{ok:true,ignored:data.reason});
   const url=Deno.env.get("SUPABASE_URL"),key=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  // Diagnostico passivo: apenas flags de presenca de campos e motivo da rejeicao.
+  // Nunca registra texto, telefone, ID, chave da URL ou corpo da requisicao.
+  const message=payload?.message;
+  const looksLikeMessage=!!payload && (
+    Object.prototype.hasOwnProperty.call(payload,"from_me") ||
+    Object.prototype.hasOwnProperty.call(payload,"fromMe") ||
+    (!!message && typeof message==="object" && (
+      Object.prototype.hasOwnProperty.call(message,"from_me") ||
+      Object.prototype.hasOwnProperty.call(message,"fromMe")
+    ))
+  );
+  if((isMessage || looksLikeMessage) && url && key) {
+    const allowedReasons=new Set(["direction_missing","phone_missing","timestamp_missing","timestamp_outside_window","invalid_payload"]);
+    const reason=isMessage
+      ? (signal.ignored?(allowedReasons.has(signal.reason)?signal.reason:"other"):"parsed")
+      : "other";
+    try{
+      await fetch(url+"/rest/v1/rpc/crm_record_tintim_message_diagnostic",{
+        method:"POST",
+        headers:{"apikey":key,"Authorization":"Bearer "+key,"Content-Type":"application/json"},
+        body:JSON.stringify({p_reason:reason,p_field_flags:tintimMessageFieldFlags(payload)}),
+        signal:AbortSignal.timeout(2500)
+      });
+    }catch{ /* A telemetria nunca deve interromper o webhook da Tintim. */ }
+  }
+  if(data.ignored && signal.ignored)return reply(200,{ok:true,ignored:data.reason});
   if(!url||!key)return reply(503,{ok:false,error:"service_unavailable"});
   const fingerprint=await digest(raw);
   async function callRpc(procedure:string, args:Record<string,unknown>){

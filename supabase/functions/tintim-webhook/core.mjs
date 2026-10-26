@@ -26,7 +26,7 @@ export function parseTintimReportedAmount(value){
 }
 export function normalizeTintimPayload(input,nowIso=new Date().toISOString()){
  if(!input||typeof input!=="object"||Array.isArray(input))throw new Error("invalid_payload");
- const type=first(input.event_type,input.eventType,input.type,input.event,100).toLowerCase().replaceAll(".","_").replaceAll("-","_");
+ const type=first(input.event_type,input["event-type"],input.eventType,input.type,input.event,100).toLowerCase().replaceAll(".","_").replaceAll("-","_");
  if(type==="message_create")return {ignored:true,reason:"message_disabled"};
  if(!["lead_create","lead_update","lead_source_update"].includes(type))return {ignored:true,reason:"unsupported_event_type"};
  const lead=obj(input.lead),account=obj(input.account),ad=obj(input.ad??lead.ad),camp=obj(ad.campaign),adset=obj(ad.adset??ad.ad_set),stage=obj(input.stage??lead.stage??input.funnel_stage),status=obj(input.status??lead.status),visit=obj(input.visit??lead.visit);
@@ -61,7 +61,7 @@ export function normalizeTintimPayload(input,nowIso=new Date().toISOString()){
 // Não persiste o texto da conversa, não deduz pagamento nem atribui campanha.
 export function extractOrderReferenceFromTintim(input,nowIso=new Date().toISOString()){
  if(!input||typeof input!=="object"||Array.isArray(input))return {ignored:true,reason:"invalid_message"};
- const type=first(input.event_type,input.eventType,input.type,input.event,100).toLowerCase().replaceAll(".","_").replaceAll("-","_");
+ const type=first(input.event_type,input["event-type"],input.eventType,input.type,input.event,100).toLowerCase().replaceAll(".","_").replaceAll("-","_");
  if(type!=="message_create")return {ignored:true,reason:"not_message"};
  const lead=obj(input.lead),account=obj(input.account),conversation=obj(input.conversation),message=obj(input.message);
  const fromMe=get(message,"from_me","fromMe") ?? get(input,"from_me","fromMe");
@@ -92,7 +92,7 @@ export function extractOrderReferenceFromTintim(input,nowIso=new Date().toISOStr
 // Eventos sem direcao, telefone ou timestamp nao podem agendar ou cancelar lembretes.
 export function extractTintimMessageSignal(input) {
  if (!input || typeof input!=="object" || Array.isArray(input)) return {ignored:true,reason:"invalid_payload"};
- const type=first(input.event_type,input.eventType,input.type,input.event,100).toLowerCase().replaceAll(".","_").replaceAll("-","_");
+ const type=first(input.event_type,input["event-type"],input.eventType,input.type,input.event,100).toLowerCase().replaceAll(".","_").replaceAll("-","_");
  if(type!=="message_create") return {ignored:true,reason:"not_message"};
  const message=obj(input.message),lead=obj(input.lead),conversation=obj(input.conversation),account=obj(input.account);
  const fromMe=get(message,"from_me","fromMe")??get(input,"from_me","fromMe");
@@ -118,4 +118,22 @@ export function extractTintimMessageSignal(input) {
   account_key:first(account.code,account.id,input.account_code,input.account_id,DEFAULT_TINTIM_ACCOUNT_KEY,100),
   phone, direction, occurred_at:new Date(millis).toISOString()
  };
+}
+
+
+// Bitset de 16 flags booleanas; NÃO extrai nem persiste valores dos campos.
+export function tintimMessageFieldFlags(input) {
+ const top=obj(input),m=obj(top.message),lead=obj(top.lead),conv=obj(top.conversation);
+ const present=(x,k)=>Object.prototype.hasOwnProperty.call(x,k);
+ const bits=[
+   typeof top.message==="string", present(top,"message")&&typeof top.message==="object"&&top.message!==null,
+   present(top,"from_me"),present(top,"fromMe"),
+   present(m,"from_me"),present(m,"fromMe"),
+   present(lead,"phone"),present(top,"phone"),
+   present(conv,"phone"),present(m,"phone"),
+   present(m,"created_at"),present(m,"timestamp"),
+   present(top,"created_at"),present(top,"timestamp"),
+   present(m,"created_isoformat"),present(lead,"whatsapp")
+ ];
+ return bits.map(Boolean).map(v=>v?"1":"0").join("");
 }
