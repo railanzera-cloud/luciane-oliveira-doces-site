@@ -90,7 +90,7 @@ export function extractOrderReferenceFromTintim(input,nowIso=new Date().toISOStr
 
 // Mensagem comum do Tintim: extrai apenas metadados confiaveis. O texto nao sai daqui.
 // Eventos sem direcao, telefone ou timestamp nao podem agendar ou cancelar lembretes.
-export function extractTintimMessageSignal(input) {
+export function extractTintimMessageSignal(input, receivedIso=new Date().toISOString()) {
  if (!input || typeof input!=="object" || Array.isArray(input)) return {ignored:true,reason:"invalid_payload"};
  const type=first(input.event_type,input["event-type"],input.eventType,input.type,input.event,100).toLowerCase().replaceAll(".","_").replaceAll("-","_");
  if(type!=="message_create") return {ignored:true,reason:"not_message"};
@@ -104,7 +104,25 @@ export function extractTintimMessageSignal(input) {
  if(!/^(?:55)?[1-9][0-9]{9,10}$/.test(phone))return {ignored:true,reason:"phone_missing"};
  const timestamp=get(message,"created_isoformat","created_at","timestamp","date","datetime","time") ??
    get(input,"created_isoformat","created_at","timestamp","date","datetime","time");
- if(timestamp===undefined||timestamp===null||timestamp==="")return {ignored:true,reason:"timestamp_missing"};
+ // Formato observado em produção: message como string, from_me no topo e lead.phone,
+ // mas SEM horario do provedor. O horario do recebimento e marcado como tal.
+ // So essa forma homologada pode usar fallback; qualquer outro envelope continua recusado.
+ const missingTimestamp=timestamp===undefined||timestamp===null||timestamp==="";
+ if(missingTimestamp){
+   const specificFormat=typeof input.message==="string" &&
+     Object.prototype.hasOwnProperty.call(input,"from_me") &&
+     typeof lead.phone==="string" && lead.phone.trim().length>0;
+   const receiveMs=Date.parse(receivedIso);
+   if(!specificFormat || !Number.isFinite(receiveMs) ||
+      Math.abs(Date.now()-receiveMs)>120000)
+     return {ignored:true,reason:"timestamp_missing"};
+   return {
+     ignored:false,
+     account_key:first(account.code,account.id,input.account_code,input.account_id,DEFAULT_TINTIM_ACCOUNT_KEY,100),
+     phone,direction,occurred_at:new Date(receiveMs).toISOString(),
+     time_basis:"webhook_received"
+   };
+ }
  let millis;
  if(typeof timestamp==="number") millis=timestamp<1e11?timestamp*1000:timestamp;
  else if(typeof timestamp==="string" && /^[0-9]{10,13}$/.test(timestamp.trim())) {
@@ -116,7 +134,7 @@ export function extractTintimMessageSignal(input) {
  return {
   ignored:false,
   account_key:first(account.code,account.id,input.account_code,input.account_id,DEFAULT_TINTIM_ACCOUNT_KEY,100),
-  phone, direction, occurred_at:new Date(millis).toISOString()
+  phone, direction, occurred_at:new Date(millis).toISOString(),time_basis:"provider_timestamp"
  };
 }
 

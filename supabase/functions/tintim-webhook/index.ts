@@ -73,9 +73,10 @@ Deno.serve(async req=>{
    }
    if(isMessage && !signal.ignored){
      // Caminho independente: nunca armazena texto; nao altera reconciliacao de pedidos.
-     observation=await callRpc("crm_record_tintim_message",{
+     observation=await callRpc("crm_record_tintim_message_v2",{
        p_fingerprint:fingerprint,p_phone:signal.phone,p_direction:signal.direction,
-       p_occurred_at:signal.occurred_at,p_account_key:signal.account_key
+       p_occurred_at:signal.occurred_at,p_account_key:signal.account_key,
+       p_time_basis:signal.time_basis
      });
    }
   }catch{return reply(503,{ok:false,error:"temporary_backend_error"});}
