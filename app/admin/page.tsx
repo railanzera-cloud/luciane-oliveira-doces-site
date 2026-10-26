@@ -12,6 +12,7 @@ import {
   RefreshCw,
   ShoppingBag,
   Store,
+  UsersRound,
 } from "lucide-react";
 
 import {
@@ -27,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminOrdersPanel } from "@/components/admin-orders-panel";
 import { AdminResultsPanel } from "@/components/admin-results-panel";
+import { AdminCrmPanel } from "@/components/admin-crm-panel";
 import { AdminTrufadasStock } from "@/components/admin-trufadas-stock";
 import { AdminStrawberryPreorder } from "@/components/admin-strawberry-preorder";
 import {
@@ -291,12 +293,16 @@ export default function AdminPage() {
           <TabsTrigger value="orders"><ShoppingBag size={17} /> Pedidos</TabsTrigger>
           <TabsTrigger value="availability"><Store size={17} /> Disponibilidade</TabsTrigger>
           <TabsTrigger value="results"><BarChart3 size={17} /> Resultados</TabsTrigger>
+          <TabsTrigger value="crm"><UsersRound size={17} /> Clientes</TabsTrigger>
         </TabsList>
 
         <TabsContent value="orders" className="admin-content">
           <AdminOrdersPanel client={supabase!} session={session} />
         </TabsContent>
 
+        <TabsContent value="crm" className="admin-content">
+          <AdminCrmPanel client={supabase!} />
+        </TabsContent>
         <TabsContent value="results" className="admin-content">
           <AdminResultsPanel client={supabase!} />
         </TabsContent>
