@@ -22,3 +22,17 @@ Consulta privada ao diagnóstico: 32 eventos na categoria `timestamp_missing`, f
 - Checar se Tintim reenfileira mensagens históricas, se os horários de chegada correspondem aos envios e se não há comportamento de replay.
 - Quando confiança suficiente, ativar somente agendamento sem envio e monitorar antes de qualquer automação comercial.
 - Rotação coordenada da chave URL mostrada parcialmente no print anterior; não mudar sem sincronização com Tintim.
+
+## Atualização de homologação em produção — 26/10/2026, 20h47 (America/Belem)
+- Eventos reais confirmados via SQL após v10: **13+ eventos**, sendo 5 inbound e 8 business_outbound na primeira conferência, todos do mesmo telefone já presente no CRM, com sequências cliente→empresa→cliente. Um sinal adicional da empresa foi observado durante a checagem. A amostragem não prova exaustividade do Tintim.
+- Todos os horários destes eventos têm `time_basis=webhook_received`, pois payload `message_create` não inclui timestamp original. **Não apresentar estes instantes como horário exato enviado no WhatsApp**; verificar possíveis atrasos/replays.
+- Contato de teste efetivo tinha `commercial_opt_out=false`, `consent_status=unknown`, etapa externa `Fez Contato` e status de conversa `waiting_customer`. Não enviar follow-up comercial sem autorização.
+- Controle de **agendamento/cancelamento apenas, sem envio** foi ativado em produção via transação SQL, com pré-condições verificadas:
+  `apply_to_followups=true`, `allow_received_time_followups=true`,
+  `received_time_enabled_at=2026-10-26T23:47:18.439177Z`.
+- Guard da função exige `enabled_at<=now()-interval '5 minutes'`, portanto novas mensagens só serão elegíveis após **2026-10-26T23:52:18.439177Z** (20h52min18s America/Belem), e sem reprocessamento retroativo de mensagens anteriores.
+- Após ativação, `crm_automation_settings.automatic_sends_enabled=false` permaneceu false; restrição de banco `CHECK(automatic_sends_enabled = false)` conferida. Não há mecanismo de envio automático. Conservar desativado.
+- Mensagens do WhatsApp Business e dos clientes são **metadados somente**; nenhum conteúdo persistido. Não publicar Cloudflare nem alterar main por conta dessa ativação.
+- Verificar em futuro fluxo real posterior ao aquecimento: inbound atualiza cliente; outbound posterior agenda lembrete de 45min; novo inbound cancela. Não afirmar essa sequência em produção até comprovada depois de ativar.
+- Apenas 4 de 431 pedidos possuíam telefone preenchido na última verificação. Portanto compra confirmada não é detectável de forma abrangente por telefone; manter proteção por estágio Tintim e revisão humana.
+- Documentação do Tintim declara que a plataforma é predominantemente observadora das conversas; não presumir API de disparo. Solução de envio deverá ser oficialmente compatível com a Coexistence Tintim e políticas da Meta.
