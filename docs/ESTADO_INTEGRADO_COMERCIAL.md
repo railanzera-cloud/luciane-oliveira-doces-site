@@ -38,3 +38,15 @@ Nao afirmar Safari, QZ fisico nem WhatsApp real como homologados.
 - Venda fora do site continua necessitando confirmacao manual: no pedido real pode faltar telefone.
 - Nao inferir consentimento ou produto apenas pelo nome de campanha.
 - Nenhum envio em massa nem cron habilitado. Sem custo novo de SaaS.
+
+## CRM — Observabilidade incremental (26/10, continuidade)
+- Commit de codigo verificado: e1534329ff243979ccf085c59fcd95abc62d1622 (a revisao final posterior deve ser verificada no HEAD).
+- CI https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/40373108909: 547/547 testes, TypeScript, build e ZIP aprovados.
+- Migration crm_meta_observability_20261026 foi APLICADA ao Supabase comercial em 26/10. Implementa sincronizacao recente de leads, tabela de IDs de mensagem Meta, RPC autenticada e configuracao com automatic_sends_enabled=false.
+- A Edge Function crm-whatsapp-webhook existe somente no repositorio; NAO foi publicada, nao existe credencial Meta enviada e nao houve mensagem automatica.
+- Teste SQL com ROLLBACK: duas mensagens inbound, um echo outbound, uma repeticao duplicada; tres eventos unicos e zero lembretes pendentes apos resposta do cliente.
+- Ao testar sincronizacao com sinais reais do Tintim, foi detectado um nome de contato com 1 caractere (emoji). Foi preparado hotfix incremental crm_tintim_short_names_fix, que usa nome neutro "Contato WhatsApp" caso o nome seja insuficiente. Teste de sincronizacao completo com ROLLBACK: 43 contatos elegiveis importados na transacao; persistencia somente apos validar hotfix.
+- Nenhum dado de clientes existente foi apagado. WABA, numero, Coexistence e verificacao Meta ainda dependem de confirmacao real.
+- Foi preservada a alteracao concorrente do layout responsivo em app/globals.css e a branch nao foi rebobinada/forcada.
+- A rota comercial ativa no Cloudflare continua nao vinculada com certeza a SHA de GitHub. Nenhum deploy Cloudflare realizado.
+- Proximas validacoes: CI hotfix, aplicacao aditiva, permissao staff, Safari real, webhook real autenticado antes de qualquer envio comercial.

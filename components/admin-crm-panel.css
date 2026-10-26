@@ -43,7 +43,7 @@
 .crm-create{display:grid;grid-template-columns:1fr 1fr auto;gap:9px}
 @media(max-width:700px){
  .crm-panel{padding-top:10px}.crm-head{flex-direction:column;gap:12px}
- .crm-navigation{display:grid;grid-template-columns:1fr 1fr}.crm-navigation button:last-child{grid-column:span 2}
+ .crm-navigation{display:grid;grid-template-columns:1fr 1fr}.crm-navigation button:last-child{grid-column:auto}
  .crm-card{padding:14px}.crm-card header{align-items:flex-start}
  .crm-actions .crm-button,.crm-followup .crm-button{flex:1 1 140px}
  .crm-candidate{flex-direction:column;gap:12px}.crm-candidate .crm-button{width:100%}
