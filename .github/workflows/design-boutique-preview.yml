@@ -34,6 +34,7 @@ on:
       - feature/crm-followups-assistidos-20261026
       - feature/crm-triagem-mobile-20261026
       - feature/crm-sinais-compra-20261026
+      - feature/crm-tintim-live-sync-20261026
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -50,6 +51,7 @@ on:
       - components/admin-crm-panel.css
       - lib/crm-follow-up.ts
       - supabase/migrations/20261026203000_crm_followups_assistidos.sql
+      - supabase/migrations/20261026235500_crm_tintim_live_sync.sql
       - docs/CRM-FOLLOWUPS-ASSISTIDOS-20261026.md
       - docs/ESTADO_INTEGRADO_COMERCIAL.md
       - app/globals.css
