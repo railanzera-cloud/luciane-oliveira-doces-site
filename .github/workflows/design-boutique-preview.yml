@@ -48,6 +48,8 @@ on:
       - components/admin-crm-panel.css
       - lib/crm-follow-up.ts
       - supabase/migrations/20261026203000_crm_followups_assistidos.sql
+      - docs/CRM-FOLLOWUPS-ASSISTIDOS-20261026.md
+      - docs/ESTADO_INTEGRADO_COMERCIAL.md
       - app/globals.css
       - components/admin-results-panel.tsx
       - components/admin-orders-panel.tsx

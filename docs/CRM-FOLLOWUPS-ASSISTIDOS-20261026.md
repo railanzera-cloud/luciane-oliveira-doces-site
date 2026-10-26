@@ -7,7 +7,7 @@ Base remota: ops/chocolate-morango-pre-reserva-pausada-20261026 @ 22cb12358548ac
 A base inclui o código validado no CI 7b3407c484d48ac5aa066f52960747934ef304f6. A modificação de 26/10 foi documental.
 Outras branches de Mercado Pago e impressão Windows têm histórico divergente; nenhuma dessas áreas foi alterada aqui.
 **O commit do Cloudflare ativo NÃO foi aferido. Não publicar automaticamente.**
-**Não aplicar migration sem backup e confirmação de acesso autorizado da operadora.**
+**Migração aditiva aplicada no Supabase comercial em 26/10/2026 após validação SQL reversível.** Não modificar o banco novamente sem revisão.
 
 ## Escopo da fase A0/B inicial
 - Nova aba Clientes no painel /admin; Pedidos, Disponibilidade e Resultados continuam intactos.
@@ -20,18 +20,24 @@ Outras branches de Mercado Pago e impressão Windows têm histórico divergente;
 - Ações respondeu, comprou, adiar, encerrar. Compra manual não cria pedido, pagamento ou Purchase.
 - Controle de acesso próprio crm_staff_access fechado até provisionar UUID autorizado.
 
-## Ativação segura
-1. Tirar backup/snapshot verificado do Supabase edqiwvccmboyayojvuea.
-2. Confirmar UUID real da Luciane em auth.users e autenticação no painel; não expor no GitHub.
-3. Aplicar migration 20261026203000_crm_followups_assistidos.sql após revisão.
-4. Provisionar somente a identidade confirmada com SQL privilegiado:
-   INSERT INTO public.crm_staff_access(user_id) VALUES ('UUID-REAL-CONFIRMADO');
-   Nunca usar UUID de exemplo nem liberar a todos autenticados.
-5. Testar acesso negado a anon e usuários fora da ACL, permitido somente a staff.
-6. Testar em ambiente isolado com contatos sintéticos, não com pedidos reais:
-   importação idempotente, telefone, consentimento, opt-out,
-   um follow-up pendente por oportunidade, cancelamento/resposta, compra manual.
-7. Validar no Safari/iPhone e notebook; comparar registro real e ações autorizadas.
+## O que foi efetivamente aplicado no banco (26/10)
+- Migração crm_followups_assistidos_20261026 retornou sucesso.
+- 5 tabelas CRM novas com RLS; nenhuma tabela existente de pedidos/pagamento/estoque foi modificada.
+- As duas identidades preexistentes de autenticação do painel foram incluídas na ACL do novo CRM.
+- Um usuário sem vínculo com a ACL foi negado na consulta protegida.
+- Testes reais em transação ROLLBACK: abertura de contato sintético, consentimento, espera, cancelamento por resposta, opt-out e bloqueio de novo agendamento. Sem dados de teste persistidos.
+- Conferência pós-teste: 0 customers, 0 follow_ups e 0 crm_events; equipe autorizada 2 e RLS 5/5.
+- **Cloudflare NÃO foi publicado**. A aba Clientes só aparece no site quando houver publicação explicitamente validada do pacote de mesmo commit.
+- Nenhum WhatsApp enviado, nenhuma configuração WABA alterada, nenhum token da Meta.
+- Rollback de dados existente não é necessário porque migração aditiva, sem alterações em pedidos; não apagar tabelas caso tenham registros comerciais futuros.
+
+## Homologação e ativação pendentes
+1. Conferir no Safari/iPhone e notebook as 4 abas, incluindo as mensagens do CRM.
+2. Comparar contato rastreado do Tintim com o mesmo registro de CRM, sem disparar mensagem real.
+3. Validar registro manual de interesse/consentimento em piloto restrito e autorizado.
+4. Verificar deployment ativo Cloudflare antes de decidir pela publicação.
+5. Conferir Meta Business Verification, número e Coexistence; sem envio automático até homologar eventos e custos.
+6. Antes de qualquer envio, confirmar consentimento real; mensagens antigas do Tintim não provam permissão.
 
 ## Limites atuais
 - Dos vínculos Tintim/pedido consultados, 97 eram candidatos e zero confirmados.
