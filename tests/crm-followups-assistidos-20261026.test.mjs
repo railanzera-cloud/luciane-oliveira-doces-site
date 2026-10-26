@@ -60,3 +60,12 @@ test("Admin adiciona Clientes sem substituir funcionalidades existentes", () => 
   assert.match(ui, /sent_manually/);
   assert.doesNotMatch(ui, /fetch\(["']https:\/\/graph\.facebook\.com/);
 });
+
+
+test("quatro abas preservam largura e acessibilidade no mobile", () => {
+  const css=read("app/globals.css");
+  const block=css.slice(css.lastIndexOf("/* CRM — quatro abas administrativas"));
+  assert.match(block, /grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/);
+  assert.match(block, /max-width:\s*600px/);
+  assert.match(block, /grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/);
+});

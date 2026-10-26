@@ -4361,3 +4361,15 @@ footer {
 .admin-preorder-stock .preorder-error{margin-top:10px;color:#ffd1be}
 .admin-preorder-stock .preorder-note{font-size:.73rem;margin:10px 0 0}
 @media(max-width:390px){.admin-preorder-numbers{gap:5px}.admin-preorder-numbers div{padding:9px 6px}}
+
+
+/* CRM — quatro abas administrativas sem sacrificar a leitura no iPhone. */
+.admin-main-tabs {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: min(calc(100% - 32px), 640px) !important;
+}
+@media (max-width: 600px) {
+  .admin-main-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
