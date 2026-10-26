@@ -1,0 +1,14 @@
+# Integração Tintim message_create — checkpoint de observação (26/10/2026)
+- Escopo exclusivo: LOD comercial `railanzera-cloud/luciane-oliveira-doces-site`, projeto `edqiwvccmboyayojvuea`, fuso America/Belem.
+- Branch `feature/crm-tintim-message-observability-20261026`, base `4b0a4684fa81d79291579d7f9516f7cae650496c`.
+- Confirmação via print: Coexistence WhatsApp Business iPhone conectada ao Tintim; não fazer segundo onboarding, não desconectar.
+- Quatro endpoints do Tintim já apontam para Edge Function `tintim-webhook`, token compartilhado via URL. A chave foi parcialmente exibida em captura enviada; planejar rotação coordenada sem interromper webhook.
+- Diagnóstico: `message_create` era aproveitado apenas por referência de pedido do site; mensagem comum era ignorada.
+- Nova função `extractTintimMessageSignal` aceita direção explícita, telefone válido e timestamp recente; sem guardar corpo de mensagens. Eventos incompletos ignorados com ack para preservar dados de pedidos.
+- Nova migration `20261027001000_crm_tintim_message_observe.sql`: tabela privada deduplicada, RPC exclusivo service_role, estatística acessível só a equipe.
+- `crm_tintim_observation_settings.apply_to_followups=false` por padrão: recebe sinais reais sem iniciar/cancelar followups até homologação. `automatic_sends_enabled` mantém-se false com CHECK.
+- Quando homologado e ativado internamente: inbound após saída cancela lembretes; outbound após inbound recente programa 45 min; opt-out e sinal de compra impedem agendamento. Idempotência por hash SHA256 do payload.
+- O receptor antigo `record_tintim_order_reference` e os demais eventos de lead continuam executados em separado, sem mexer em pagamentos, pedidos ou Pixel/CAPI.
+- SQL de produção testado em BEGIN/ROLLBACK: observação isolada, inbound/outbound/cancel, repetição e ausência de registros sintéticos.
+- Dependência restante: receber mensagens reais de teste para conferir formato e horários; verificar contagem de `crm_tintim_message_diagnostics` e só depois ativar processamento de follow-up. O endpoint não envia mensagens; mecanismo de envio real ainda depende de autorização/provedor compatível com Tintim.
+- Não criar novo ZIP Cloudflare por esta alteração: apenas Edge Function e migração no Supabase.

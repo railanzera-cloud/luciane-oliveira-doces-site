@@ -86,3 +86,36 @@ export function extractOrderReferenceFromTintim(input,nowIso=new Date().toISOStr
   observed_at:dateValue(get(message,"created_at","date","timestamp")??get(input,"created_at","date","timestamp"),nowIso)
  };
 }
+
+
+// Mensagem comum do Tintim: extrai apenas metadados confiaveis. O texto nao sai daqui.
+// Eventos sem direcao, telefone ou timestamp nao podem agendar ou cancelar lembretes.
+export function extractTintimMessageSignal(input) {
+ if (!input || typeof input!=="object" || Array.isArray(input)) return {ignored:true,reason:"invalid_payload"};
+ const type=first(input.event_type,input.eventType,input.type,input.event,100).toLowerCase().replaceAll(".","_").replaceAll("-","_");
+ if(type!=="message_create") return {ignored:true,reason:"not_message"};
+ const message=obj(input.message),lead=obj(input.lead),conversation=obj(input.conversation),account=obj(input.account);
+ const fromMe=get(message,"from_me","fromMe")??get(input,"from_me","fromMe");
+ const direction=(fromMe===true||fromMe==="true")?"business_outbound":
+   (fromMe===false||fromMe==="false")?"inbound":null;
+ if(!direction)return {ignored:true,reason:"direction_missing"};
+ const phone=first(lead.phone,conversation.phone,input.phone,input.customer_phone,
+   message.phone,lead.whatsapp,100).replace(/[^0-9]/g,"");
+ if(!/^(?:55)?[1-9][0-9]{9,10}$/.test(phone))return {ignored:true,reason:"phone_missing"};
+ const timestamp=get(message,"created_isoformat","created_at","timestamp","date","datetime","time") ??
+   get(input,"created_isoformat","created_at","timestamp","date","datetime","time");
+ if(timestamp===undefined||timestamp===null||timestamp==="")return {ignored:true,reason:"timestamp_missing"};
+ let millis;
+ if(typeof timestamp==="number") millis=timestamp<1e11?timestamp*1000:timestamp;
+ else if(typeof timestamp==="string" && /^[0-9]{10,13}$/.test(timestamp.trim())) {
+  const n=Number(timestamp.trim()); millis=n<1e11?n*1000:n;
+ } else millis=Date.parse(String(timestamp));
+ const now=Date.now();
+ if(!Number.isFinite(millis)||millis<now-48*3600*1000||millis>now+5*60000)
+  return {ignored:true,reason:"timestamp_outside_window"};
+ return {
+  ignored:false,
+  account_key:first(account.code,account.id,input.account_code,input.account_id,DEFAULT_TINTIM_ACCOUNT_KEY,100),
+  phone, direction, occurred_at:new Date(millis).toISOString()
+ };
+}
