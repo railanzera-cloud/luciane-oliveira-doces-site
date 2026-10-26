@@ -69,3 +69,8 @@
  .crm-pill{white-space:normal}
  .crm-expand{margin-left:auto}
 }
+
+.crm-purchase-review{margin:0;padding:12px 13px;border:1px solid #bd895a;background:#4d3325;color:#ffe0bc;border-radius:12px;font-size:.83rem;line-height:1.5}
+.crm-ad-signal{margin:0;border-left:3px solid #ae8662;padding:10px 12px;background:#38271e;color:#ead5c3;border-radius:0 10px 10px 0;font-size:.8rem;overflow-wrap:anywhere;line-height:1.45}
+.crm-ad-signal small{display:block;margin-top:4px;color:#b6a08e;font-size:.75rem}
+.crm-card-compact .crm-name small:last-child{color:#bda793}

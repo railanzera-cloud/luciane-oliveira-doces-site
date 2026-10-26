@@ -28,6 +28,16 @@ type Candidate = {
   campaign_name: string | null; last_seen_at: string; imported: boolean;
 };
 type View = "due" | "new" | "active" | "tintim";
+type TintimSignal = {
+  conversation_id: string;
+  stage_label: string | null;
+  ad_name: string | null;
+  campaign_name: string | null;
+  last_observed_at: string | null;
+};
+const hasPurchaseSignal = (stage: string | null | undefined) =>
+  /^(comprou|convertido|vendido|venda realizada)$/i.test((stage ?? "").trim());
+
 const fmtTime = (iso: string) =>
   new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Belem", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 const displayError = (error: unknown) => {
@@ -43,6 +53,8 @@ const displayError = (error: unknown) => {
 export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   const [items, setItems] = useState<Opportunity[]>([]);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [signals, setSignals] = useState<Record<string,TintimSignal>>({});
+
   const [view, setView] = useState<View>("due");
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState<string | null>(null);
@@ -65,14 +77,20 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       if (sync.error && !/PGRST202|Could not find the function/i.test(sync.error.message)) {
         throw sync.error;
       }
-      const [list,candidatesResult] = await Promise.all([
+      const hold = await client.rpc("crm_hold_tintim_purchase_signals");
+      if (hold.error) throw hold.error;
+      const [list,candidatesResult,signalsResult] = await Promise.all([
         client.rpc("crm_list_opportunities"),
         client.rpc("crm_list_tintim_candidates", { p_limit: 40 }),
+        client.rpc("crm_list_tintim_signals"),
       ]);
       if (list.error) throw list.error;
       if (candidatesResult.error) throw candidatesResult.error;
+      if (signalsResult.error) throw signalsResult.error;
       setItems((list.data ?? []) as Opportunity[]);
       setCandidates((candidatesResult.data ?? []) as Candidate[]);
+      setSignals(Object.fromEntries(((signalsResult.data ?? []) as TintimSignal[])
+        .map(signal => [signal.conversation_id,signal])));
       setError("");
     } catch (e) { setError(displayError(e)); }
     finally { setLoading(false); }
@@ -101,12 +119,16 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   const visible = view === "due" ? due : view === "new" ? newLeads : waiting;
   const filteredVisible = useMemo(() => {
     const term = search.trim().toLocaleLowerCase("pt-BR");
-    if (!term) return visible;
-    return visible.filter(item => [
+    const shortlist = term ? visible.filter(item => [
       item.customer_name, item.phone_e164, item.interest_label ?? "",
-      item.source_label ?? "",
-    ].some(value => value.toLocaleLowerCase("pt-BR").includes(term)));
-  }, [visible,search]);
+      item.source_label ?? "", signals[item.conversation_id]?.ad_name ?? "",
+    ].some(value => value.toLocaleLowerCase("pt-BR").includes(term))) : visible;
+    // Apenas sinais rastreados, jamais interpretar como data da ultima mensagem.
+    if (view !== "new") return shortlist;
+    return [...shortlist].sort((a,b) =>
+      new Date(signals[b.conversation_id]?.last_observed_at ?? 0).getTime() -
+      new Date(signals[a.conversation_id]?.last_observed_at ?? 0).getTime());
+  }, [visible,search,signals,view]);
 
   const run = async (key: string, operation: () => Promise<void>, success: string) => {
     if (pending) return;
@@ -176,15 +198,19 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         const isDue = item.status==="waiting_customer" && item.follow_up_status==="pending"
           && !!item.follow_up_due_at && new Date(item.follow_up_due_at).getTime()<=now;
         const locked = !!pending;
+        const signal = signals[item.conversation_id];
+        const possiblePurchase = hasPurchaseSignal(signal?.stage_label);
         const isExpanded = expanded[item.conversation_id] ?? isDue;
         return <article className={"crm-card "+(!isExpanded?"crm-card-compact":"")} key={item.conversation_id}>
           <header>
             <div className="crm-name"><strong>{item.customer_name}</strong>
               <small>{item.source_label || "Origem não confirmada"} · final {item.phone_e164.slice(-4)}</small>
+              {signal?.last_observed_at &&
+                <small>Último sinal do Tintim: {fmtTime(signal.last_observed_at)}</small>}
             </div>
             <div className="crm-card-controls">
               <span className={"crm-pill "+(isDue?"crm-due":"")}>
-                {isDue?"Lembrete vencido":item.status==="waiting_customer"?"Aguardando cliente":"Para revisar"}
+                {possiblePurchase?"Possível compra":isDue?"Lembrete vencido":item.status==="waiting_customer"?"Aguardando cliente":"Para revisar"}
               </span>
               <button type="button" className="crm-expand" aria-expanded={isExpanded}
                 onClick={()=>setExpanded(previous=>({...previous,[item.conversation_id]:!isExpanded}))}>
@@ -194,6 +220,14 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
             </div>
           </header>
           {isExpanded && <>
+          {possiblePurchase && <p className="crm-purchase-review" role="note">
+            O Tintim sinalizou “Comprou”. Confira esse registro antes de fazer novo follow-up.
+            O CRM não confirmou pagamento nem registrou faturamento.
+          </p>}
+          {signal?.ad_name && <p className="crm-ad-signal">
+            <strong>Referência do anúncio:</strong> {signal.ad_name}
+            <small> Indica o anúncio associado, não comprova qual produto o cliente pediu.</small>
+          </p>}
           <label className="crm-label">Produto de interesse <small>(confirmado pela Luciane)</small>
             <input type="text" maxLength={80} placeholder="Ex.: Chocolate com Morango"
               value={interest[item.conversation_id] ?? item.interest_label ?? ""}
@@ -203,7 +237,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
           {item.follow_up_status==="pending" && item.follow_up_due_at &&
             <p className="crm-due-info">Lembrete: {fmtTime(item.follow_up_due_at)} (Paragominas)</p>}
           <div className="crm-actions">
-            <button className="crm-button" type="button" disabled={locked || item.commercial_opt_out}
+            <button className="crm-button" type="button" disabled={locked || item.commercial_opt_out || possiblePurchase}
               onClick={()=>void invoke(item.conversation_id,"waiting")}>Já respondi · lembrar 45 min</button>
             <button className="crm-button crm-secondary" type="button" disabled={locked}
               onClick={()=>void invoke(item.conversation_id,"replied")}>Cliente respondeu</button>
@@ -211,12 +245,12 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               onClick={()=>{ if(window.confirm("Confirmar que este cliente comprou? Isso registra apenas uma conversão manual, sem alterar o pedido ou o faturamento.")) void invoke(item.conversation_id,"converted"); }}>Comprou</button>
           </div>
           {isDue && <div className="crm-followup">
-            {eligible ? <>
+            {eligible && !possiblePurchase ? <>
               <a className="crm-button crm-whatsapp" href={crmWhatsAppLink(item.phone_e164,interest[item.conversation_id] ?? item.interest_label)}
                  target="_blank" rel="noopener noreferrer"><MessageCircle size={17}/> Abrir mensagem sugerida</a>
               <button className="crm-button crm-secondary" type="button" disabled={locked}
                  onClick={()=>void invoke(item.conversation_id,"sent_manually")}>Marcar como enviada</button>
-            </> : <p>Mensagem comercial indisponível: autorização não registrada ou contato bloqueado.</p>}
+            </> : <p>{possiblePurchase?"Follow-up suspenso: possível compra sinalizada no Tintim.": "Mensagem comercial indisponível: autorização não registrada ou contato bloqueado."}</p>}
             <button className="crm-button crm-secondary" type="button" disabled={locked}
               onClick={()=>void invoke(item.conversation_id,"snooze",{p_due_minutes:60})}>Adiar 1 hora</button>
           </div>}
