@@ -27,7 +27,7 @@ type Candidate = {
   stage_label: string | null; source_label: string | null;
   campaign_name: string | null; last_seen_at: string; imported: boolean;
 };
-type View = "due" | "active" | "tintim";
+type View = "due" | "new" | "active" | "tintim";
 const fmtTime = (iso: string) =>
   new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Belem", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 const displayError = (error: unknown) => {
@@ -57,6 +57,12 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
+      // Importacao passiva dos ultimos sinais do Tintim: nenhum envio ou lembrete.
+      // Uma falha de sync nao pode impedir leitura de oportunidades ja cadastradas.
+      const sync = await client.rpc("crm_sync_recent_tintim", { p_hours: 72, p_limit: 100 });
+      if (sync.error && !/PGRST202|Could not find the function/i.test(sync.error.message)) {
+        throw sync.error;
+      }
       const [list,candidatesResult] = await Promise.all([
         client.rpc("crm_list_opportunities"),
         client.rpc("crm_list_tintim_candidates", { p_limit: 40 }),
@@ -72,6 +78,14 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
 
   useEffect(() => { void refresh(); }, [refresh]);
   useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (document.visibilityState==="visible") void refresh();
+    }, 60000);
+    const onReturn=() => { if (document.visibilityState==="visible") void refresh(); };
+    document.addEventListener("visibilitychange",onReturn);
+    return () => { window.clearInterval(timer);document.removeEventListener("visibilitychange",onReturn); };
+  }, [refresh]);
+  useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 30000);
     return () => window.clearInterval(timer);
   }, []);
@@ -81,7 +95,8 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
     && new Date(item.follow_up_due_at).getTime() <= now), [items,now]);
   const waiting = useMemo(() => items.filter((item) => item.status !== "converted"
     && item.status !== "lost" && item.status !== "closed"), [items]);
-  const visible = view === "due" ? due : waiting;
+  const newLeads = waiting.filter(item => item.status==="in_progress" && !item.last_outbound_at);
+  const visible = view === "due" ? due : view === "new" ? newLeads : waiting;
 
   const run = async (key: string, operation: () => Promise<void>, success: string) => {
     if (pending) return;
@@ -120,7 +135,8 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       </div>
       <div className="crm-navigation" role="group" aria-label="Filtrar atendimentos">
         <button type="button" className={view==="due"?"is-active":""} onClick={()=>setView("due")}>Para agora <b>{due.length}</b></button>
-        <button type="button" className={view==="active"?"is-active":""} onClick={()=>setView("active")}>Em acompanhamento <b>{waiting.length}</b></button>
+        <button type="button" className={view==="new"?"is-active":""} onClick={()=>setView("new")}>Novos <b>{newLeads.length}</b></button>
+        <button type="button" className={view==="active"?"is-active":""} onClick={()=>setView("active")}>Acompanhar <b>{waiting.length}</b></button>
         <button type="button" className={view==="tintim"?"is-active":""} onClick={()=>setView("tintim")}>Contatos Tintim</button>
       </div>
       {error && <div role="alert" className="crm-error">{error}</div>}
@@ -128,8 +144,8 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       {loading && <div role="status" className="crm-loading">Atualizando oportunidades…</div>}
 
       {view!=="tintim" && !loading && visible.length===0 && !error && (
-        <div className="crm-empty"><Clock3 size={24}/><strong>{view==="due"?"Nenhum follow-up vencido":"Nenhuma oportunidade em acompanhamento"}</strong>
-          <p>Use a aba Contatos Tintim para criar atendimentos. As mensagens continuam no aplicativo da Luciane.</p></div>
+        <div className="crm-empty"><Clock3 size={24}/><strong>{view==="due"?"Nenhum follow-up vencido":view==="new"?"Nenhum contato novo":"Nenhuma oportunidade em acompanhamento"}</strong>
+          <p>Os contatos recentes do Tintim entram automaticamente quando esta aba é aberta. As mensagens continuam no aplicativo da Luciane.</p></div>
       )}
       {view!=="tintim" && <div className="crm-list">{visible.map(item => {
         const eligible = !item.commercial_opt_out && item.consent_status==="granted";
