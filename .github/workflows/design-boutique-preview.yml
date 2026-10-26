@@ -32,6 +32,7 @@ on:
       - fix/pre-reserva-impressao-automatica-20261025
       - fix/pre-reserva-aceite-impressao-20261025
       - feature/crm-followups-assistidos-20261026
+      - feature/crm-triagem-mobile-20261026
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css

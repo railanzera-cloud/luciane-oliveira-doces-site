@@ -49,3 +49,23 @@
  .crm-candidate{flex-direction:column;gap:12px}.crm-candidate .crm-button{width:100%}
  .crm-create{grid-template-columns:1fr}
 }
+/* Triagem compacta: primeiro mostrar quem e por que exige acao, detalhes sob demanda. */
+.crm-guidance{margin:0 0 14px;border-left:3px solid #cf9c73;background:#37281f;padding:12px 14px;border-radius:0 10px 10px 0;color:#d4bda9;font-size:.82rem;line-height:1.5}
+.crm-guidance strong{color:#f2d4ba}
+.crm-search{display:flex;align-items:center;gap:10px;border:1px solid #745a48;background:#261b17;border-radius:12px;padding:0 12px;margin:0 0 12px;color:#d2ac8d;min-height:48px}
+.crm-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:#fff0e2;font:inherit;font-size:.86rem;min-height:46px}
+.crm-search input:focus-visible{outline:0}
+.crm-search:focus-within{outline:2px solid #cf9c73;outline-offset:2px}
+.crm-search button{background:none;border:0;color:#e4c5a8;text-decoration:underline;font:inherit;font-size:.8rem;cursor:pointer}
+.crm-list-count{font-size:.76rem;color:#bba594;margin:0 0 9px}
+.crm-card-compact{gap:0;padding:13px 15px}
+.crm-card-compact header{align-items:center}
+.crm-card-controls{display:flex;align-items:center;gap:9px;justify-content:flex-end;flex-wrap:wrap}
+.crm-expand{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:40px;padding:7px 10px;border:1px solid #765c49;background:#3b2a22;color:#f1d5ba;border-radius:10px;font:inherit;font-size:.76rem;cursor:pointer}
+.crm-chevron-up{transform:rotate(180deg)}
+@media(max-width:700px){
+ .crm-card header{flex-wrap:wrap;gap:10px}
+ .crm-card-controls{width:100%;justify-content:space-between;flex-wrap:nowrap}
+ .crm-pill{white-space:normal}
+ .crm-expand{margin-left:auto}
+}
