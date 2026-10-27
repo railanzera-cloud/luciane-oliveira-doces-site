@@ -21,3 +21,13 @@ Não mexer Luciane Gestão, operações de pedidos, pagamentos, disponibilidades
 ## Implantação
 Executar SQL BEGIN/ROLLBACK para os controles de inserção/revisão/cancelamento antes da migração. CI completo build/testes. Só depois migration privada e deploy da Edge Function `tintim-webhook`, com mesma URL/chave.
 **Não publicar Cloudflare sem homologação específica**: componentes/admin-crm-panel.tsx e lib/crm-follow-up.ts ficam no GitHub até revisão de deploy. Não alterar main.
+
+## Checkpoint homologado e implantação parcial em produção
+- Commit integrado de código `de36504ad2b3153f9605a9d0aef55f9633eee5f2` (descende de `ba66623a`).
+- Workflow GitHub `40438411314`: build OK, TypeScript OK, **585 testes passados, 0 falhas**. SHA256 artefato gerado pelo CI `3b88902641ffc1bf0e849af992da9d6f7327c4b29bce34a9bde46768e4609f52`. É artefato GitHub, **não** prova deploy Cloudflare.
+- Banco Supabase comercial: migration aplicada `crm_tintim_product_hints_20261026`, versão `20261027022743`.
+- Edge Function `tintim-webhook` **v11 ACTIVE**, SHA256 `802ac0c40be2793f4640844e6080c353b4ac231501be3ad700fb160c367af8c3`; mesmo endpoint e mesma autenticação; rotinas de pedidos e eventos CRM anteriores preservadas.
+- Teste SQL BEGIN/ROLLBACK passou para inserção de produto por evento inbound real verificado, idempotência, retirada da dica, bloqueio de fingerprint inexistente e role authenticated sem permissão. **Nenhum dado sintético persistiu.**
+- Conferência após deploy: 180 mensagens de Tintim registradas, 54 clientes, 4 follow-ups pendentes, 0 dicas de produto detectadas, 0 interesse `staff_confirmed`, `automatic_sends_enabled=false`. Ainda NÃO há prova ponta a ponta de classificação de novo texto real posterior à v11; aguardar um evento genuíno sem retrabalho antigo.
+- Código atualizado do painel e rascunhos **está somente no GitHub**. Não publicar Cloudflare sem verificar deployment/HEAD correspondente e sem homologação específica. Na loja live ainda não se pode afirmar que aparecem as dicas personalizadas.
+- Limites: classificador é determinístico e conservador; mensagens de áudio e intenções ambíguas não são interpretadas; a fila de 45 minutos continua independente. Um sinal derivado NÃO autoriza envio. A conexão Coexistence continua no Tintim, sem API oficial de envio validada. 
