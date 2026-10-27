@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { extractOfficialMessageEvents } from "./core.mjs";
+import { extractOfficialStatusEvents } from "./status-core.mjs";
 
 // NAO ativar no Meta antes de validar WABA, Coexistence e evento real.
 // Segredos somente no ambiente da Edge Function.
@@ -49,9 +50,12 @@ Deno.serve(async(req)=>{
   try{payload=JSON.parse(raw);}catch{return answer(400,{ok:false,error:"invalid_json"});}
   if(payload?.object!=="whatsapp_business_account")return answer(200,{ok:true,ignored:"not_waba"});
   const allowedEntries=Array.isArray(payload?.entry)?payload.entry.filter(x=>String(x?.id)==businessId):[];
-  const events=extractOfficialMessageEvents({...payload,entry:allowedEntries},phoneId);
-  if(!events.length)return answer(200,{ok:true,processed:0});
+  const validatedPayload={...payload,entry:allowedEntries};
+  const events=extractOfficialMessageEvents(validatedPayload,phoneId);
+  const statusEvents=extractOfficialStatusEvents(validatedPayload,phoneId,businessId);
+  if(!events.length && !statusEvents.length)return answer(200,{ok:true,processed:0});
   let processed=0;
+  let statusProcessed=0;
   for(const event of events){
     let res;
     try{
@@ -68,5 +72,25 @@ Deno.serve(async(req)=>{
     if(!res.ok)return answer(503,{ok:false,error:"temporary_storage_failure",processed});
     processed++;
   }
-  return answer(200,{ok:true,processed});
+  for(const receipt of statusEvents){
+    let res;
+    try{
+      // Identity and HMAC signature verified above.
+      // The database rejects unknown wamid IDs and does not mark sales.
+      res=await fetch(projectUrl+"/rest/v1/rpc/crm_record_meta_delivery_status",{
+        method:"POST",
+        headers:{"apikey":serviceKey,"Authorization":"Bearer "+serviceKey,
+          "Content-Type":"application/json"},
+        body:JSON.stringify({
+          p_message_id:receipt.message_id,
+          p_status:receipt.status,
+          p_occurred_at:receipt.occurred_at
+        }),
+        signal:AbortSignal.timeout(7000)
+      });
+    }catch{return answer(503,{ok:false,error:"temporary_storage_failure",processed,statusProcessed});}
+    if(!res.ok)return answer(503,{ok:false,error:"temporary_storage_failure",processed,statusProcessed});
+    statusProcessed++;
+  }
+  return answer(200,{ok:true,processed,statusProcessed});
 });

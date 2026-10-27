@@ -46,6 +46,7 @@ on:
       - feature/crm-motor-automacao-observavel-20261027
       - feature/crm-mobile-operacao-clara-20261027
       - feature/crm-outbox-envio-oficial-preparo-20261027
+      - feature/crm-meta-status-webhook-20261027
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -69,6 +70,7 @@ on:
       - tests/crm-operacao-clara-mobile-20261027.test.mjs
       - tests/crm-delivery-outbox-holds-20261027.test.mjs
       - tests/crm-whatsapp-official-transport-20261027.test.mjs
+      - tests/crm-meta-delivery-status-20261027.test.mjs
       - supabase/migrations/20261026203000_crm_followups_assistidos.sql
       - supabase/migrations/20261026235500_crm_tintim_live_sync.sql
       - supabase/migrations/20261027001000_crm_tintim_message_observe.sql
@@ -82,6 +84,9 @@ on:
       - supabase/migrations/20261027193000_crm_delivery_outbox_holds.sql
       - supabase/migrations/20261027194000_crm_delivery_holds_cron.sql
       - supabase/functions/crm-delivery-dispatch/transport.mjs
+      - supabase/functions/crm-whatsapp-webhook/index.ts
+      - supabase/functions/crm-whatsapp-webhook/status-core.mjs
+      - supabase/migrations/20261027195000_crm_meta_delivery_status.sql
       - docs/CRM-FOLLOWUPS-ASSISTIDOS-20261026.md
       - docs/ESTADO_INTEGRADO_COMERCIAL.md
       - app/globals.css
