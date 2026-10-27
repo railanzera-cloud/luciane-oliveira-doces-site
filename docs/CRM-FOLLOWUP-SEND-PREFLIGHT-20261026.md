@@ -17,3 +17,12 @@ Projeto isolado: LOD comercial, repo `railanzera-cloud/luciane-oliveira-doces-si
 - Para futuro serviço real de envio, uma checagem adicional transacional imediatamente antes do POST ao provedor é obrigatória; elegibilidade consultada anteriormente pode ficar desatualizada.
 - Tintim monitora mensagens e expõe webhooks `message_create`, mas documentação não estabelece serviço de disparo pelo próprio Tintim. Não reconectar o mesmo número a outra Coexistence. Confirmar por escrito com Tintim/Meta BSP se a conta atual permite envio por API da mesma plataforma, com consentimento e custos.
 - Não publicar Cloudflare, merge na main ou habilitar envios. Preservar a autenticação dos webhooks; planejar rotação coordenada da chave exposta parcialmente em captura.
+
+## Checkpoint verificado em produção
+- GitHub code commit `9bdb3b3bac1f2aa5c1aa1d0699a3f365dac97a0a` passou build, TypeScript e 573 testes (0 falhas), workflow `40423706843`.
+- Migration aplicada no Supabase comercial: `crm_followup_send_preflight_20261026`, versão `20261027000305`.
+- Teste do banco com rollback: dois follow-ups pendentes, ambos retornaram `ready:false`, `sender_disabled`, `consent_not_verified` e `inbound_timestamp_unverified`. Nenhum follow-up enviado, alterado ou cancelado pela migração.
+- Acesso indevido simulado com JWT authenticated sem registro em `crm_staff_access`: rejeitado com SQLSTATE 42501.
+- No momento da consulta: 43 eventos observados, 2 follow-ups pendentes, configuração `automatic_sends_enabled=false`.
+- **Falta externa para concluir envio real:** Tintim opera na Coexistence e documenta que recebe/monitora mensagens, mas não as envia. Necessária confirmação explícita do suporte/provedor responsável pela WABA sobre autorização de Cloud API pelo MESMO parceiro, sem reconexão/migração, e acesso a timestamps confiáveis e sinais de mídias. Sem esses elementos, não habilitar envio.
+- Nenhum deploy Cloudflare, merge na main ou alteração no webhook de pedidos nesta etapa. As mudanças são apenas banco e documentação.
