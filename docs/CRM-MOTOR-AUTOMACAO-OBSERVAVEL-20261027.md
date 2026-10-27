@@ -30,3 +30,9 @@ Não tocar em `main`, checkout Pix Mercado Pago, orders, QZ Tray/impressão, cam
 - Compra por WhatsApp sem telefone persistente pode não cruzar automaticamente; fail closed em caso de dúvida.
 
 Não afirmar automação de disparo concluída até que tudo acima seja comprovado.
+## Aplicação efetiva em produção (27/10/2026)
+- Migração `crm_automation_observer_20261027` aplicada ao Supabase comercial depois da CI `40501774467`: 602/602 testes, build, TypeScript, ZIP corretos, SHA do código `9e5796a35b209da6ee1a598dfb97d8b076ca2086`.
+- Extensão `pg_cron` v1.6.4 instalada, job ativo `lod-crm-audit-only-5min` ID 1, comando exato `select public.crm_automation_evaluate_pending();`, periodicidade 5 minutos.
+- Auditoria de produção: 82 registros observados (4 bloqueados, 2 agendados, 76 finalizados). 6 follow-ups reais pendentes não foram alterados, 0 consentimentos com evidência, 0 eventos oficiais Meta, `automatic_sends_enabled=false`.
+- Migração reexecutável `20261027008000_crm_automation_cron_audit_only.sql` mantém agendamento consistente e foi registrada no repositório; não é mecanismo de disparo.
+- Antes de alegar que roda autonomamente, verificar `cron.job_run_details` após horário previsto. `cron.job.active=true` sozinho não comprova execução.

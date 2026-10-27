@@ -73,6 +73,7 @@ on:
       - supabase/migrations/20261027005000_crm_tintim_product_hints.sql
       - supabase/migrations/20261027006000_crm_confirm_interest.sql
       - supabase/migrations/20261027007000_crm_automation_observer.sql
+      - supabase/migrations/20261027008000_crm_automation_cron_audit_only.sql
       - docs/CRM-FOLLOWUPS-ASSISTIDOS-20261026.md
       - docs/ESTADO_INTEGRADO_COMERCIAL.md
       - app/globals.css
