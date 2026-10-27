@@ -40,6 +40,7 @@ on:
       - feature/crm-tintim-receipt-time-20261026
       - feature/crm-followup-preflight-20261026
       - feature/crm-fatia-rascunhos-personalizados-20261026
+      - feature/crm-sabores-mencionados-webhook-20261026
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -55,6 +56,7 @@ on:
       - components/admin-crm-panel.tsx
       - components/admin-crm-panel.css
       - lib/crm-follow-up.ts
+      - supabase/functions/tintim-webhook/product-hint.mjs
       - tests/crm-fatia-rascunhos-personalizados-20261026.test.mjs
       - supabase/migrations/20261026203000_crm_followups_assistidos.sql
       - supabase/migrations/20261026235500_crm_tintim_live_sync.sql
@@ -62,6 +64,7 @@ on:
       - supabase/migrations/20261027002000_crm_tintim_message_diagnostics.sql
       - supabase/migrations/20261027003000_crm_tintim_receipt_time.sql
       - supabase/migrations/20261027004000_crm_followup_send_preflight.sql
+      - supabase/migrations/20261027005000_crm_tintim_product_hints.sql
       - docs/CRM-FOLLOWUPS-ASSISTIDOS-20261026.md
       - docs/ESTADO_INTEGRADO_COMERCIAL.md
       - app/globals.css

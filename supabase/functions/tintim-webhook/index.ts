@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { normalizeTintimPayload, extractOrderReferenceFromTintim, extractTintimMessageSignal, tintimMessageFieldFlags } from "./core.mjs";
+import { extractTintimProductMention } from "./product-hint.mjs";
 const EXPECTED_TOKEN_SHA256="c00669ce4b78a66371b6864b5f6cb31f850a7bb8ec7fb2b1a8a70ac0cde65c32";
 const headers={"content-type":"application/json; charset=utf-8","cache-control":"no-store"};
 const reply=(status,data)=>new Response(JSON.stringify(data),{status,headers});
@@ -80,6 +81,23 @@ Deno.serve(async req=>{
      });
    }
   }catch{return reply(503,{ok:false,error:"temporary_backend_error"});}
+  // Apenas mensagem INBOUND de cliente. Um texto de checkout com referencia de
+  // pedido não entra como novo sinal comercial: isso seria falso interesse.
+  // A extração é efêmera; só envia product_id/fingerprint, nunca o corpo.
+  if(isMessage && signal?.direction==="inbound" && !signal.ignored
+     && data.ignored && observation?.accepted===true) {
+    const mention=extractTintimProductMention(payload);
+    if(!mention.ignored) {
+      // Suplementar e fail-open apenas para os eventos existentes:
+      // falha no detector NÃO interrompe o webhook de pedidos/mensagens.
+      try {
+        await callRpc("crm_record_tintim_product_mention",{
+          p_fingerprint:fingerprint,p_product_id:mention.product_id,
+          p_action:mention.action
+        });
+      } catch { /* Falha isolada: sem reprocessamento de pedidos */ }
+    }
+  }
   return reply(200,{ok:true,duplicate:result?.duplicate===true,
     ...(isMessage?{order_candidate_linked:result?.linked===true,
       crm_observed:observation?.accepted===true,

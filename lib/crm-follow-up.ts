@@ -25,14 +25,35 @@ export function crmAdSliceHint(adName: string | null | undefined):
     : null;
 }
 
+// Os IDs são os do catálogo comercial; o corpo privado não entra no frontend.
+const mentionedNames: Record<string,string> = {
+  "fatia-chocolate-morango": "Chocolate com Morango",
+  "fatia-ninho-morango": "Ninho com Morango",
+  "fatia-prestigio": "Prestígio",
+  "fatia-chocolate-maracuja": "Chocolate com Maracujá",
+  "fatia-chocolatudo": "Chocolatudo",
+  "fatia-coco-cremoso-morango": "Coco Cremoso com Morango",
+  "fatia-chocolate-cenoura": "Chocolate com Cenoura",
+};
+export function crmMentionedProductName(id: string | null | undefined): string | null {
+  return id && Object.prototype.hasOwnProperty.call(mentionedNames,id) ? mentionedNames[id] : null;
+}
+
 // Texto de follow-up assistido. Nao presume estoque, preco ou envio real.
 // Interesse vem de confirmacao da equipe; sinais de origem/UTM nao sao produtos.
 export function crmSuggestedMessage(
   interest: string | null | undefined,
-  adName?: string | null
+  adName?: string | null,
+  mentionedProductId?: string | null
 ): string {
   const product = (interest ?? "").trim().replace(/\s+/g, " ").slice(0, 80);
   if (!product) {
+    const mentioned = crmMentionedProductName(mentionedProductId);
+    if (mentioned) {
+      // O cliente MENCIONOU o sabor, não se confirmou compra ou intenção final.
+      return "Oi! 😊 Sobre a fatia " + mentioned +
+        " que você mencionou: posso confirmar a disponibilidade para hoje?";
+    }
     const hint = crmAdSliceHint(adName);
     if (hint) {
       // "Viu o anuncio" e verificavel como origem de trafego; jamais dizer
@@ -49,10 +70,11 @@ export function crmSuggestedMessage(
 export function crmWhatsAppLink(
   phoneE164: string,
   interest: string | null | undefined,
-  adName?: string | null
+  adName?: string | null,
+  mentionedProductId?: string | null
 ): string {
   if (!/^55[1-9][0-9]{9,10}$/.test(phoneE164)) throw new Error("Telefone inválido.");
-  return "https://wa.me/" + phoneE164 + "?text=" + encodeURIComponent(crmSuggestedMessage(interest, adName));
+  return "https://wa.me/" + phoneE164 + "?text=" + encodeURIComponent(crmSuggestedMessage(interest, adName, mentionedProductId));
 }
 
 // Frases de template de API devem ser mantidas separadas: o wa.me acima

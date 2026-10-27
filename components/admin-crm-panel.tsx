@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Check, ChevronDown, Clock3, MessageCircle, RefreshCw, Search, ShieldCheck, UserPlus } from "lucide-react";
-import { crmAdSliceHint, crmSuggestedMessage, crmWhatsAppLink } from "@/lib/crm-follow-up";
+import { crmAdSliceHint, crmMentionedProductName, crmSuggestedMessage, crmWhatsAppLink } from "@/lib/crm-follow-up";
 import "./admin-crm-panel.css";
 
 type Opportunity = {
@@ -28,6 +28,12 @@ type Candidate = {
   campaign_name: string | null; last_seen_at: string; imported: boolean;
 };
 type View = "due" | "new" | "active" | "tintim";
+type ProductMention = {
+  conversation_id: string;
+  product_id: string;
+  basis: "customer_text_mention";
+  last_seen_at: string;
+};
 type TintimSignal = {
   conversation_id: string;
   stage_label: string | null;
@@ -54,6 +60,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   const [items, setItems] = useState<Opportunity[]>([]);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [signals, setSignals] = useState<Record<string,TintimSignal>>({});
+  const [mentions, setMentions] = useState<Record<string,ProductMention>>({});
 
   const [view, setView] = useState<View>("due");
   const [loading, setLoading] = useState(true);
@@ -79,18 +86,26 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       }
       const hold = await client.rpc("crm_hold_tintim_purchase_signals");
       if (hold.error) throw hold.error;
-      const [list,candidatesResult,signalsResult] = await Promise.all([
+      const [list,candidatesResult,signalsResult,mentionsResult] = await Promise.all([
         client.rpc("crm_list_opportunities"),
         client.rpc("crm_list_tintim_candidates", { p_limit: 40 }),
         client.rpc("crm_list_tintim_signals"),
+        client.rpc("crm_list_tintim_product_hints"),
       ]);
       if (list.error) throw list.error;
       if (candidatesResult.error) throw candidatesResult.error;
       if (signalsResult.error) throw signalsResult.error;
+      // Migração aditiva: durante homologação uma instalação anterior pode não
+      // ter esta RPC. O painel existente continua funcionando normalmente.
+      if (mentionsResult.error && !/PGRST202|Could not find the function/i.test(mentionsResult.error.message)) {
+        throw mentionsResult.error;
+      }
       setItems((list.data ?? []) as Opportunity[]);
       setCandidates((candidatesResult.data ?? []) as Candidate[]);
       setSignals(Object.fromEntries(((signalsResult.data ?? []) as TintimSignal[])
         .map(signal => [signal.conversation_id,signal])));
+      setMentions(Object.fromEntries(((mentionsResult.data ?? []) as ProductMention[])
+        .map(mention => [mention.conversation_id,mention])));
       setError("");
     } catch (e) { setError(displayError(e)); }
     finally { setLoading(false); }
@@ -200,6 +215,8 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         const locked = !!pending;
         const signal = signals[item.conversation_id];
         const adHint = crmAdSliceHint(signal?.ad_name);
+        const mention = mentions[item.conversation_id];
+        const mentionedName = crmMentionedProductName(mention?.product_id);
         const draftInterest = interest[item.conversation_id] ?? item.interest_label;
         const possiblePurchase = hasPurchaseSignal(signal?.stage_label);
         const isExpanded = expanded[item.conversation_id] ?? isDue;
@@ -232,6 +249,13 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
             {adHint && <small><strong>Sabor sugerido pelo anúncio:</strong> {adHint.name}.
               Hipótese, não preferência confirmada nem permissão para contato.</small>}
           </p>}
+          {mentionedName && <p className="crm-ad-signal">
+            <strong>Fatia mencionada pelo cliente:</strong> {mentionedName}
+            <small>Identificação automática a partir de mensagem de texto.
+              Não confirma pedido, escolha final nem autorização para disparo.
+              {mention?.last_seen_at ? " Último sinal: " + fmtTime(mention.last_seen_at) : ""}
+            </small>
+          </p>}
           <label className="crm-label">Produto de interesse <small>(confirmado pela Luciane)</small>
             <input type="text" maxLength={80} placeholder="Ex.: Chocolate com Morango"
               value={interest[item.conversation_id] ?? item.interest_label ?? ""}
@@ -249,15 +273,15 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               onClick={()=>{ if(window.confirm("Confirmar que este cliente comprou? Isso registra apenas uma conversão manual, sem alterar o pedido ou o faturamento.")) void invoke(item.conversation_id,"converted"); }}>Comprou</button>
           </div>
           {isDue && <div className="crm-followup">
+            <p className="crm-ad-signal"><strong>Rascunho de acompanhamento:</strong>{" "}
+              {crmSuggestedMessage(draftInterest,signal?.ad_name,mention?.product_id)}
+              {(!draftInterest?.trim() && (mentionedName || adHint)) && <small>
+                Personalização sugerida a partir de sinal, não de preferência confirmada.
+                Envio bloqueado até autorização comercial válida.
+              </small>}
+            </p>
             {eligible && !possiblePurchase ? <>
-              <p className="crm-ad-signal"><strong>Texto sugerido para revisão:</strong>{" "}
-                {crmSuggestedMessage(draftInterest,signal?.ad_name)}
-                {(!draftInterest?.trim() && adHint) && <small>
-                  Personalização baseada somente no anúncio. Confirme a preferência
-                  no atendimento antes de afirmar que o cliente escolheu o sabor.
-                </small>}
-              </p>
-              <a className="crm-button crm-whatsapp" href={crmWhatsAppLink(item.phone_e164,draftInterest,signal?.ad_name)}
+              <a className="crm-button crm-whatsapp" href={crmWhatsAppLink(item.phone_e164,draftInterest,signal?.ad_name,mention?.product_id)}
                  target="_blank" rel="noopener noreferrer"><MessageCircle size={17}/> Abrir mensagem sugerida</a>
               <button className="crm-button crm-secondary" type="button" disabled={locked}
                  onClick={()=>void invoke(item.conversation_id,"sent_manually")}>Marcar como enviada</button>
