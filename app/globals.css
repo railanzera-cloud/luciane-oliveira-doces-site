@@ -4373,3 +4373,22 @@ footer {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* CRM mobile Safari: as abas administrativas de duas linhas estavam sticky
+ * debaixo do cabeçalho e cobriam cartões inteiros na rolagem. No celular, as
+ * abas permanecem acessíveis no início da página, sem bloquear o conteúdo.
+ * Não alterar a navegação desktop nem o cabeçalho/checkout da vitrine. */
+@media (max-width: 700px) {
+  .admin-page .admin-main-tabs {
+    position: relative;
+    top: auto;
+    z-index: auto;
+    margin-top: 12px;
+  }
+  .admin-page .admin-topbar {
+    min-height: 62px;
+  }
+  .admin-page .admin-content {
+    padding-top: 14px;
+  }
+}

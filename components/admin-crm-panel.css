@@ -146,3 +146,32 @@
  .crm-engine-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
  .crm-engine-stats div{padding:11px}
 }
+
+/* Mobile operational refinement: keep blockers accessible but collapsed. */
+.crm-engine-details{border-top:1px solid #5e4739;padding-top:10px}
+.crm-engine-details>summary,.crm-audit-reasons>summary{cursor:pointer;font-weight:650;
+  color:#f3d8bd;font-size:.82rem;line-height:1.5;list-style-position:inside;
+  padding:8px 3px;min-height:42px}
+.crm-engine-details>summary:focus-visible,.crm-audit-reasons>summary:focus-visible{
+  outline:2px solid #dcb087;outline-offset:2px;border-radius:7px}
+.crm-engine-details .crm-engine-blockers{margin-top:7px;padding-top:8px}
+.crm-audit-reasons{padding:8px 12px}
+.crm-audit-reasons>summary{font-size:.8rem}
+.crm-audit-reasons[open]{padding-bottom:13px}
+.crm-audit-reasons ul{margin:8px 0}
+.crm-load-more{display:flex;width:100%;margin-top:12px;min-height:48px;
+  background:#39291f;border-color:#86664f}
+.crm-info{padding:11px 13px}
+.crm-engine-panel{gap:10px}
+@media(max-width:700px){
+ .crm-panel{padding-top:6px}
+ .crm-head{margin-bottom:12px}
+ .crm-head h1{font-size:1.65rem}
+ .crm-head p{font-size:.83rem}
+ .crm-engine-panel{padding:13px;gap:10px}
+ .crm-engine-heading p{font-size:.77rem}
+ .crm-engine-stats div{padding:9px 10px}
+ .crm-engine-stats strong{font-size:1.2rem}
+ .crm-guidance{font-size:.79rem}
+ .crm-list{gap:10px}
+}

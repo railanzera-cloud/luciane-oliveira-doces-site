@@ -62,7 +62,7 @@ test("dashboard diferencia escaneado de envio real e degrada graciosamente",()=>
  assert.match(ui,/Nenhuma mensagem é enviada automaticamente/);
  assert.match(ui,/Envio desligado/);
  assert.match(ui,/Monitor de automação ainda indisponível/);
- assert.match(ui,/Por que este lembrete não pode ser enviado/);
+ assert.match(ui,/<summary>Motivos do bloqueio/);
  assert.match(ui,/audit\.blockers\.map/);
  assert.match(css,/\.crm-engine-panel/);
  assert.match(css,/\.crm-audit-reasons/);

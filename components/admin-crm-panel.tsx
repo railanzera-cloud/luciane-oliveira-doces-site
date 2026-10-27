@@ -90,6 +90,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
 
   const [view, setView] = useState<View>("due");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -100,10 +101,11 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   const [now, setNow] = useState(() => Date.now());
   const [search, setSearch] = useState("");
   const [onlyWithProduct, setOnlyWithProduct] = useState(false);
+  const [listLimit, setListLimit] = useState(15);
   const [expanded, setExpanded] = useState<Record<string,boolean>>({});
 
   const refresh = useCallback(async () => {
-    setLoading(true);
+    setRefreshing(true);
     try {
       // Importacao passiva dos ultimos sinais do Tintim: nenhum envio ou lembrete.
       // Uma falha de sync nao pode impedir leitura de oportunidades ja cadastradas.
@@ -144,10 +146,11 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       ));
       setError("");
     } catch (e) { setError(displayError(e)); }
-    finally { setLoading(false); }
+    finally { setLoading(false); setRefreshing(false); }
   }, [client]);
 
   useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => { setListLimit(15); }, [view, search, onlyWithProduct]);
   useEffect(() => {
     const timer = window.setInterval(() => {
       if (document.visibilityState==="visible") void refresh();
@@ -207,6 +210,9 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       Date.parse(a.follow_up_due_at ?? "")-Date.parse(b.follow_up_due_at ?? ""));
   }, [visible,search,signals,mentions,view,onlyWithProduct]);
 
+  const displayedVisible = view === "due" || view === "review"
+    ? filteredVisible : filteredVisible.slice(0, listLimit);
+
   const run = async (key: string, operation: () => Promise<void>, success: string) => {
     if (pending) return;
     setPending(key); setError(""); setNotice("");
@@ -249,12 +255,12 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
           <h1>Oportunidades de venda</h1>
           <p>Quem demonstrou interesse não precisa ficar esquecido no WhatsApp.</p>
         </div>
-        <button className="crm-button crm-secondary" type="button" disabled={loading || !!pending} onClick={() => void refresh()}>
-          <RefreshCw size={16}/> Atualizar
+        <button className="crm-button crm-secondary" type="button" disabled={loading || refreshing || !!pending} onClick={() => void refresh()}>
+          <RefreshCw size={16}/> {refreshing ? "Atualizando…" : "Atualizar"}
         </button>
       </div>
       <div className="crm-info"><ShieldCheck size={18} aria-hidden="true"/>
-        <span>Modo assistido: <strong>nenhuma mensagem é enviada automaticamente.</strong> Abrir uma conversa não confirma que a mensagem foi enviada.</span>
+        <span>CRM conectado: <strong>nenhuma mensagem é enviada automaticamente.</strong> Abrir o WhatsApp não comprova envio.</span>
       </div>
       <section className="crm-engine-panel" aria-label="Saúde da automação de 45 minutos">
         <div className="crm-engine-heading">
@@ -277,8 +283,9 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               ? fmtTime(automation.last_evaluated_at)+" (Paragominas)"
               : "ainda não executada"}
           </p>
-          <div className="crm-engine-blockers">
-            <strong>O que falta para enviar mensagens automaticamente?</strong>
+          <details className="crm-engine-details">
+            <summary>O que falta para ativar o envio automático?</summary>
+            <div className="crm-engine-blockers">
             <span>{automation.consented_customers===0
               ? "Nenhum cliente tem consentimento comercial comprovado no CRM."
               : automation.consented_customers+" clientes têm consentimento documentado; cada contato ainda depende de validação."}</span>
@@ -286,16 +293,13 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               ? "Sem horários originais confirmados pelo provedor/Meta."
               : "Existem eventos do provedor para validação individual da janela de atendimento."}</span>
             <span>Integração de envio com a Coexistence do Tintim não homologada. Nada é disparado por esta tela.</span>
-          </div>
+            </div>
+          </details>
         </> : <p className="crm-engine-timestamp">
           Monitor de automação ainda indisponível neste deploy. A ausência de dados não autoriza disparos.
         </p>}
       </section>
-      <div className="crm-queue-overview" role="status">
-        <span><strong>{due.length}</strong> para revisar agora</span>
-        <span><strong>{review.length}</strong> vencidos bloqueados</span>
-        <span><strong>{scheduled.length}</strong> programados</span>
-      </div>
+      {/* Os números do motor e das abas já exibem contagens. Evitar cartões duplicados. */}
       <div className="crm-navigation" role="group" aria-label="Filtrar atendimentos">
         <button type="button" className={view==="due"?"is-active":""} onClick={()=>setView("due")}>Para agora <b>{due.length}</b></button>
         <button type="button" className={view==="review"?"is-active":""} onClick={()=>setView("review")}>Revisar <b>{review.length}</b></button>
@@ -326,7 +330,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       </label>}
       {error && <div role="alert" className="crm-error">{error}</div>}
       {notice && <div role="status" className="crm-success"><Check size={16}/>{notice}</div>}
-      {loading && <div role="status" className="crm-loading">Atualizando oportunidades…</div>}
+      {loading && <div role="status" className="crm-loading">Carregando oportunidades…</div>}
 
       {view!=="tintim" && !loading && filteredVisible.length===0 && !error && (
         <div className="crm-empty"><Clock3 size={24}/><strong>{search?"Nenhum contato encontrado":view==="due"?"Nenhum follow-up para revisão imediata":view==="review"?"Nenhuma pendência bloqueada":view==="new"?"Nenhum contato aguardando triagem":"Nenhuma oportunidade em acompanhamento"}</strong>
@@ -335,7 +339,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       {view!=="tintim" && !loading && !error && <p className="crm-list-count">
         {filteredVisible.length} {filteredVisible.length===1?"contato":"contatos"} nesta visualização
       </p>}
-      {view!=="tintim" && <div className="crm-list">{filteredVisible.map(item => {
+      {view!=="tintim" && <div className="crm-list">{displayedVisible.map(item => {
         const eligible = !item.commercial_opt_out && item.consent_status==="granted";
         const isDue = item.status==="waiting_customer" && item.follow_up_status==="pending"
           && !!item.follow_up_due_at && new Date(item.follow_up_due_at).getTime()<=now;
@@ -361,7 +365,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
                   "Anúncio relacionado: " + adHint?.name}
               </small>}
               {signal?.last_observed_at &&
-                <small>Último sinal do Tintim: {fmtTime(signal.last_observed_at)}</small>}
+                <small>Cadastro/etapa Tintim atualizada: {fmtTime(signal.last_observed_at)}</small>}
             </div>
             <div className="crm-card-controls">
               <span className={"crm-pill "+(isDue?"crm-due":"")}>
@@ -395,13 +399,13 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               {mention?.last_seen_at ? " Último sinal: " + fmtTime(mention.last_seen_at) : ""}
             </small>
           </p>}
-          {audit?.queue_state==="blocked" && <div className="crm-audit-reasons">
-            <strong>Por que este lembrete não pode ser enviado?</strong>
+          {audit?.queue_state==="blocked" && <details className="crm-audit-reasons">
+            <summary>Motivos do bloqueio ({audit.blockers.length})</summary>
             <ul>{audit.blockers.map(code=><li key={code}>
               {blockerLabels[code] ?? "Exige verificação: "+code}
             </li>)}</ul>
             <small>Diagnóstico técnico; não constitui autorização de envio.</small>
-          </div>}
+          </details>}
                     <div className="crm-confirm-product">
             <label className="crm-label">Produto confirmado pela equipe
               <small>Salvar não cria nem altera lembretes. Menções e anúncios continuam como sugestões.</small>
@@ -473,6 +477,11 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
           </>}
         </article>;
       })}</div>}
+      {view!=="tintim" && !loading && !error && displayedVisible.length < filteredVisible.length &&
+        <button type="button" className="crm-button crm-secondary crm-load-more"
+          onClick={()=>setListLimit(previous=>previous+15)}>
+          Mostrar mais atendimentos ({filteredVisible.length-displayedVisible.length} restantes)
+        </button>}
       {view==="tintim" && <div className="crm-list">
         <section className="crm-card">
           <h2>Novo contato</h2>
@@ -489,7 +498,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               },"Contato adicionado para acompanhamento.")}><UserPlus size={16}/> Adicionar</button>
           </div>
         </section>
-        {!loading && candidates.map(candidate=><article className="crm-card crm-candidate" key={candidate.tintim_id}>
+        {!loading && candidates.slice(0,listLimit).map(candidate=><article className="crm-card crm-candidate" key={candidate.tintim_id}>
           <div><strong>{candidate.contact_name}</strong>
             <p>{candidate.source_label||"Origem não classificada"}{candidate.campaign_name?" · "+candidate.campaign_name:""}</p>
             <small>Celular final {candidate.phone_hint} · último sinal {fmtTime(candidate.last_seen_at)}</small>
@@ -502,6 +511,11 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
             {candidate.imported?"Acompanhando":"Acompanhar"}
           </button>
         </article>)}
+        {!loading && candidates.length>listLimit &&
+          <button className="crm-button crm-secondary crm-load-more" type="button"
+            onClick={()=>setListLimit(previous=>previous+15)}>
+            Mostrar mais contatos Tintim ({candidates.length-listLimit} restantes)
+          </button>}
       </div>}
     </section>
   );
