@@ -23,7 +23,7 @@ test("CRM distingue referencia de anuncio, sinal de compra e mensagem real",()=>
   assert.match(ui,/crm_hold_tintim_purchase_signals/);
   assert.match(ui,/hasPurchaseSignal/);
   assert.match(ui,/possiblePurchase/);
-  assert.match(ui,/Último sinal do Tintim/);
+  assert.match(ui,/Cadastro\/etapa Tintim atualizada/);
   assert.match(ui,/Indica o anúncio associado, não comprova qual produto/);
   assert.match(ui,/possiblePurchase\?"Possível compra"/);
   assert.match(ui,/item\.commercial_opt_out \|\| possiblePurchase/);
