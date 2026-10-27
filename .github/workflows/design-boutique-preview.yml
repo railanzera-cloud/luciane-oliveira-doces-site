@@ -41,6 +41,7 @@ on:
       - feature/crm-followup-preflight-20261026
       - feature/crm-fatia-rascunhos-personalizados-20261026
       - feature/crm-sabores-mencionados-webhook-20261026
+      - feature/crm-painel-confirma-interesse-20261027
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -58,6 +59,7 @@ on:
       - lib/crm-follow-up.ts
       - supabase/functions/tintim-webhook/product-hint.mjs
       - tests/crm-fatia-rascunhos-personalizados-20261026.test.mjs
+      - tests/crm-painel-confirma-interesse-20261027.test.mjs
       - supabase/migrations/20261026203000_crm_followups_assistidos.sql
       - supabase/migrations/20261026235500_crm_tintim_live_sync.sql
       - supabase/migrations/20261027001000_crm_tintim_message_observe.sql
@@ -65,6 +67,7 @@ on:
       - supabase/migrations/20261027003000_crm_tintim_receipt_time.sql
       - supabase/migrations/20261027004000_crm_followup_send_preflight.sql
       - supabase/migrations/20261027005000_crm_tintim_product_hints.sql
+      - supabase/migrations/20261027006000_crm_confirm_interest.sql
       - docs/CRM-FOLLOWUPS-ASSISTIDOS-20261026.md
       - docs/ESTADO_INTEGRADO_COMERCIAL.md
       - app/globals.css

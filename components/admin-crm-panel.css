@@ -74,3 +74,14 @@
 .crm-ad-signal{margin:0;border-left:3px solid #ae8662;padding:10px 12px;background:#38271e;color:#ead5c3;border-radius:0 10px 10px 0;font-size:.8rem;overflow-wrap:anywhere;line-height:1.45}
 .crm-ad-signal small{display:block;margin-top:4px;color:#b6a08e;font-size:.75rem}
 .crm-card-compact .crm-name small:last-child{color:#bda793}
+
+/* Legibilidade da origem do produto e confirmação independente do lembrete. */
+.crm-product-recap{color:#edc391!important;font-weight:650;overflow-wrap:anywhere}
+.crm-confirm-product{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px}
+.crm-confirm-product .crm-label{min-width:0}
+.crm-confirm-product .crm-button{min-height:44px}
+.crm-followup>.crm-due-info{width:100%;color:#dcb78d;font-size:.78rem}
+@media(max-width:700px){
+ .crm-confirm-product{grid-template-columns:1fr}
+ .crm-confirm-product .crm-button{width:100%}
+}

@@ -137,13 +137,14 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
     const shortlist = term ? visible.filter(item => [
       item.customer_name, item.phone_e164, item.interest_label ?? "",
       item.source_label ?? "", signals[item.conversation_id]?.ad_name ?? "",
+      crmMentionedProductName(mentions[item.conversation_id]?.product_id) ?? "",
     ].some(value => value.toLocaleLowerCase("pt-BR").includes(term))) : visible;
     // Apenas sinais rastreados, jamais interpretar como data da ultima mensagem.
     if (view !== "new") return shortlist;
     return [...shortlist].sort((a,b) =>
       new Date(signals[b.conversation_id]?.last_observed_at ?? 0).getTime() -
       new Date(signals[a.conversation_id]?.last_observed_at ?? 0).getTime());
-  }, [visible,search,signals,view]);
+  }, [visible,search,signals,mentions,view]);
 
   const run = async (key: string, operation: () => Promise<void>, success: string) => {
     if (pending) return;
@@ -156,7 +157,9 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
     run(id + action, async () => {
       const { error: rpcError } = await client.rpc("crm_record_action", {
         p_conversation_id: id, p_action: action,
-        p_interest: interest[id]?.trim() || null,
+        // Confirmar o produto é uma ação independente e verificável.
+        // Nunca salvar um campo não confirmado apenas por clicar em responder.
+        p_interest: null,
         p_due_minutes: 45, p_evidence: evidence[id]?.trim() || null,
         ...extra,
       });
@@ -165,6 +168,18 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
        action === "sent_manually" ? "Registro manual concluído. Não houve envio pela API." :
        action === "consent_granted" ? "Autorização comercial registrada com evidência." :
        "Atendimento atualizado.");
+
+  const saveConfirmedInterest = (id: string) =>
+    run(id + "confirmed_interest", async () => {
+      const label = interest[id]?.trim();
+      if (!label || label.length < 2 || label.length > 80) {
+        throw new Error("Informe o produto confirmado pela equipe.");
+      }
+      const { error: rpcError } = await client.rpc("crm_confirm_interest",{
+        p_conversation_id:id,p_interest:label
+      });
+      if (rpcError) throw rpcError;
+    }, "Produto confirmado e salvo sem alterar o lembrete.");
 
   return (
     <section className="crm-panel" aria-label="Acompanhamento comercial">
@@ -188,7 +203,9 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       </div>
       <p className="crm-guidance">
         <strong>Como funciona:</strong> o Tintim organiza contatos, mas ainda não comprova quem está esperando resposta.
-        Abra somente os atendimentos que você realmente respondeu e marque <strong>Já respondi</strong> para iniciar o lembrete.
+        Respostas de texto recebidas pelo Tintim já criam e cancelam lembretes automaticamente.
+        Use <strong>Já respondi</strong> apenas para correções manuais. Sinais de anúncio e de mensagem
+        são sugestões; para registrar a preferência da pessoa, confirme o produto abaixo.
         Nenhuma mensagem é enviada por este painel.
       </p>
       {view!=="tintim" && <label className="crm-search">
@@ -217,13 +234,20 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         const adHint = crmAdSliceHint(signal?.ad_name);
         const mention = mentions[item.conversation_id];
         const mentionedName = crmMentionedProductName(mention?.product_id);
-        const draftInterest = interest[item.conversation_id] ?? item.interest_label;
+        const draftInterest = item.interest_label;
+        const inputInterest = interest[item.conversation_id] ?? item.interest_label ?? "";
+        const unsavedInterest = inputInterest.trim() !== (item.interest_label ?? "").trim();
         const possiblePurchase = hasPurchaseSignal(signal?.stage_label);
         const isExpanded = expanded[item.conversation_id] ?? isDue;
         return <article className={"crm-card "+(!isExpanded?"crm-card-compact":"")} key={item.conversation_id}>
           <header>
             <div className="crm-name"><strong>{item.customer_name}</strong>
               <small>{item.source_label || "Origem não confirmada"} · final {item.phone_e164.slice(-4)}</small>
+              {(item.interest_label || mentionedName || adHint) && <small className="crm-product-recap">
+                {item.interest_label ? "Confirmado: " + item.interest_label :
+                  mentionedName ? "Cliente mencionou: " + mentionedName :
+                  "Anúncio relacionado: " + adHint?.name}
+              </small>}
               {signal?.last_observed_at &&
                 <small>Último sinal do Tintim: {fmtTime(signal.last_observed_at)}</small>}
             </div>
@@ -256,12 +280,18 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               {mention?.last_seen_at ? " Último sinal: " + fmtTime(mention.last_seen_at) : ""}
             </small>
           </p>}
-          <label className="crm-label">Produto de interesse <small>(confirmado pela Luciane)</small>
-            <input type="text" maxLength={80} placeholder="Ex.: Chocolate com Morango"
-              value={interest[item.conversation_id] ?? item.interest_label ?? ""}
-              disabled={locked}
-              onChange={(e)=>setInterest(old=>({...old,[item.conversation_id]:e.target.value}))}/>
-          </label>
+          <div className="crm-confirm-product">
+            <label className="crm-label">Produto confirmado pela equipe
+              <small>Salvar não cria nem altera lembretes. Menções e anúncios continuam como sugestões.</small>
+              <input type="text" maxLength={80} placeholder="Ex.: Chocolate com Morango"
+                value={inputInterest}
+                disabled={locked}
+                onChange={(e)=>setInterest(old=>({...old,[item.conversation_id]:e.target.value}))}/>
+            </label>
+            <button type="button" className="crm-button crm-secondary"
+              disabled={locked || !unsavedInterest || inputInterest.trim().length<2}
+              onClick={()=>void saveConfirmedInterest(item.conversation_id)}>Salvar produto confirmado</button>
+          </div>
           {item.follow_up_status==="pending" && item.follow_up_due_at &&
             <p className="crm-due-info">Lembrete: {fmtTime(item.follow_up_due_at)} (Paragominas)</p>}
           <div className="crm-actions">
@@ -272,7 +302,9 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
             <button className="crm-button crm-secondary" type="button" disabled={locked}
               onClick={()=>{ if(window.confirm("Confirmar que este cliente comprou? Isso registra apenas uma conversão manual, sem alterar o pedido ou o faturamento.")) void invoke(item.conversation_id,"converted"); }}>Comprou</button>
           </div>
-          {isDue && <div className="crm-followup">
+          {item.status==="waiting_customer" && item.follow_up_status==="pending" && <div className="crm-followup">
+            {!isDue && <p className="crm-due-info">Rascunho preparado para revisão.
+              O lembrete ainda não venceu; nenhuma mensagem será enviada automaticamente.</p>}
             <p className="crm-ad-signal"><strong>Rascunho de acompanhamento:</strong>{" "}
               {crmSuggestedMessage(draftInterest,signal?.ad_name,mention?.product_id)}
               {(!draftInterest?.trim() && (mentionedName || adHint)) && <small>
@@ -280,14 +312,14 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
                 Envio bloqueado até autorização comercial válida.
               </small>}
             </p>
-            {eligible && !possiblePurchase ? <>
+            {isDue && (eligible && !possiblePurchase ? <>
               <a className="crm-button crm-whatsapp" href={crmWhatsAppLink(item.phone_e164,draftInterest,signal?.ad_name,mention?.product_id)}
                  target="_blank" rel="noopener noreferrer"><MessageCircle size={17}/> Abrir mensagem sugerida</a>
               <button className="crm-button crm-secondary" type="button" disabled={locked}
                  onClick={()=>void invoke(item.conversation_id,"sent_manually")}>Marcar como enviada</button>
-            </> : <p>{possiblePurchase?"Follow-up suspenso: possível compra sinalizada no Tintim.": "Mensagem comercial indisponível: autorização não registrada ou contato bloqueado."}</p>}
-            <button className="crm-button crm-secondary" type="button" disabled={locked}
-              onClick={()=>void invoke(item.conversation_id,"snooze",{p_due_minutes:60})}>Adiar 1 hora</button>
+            </> : <p>{possiblePurchase?"Follow-up suspenso: possível compra sinalizada no Tintim.": "Mensagem comercial indisponível: autorização não registrada ou contato bloqueado."}</p>)}
+            {isDue && <button className="crm-button crm-secondary" type="button" disabled={locked}
+              onClick={()=>void invoke(item.conversation_id,"snooze",{p_due_minutes:60})}>Adiar 1 hora</button>}
           </div>}
           {!eligible && !item.commercial_opt_out && <div className="crm-consent">
             <label className="crm-label">Evidência de autorização para contato comercial
