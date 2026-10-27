@@ -38,6 +38,7 @@ on:
       - feature/crm-tintim-message-observability-20261026
       - feature/crm-tintim-message-shape-diagnostics-20261026
       - feature/crm-tintim-receipt-time-20261026
+      - feature/crm-followup-preflight-20261026
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -58,6 +59,7 @@ on:
       - supabase/migrations/20261027001000_crm_tintim_message_observe.sql
       - supabase/migrations/20261027002000_crm_tintim_message_diagnostics.sql
       - supabase/migrations/20261027003000_crm_tintim_receipt_time.sql
+      - supabase/migrations/20261027004000_crm_followup_send_preflight.sql
       - docs/CRM-FOLLOWUPS-ASSISTIDOS-20261026.md
       - docs/ESTADO_INTEGRADO_COMERCIAL.md
       - app/globals.css
