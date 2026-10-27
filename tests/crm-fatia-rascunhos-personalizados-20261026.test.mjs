@@ -56,8 +56,8 @@ test("painel exibe origem hipotetica e prepara texto somente com autorizacao",()
  const ui=read("components/admin-crm-panel.tsx");
  assert.match(ui,/Sabor sugerido pelo anúncio/);
  assert.match(ui,/não preferência confirmada nem permissão/);
- assert.match(ui,/crmSuggestedMessage\(draftInterest,signal\?\.ad_name\)/);
- assert.match(ui,/crmWhatsAppLink\(item\.phone_e164,draftInterest,signal\?\.ad_name\)/);
+ assert.match(ui,/crmSuggestedMessage\(draftInterest,signal\?\.ad_name(?:,mention\?\.product_id)?\)/);
+ assert.match(ui,/crmWhatsAppLink\(item\.phone_e164,draftInterest,signal\?\.ad_name(?:,mention\?\.product_id)?\)/);
  assert.match(ui,/eligible && !possiblePurchase/);
  assert.doesNotMatch(ui,/https:\/\/graph\.facebook\.com|automatic_sends_enabled\s*=\s*true/);
 });
