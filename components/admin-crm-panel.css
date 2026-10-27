@@ -115,3 +115,34 @@
  .crm-queue-overview strong{display:block;font-size:1.08rem}
  .crm-manual-controls .crm-actions .crm-button{width:100%}
 }
+
+/* CRM automation command center: audit only; visual states do not authorize send. */
+.crm-engine-panel{display:grid;gap:12px;background:#2b211c;border:1px solid #70533f;
+ border-radius:17px;padding:18px;margin:0 0 16px}
+.crm-engine-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.crm-engine-heading h2{margin:5px 0;font:500 clamp(1.1rem,2.8vw,1.38rem) Georgia,serif;color:#fff0e1}
+.crm-engine-heading p{margin:0;color:#cbb09c;font-size:.82rem;line-height:1.5}
+.crm-engine-state{background:#503324;border:1px solid #a17752;color:#ffd4ad;border-radius:20px;
+ font-size:.73rem;padding:7px 10px;white-space:nowrap}
+.crm-engine-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.crm-engine-stats div{padding:10px;background:#392920;border:1px solid #5f4739;border-radius:10px;
+ display:grid;gap:3px;min-width:0}
+.crm-engine-stats strong{font-size:1.3rem;line-height:1.2;color:#fff2e0;font-variant-numeric:tabular-nums}
+.crm-engine-stats span{font-size:.71rem;color:#c7ac95;line-height:1.4}
+.crm-engine-timestamp{font-size:.76rem;color:#bba18a;margin:0}
+.crm-engine-blockers{display:grid;gap:7px;padding-top:12px;border-top:1px solid #5e4739;
+ font-size:.8rem;line-height:1.5;color:#d7c1ac}
+.crm-engine-blockers>strong{color:#f3d8bd}
+.crm-engine-blockers>span{border-left:2px solid #997455;padding-left:10px}
+.crm-audit-reasons{padding:13px;background:#423025;border:1px solid #947253;border-radius:11px;
+ color:#f1d5bd;font-size:.81rem;line-height:1.48}
+.crm-audit-reasons>strong{display:block}
+.crm-audit-reasons ul{margin:7px 0;padding-left:20px}
+.crm-audit-reasons li{padding:2px 0}
+.crm-audit-reasons small{color:#cbb19b}
+@media(max-width:700px){
+ .crm-engine-panel{padding:14px;gap:11px}
+ .crm-engine-heading{flex-wrap:wrap}
+ .crm-engine-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .crm-engine-stats div{padding:11px}
+}

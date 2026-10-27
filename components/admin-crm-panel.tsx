@@ -34,6 +34,30 @@ type ProductMention = {
   basis: "customer_text_mention";
   last_seen_at: string;
 };
+type AutomationReport = {
+  last_evaluated_at: string | null;
+  evaluated: number; scheduled: number; blocked: number;
+  finished: number; review_required: number;
+  pending: number; overdue: number; consented_customers: number;
+  provider_timestamps: number; official_webhook_events: number;
+  delivery_enabled: boolean; channel: string;
+};
+type AutomationQueueItem = {
+  follow_up_id: string; conversation_id: string;
+  queue_state: "scheduled"|"blocked"|"review_required"|"finished";
+  blockers: string[]; evaluated_at: string;
+};
+const blockerLabels: Record<string,string> = {
+  consent_unverified: "Autorização comercial ainda não comprovada",
+  provider_timestamp_unverified: "Horário original da mensagem ainda não verificado",
+  provider_not_certified: "Canal oficial de envio ainda não homologado",
+  sender_disabled: "Disparo automático desligado",
+  outside_verified_window: "Janela de atendimento não verificada",
+  customer_opted_out: "Cliente não autoriza mensagens",
+  possible_purchase: "Possível compra: conferir antes de qualquer contato",
+  conversation_not_waiting: "Atendimento não está aguardando cliente",
+  business_reply_unverified: "Resposta mais recente da loja não confirmada",
+};
 type TintimSignal = {
   conversation_id: string;
   stage_label: string | null;
@@ -61,6 +85,8 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [signals, setSignals] = useState<Record<string,TintimSignal>>({});
   const [mentions, setMentions] = useState<Record<string,ProductMention>>({});
+  const [automation, setAutomation] = useState<AutomationReport | null>(null);
+  const [automationQueue, setAutomationQueue] = useState<Record<string,AutomationQueueItem>>({});
 
   const [view, setView] = useState<View>("due");
   const [loading, setLoading] = useState(true);
@@ -87,11 +113,13 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       }
       const hold = await client.rpc("crm_hold_tintim_purchase_signals");
       if (hold.error) throw hold.error;
-      const [list,candidatesResult,signalsResult,mentionsResult] = await Promise.all([
+      const [list,candidatesResult,signalsResult,mentionsResult,reportResult,queueResult] = await Promise.all([
         client.rpc("crm_list_opportunities"),
         client.rpc("crm_list_tintim_candidates", { p_limit: 40 }),
         client.rpc("crm_list_tintim_signals"),
         client.rpc("crm_list_tintim_product_hints"),
+        client.rpc("crm_automation_operational_report"),
+        client.rpc("crm_automation_queue_items"),
       ]);
       if (list.error) throw list.error;
       if (candidatesResult.error) throw candidatesResult.error;
@@ -107,6 +135,13 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         .map(signal => [signal.conversation_id,signal])));
       setMentions(Object.fromEntries(((mentionsResult.data ?? []) as ProductMention[])
         .map(mention => [mention.conversation_id,mention])));
+      // Optional observer RPCs: a temporary rollout discrepancy must not
+      // interrupt the existing order/CRM interface. Never guess readiness.
+      setAutomation(reportResult.error ? null : (reportResult.data as AutomationReport));
+      setAutomationQueue(queueResult.error ? {} : Object.fromEntries(
+        ((queueResult.data ?? []) as AutomationQueueItem[])
+          .map(item => [item.follow_up_id,item])
+      ));
       setError("");
     } catch (e) { setError(displayError(e)); }
     finally { setLoading(false); }
@@ -221,6 +256,41 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       <div className="crm-info"><ShieldCheck size={18} aria-hidden="true"/>
         <span>Modo assistido: <strong>nenhuma mensagem é enviada automaticamente.</strong> Abrir uma conversa não confirma que a mensagem foi enviada.</span>
       </div>
+      <section className="crm-engine-panel" aria-label="Saúde da automação de 45 minutos">
+        <div className="crm-engine-heading">
+          <div>
+            <span className="crm-eyebrow">MOTOR DE ACOMPANHAMENTO</span>
+            <h2>Automação de 45 minutos</h2>
+            <p>Observa, agenda e cancela lembretes sem enviar mensagens indevidas.</p>
+          </div>
+          <strong className="crm-engine-state">Envio desligado</strong>
+        </div>
+        {automation ? <>
+          <div className="crm-engine-stats">
+            <div><strong>{automation.pending}</strong><span>Pendentes</span></div>
+            <div><strong>{automation.overdue}</strong><span>Vencidos</span></div>
+            <div><strong>{automation.blocked}</strong><span>Bloqueados na auditoria</span></div>
+            <div><strong>{automation.scheduled}</strong><span>Programados</span></div>
+          </div>
+          <p className="crm-engine-timestamp">
+            Auditoria da fila: {automation.last_evaluated_at
+              ? fmtTime(automation.last_evaluated_at)+" (Paragominas)"
+              : "ainda não executada"}
+          </p>
+          <div className="crm-engine-blockers">
+            <strong>O que falta para enviar mensagens automaticamente?</strong>
+            <span>{automation.consented_customers===0
+              ? "Nenhum cliente tem consentimento comercial comprovado no CRM."
+              : automation.consented_customers+" clientes têm consentimento documentado; cada contato ainda depende de validação."}</span>
+            <span>{automation.provider_timestamps===0 && automation.official_webhook_events===0
+              ? "Sem horários originais confirmados pelo provedor/Meta."
+              : "Existem eventos do provedor para validação individual da janela de atendimento."}</span>
+            <span>Integração de envio com a Coexistence do Tintim não homologada. Nada é disparado por esta tela.</span>
+          </div>
+        </> : <p className="crm-engine-timestamp">
+          Monitor de automação ainda indisponível neste deploy. A ausência de dados não autoriza disparos.
+        </p>}
+      </section>
       <div className="crm-queue-overview" role="status">
         <span><strong>{due.length}</strong> para revisar agora</span>
         <span><strong>{review.length}</strong> vencidos bloqueados</span>
@@ -278,6 +348,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         const inputInterest = interest[item.conversation_id] ?? item.interest_label ?? "";
         const unsavedInterest = inputInterest.trim() !== (item.interest_label ?? "").trim();
         const possiblePurchase = hasPurchaseSignal(signal?.stage_label);
+        const audit = item.follow_up_id ? automationQueue[item.follow_up_id] : undefined;
         const isExpanded = expanded[item.conversation_id] ??
           (view==="due" && isDue && eligible && !possiblePurchase);
         return <article className={"crm-card "+(!isExpanded?"crm-card-compact":"")} key={item.conversation_id}>
@@ -324,7 +395,14 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               {mention?.last_seen_at ? " Último sinal: " + fmtTime(mention.last_seen_at) : ""}
             </small>
           </p>}
-          <div className="crm-confirm-product">
+          {audit?.queue_state==="blocked" && <div className="crm-audit-reasons">
+            <strong>Por que este lembrete não pode ser enviado?</strong>
+            <ul>{audit.blockers.map(code=><li key={code}>
+              {blockerLabels[code] ?? "Exige verificação: "+code}
+            </li>)}</ul>
+            <small>Diagnóstico técnico; não constitui autorização de envio.</small>
+          </div>}
+                    <div className="crm-confirm-product">
             <label className="crm-label">Produto confirmado pela equipe
               <small>Salvar não cria nem altera lembretes. Menções e anúncios continuam como sugestões.</small>
               <input type="text" maxLength={80} placeholder="Ex.: Chocolate com Morango"
