@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Check, ChevronDown, Clock3, MessageCircle, RefreshCw, Search, ShieldCheck, UserPlus } from "lucide-react";
-import { crmWhatsAppLink } from "@/lib/crm-follow-up";
+import { crmAdSliceHint, crmSuggestedMessage, crmWhatsAppLink } from "@/lib/crm-follow-up";
 import "./admin-crm-panel.css";
 
 type Opportunity = {
@@ -199,6 +199,8 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
           && !!item.follow_up_due_at && new Date(item.follow_up_due_at).getTime()<=now;
         const locked = !!pending;
         const signal = signals[item.conversation_id];
+        const adHint = crmAdSliceHint(signal?.ad_name);
+        const draftInterest = interest[item.conversation_id] ?? item.interest_label;
         const possiblePurchase = hasPurchaseSignal(signal?.stage_label);
         const isExpanded = expanded[item.conversation_id] ?? isDue;
         return <article className={"crm-card "+(!isExpanded?"crm-card-compact":"")} key={item.conversation_id}>
@@ -227,6 +229,8 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
           {signal?.ad_name && <p className="crm-ad-signal">
             <strong>Referência do anúncio:</strong> {signal.ad_name}
             <small> Indica o anúncio associado, não comprova qual produto o cliente pediu.</small>
+            {adHint && <small><strong>Sabor sugerido pelo anúncio:</strong> {adHint.name}.
+              Hipótese, não preferência confirmada nem permissão para contato.</small>}
           </p>}
           <label className="crm-label">Produto de interesse <small>(confirmado pela Luciane)</small>
             <input type="text" maxLength={80} placeholder="Ex.: Chocolate com Morango"
@@ -246,7 +250,14 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
           </div>
           {isDue && <div className="crm-followup">
             {eligible && !possiblePurchase ? <>
-              <a className="crm-button crm-whatsapp" href={crmWhatsAppLink(item.phone_e164,interest[item.conversation_id] ?? item.interest_label)}
+              <p className="crm-ad-signal"><strong>Texto sugerido para revisão:</strong>{" "}
+                {crmSuggestedMessage(draftInterest,signal?.ad_name)}
+                {(!draftInterest?.trim() && adHint) && <small>
+                  Personalização baseada somente no anúncio. Confirme a preferência
+                  no atendimento antes de afirmar que o cliente escolheu o sabor.
+                </small>}
+              </p>
+              <a className="crm-button crm-whatsapp" href={crmWhatsAppLink(item.phone_e164,draftInterest,signal?.ad_name)}
                  target="_blank" rel="noopener noreferrer"><MessageCircle size={17}/> Abrir mensagem sugerida</a>
               <button className="crm-button crm-secondary" type="button" disabled={locked}
                  onClick={()=>void invoke(item.conversation_id,"sent_manually")}>Marcar como enviada</button>

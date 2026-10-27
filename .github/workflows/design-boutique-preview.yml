@@ -39,6 +39,7 @@ on:
       - feature/crm-tintim-message-shape-diagnostics-20261026
       - feature/crm-tintim-receipt-time-20261026
       - feature/crm-followup-preflight-20261026
+      - feature/crm-fatia-rascunhos-personalizados-20261026
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -54,6 +55,7 @@ on:
       - components/admin-crm-panel.tsx
       - components/admin-crm-panel.css
       - lib/crm-follow-up.ts
+      - tests/crm-fatia-rascunhos-personalizados-20261026.test.mjs
       - supabase/migrations/20261026203000_crm_followups_assistidos.sql
       - supabase/migrations/20261026235500_crm_tintim_live_sync.sql
       - supabase/migrations/20261027001000_crm_tintim_message_observe.sql
