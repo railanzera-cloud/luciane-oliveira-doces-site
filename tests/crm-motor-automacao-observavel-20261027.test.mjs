@@ -44,8 +44,8 @@ test("liberacao bloqueada por janela, optout, comprovacao de horario, compra e c
 });
 test("somente equipe le resumo, service_role/postgres executam o observador",()=>{
  for(const table of ["crm_automation_monitor","crm_automation_queue"]) {
-   assert.match(sql,new RegExp("ALTER TABLE public\\\\."+table+" ENABLE ROW LEVEL SECURITY"));
-   assert.match(sql,new RegExp("REVOKE ALL ON public\\\\."+table+" FROM PUBLIC,anon,authenticated"));
+   assert.ok(sql.includes("ALTER TABLE public."+table+" ENABLE ROW LEVEL SECURITY"));
+   assert.ok(sql.includes("REVOKE ALL ON public."+table+" FROM PUBLIC,anon,authenticated"));
  }
  assert.match(sql,/crm_require_staff\(\)/);
  assert.match(sql,/session_user <> 'postgres' AND auth\.role\(\) IS DISTINCT FROM 'service_role'/);
