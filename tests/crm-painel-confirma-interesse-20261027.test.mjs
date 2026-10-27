@@ -39,7 +39,7 @@ test("cards compactos exibem produto e pesquisa encontra menção identificada",
  assert.match(ui,/Anúncio relacionado: /);
  assert.match(ui,/Confirmado: /);
  assert.match(ui,/crmMentionedProductName\(mentions\[item\.conversation_id\]\?\.product_id\)/);
- assert.match(ui,/\[visible,search,signals,mentions,view\]/);
+ assert.match(ui,/\[visible,search,signals,mentions,view,onlyWithProduct\]/);
  assert.match(css,/\.crm-product-recap/);
  assert.match(css,/\.crm-confirm-product/);
 });

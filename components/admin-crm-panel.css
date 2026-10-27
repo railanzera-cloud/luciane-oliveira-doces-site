@@ -85,3 +85,33 @@
  .crm-confirm-product{grid-template-columns:1fr}
  .crm-confirm-product .crm-button{width:100%}
 }
+
+/* CRM: filas orientadas a ação, evitando falso senso de urgência para bloqueados. */
+.crm-queue-overview{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.crm-queue-overview span{border:1px solid #725948;border-radius:11px;background:#392820;
+  padding:8px 11px;color:#ead0b8;font-size:.77rem;line-height:1.4}
+.crm-queue-overview strong{color:#fff3e5;font-variant-numeric:tabular-nums;font-size:.96rem}
+.crm-empty-attention{border:1px solid #8f7556;background:#392e23;color:#ead6bf;border-radius:12px;
+  padding:12px 14px;margin-bottom:14px;font-size:.82rem;line-height:1.55}
+.crm-empty-attention button{border:0;background:transparent;color:#ffdaa9;text-decoration:underline;
+  text-underline-offset:3px;font-weight:700;padding:2px 5px;cursor:pointer}
+.crm-product-filter{display:flex;align-items:center;gap:9px;color:#e8d0bb;font-size:.8rem;
+  padding:3px 0 12px;cursor:pointer}
+.crm-product-filter input{width:17px;height:17px;accent-color:#c7966e}
+.crm-manual-controls{border-top:1px solid #554235;padding-top:9px}
+.crm-manual-controls summary{font-size:.81rem;color:#d9b899;padding:9px 5px;cursor:pointer;
+  font-weight:600;list-style-position:inside}
+.crm-manual-controls summary:focus-visible{outline:2px solid #e6ba8e;outline-offset:2px}
+.crm-manual-controls[open] .crm-actions{margin:8px 0 10px}
+.crm-manual-controls[open] .crm-minor-actions{margin-top:8px}
+.crm-manual-controls .crm-actions .crm-button{flex:1 1 180px}
+.crm-due-info strong{color:#f4bd8b}
+@media(max-width:700px){
+ .crm-navigation{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .crm-navigation button{padding:10px 9px;min-width:0}
+ .crm-navigation button:last-child{grid-column:1/-1}
+ .crm-queue-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+ .crm-queue-overview span{text-align:center;padding:8px 5px;font-size:.69rem}
+ .crm-queue-overview strong{display:block;font-size:1.08rem}
+ .crm-manual-controls .crm-actions .crm-button{width:100%}
+}

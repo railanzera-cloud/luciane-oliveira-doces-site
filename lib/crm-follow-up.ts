@@ -79,3 +79,28 @@ export function crmWhatsAppLink(
 
 // Frases de template de API devem ser mantidas separadas: o wa.me acima
 // apenas abre o WhatsApp da operadora e NAO dispara mensagens.
+
+
+// Fila do CRM: todos os lembretes seguem registrados até conclusão explícita.
+// Uma fila "para agora" é apenas elegível para REVISÃO MANUAL, nunca valida
+// janela Meta ou autoriza disparos pela API oficial.
+export type CrmQueueInput = {
+  status: string;
+  follow_up_status: string | null;
+  follow_up_due_at: string | null;
+  consent_status: string;
+  commercial_opt_out: boolean;
+  possible_purchase: boolean;
+};
+export type CrmQueueBucket = "review_now" | "blocked_due" | "scheduled" | "other";
+
+export function crmQueueBucket(item: CrmQueueInput, nowMs: number): CrmQueueBucket {
+  if (item.status !== "waiting_customer" || item.follow_up_status !== "pending" ||
+      !item.follow_up_due_at) return "other";
+  const dueMs = Date.parse(item.follow_up_due_at);
+  if (!Number.isFinite(dueMs)) return "other";
+  if (dueMs > nowMs) return "scheduled";
+  return item.consent_status === "granted" &&
+    !item.commercial_opt_out && !item.possible_purchase
+    ? "review_now" : "blocked_due";
+}

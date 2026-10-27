@@ -42,6 +42,7 @@ on:
       - feature/crm-fatia-rascunhos-personalizados-20261026
       - feature/crm-sabores-mencionados-webhook-20261026
       - feature/crm-painel-confirma-interesse-20261027
+      - feature/crm-fila-priorizada-mobile-20261027
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -60,6 +61,7 @@ on:
       - supabase/functions/tintim-webhook/product-hint.mjs
       - tests/crm-fatia-rascunhos-personalizados-20261026.test.mjs
       - tests/crm-painel-confirma-interesse-20261027.test.mjs
+      - tests/crm-fila-priorizada-mobile-20261027.test.mjs
       - supabase/migrations/20261026203000_crm_followups_assistidos.sql
       - supabase/migrations/20261026235500_crm_tintim_live_sync.sql
       - supabase/migrations/20261027001000_crm_tintim_message_observe.sql

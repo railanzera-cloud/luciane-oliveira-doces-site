@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Check, ChevronDown, Clock3, MessageCircle, RefreshCw, Search, ShieldCheck, UserPlus } from "lucide-react";
-import { crmAdSliceHint, crmMentionedProductName, crmSuggestedMessage, crmWhatsAppLink } from "@/lib/crm-follow-up";
+import { crmAdSliceHint, crmMentionedProductName, crmSuggestedMessage, crmWhatsAppLink, crmQueueBucket } from "@/lib/crm-follow-up";
 import "./admin-crm-panel.css";
 
 type Opportunity = {
@@ -27,7 +27,7 @@ type Candidate = {
   stage_label: string | null; source_label: string | null;
   campaign_name: string | null; last_seen_at: string; imported: boolean;
 };
-type View = "due" | "new" | "active" | "tintim";
+type View = "due" | "review" | "new" | "active" | "tintim";
 type ProductMention = {
   conversation_id: string;
   product_id: string;
@@ -73,6 +73,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   const [newPhone, setNewPhone] = useState("");
   const [now, setNow] = useState(() => Date.now());
   const [search, setSearch] = useState("");
+  const [onlyWithProduct, setOnlyWithProduct] = useState(false);
   const [expanded, setExpanded] = useState<Record<string,boolean>>({});
 
   const refresh = useCallback(async () => {
@@ -125,26 +126,51 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
     return () => window.clearInterval(timer);
   }, []);
 
-  const due = useMemo(() => items.filter((item) => item.status === "waiting_customer"
-    && item.follow_up_status === "pending" && item.follow_up_due_at
-    && new Date(item.follow_up_due_at).getTime() <= now), [items,now]);
-  const waiting = useMemo(() => items.filter((item) => item.status !== "converted"
-    && item.status !== "lost" && item.status !== "closed"), [items]);
+  const waiting = useMemo(() => items.filter((item) =>
+    item.status !== "converted" && item.status !== "lost" && item.status !== "closed"
+  ), [items]);
+  const bucketOf = useCallback((item: Opportunity) => crmQueueBucket({
+    status: item.status,
+    follow_up_status: item.follow_up_status,
+    follow_up_due_at: item.follow_up_due_at,
+    consent_status: item.consent_status,
+    commercial_opt_out: item.commercial_opt_out,
+    possible_purchase: hasPurchaseSignal(signals[item.conversation_id]?.stage_label)
+  }, now), [signals, now]);
+  // "Para agora" = revisão manual possível, NÃO autorização para envio Meta.
+  const due = waiting.filter(item => bucketOf(item) === "review_now");
+  const review = waiting.filter(item => bucketOf(item) === "blocked_due");
+  const scheduled = waiting.filter(item => bucketOf(item) === "scheduled");
   const newLeads = waiting.filter(item => item.status==="in_progress" && !item.last_outbound_at);
-  const visible = view === "due" ? due : view === "new" ? newLeads : waiting;
+  const visible = view === "due" ? due : view === "review" ? review :
+    view === "new" ? newLeads : waiting;
   const filteredVisible = useMemo(() => {
     const term = search.trim().toLocaleLowerCase("pt-BR");
-    const shortlist = term ? visible.filter(item => [
+    let shortlist = term ? visible.filter(item => [
       item.customer_name, item.phone_e164, item.interest_label ?? "",
       item.source_label ?? "", signals[item.conversation_id]?.ad_name ?? "",
       crmMentionedProductName(mentions[item.conversation_id]?.product_id) ?? "",
     ].some(value => value.toLocaleLowerCase("pt-BR").includes(term))) : visible;
-    // Apenas sinais rastreados, jamais interpretar como data da ultima mensagem.
-    if (view !== "new") return shortlist;
-    return [...shortlist].sort((a,b) =>
+    const hasProduct = (item: Opportunity) => Boolean(item.interest_label ||
+      crmMentionedProductName(mentions[item.conversation_id]?.product_id) ||
+      crmAdSliceHint(signals[item.conversation_id]?.ad_name));
+    if (view === "active" && onlyWithProduct) shortlist = shortlist.filter(hasProduct);
+    // Lista de acompanhamento: priorizar quem tem lembrete, depois produto,
+    // depois atividade recente. Sinal de anúncio não confirma preferencia.
+    if (view === "active") return [...shortlist].sort((a,b) => {
+      const rank = (item: Opportunity) => (
+        item.status === "waiting_customer" && item.follow_up_status === "pending" ? 2 : 0
+      ) + (hasProduct(item) ? 1 : 0);
+      return rank(b)-rank(a) ||
+        Date.parse(b.last_outbound_at ?? b.last_inbound_at ?? b.created_at) -
+        Date.parse(a.last_outbound_at ?? a.last_inbound_at ?? a.created_at);
+    });
+    if (view === "new") return [...shortlist].sort((a,b) =>
       new Date(signals[b.conversation_id]?.last_observed_at ?? 0).getTime() -
       new Date(signals[a.conversation_id]?.last_observed_at ?? 0).getTime());
-  }, [visible,search,signals,mentions,view]);
+    return [...shortlist].sort((a,b) =>
+      Date.parse(a.follow_up_due_at ?? "")-Date.parse(b.follow_up_due_at ?? ""));
+  }, [visible,search,signals,mentions,view,onlyWithProduct]);
 
   const run = async (key: string, operation: () => Promise<void>, success: string) => {
     if (pending) return;
@@ -195,31 +221,45 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       <div className="crm-info"><ShieldCheck size={18} aria-hidden="true"/>
         <span>Modo assistido: <strong>nenhuma mensagem é enviada automaticamente.</strong> Abrir uma conversa não confirma que a mensagem foi enviada.</span>
       </div>
+      <div className="crm-queue-overview" role="status">
+        <span><strong>{due.length}</strong> para revisar agora</span>
+        <span><strong>{review.length}</strong> vencidos bloqueados</span>
+        <span><strong>{scheduled.length}</strong> programados</span>
+      </div>
       <div className="crm-navigation" role="group" aria-label="Filtrar atendimentos">
         <button type="button" className={view==="due"?"is-active":""} onClick={()=>setView("due")}>Para agora <b>{due.length}</b></button>
+        <button type="button" className={view==="review"?"is-active":""} onClick={()=>setView("review")}>Revisar <b>{review.length}</b></button>
         <button type="button" className={view==="new"?"is-active":""} onClick={()=>setView("new")}>Triagem <b>{newLeads.length}</b></button>
         <button type="button" className={view==="active"?"is-active":""} onClick={()=>setView("active")}>Acompanhar <b>{waiting.length}</b></button>
         <button type="button" className={view==="tintim"?"is-active":""} onClick={()=>setView("tintim")}>Contatos Tintim</button>
       </div>
       <p className="crm-guidance">
-        <strong>Como funciona:</strong> o Tintim organiza contatos, mas ainda não comprova quem está esperando resposta.
-        Respostas de texto recebidas pelo Tintim já criam e cancelam lembretes automaticamente.
-        Use <strong>Já respondi</strong> apenas para correções manuais. Sinais de anúncio e de mensagem
-        são sugestões; para registrar a preferência da pessoa, confirme o produto abaixo.
-        Nenhuma mensagem é enviada por este painel.
+        <strong>Fila inteligente:</strong> o Tintim agenda e cancela lembretes automaticamente.
+        <strong> Para agora</strong> exige revisão humana antes de qualquer contato;
+        <strong> Revisar</strong> guarda vencidos com consentimento ausente, opt-out ou possível compra.
+        Nenhuma mensagem é enviada automaticamente. Um anúncio ou uma menção de fatia não comprovam autorização.
       </p>
+      {view==="due" && due.length===0 && review.length>0 && <div className="crm-empty-attention">
+        Nenhum atendimento habilitado para revisão imediata. Existem {review.length} lembretes
+        vencidos que exigem conferência ou autorização — não devem ser enviados automaticamente.
+        <button type="button" onClick={()=>setView("review")}>Ver pendências</button>
+      </div>}
       {view!=="tintim" && <label className="crm-search">
         <Search size={17} aria-hidden="true"/>
         <input type="search" value={search} onChange={e=>setSearch(e.target.value)}
           placeholder="Buscar nome, telefone, produto ou origem" aria-label="Buscar contatos do CRM"/>
         {search && <button type="button" onClick={()=>setSearch("")}>Limpar</button>}
       </label>}
+      {view==="active" && <label className="crm-product-filter">
+        <input type="checkbox" checked={onlyWithProduct} onChange={e=>setOnlyWithProduct(e.target.checked)}/>
+        Mostrar somente atendimentos com indicação de produto
+      </label>}
       {error && <div role="alert" className="crm-error">{error}</div>}
       {notice && <div role="status" className="crm-success"><Check size={16}/>{notice}</div>}
       {loading && <div role="status" className="crm-loading">Atualizando oportunidades…</div>}
 
       {view!=="tintim" && !loading && filteredVisible.length===0 && !error && (
-        <div className="crm-empty"><Clock3 size={24}/><strong>{search?"Nenhum contato encontrado":view==="due"?"Nenhum follow-up vencido":view==="new"?"Nenhum contato aguardando triagem":"Nenhuma oportunidade em acompanhamento"}</strong>
+        <div className="crm-empty"><Clock3 size={24}/><strong>{search?"Nenhum contato encontrado":view==="due"?"Nenhum follow-up para revisão imediata":view==="review"?"Nenhuma pendência bloqueada":view==="new"?"Nenhum contato aguardando triagem":"Nenhuma oportunidade em acompanhamento"}</strong>
           <p>Os contatos recentes do Tintim entram automaticamente quando esta aba é aberta. As mensagens continuam no aplicativo da Luciane.</p></div>
       )}
       {view!=="tintim" && !loading && !error && <p className="crm-list-count">
@@ -238,7 +278,8 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         const inputInterest = interest[item.conversation_id] ?? item.interest_label ?? "";
         const unsavedInterest = inputInterest.trim() !== (item.interest_label ?? "").trim();
         const possiblePurchase = hasPurchaseSignal(signal?.stage_label);
-        const isExpanded = expanded[item.conversation_id] ?? isDue;
+        const isExpanded = expanded[item.conversation_id] ??
+          (view==="due" && isDue && eligible && !possiblePurchase);
         return <article className={"crm-card "+(!isExpanded?"crm-card-compact":"")} key={item.conversation_id}>
           <header>
             <div className="crm-name"><strong>{item.customer_name}</strong>
@@ -253,7 +294,10 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
             </div>
             <div className="crm-card-controls">
               <span className={"crm-pill "+(isDue?"crm-due":"")}>
-                {possiblePurchase?"Possível compra":isDue?"Lembrete vencido":item.status==="waiting_customer"?"Aguardando cliente":"Para revisar"}
+                {possiblePurchase?"Possível compra":item.commercial_opt_out?"Contato bloqueado":
+                  isDue && item.consent_status!=="granted"?"Autorização pendente":
+                  isDue?"Revisar antes de contatar":
+                  item.status==="waiting_customer"?"Aguardando cliente":"Em atendimento"}
               </span>
               <button type="button" className="crm-expand" aria-expanded={isExpanded}
                 onClick={()=>setExpanded(previous=>({...previous,[item.conversation_id]:!isExpanded}))}>
@@ -293,15 +337,31 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               onClick={()=>void saveConfirmedInterest(item.conversation_id)}>Salvar produto confirmado</button>
           </div>
           {item.follow_up_status==="pending" && item.follow_up_due_at &&
-            <p className="crm-due-info">Lembrete: {fmtTime(item.follow_up_due_at)} (Paragominas)</p>}
-          <div className="crm-actions">
-            <button className="crm-button" type="button" disabled={locked || item.commercial_opt_out || possiblePurchase}
-              onClick={()=>void invoke(item.conversation_id,"waiting")}>Já respondi · lembrar 45 min</button>
-            <button className="crm-button crm-secondary" type="button" disabled={locked}
-              onClick={()=>void invoke(item.conversation_id,"replied")}>Cliente respondeu</button>
-            <button className="crm-button crm-secondary" type="button" disabled={locked}
-              onClick={()=>{ if(window.confirm("Confirmar que este cliente comprou? Isso registra apenas uma conversão manual, sem alterar o pedido ou o faturamento.")) void invoke(item.conversation_id,"converted"); }}>Comprou</button>
-          </div>
+            <p className="crm-due-info">Lembrete: {fmtTime(item.follow_up_due_at)} (Paragominas)
+              {isDue && <strong> · Vencido, aguardando conferência</strong>}
+            </p>}
+          <details className="crm-manual-controls">
+            <summary>Correções manuais do atendimento</summary>
+            <div className="crm-actions">
+              <button className="crm-button crm-secondary" type="button"
+                disabled={locked || item.commercial_opt_out || possiblePurchase ||
+                  (item.status==="waiting_customer" && item.follow_up_status==="pending")}
+                onClick={()=>void invoke(item.conversation_id,"waiting")}>
+                {item.status==="waiting_customer" && item.follow_up_status==="pending"
+                  ? "Lembrete automático já ativo" : "Registrar resposta manual · 45 min"}
+              </button>
+              <button className="crm-button crm-secondary" type="button" disabled={locked}
+                onClick={()=>void invoke(item.conversation_id,"replied")}>Registrar resposta do cliente</button>
+              <button className="crm-button crm-secondary" type="button" disabled={locked}
+                onClick={()=>{ if(window.confirm("Confirmar que este cliente comprou? Isso registra apenas uma conversão manual, sem alterar o pedido ou o faturamento.")) void invoke(item.conversation_id,"converted"); }}>Registrar compra manual</button>
+            </div>
+            <div className="crm-minor-actions">
+              <button type="button" disabled={locked || item.commercial_opt_out}
+                onClick={()=>{ if(window.confirm("O cliente pediu para não receber mensagens comerciais? Esta ação bloqueará follow-ups deste telefone.")) void invoke(item.conversation_id,"opt_out"); }}>Não receber mensagens</button>
+              <button type="button" disabled={locked}
+                onClick={()=>void invoke(item.conversation_id,"closed")}>Encerrar atendimento</button>
+            </div>
+          </details>
           {item.status==="waiting_customer" && item.follow_up_status==="pending" && <div className="crm-followup">
             {!isDue && <p className="crm-due-info">Rascunho preparado para revisão.
               O lembrete ainda não venceu; nenhuma mensagem será enviada automaticamente.</p>}
@@ -316,7 +376,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               <a className="crm-button crm-whatsapp" href={crmWhatsAppLink(item.phone_e164,draftInterest,signal?.ad_name,mention?.product_id)}
                  target="_blank" rel="noopener noreferrer"><MessageCircle size={17}/> Abrir mensagem sugerida</a>
               <button className="crm-button crm-secondary" type="button" disabled={locked}
-                 onClick={()=>void invoke(item.conversation_id,"sent_manually")}>Marcar como enviada</button>
+                 onClick={()=>{if(window.confirm("Você realmente enviou esta mensagem fora do CRM? Abrir o WhatsApp não comprova envio.")) void invoke(item.conversation_id,"sent_manually");}}>Registrar envio feito manualmente</button>
             </> : <p>{possiblePurchase?"Follow-up suspenso: possível compra sinalizada no Tintim.": "Mensagem comercial indisponível: autorização não registrada ou contato bloqueado."}</p>)}
             {isDue && <button className="crm-button crm-secondary" type="button" disabled={locked}
               onClick={()=>void invoke(item.conversation_id,"snooze",{p_due_minutes:60})}>Adiar 1 hora</button>}
@@ -331,12 +391,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               disabled={locked || (evidence[item.conversation_id] ?? "").trim().length<8}
               onClick={()=>void invoke(item.conversation_id,"consent_granted")}>Registrar autorização</button>
           </div>}
-          <div className="crm-minor-actions">
-            <button type="button" disabled={locked || item.commercial_opt_out}
-               onClick={()=>{ if(window.confirm("O cliente pediu para não receber mensagens comerciais? Esta ação bloqueará follow-ups deste telefone.")) void invoke(item.conversation_id,"opt_out"); }}>Não receber mensagens</button>
-            <button type="button" disabled={locked}
-               onClick={()=>void invoke(item.conversation_id,"closed")}>Encerrar atendimento</button>
-          </div>
+
           </>}
         </article>;
       })}</div>}
