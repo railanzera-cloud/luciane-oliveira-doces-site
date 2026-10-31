@@ -42,6 +42,7 @@ on:
       - feature/crm-fatia-rascunhos-personalizados-20261026
       - feature/pre-reserva-chocolate-morango-31102026
       - feature/ultimas-fatias-31102026
+      - feature/ultimas-fatias-refino-mobile-20261031
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
