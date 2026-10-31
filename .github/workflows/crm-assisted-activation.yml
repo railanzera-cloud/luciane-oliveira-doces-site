@@ -1,0 +1,82 @@
+name: CRM assisted activation - isolated Auth PostgREST concurrency
+on:
+  push:
+    branches: [work/homologacao-followup-assistido-20261031]
+    paths:
+      - 'tests/activation/**'
+      - '.github/workflows/crm-assisted-activation.yml'
+      - 'supabase/migrations/*crm_assisted_activation_hardening.sql'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17.6
+        env:
+          POSTGRES_PASSWORD: synthetic_ci_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 3s --health-timeout 3s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install 'psycopg[binary]==3.2.13' 'requests==2.32.5'
+      - name: Loopback-only synthetic environment
+        shell: bash
+        run: |
+          secret=$(openssl rand -hex 32)
+          echo "::add-mask::$secret"
+          echo "LOD_QA_JWT_SECRET=$secret" >> "$GITHUB_ENV"
+          PGPASSWORD=synthetic_ci_only psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -f tests/activation/bootstrap.sql
+          docker run -d --name lod-auth --network host \
+            -e GOTRUE_API_HOST=127.0.0.1 -e GOTRUE_API_PORT=9999 \
+            -e API_EXTERNAL_URL=http://127.0.0.1:9999 \
+            -e GOTRUE_SITE_URL=http://127.0.0.1:4173 \
+            -e GOTRUE_DB_DRIVER=postgres \
+            -e GOTRUE_DB_DATABASE_URL=postgresql://postgres:synthetic_ci_only@127.0.0.1:5432/postgres?sslmode=disable \
+            -e GOTRUE_JWT_SECRET="$secret" -e GOTRUE_JWT_AUD=authenticated \
+            -e GOTRUE_JWT_DEFAULT_GROUP_NAME=authenticated \
+            -e GOTRUE_EXTERNAL_EMAIL_ENABLED=true -e GOTRUE_MAILER_AUTOCONFIRM=true \
+            -e GOTRUE_DISABLE_SIGNUP=false -e GOTRUE_RATE_LIMIT_EMAIL_SENT=1000 \
+            supabase/gotrue:v2.197.0
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:9999/health >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:9999/health
+      - name: Reproduce deployed contracts and prepare migration locally
+        run: python tests/activation/setup.py
+      - name: Start actual PostgREST
+        shell: bash
+        run: |
+          docker run -d --name lod-rest --network host \
+            -e PGRST_DB_URI=postgresql://authenticator:synthetic_ci_only@127.0.0.1:5432/postgres \
+            -e PGRST_DB_SCHEMAS=public -e PGRST_DB_ANON_ROLE=anon \
+            -e PGRST_JWT_SECRET="$LOD_QA_JWT_SECRET" \
+            -e PGRST_SERVER_HOST=127.0.0.1 -e PGRST_SERVER_PORT=3000 \
+            postgrest/postgrest:v16.5
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:3000/ > /tmp/lod-rest-schema.json
+      - name: Auth RPC consent 45-minute lifecycle concurrency and rollback
+        run: python tests/activation/exercise.py
+      - name: Failure diagnostics (no tokens, no real PII)
+        if: failure()
+        run: |
+          docker logs --tail 25 lod-auth
+          docker logs --tail 25 lod-rest
+      - name: Evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crm-assisted-activation-evidence
+          path: activation-results/
