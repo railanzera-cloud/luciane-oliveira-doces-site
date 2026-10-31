@@ -88,6 +88,19 @@ fopt=eligible();record('opt-out recorded',action(fopt,'opt_out').ok)
 record('opt-out blocks consent grant',action(fopt,'consent_granted',p_evidence=evidence).status_code==403)
 record('opt-out blocks assisted send',send(fopt).status_code==403)
 
+for label,change,reason in [
+ ('unconfirmed product',"UPDATE crm_conversations SET interest_basis='unknown' WHERE id=%s",'product_not_confirmed'),
+ ('receipt time only',"UPDATE crm_tintim_message_events SET time_basis='webhook_received' WHERE conversation_id=%s",'inbound_timestamp_unverified'),
+ ('consent unknown',"UPDATE crm_customers SET consent_status='unknown' WHERE id=%s",'consent_not_verified')]:
+ fblock=eligible();db.execute(change,(fblock['customer'] if label=='consent unknown' else fblock['conv'],))
+ r=review(fblock);record('PostgREST blocks '+label,r.ok and not r.json()['eligible'] and reason in r.json()['reasons'])
+ record('manual record blocked: '+label,send(fblock).status_code==403)
+fanswered=eligible();record('customer reply registered',action(fanswered,'replied').ok)
+record('customer reply blocks send',send(fanswered).status_code==403)
+fpurchase=eligible();db.execute("INSERT INTO tintim_conversations(phone_digits,stage_label) VALUES(%s,'Comprou')",(fpurchase['phone'],))
+record('Tintim possible purchase blocks send',send(fpurchase).status_code==403)
+record('transport remains disabled',db.execute('SELECT automatic_sends_enabled FROM crm_automation_settings').fetchone()[0] is False)
+
 # Two real HTTP transactions for the same pending follow-up.
 fdup=eligible()
 with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:

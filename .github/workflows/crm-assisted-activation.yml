@@ -40,7 +40,7 @@ jobs:
             -e API_EXTERNAL_URL=http://127.0.0.1:9999 \
             -e GOTRUE_SITE_URL=http://127.0.0.1:4173 \
             -e GOTRUE_DB_DRIVER=postgres \
-            -e GOTRUE_DB_DATABASE_URL=postgresql://postgres:synthetic_ci_only@127.0.0.1:5432/postgres?sslmode=disable \
+            -e 'GOTRUE_DB_DATABASE_URL=postgresql://postgres:synthetic_ci_only@127.0.0.1:5432/postgres?sslmode=disable&search_path=auth' \
             -e GOTRUE_JWT_SECRET="$secret" -e GOTRUE_JWT_AUD=authenticated \
             -e GOTRUE_JWT_DEFAULT_GROUP_NAME=authenticated \
             -e GOTRUE_EXTERNAL_EMAIL_ENABLED=true -e GOTRUE_MAILER_AUTOCONFIRM=true \
