@@ -849,6 +849,11 @@ export default function Home() {
     && popcornOptionIds.every((optionId) => popcornFlavorIsAvailable(optionId)),
   );
   const strawberryPreorder = availability.slicePreorder?.active ? availability.slicePreorder : null;
+  const strawberryReadyLabel = strawberryPreorder && Number.isFinite(Date.parse(strawberryPreorder.ready_at ?? ""))
+    ? new Intl.DateTimeFormat("pt-BR", {
+        timeZone: "America/Belem", hour: "2-digit", minute: "2-digit", hour12: false,
+      }).format(new Date(strawberryPreorder.ready_at!)).replace(":", "h")
+    : "horário a confirmar";
   const cartHasStrawberryPreorder = Boolean(strawberryPreorder && cart.some(item=>item.productId==="fatia-chocolate-morango"));
   const reservedInCart = cart.filter(item=>item.productId==="fatia-chocolate-morango").reduce((sum,item)=>sum+item.quantity,0);
   const sliceReady = Boolean(
@@ -2285,9 +2290,9 @@ export default function Home() {
               <section className={`step-block step-state-${sliceProductStepState}`} id="fatias" aria-labelledby="step-slice" aria-current={sliceProductStepState === "active" ? "step" : undefined}>
                 <div className="step-heading"><StepMarker number={1} state={sliceProductStepState} /><div><h3 id="step-slice">Escolha sua fatia</h3><p>Selecione um sabor por vez. Depois de adicionar, você poderá escolher outro.</p></div></div>
                 {strawberryPreorder && <aside className="slice-preorder-banner" role="status">
-                  <span className="slice-preorder-kicker">Última fornada de hoje · Pré-reserva</span>
+                  <span className="slice-preorder-kicker">Nova produção de hoje · Pré-reserva</span>
                   <strong>Chocolate com Morango: garanta sua fatia para hoje</strong>
-                  <p>As primeiras fatias esgotaram cedo. A Luciane está preparando mais 3 bolos, previstos para ficar prontos por volta das <b>17h</b>. Entrega ou retirada <b>ainda hoje</b>, após confirmação pelo WhatsApp.</p>
+                  <p>A Luciane está preparando uma nova fornada, prevista para ficar pronta por volta das <b>{strawberryReadyLabel}</b> de hoje. Reserve sua fatia agora; entrega ou retirada <b>ainda hoje</b>, após confirmação pelo WhatsApp.</p>
                   <small>{strawberryPreorder.remaining > 0 ? "Produção limitada para hoje · R$ 22 por fatia" : "Pré-reservas esgotadas para hoje"}</small>
                 </aside>}
                 {!SLICES.some((slice) => sliceIsVisible(slice.id)) && <p className="selection-helper" role="status">Nenhuma fatia disponível no momento.</p>}
@@ -2316,7 +2321,7 @@ export default function Home() {
                           <span className="boutique-slice-card-title">
                             <strong>{slice.cardName ?? slice.name}</strong>
                             {selected && available && <span className="boutique-slice-selected-label">Selecionada</span>}
-                            {slice.id==="fatia-chocolate-morango" && strawberryPreorder && <span className="slice-preorder-tag">Pré-reserva · 17h</span>}
+                            {slice.id==="fatia-chocolate-morango" && strawberryPreorder && <span className="slice-preorder-tag">Pré-reserva · {strawberryReadyLabel}</span>}
                           </span>
                           {slice.subtitle && <em>{slice.subtitle}</em>}
                           <span className="boutique-slice-card-footer">
@@ -2529,7 +2534,7 @@ export default function Home() {
                     );
                   })}
                   {strawberryPreorder && cart.some(item=>item.productId==="fatia-chocolate-morango") && (
-                    <p className="slice-preorder-checkout-note"><strong>Chocolate com Morango reservado para hoje.</strong> Última fornada prevista para ficar pronta por volta das 17h. Entrega ou retirada ainda hoje, após confirmação da Luciane pelo WhatsApp. Pagamento conforme a opção escolhida.</p>
+                    <p className="slice-preorder-checkout-note"><strong>Chocolate com Morango reservado para hoje.</strong> Produção prevista para ficar pronta por volta das {strawberryReadyLabel}. Entrega ou retirada ainda hoje, após confirmação da Luciane pelo WhatsApp. Pagamento conforme a opção escolhida.</p>
                   )}
                   <div className="cart-subtotal"><span>Subtotal dos produtos</span><strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(cartSubtotal)}</strong></div>
                   <details className="boutique-cart-details">

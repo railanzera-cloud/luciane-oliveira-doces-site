@@ -47,6 +47,8 @@ on:
       - feature/crm-mobile-operacao-clara-20261027
       - feature/crm-outbox-envio-oficial-preparo-20261027
       - feature/crm-meta-status-webhook-20261027
+      - work/followup-assistido-integrado-20261031
+      - feature/pre-reserva-chocolate-morango-31102026
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -123,6 +125,8 @@ on:
       - supabase/migrations/20261025154500_strawberry_preorder_guard.sql
       - supabase/migrations/20261025165000_strawberry_preorder_kitchen_print.sql
       - supabase/migrations/20261025204000_strawberry_preorder_auto_accept.sql
+      - supabase/migrations/20261031105000_chocolate_morango_nova_pre_reserva.sql
+      - supabase/migrations/20261031110500_chocolate_morango_24_fatias.sql
       - ESTADO_ATUAL_VITRINE.md
       # Todos os testes da vitrine ativam a CI; evita checkpoint sem ZIP.
       - 'tests/*.test.mjs'

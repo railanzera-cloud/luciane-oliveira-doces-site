@@ -218,9 +218,9 @@ export function buildRegisteredOrderMessage(order: CheckoutDetails, number: numb
     const date = new Date(order.preorderReadyAt);
     const forecast = Number.isFinite(date.getTime()) ? new Intl.DateTimeFormat("pt-BR", {
       timeZone:"America/Belem",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"
-    }).format(date) : "hoje por volta das 17h";
+    }).format(date) : "horário a confirmar";
     lines.push("*PRÉ-RESERVA PARA HOJE — CHOCOLATE COM MORANGO*",
-      "Reserva registrada para a última fornada de hoje.",
+      "Reserva registrada para a produção de hoje.",
       "Fatias previstas para ficar prontas: " + forecast + " (horário aproximado).",
       "Entrega ou retirada ainda hoje, após confirmação da Luciane pelo WhatsApp.",
       "Pagamento conforme a opção escolhida. Pedido ainda não marcado como pago.","");
