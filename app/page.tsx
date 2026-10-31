@@ -71,6 +71,7 @@ import {
 } from "@/app/menu-availability";
 import { categoryFromUrl, categoryUrl, publicCategories, resolveMenuCategory } from "@/app/menu-navigation";
 import { useMenuAvailability } from "@/hooks/use-menu-availability";
+import { isLastSlicesWindow, LAST_SLICES_PRODUCT_IDS } from "@/app/last-slices-campaign";
 import { usePopcornPromotion } from "@/hooks/use-popcorn-promotion";
 import { getLimitedCupPhase, type LimitedCupPhase } from "@/app/limited-cup-release";
 import { isPopcornPromotionActive } from "@/supabase/functions/_shared/popcorn-promotion.mjs";
@@ -492,6 +493,18 @@ export default function Home() {
   const checkoutFingerprintRef = useRef("");
   const unlockTimerRef = useRef<number | undefined>(undefined);
   const { availability, hasResolvedAvailability, refreshAvailability } = useMenuAvailability();
+  const [lastSlicesNow, setLastSlicesNow] = useState(() => new Date());
+  useEffect(() => {
+    const refresh = () => setLastSlicesNow(new Date());
+    const timer = window.setInterval(refresh, 30_000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, []);
   const cupSalesEnabled = true; // Formulário pronto; pedidos dependem de orders_open e estoque.
   const cupPhase: LimitedCupPhase = getLimitedCupPhase(
     availability.ordersOpen,
@@ -854,6 +867,17 @@ export default function Home() {
         timeZone: "America/Belem", hour: "2-digit", minute: "2-digit", hour12: false,
       }).format(new Date(strawberryPreorder.ready_at!)).replace(":", "h")
     : "horário a confirmar";
+  const lastSlicesProducts = activeCategory === "fatias"
+    && hasResolvedAvailability
+    && availability.source === "supabase"
+    && availability.ordersOpen
+    && fatiasAvailable
+    && !strawberryPreorder
+    && isLastSlicesWindow(lastSlicesNow)
+    ? SLICES.filter((slice) => LAST_SLICES_PRODUCT_IDS.some((id) => id === slice.id)
+      && slice.available && Boolean(slice.variants[0]?.available) && sliceIsAvailable(slice.id))
+    : [];
+  const lastSlicesIds = new Set(lastSlicesProducts.map((slice) => slice.id));
   const cartHasStrawberryPreorder = Boolean(strawberryPreorder && cart.some(item=>item.productId==="fatia-chocolate-morango"));
   const reservedInCart = cart.filter(item=>item.productId==="fatia-chocolate-morango").reduce((sum,item)=>sum+item.quantity,0);
   const sliceReady = Boolean(
@@ -2289,6 +2313,26 @@ export default function Home() {
             <div className="builder-card slice-builder">
               <section className={`step-block step-state-${sliceProductStepState}`} id="fatias" aria-labelledby="step-slice" aria-current={sliceProductStepState === "active" ? "step" : undefined}>
                 <div className="step-heading"><StepMarker number={1} state={sliceProductStepState} /><div><h3 id="step-slice">Escolha sua fatia</h3><p>Selecione um sabor por vez. Depois de adicionar, você poderá escolher outro.</p></div></div>
+                {lastSlicesProducts.length > 0 && <aside className="last-slices-banner" aria-label="Últimas fatias disponíveis hoje">
+                  <span className="last-slices-eyebrow"><Clock3 size={15} aria-hidden="true" /> ÚLTIMAS FATIAS DE HOJE</span>
+                  <strong>Seu sabor favorito ainda dá tempo.</strong>
+                  <p>{lastSlicesProducts.map((slice) => slice.name).join(" e ")} {lastSlicesProducts.length === 1 ? "está nas últimas unidades" : "estão nas últimas unidades"} de hoje. Se você estava pensando em provar, aproveite enquanto ainda tem.</p>
+                  <span className="last-slices-hours">Pedidos até 20h ou enquanto houver disponibilidade.</span>
+                  <div className="last-slices-actions" aria-label="Escolher uma das últimas fatias">
+                    {lastSlicesProducts.map((slice) => <button type="button" className="last-slices-action" key={slice.id}
+                      onClick={() => {
+                        if (!sliceIsAvailable(slice.id) || !availability.ordersOpen) return;
+                        setBuilderEngaged(true);
+                        setSliceProductId(slice.id);
+                        setSliceOptionId("");
+                        setSelectionMessage("");
+                        requestScroll("calda-fatias");
+                      }}>
+                      <span>{slice.name}</span><b>{currency.format(slice.variants[0].price)}</b><ChevronRight size={15} aria-hidden="true" />
+                    </button>)}
+                  </div>
+                  <small>Oferta de disponibilidade, sem desconto. Sujeita à confirmação da loja.</small>
+                </aside>}
                 {strawberryPreorder && <aside className="slice-preorder-banner" role="status">
                   <span className="slice-preorder-kicker">Nova produção de hoje · Pré-reserva</span>
                   <strong>Chocolate com Morango: garanta sua fatia para hoje</strong>
@@ -2312,7 +2356,7 @@ export default function Home() {
                     const variant = slice.variants[0];
                     const available = fatiasAvailable && slice.available && variant.available && sliceIsAvailable(slice.id);
                     return (
-                      <label className={`slice-card ${selected ? "is-selected" : ""} ${!available ? "is-unavailable" : ""} ${slice.availabilityLabel ? "is-upcoming" : ""}`} htmlFor={`slice-${slice.id}`} key={slice.id}>
+                      <label className={`slice-card ${selected ? "is-selected" : ""} ${!available ? "is-unavailable" : ""} ${slice.availabilityLabel ? "is-upcoming" : ""} ${lastSlicesIds.has(slice.id) && available ? "is-last-slices" : ""}`} htmlFor={`slice-${slice.id}`} key={slice.id}>
                         <RadioGroupItem id={`slice-${slice.id}`} value={slice.id} disabled={!available} />
                         <span className="slice-media">
                           {slice.image ? <img src={slice.cardImage ?? slice.image} alt={slice.imageAlt} width="640" height="480" loading="lazy" decoding="async" fetchPriority="low" sizes="(max-width: 599px) calc(50vw - 27px), (max-width: 899px) calc(50vw - 36px), 240px" /> : <span className="slice-placeholder"><CakeSlice size={30} strokeWidth={1.4} /><small>Foto em breve</small></span>}
@@ -2322,6 +2366,7 @@ export default function Home() {
                             <strong>{slice.cardName ?? slice.name}</strong>
                             {selected && available && <span className="boutique-slice-selected-label">Selecionada</span>}
                             {slice.id==="fatia-chocolate-morango" && strawberryPreorder && <span className="slice-preorder-tag">Pré-reserva · {strawberryReadyLabel}</span>}
+                            {lastSlicesIds.has(slice.id) && available && <span className="last-slices-card-tag">Últimas de hoje</span>}
                           </span>
                           {slice.subtitle && <em>{slice.subtitle}</em>}
                           <span className="boutique-slice-card-footer">
