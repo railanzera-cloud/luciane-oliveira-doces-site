@@ -3,6 +3,7 @@ import test from "node:test";
 import {readFileSync} from "node:fs";
 const sql=readFileSync("supabase/migrations/20261031105000_chocolate_morango_nova_pre_reserva.sql","utf8");
 const page=readFileSync("app/page.tsx","utf8");
+const quantitySql=readFileSync("supabase/migrations/20261031110500_chocolate_morango_24_fatias.sql","utf8");
 const checkout=readFileSync("app/order-checkout.ts","utf8");
 test("previsão de 31/10 ao meio-dia vem do banco; nunca exibir a data antiga",()=>{
  assert.match(sql,/2026-10-31 12:00:00-03/);
@@ -32,4 +33,11 @@ test("aceite automático seguro, pagamento intacto e impressão única",()=>{
  assert.match(sql,/ON CONFLICT\(job_key\) DO NOTHING/);
  assert.doesNotMatch(sql,/SET payment_status\s*=/i);
  assert.doesNotMatch(sql,/SET paid_at\s*=/i);
+});
+
+test("três bolos de 8 fatias preparam 24 unidades, sem ativação antes da publicação",()=>{
+ assert.match(quantitySql,/SET capacity=24/);
+ assert.match(quantitySql,/b.enabled=false/);
+ assert.match(quantitySql,/b.reserved_units=0/);
+ assert.match(quantitySql,/2026-10-31 12:00:00-03/);
 });
