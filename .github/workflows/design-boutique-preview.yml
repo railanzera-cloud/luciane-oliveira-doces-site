@@ -40,6 +40,7 @@ on:
       - feature/crm-tintim-receipt-time-20261026
       - feature/crm-followup-preflight-20261026
       - feature/crm-fatia-rascunhos-personalizados-20261026
+      - feature/pre-reserva-chocolate-morango-31102026
     paths:
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
@@ -98,6 +99,7 @@ on:
       - supabase/migrations/20261025154500_strawberry_preorder_guard.sql
       - supabase/migrations/20261025165000_strawberry_preorder_kitchen_print.sql
       - supabase/migrations/20261025204000_strawberry_preorder_auto_accept.sql
+      - supabase/migrations/20261031105000_chocolate_morango_nova_pre_reserva.sql
       - ESTADO_ATUAL_VITRINE.md
       # Todos os testes da vitrine ativam a CI; evita checkpoint sem ZIP.
       - 'tests/*.test.mjs'
