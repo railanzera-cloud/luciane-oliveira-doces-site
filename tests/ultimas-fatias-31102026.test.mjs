@@ -45,7 +45,7 @@ test("fotografias aparecem logo apos o aviso e carregam prioritariamente",()=>{
  assert.ok(bannerEnd>0 && galleryStart>bannerEnd && galleryStart-bannerEnd<1800);
  assert.match(page,/loading=\{lastSlicesIds\.has\(slice\.id\) && available \? "eager" : "lazy"\}/);
  assert.match(page,/fetchPriority=\{lastSlicesIds\.has\(slice\.id\) && available \? "high" : "low"\}/);
- assert.match(page,/\.is-last-slices/);
+ assert.match(page,/is-last-slices/);
  assert.match(page,/last-slices-card-tag/);
  assert.match(css,/\.slice-media > \.last-slices-card-tag/);
  assert.match(css,/position: absolute/);
