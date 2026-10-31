@@ -1,4 +1,5 @@
 -- SYNTHETIC, LOOPBACK-ONLY TEST DATABASE. Never execute against the commercial project.
+CREATE SCHEMA auth;
 CREATE ROLE anon NOLOGIN;
 CREATE ROLE authenticated NOLOGIN;
 CREATE ROLE service_role NOLOGIN BYPASSRLS;
