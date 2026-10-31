@@ -175,3 +175,13 @@
  .crm-guidance{font-size:.79rem}
  .crm-list{gap:10px}
 }
+
+/* Assisted review: readable destination, human confirmation and inline status. */
+.crm-review-check{display:flex;align-items:flex-start;gap:10px;font-size:.83rem;
+ line-height:1.5;color:#f4ddc9;width:100%;padding:10px 0}
+.crm-review-check input{flex:0 0 19px;width:19px;height:19px;margin-top:2px;accent-color:#b8875b}
+.crm-followup>.crm-due-info{width:100%;overflow-wrap:anywhere}
+.crm-name,.crm-product-recap{overflow-wrap:anywhere;min-width:0}
+.crm-followup>.crm-whatsapp{min-height:48px}
+@media(max-width:700px){.crm-navigation button:last-child{grid-column:auto}
+ .crm-followup>.crm-whatsapp{flex-basis:100%}}

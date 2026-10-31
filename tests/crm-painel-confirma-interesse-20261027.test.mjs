@@ -7,7 +7,7 @@ const sql=read("supabase/migrations/20261027006000_crm_confirm_interest.sql");
 const css=read("components/admin-crm-panel.css");
 
 test("equipe confirma produto independente do agendamento de 45 minutos",()=>{
- assert.match(ui,/client\.rpc\("crm_confirm_interest"/);
+ assert.match(ui,/(?:client\.)?rpc\("crm_confirm_interest"/);
  assert.match(ui,/p_conversation_id:id,p_interest:label/);
  assert.match(ui,/Salvar produto confirmado/);
  assert.match(ui,/Não (?:cria|alter[a-z]*) nem altera lembretes|Salvar não cria nem altera lembretes/);
@@ -29,9 +29,9 @@ test("proteção: o admin autenticado deve estar na ACL da equipe",()=>{
 test("rascunho aparece antes do vencimento, sem disponibilizar link de envio",()=>{
  assert.match(ui,/item\.status==="waiting_customer" && item\.follow_up_status==="pending"/);
  assert.match(ui,/!isDue && <p className="crm-due-info">Rascunho preparado para revisão/);
- assert.match(ui,/isDue && \(eligible && !possiblePurchase/);
+ assert.match(ui,/canPrepare = isDue && eligible && !possiblePurchase && !!item\.interest_label/);
  assert.match(ui,/crmSuggestedMessage\(draftInterest,signal\?\.ad_name,mention\?\.product_id\)/);
- assert.match(ui,/crmWhatsAppLink\(item\.phone_e164,draftInterest,signal\?\.ad_name,mention\?\.product_id\)/);
+ assert.match(ui,/crmWhatsAppLink\(result\.phone_e164!, result\.interest_label\)/);
  assert.match(ui,/const draftInterest = item\.interest_label/);
 });
 test("cards compactos exibem produto e pesquisa encontra menção identificada",()=>{

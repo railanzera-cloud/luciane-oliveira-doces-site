@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Check, ChevronDown, Clock3, MessageCircle, RefreshCw, Search, ShieldCheck, UserPlus } from "lucide-react";
 import { crmAdSliceHint, crmMentionedProductName, crmSuggestedMessage, crmWhatsAppLink, crmQueueBucket } from "@/lib/crm-follow-up";
+import { assistedReviewProblems, assistedTiming, type AssistedReview } from "@/lib/crm-assisted";
 import "./admin-crm-panel.css";
 
 type Opportunity = {
@@ -27,7 +28,7 @@ type Candidate = {
   stage_label: string | null; source_label: string | null;
   campaign_name: string | null; last_seen_at: string; imported: boolean;
 };
-type View = "due" | "review" | "new" | "active" | "tintim";
+type View = "due" | "review" | "new" | "active" | "history" | "tintim";
 type ProductMention = {
   conversation_id: string;
   product_id: string;
@@ -71,7 +72,10 @@ const hasPurchaseSignal = (stage: string | null | undefined) =>
 const fmtTime = (iso: string) =>
   new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Belem", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 const displayError = (error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
+  const message = error && typeof error === "object" && "message" in error ? String(error.message) : String(error);
+  if (/abort|timeout/i.test(message)) return "A operação demorou mais que o esperado e o resultado não foi confirmado. Atualize a fila antes de tentar novamente.";
+  if (/crm_assisted.*(?:schema cache|function)|(?:function|schema cache).*crm_assisted/i.test(message)) return "Verificação assistida ainda não ativada no banco deste ambiente. A abertura e o registro permanecem bloqueados.";
+  if (/crm_assisted_review_required/i.test(message)) return "O atendimento mudou ou deixou de ser elegível. Atualize e confira a conversa antes de registrar.";
   if (/crm_access_denied/i.test(message)) return "CRM bloqueado para esta conta. É necessário habilitar o acesso específico da Luciane.";
   if (/crm_consent_evidence_required/i.test(message)) return "Descreva quando e como o cliente autorizou as mensagens.";
   if (/crm_not_eligible|crm_opt_out/i.test(message)) return "Contato sem permissão ou atendimento encerrado. Nenhuma mensagem foi preparada.";
@@ -80,7 +84,11 @@ const displayError = (error: unknown) => {
   return message || "Não foi possível concluir a ação.";
 };
 
+// A timed-out mutation has an uncertain result: refresh before trying again.
+const rpcTimeoutMs = 15000;
 export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
+  const rpc = useCallback((name: string, args?: Record<string, unknown>) =>
+    client.rpc(name,args).abortSignal(AbortSignal.timeout(rpcTimeoutMs)), [client]);
   const [items, setItems] = useState<Opportunity[]>([]);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [signals, setSignals] = useState<Record<string,TintimSignal>>({});
@@ -88,8 +96,13 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   const [automation, setAutomation] = useState<AutomationReport | null>(null);
   const [automationQueue, setAutomationQueue] = useState<Record<string,AutomationQueueItem>>({});
 
+  const actionLock = useRef(false);
+  const refreshVersion = useRef(0);
+  const [reviewed, setReviewed] = useState<Record<string,string>>({});
+  const [opened, setOpened] = useState<Record<string,boolean>>({});
   const [view, setView] = useState<View>("due");
   const [loading, setLoading] = useState(true);
+  const [dataStale, setDataStale] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -105,23 +118,24 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   const [expanded, setExpanded] = useState<Record<string,boolean>>({});
 
   const refresh = useCallback(async () => {
+    const version = ++refreshVersion.current;
     setRefreshing(true);
     try {
       // Importacao passiva dos ultimos sinais do Tintim: nenhum envio ou lembrete.
       // Uma falha de sync nao pode impedir leitura de oportunidades ja cadastradas.
-      const sync = await client.rpc("crm_sync_recent_tintim", { p_hours: 72, p_limit: 100 });
+      const sync = await rpc("crm_sync_recent_tintim", { p_hours: 72, p_limit: 100 });
       if (sync.error && !/PGRST202|Could not find the function/i.test(sync.error.message)) {
         throw sync.error;
       }
-      const hold = await client.rpc("crm_hold_tintim_purchase_signals");
+      const hold = await rpc("crm_hold_tintim_purchase_signals");
       if (hold.error) throw hold.error;
       const [list,candidatesResult,signalsResult,mentionsResult,reportResult,queueResult] = await Promise.all([
-        client.rpc("crm_list_opportunities"),
-        client.rpc("crm_list_tintim_candidates", { p_limit: 40 }),
-        client.rpc("crm_list_tintim_signals"),
-        client.rpc("crm_list_tintim_product_hints"),
-        client.rpc("crm_automation_operational_report"),
-        client.rpc("crm_automation_queue_items"),
+        rpc("crm_list_opportunities"),
+        rpc("crm_list_tintim_candidates", { p_limit: 40 }),
+        rpc("crm_list_tintim_signals"),
+        rpc("crm_list_tintim_product_hints"),
+        rpc("crm_automation_operational_report"),
+        rpc("crm_automation_queue_items"),
       ]);
       if (list.error) throw list.error;
       if (candidatesResult.error) throw candidatesResult.error;
@@ -131,6 +145,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       if (mentionsResult.error && !/PGRST202|Could not find the function/i.test(mentionsResult.error.message)) {
         throw mentionsResult.error;
       }
+      if (version !== refreshVersion.current) return;
       setItems((list.data ?? []) as Opportunity[]);
       setCandidates((candidatesResult.data ?? []) as Candidate[]);
       setSignals(Object.fromEntries(((signalsResult.data ?? []) as TintimSignal[])
@@ -144,10 +159,11 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         ((queueResult.data ?? []) as AutomationQueueItem[])
           .map(item => [item.follow_up_id,item])
       ));
+      setDataStale(false);
       setError("");
-    } catch (e) { setError(displayError(e)); }
-    finally { setLoading(false); setRefreshing(false); }
-  }, [client]);
+    } catch (e) { if (version === refreshVersion.current) { setDataStale(true); setError(displayError(e)); } }
+    finally { if (version === refreshVersion.current) { setLoading(false); setRefreshing(false); } }
+  }, [rpc]);
 
   useEffect(() => { void refresh(); }, [refresh]);
   useEffect(() => { setListLimit(15); }, [view, search, onlyWithProduct]);
@@ -180,7 +196,8 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   const review = waiting.filter(item => bucketOf(item) === "blocked_due");
   const scheduled = waiting.filter(item => bucketOf(item) === "scheduled");
   const newLeads = waiting.filter(item => item.status==="in_progress" && !item.last_outbound_at);
-  const visible = view === "due" ? due : view === "review" ? review :
+  const history = items.filter(item => ["converted","lost","closed"].includes(item.status) || item.follow_up_status === "sent_manually");
+  const visible = view === "history" ? history : view === "due" ? due : view === "review" ? review :
     view === "new" ? newLeads : waiting;
   const filteredVisible = useMemo(() => {
     const term = search.trim().toLocaleLowerCase("pt-BR");
@@ -214,15 +231,16 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
     ? filteredVisible : filteredVisible.slice(0, listLimit);
 
   const run = async (key: string, operation: () => Promise<void>, success: string) => {
-    if (pending) return;
+    if (actionLock.current) return;
+    actionLock.current = true;
     setPending(key); setError(""); setNotice("");
     try { await operation(); await refresh(); setNotice(success); }
     catch (e) { setError(displayError(e)); }
-    finally { setPending(null); }
+    finally { actionLock.current = false; setPending(null); }
   };
   const invoke = (id: string, action: string, extra: Record<string, unknown> = {}) =>
     run(id + action, async () => {
-      const { error: rpcError } = await client.rpc("crm_record_action", {
+      const { error: rpcError } = await rpc("crm_record_action", {
         p_conversation_id: id, p_action: action,
         // Confirmar o produto é uma ação independente e verificável.
         // Nunca salvar um campo não confirmado apenas por clicar em responder.
@@ -242,11 +260,57 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       if (!label || label.length < 2 || label.length > 80) {
         throw new Error("Informe o produto confirmado pela equipe.");
       }
-      const { error: rpcError } = await client.rpc("crm_confirm_interest",{
+      const { error: rpcError } = await rpc("crm_confirm_interest",{
         p_conversation_id:id,p_interest:label
       });
       if (rpcError) throw rpcError;
     }, "Produto confirmado e salvo sem alterar o lembrete.");
+
+  // A review expires when the saved conversation/consent/timing changes.
+  const reviewKey = (item: Opportunity) => JSON.stringify([
+    item.follow_up_id,item.status,item.follow_up_status,item.follow_up_due_at,
+    item.phone_e164,item.interest_label,item.last_inbound_at,item.last_outbound_at,
+    item.consent_status,item.commercial_opt_out,
+    signals[item.conversation_id]?.stage_label,
+  ]);
+  const checkAssisted = async (item: Opportunity) => {
+    const result = await rpc("crm_assisted_followup_review", {
+      p_follow_up_id: item.follow_up_id,
+    });
+    if (result.error) throw result.error;
+    const problems = assistedReviewProblems(result.data, {
+      conversationId: item.conversation_id, followUpId: item.follow_up_id ?? "",
+      phone: item.phone_e164, interest: item.interest_label,
+    });
+    if (problems.length) throw new Error(problems.join(" "));
+    return result.data as AssistedReview;
+  };
+  const openAssisted = (item: Opportunity) => {
+    if (actionLock.current || reviewed[item.conversation_id] !== reviewKey(item)) return;
+    // Reserve a blank tab during the gesture (Safari blocks opens after await).
+    // The customer's WhatsApp is navigated ONLY after fresh server validation.
+    const tab = window.open("about:blank", "_blank");
+    if (!tab) { setError("Permita abrir uma nova aba para acessar o WhatsApp."); return; }
+    tab.opener = null;
+    void run(item.conversation_id+"open", async () => {
+      try {
+        const result = await checkAssisted(item);
+        tab.location.replace(crmWhatsAppLink(result.phone_e164!, result.interest_label));
+        setOpened(previous=>({...previous,[item.follow_up_id!]:true}));
+      } catch (e) { tab.close(); throw e; }
+    }, "WhatsApp aberto para revisão. Depois de enviar, registre o envio manualmente.");
+  };
+  const recordAssisted = (item: Opportunity) => {
+    if (reviewed[item.conversation_id] !== reviewKey(item)) return;
+    if (!window.confirm("Você realmente enviou esta mensagem fora do CRM? Abrir o WhatsApp não comprova envio.")) return;
+    void run(item.conversation_id+"sent", async () => {
+      const { error: rpcError } = await rpc("crm_assisted_record_send", {
+        p_follow_up_id:item.follow_up_id,
+        p_expected_phone:item.phone_e164,p_expected_interest:item.interest_label,
+      });
+      if (rpcError) throw rpcError;
+    }, "Envio manual registrado uma vez. Nenhuma mensagem foi enviada pela API.");
+  };
 
   return (
     <section className="crm-panel" aria-label="Acompanhamento comercial">
@@ -266,7 +330,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         <div className="crm-engine-heading">
           <div>
             <span className="crm-eyebrow">MOTOR DE ACOMPANHAMENTO</span>
-            <h2>Automação de 45 minutos</h2>
+            <h2>Acompanhamento de 45 minutos</h2>
             <p>Observa, agenda e cancela lembretes sem enviar mensagens indevidas.</p>
           </div>
           <strong className="crm-engine-state">Envio desligado</strong>
@@ -305,13 +369,14 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         <button type="button" className={view==="review"?"is-active":""} onClick={()=>setView("review")}>Revisar <b>{review.length}</b></button>
         <button type="button" className={view==="new"?"is-active":""} onClick={()=>setView("new")}>Triagem <b>{newLeads.length}</b></button>
         <button type="button" className={view==="active"?"is-active":""} onClick={()=>setView("active")}>Acompanhar <b>{waiting.length}</b></button>
+        <button type="button" className={view==="history"?"is-active":""} onClick={()=>setView("history")}>Finalizados <b>{history.length}</b></button>
         <button type="button" className={view==="tintim"?"is-active":""} onClick={()=>setView("tintim")}>Contatos Tintim</button>
       </div>
       <p className="crm-guidance">
         <strong>Fila inteligente:</strong> o Tintim agenda e cancela lembretes automaticamente.
         <strong> Para agora</strong> exige revisão humana antes de qualquer contato;
         <strong> Revisar</strong> guarda vencidos com consentimento ausente, opt-out ou possível compra.
-        Nenhuma mensagem é enviada automaticamente. Um anúncio ou uma menção de fatia não comprovam autorização.
+        A abertura também exige produto confirmado, horário original verificado e conferência da conversa no WhatsApp Business. Um anúncio ou uma menção de fatia não comprovam autorização.
       </p>
       {view==="due" && due.length===0 && review.length>0 && <div className="crm-empty-attention">
         Nenhum atendimento habilitado para revisão imediata. Existem {review.length} lembretes
@@ -343,7 +408,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         const eligible = !item.commercial_opt_out && item.consent_status==="granted";
         const isDue = item.status==="waiting_customer" && item.follow_up_status==="pending"
           && !!item.follow_up_due_at && new Date(item.follow_up_due_at).getTime()<=now;
-        const locked = !!pending;
+        const locked = !!pending || refreshing || dataStale;
         const signal = signals[item.conversation_id];
         const adHint = crmAdSliceHint(signal?.ad_name);
         const mention = mentions[item.conversation_id];
@@ -353,6 +418,9 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         const unsavedInterest = inputInterest.trim() !== (item.interest_label ?? "").trim();
         const possiblePurchase = hasPurchaseSignal(signal?.stage_label);
         const audit = item.follow_up_id ? automationQueue[item.follow_up_id] : undefined;
+        const isReviewed = reviewed[item.conversation_id] === reviewKey(item);
+        const canPrepare = isDue && eligible && !possiblePurchase && !!item.interest_label?.trim() && !unsavedInterest;
+        const isFinished = ["converted","lost","closed"].includes(item.status);
         const isExpanded = expanded[item.conversation_id] ??
           (view==="due" && isDue && eligible && !possiblePurchase);
         return <article className={"crm-card "+(!isExpanded?"crm-card-compact":"")} key={item.conversation_id}>
@@ -369,7 +437,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
             </div>
             <div className="crm-card-controls">
               <span className={"crm-pill "+(isDue?"crm-due":"")}>
-                {possiblePurchase?"Possível compra":item.commercial_opt_out?"Contato bloqueado":
+                {isFinished ? (item.status==="converted"?"Compra registrada manualmente":"Atendimento encerrado") : item.follow_up_status==="sent_manually" ? "Envio manual registrado" : possiblePurchase?"Possível compra":item.commercial_opt_out?"Contato bloqueado":
                   isDue && item.consent_status!=="granted"?"Autorização pendente":
                   isDue?"Revisar antes de contatar":
                   item.status==="waiting_customer"?"Aguardando cliente":"Em atendimento"}
@@ -382,6 +450,8 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
             </div>
           </header>
           {isExpanded && <>
+          {item.follow_up_status==="sent_manually" && <p className="crm-due-info">Envio informado pela atendente. Não comprova entrega nem pagamento.</p>}
+          <p className="crm-due-info">{item.last_inbound_at ? "Última entrada observada: " + fmtTime(item.last_inbound_at) : "Sem mensagem de entrada observada"}<br/>{item.last_outbound_at ? "Última saída observada: " + fmtTime(item.last_outbound_at) : "Sem resposta da loja observada"}<br/>Horários observados não comprovam o horário original do provedor. Revise o conteúdo no WhatsApp Business.</p>
           {possiblePurchase && <p className="crm-purchase-review" role="note">
             O Tintim sinalizou “Comprou”. Confira esse registro antes de fazer novo follow-up.
             O CRM não confirmou pagamento nem registrou faturamento.
@@ -415,14 +485,14 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
                 onChange={(e)=>setInterest(old=>({...old,[item.conversation_id]:e.target.value}))}/>
             </label>
             <button type="button" className="crm-button crm-secondary"
-              disabled={locked || !unsavedInterest || inputInterest.trim().length<2}
+              disabled={locked || isFinished || !unsavedInterest || inputInterest.trim().length<2}
               onClick={()=>void saveConfirmedInterest(item.conversation_id)}>Salvar produto confirmado</button>
           </div>
           {item.follow_up_status==="pending" && item.follow_up_due_at &&
             <p className="crm-due-info">Lembrete: {fmtTime(item.follow_up_due_at)} (Paragominas)
-              {isDue && <strong> · Vencido, aguardando conferência</strong>}
+              <strong> · {assistedTiming(item.follow_up_due_at,item.last_outbound_at,now)}</strong>
             </p>}
-          <details className="crm-manual-controls">
+          {!isFinished && <details className="crm-manual-controls">
             <summary>Correções manuais do atendimento</summary>
             <div className="crm-actions">
               <button className="crm-button crm-secondary" type="button"
@@ -443,7 +513,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               <button type="button" disabled={locked}
                 onClick={()=>void invoke(item.conversation_id,"closed")}>Encerrar atendimento</button>
             </div>
-          </details>
+          </details>}
           {item.status==="waiting_customer" && item.follow_up_status==="pending" && <div className="crm-followup">
             {!isDue && <p className="crm-due-info">Rascunho preparado para revisão.
               O lembrete ainda não venceu; nenhuma mensagem será enviada automaticamente.</p>}
@@ -454,16 +524,26 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
                 Envio bloqueado até autorização comercial válida.
               </small>}
             </p>
-            {isDue && (eligible && !possiblePurchase ? <>
-              <a className="crm-button crm-whatsapp" href={crmWhatsAppLink(item.phone_e164,draftInterest,signal?.ad_name,mention?.product_id)}
-                 target="_blank" rel="noopener noreferrer"><MessageCircle size={17}/> Abrir mensagem sugerida</a>
-              <button className="crm-button crm-secondary" type="button" disabled={locked}
-                 onClick={()=>{if(window.confirm("Você realmente enviou esta mensagem fora do CRM? Abrir o WhatsApp não comprova envio.")) void invoke(item.conversation_id,"sent_manually");}}>Registrar envio feito manualmente</button>
-            </> : <p>{possiblePurchase?"Follow-up suspenso: possível compra sinalizada no Tintim.": "Mensagem comercial indisponível: autorização não registrada ou contato bloqueado."}</p>)}
+            {isDue && <>
+              <label className="crm-review-check">
+                <input type="checkbox" checked={isReviewed} disabled={locked || !canPrepare}
+                  onChange={e=>setReviewed(previous=>({...previous,[item.conversation_id]:e.target.checked?reviewKey(item):""}))}/>
+                Conferi a conversa no WhatsApp Business, o telefone e o produto salvo. Não houve resposta nem compra posterior.
+              </label>
+              <p className="crm-due-info">Destino: {item.phone_e164} · Produto: {item.interest_label || "não confirmado"}</p>
+              {!canPrepare && <p>{possiblePurchase ? "Follow-up suspenso: possível compra sinalizada no Tintim." : !eligible ? "Mensagem comercial indisponível: autorização não registrada ou contato bloqueado." : unsavedInterest ? "Salve a confirmação do produto antes de continuar." : "Confirme o produto antes de preparar o contato."}</p>}
+              <button className="crm-button crm-whatsapp" type="button"
+                disabled={locked || !canPrepare || !isReviewed}
+                onClick={()=>openAssisted(item)}><MessageCircle size={17}/> Conferir elegibilidade e abrir WhatsApp</button>
+              {opened[item.follow_up_id!] && <p role="status">WhatsApp aberto. O envio ainda não foi registrado.</p>}
+              <button className="crm-button crm-secondary" type="button"
+                disabled={locked || !canPrepare || !isReviewed}
+                onClick={()=>recordAssisted(item)}>Registrar envio feito manualmente</button>
+            </>}
             {isDue && <button className="crm-button crm-secondary" type="button" disabled={locked}
               onClick={()=>void invoke(item.conversation_id,"snooze",{p_due_minutes:60})}>Adiar 1 hora</button>}
           </div>}
-          {!eligible && !item.commercial_opt_out && <div className="crm-consent">
+          {!isFinished && !eligible && !item.commercial_opt_out && <div className="crm-consent">
             <label className="crm-label">Evidência de autorização para contato comercial
               <input type="text" maxLength={240} value={evidence[item.conversation_id] ?? ""}
                  placeholder="Ex.: cliente autorizou lembretes na conversa de hoje"
@@ -493,7 +573,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               onChange={e=>setNewPhone(e.target.value)} aria-label="Celular com DDD" />
             <button className="crm-button" type="button" disabled={!!pending || !newName.trim() || !newPhone.trim()}
               onClick={()=>void run("new",async()=>{
-                const {error:rpcError}=await client.rpc("crm_open_opportunity",{p_name:newName,p_phone:newPhone});
+                const {error:rpcError}=await rpc("crm_open_opportunity",{p_name:newName,p_phone:newPhone});
                 if(rpcError) throw rpcError; setNewName("");setNewPhone("");setView("active");
               },"Contato adicionado para acompanhamento.")}><UserPlus size={16}/> Adicionar</button>
           </div>
@@ -505,7 +585,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
           </div>
           <button className="crm-button crm-secondary" type="button" disabled={!!pending || candidate.imported}
             onClick={()=>void run(candidate.tintim_id,async()=>{
-              const {error:rpcError}=await client.rpc("crm_open_opportunity",{p_tintim_id:candidate.tintim_id});
+              const {error:rpcError}=await rpc("crm_open_opportunity",{p_tintim_id:candidate.tintim_id});
               if(rpcError) throw rpcError;setView("active");
             },"Contato incluído sem disparar mensagem.")}>
             {candidate.imported?"Acompanhando":"Acompanhar"}

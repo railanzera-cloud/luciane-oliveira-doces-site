@@ -458,3 +458,7 @@ Abrir **este arquivo primeiro**, conferir o HEAD remoto atual de `design/luciane
 - Operação: registrar no campo o **TOTAL** comprometido fora do site, não o número do último pedido. Corrigir o total se cancelar venda externa; não duplicar pedido já registrado no painel Pedidos.
 - Admin mantém status físico "Esgotado" enquanto lote de pré-reserva ativo, e bloqueia ativação equivocada de pronta-entrega. Não abrir a loja nem ativar novo lote.
 - Migração `20261025163500_strawberry_preorder_external_units.sql` aplica manutenção sem zerar as reservas, não muda capacidade de 21.
+
+## Continuidade integrada — follow-up assistido — 31/10/2026
+
+Consultar `docs/ESTADO_INTEGRADO_COMERCIAL.md` e `docs/CRM-ASSISTIDO-HOMOLOGACAO-20261031.md`. Branch candidata `work/followup-assistido-integrado-20261031` integra CRM Meta e pré-reserva de 31/10 sem main, publicação ou alteração em produção. As duas fotos Coco aprovadas foram recuperadas com bytes idênticos do ZIP anterior e agora estão versionadas, sem reinserção manual em builds futuras. Revisão assistida e registro manual dependem de migration preparada, não aplicada. Build/TypeScript e 651 testes aprovados localmente; Safari e Supabase real pendentes.

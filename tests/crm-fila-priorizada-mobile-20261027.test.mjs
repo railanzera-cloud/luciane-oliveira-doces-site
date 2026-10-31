@@ -72,7 +72,7 @@ test("nenhuma funcao de envio ou mudanca financeira introduzida",()=>{
  const ui=read("components/admin-crm-panel.tsx");
  assert.match(ui,/eligible && !possiblePurchase/);
  assert.match(ui,/isDue &&/);
- assert.match(ui,/client\.rpc\("crm_record_action"/);
+ assert.match(ui,/(?:client\.)?rpc\("crm_record_action"/);
  assert.doesNotMatch(ui,/fetch\([^)]*graph\.facebook\.com/);
  const logic=read("lib/crm-follow-up.ts");
  assert.doesNotMatch(logic,/sendMessage\(|Purchase\(|insert.*orders/);

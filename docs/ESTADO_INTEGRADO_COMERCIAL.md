@@ -1,3 +1,15 @@
+# Estado vigente — 31/10/2026 — follow-up assistido
+
+Branch candidata integrada: `work/followup-assistido-integrado-20261031`.
+Base CRM `5402914135aa3500b0ecd119871d7b1c1dd519d4` + linha comercial `c803cf95713dcc544318b7b23bf970e5bebec1ca`; merge `0236752b8ff3d926c575c224acfd4625098d6a2a`.
+O checkpoint desta intervenção é o commit que introduz `docs/CRM-ASSISTIDO-HOMOLOGACAO-20261031.md`; obter SHA com `git log -1 --format=%H -- docs/CRM-ASSISTIDO-HOMOLOGACAO-20261031.md` e conferir HEAD remoto antes de continuar. Relatório de entrega e ZIP identificam o SHA final.
+
+Build, TypeScript e 651 testes aprovados localmente. Fluxo assistido testado em Chromium desktop e documento 390 × 844 com fixtures. Migration `20261031175609_crm_assisted_followup_guard.sql` PREPARADA, NÃO aplicada. Sem envio real, Cloudflare ou main. Deployment ativo não associado a SHA. Fotos Coco aprovadas agora versionadas, recuperadas sem transformação.
+
+**Não publicar nem aplicar migrations automaticamente.** Uso real depende de homologação SQL/Auth/PostgREST, consentimento e horários confiáveis. Leitura agregada encontrou 56 pending, zero consentimentos válidos e zero inbound Tintim com timestamp original; nada foi liberado. Preservar checkout, QZ, pagamentos, estoque, Meta/Tintim e pré-reserva. Ver relatório para alterações, testes, rollback e próximo passo.
+
+---
+
 # ESTADO INTEGRADO COMERCIAL — 26/10/2026
 
 Projeto exclusivo: Luciane Oliveira Doces / railanzera-cloud/luciane-oliveira-doces-site.

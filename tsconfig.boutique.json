@@ -2,7 +2,8 @@
   "extends": "./tsconfig.json",
   "include": [
     "next-env.d.ts",
-    "app/page.tsx"
+    "app/page.tsx",
+    "components/admin-crm-panel.tsx"
   ],
   "exclude": [
     "node_modules",

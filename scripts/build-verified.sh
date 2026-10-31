@@ -18,6 +18,14 @@ if [[ ! -x "${vinext}" ]]; then
   exit 69
 fi
 
+# Synthetic CRM routes must never enter a production artifact.
+for qa_route in crm-qa crm-qa-mobile; do
+  if [[ -d "${SITES_PROJECT_ROOT}/app/${qa_route}" ]]; then
+    echo "Remove local CRM QA routes with node scripts/crm-assisted-qa.mjs --clean before building." >&2
+    exit 78
+  fi
+done
+
 echo "Running bounded vinext build..."
 timeout \
   --signal=TERM \

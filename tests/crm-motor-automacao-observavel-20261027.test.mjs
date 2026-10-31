@@ -59,7 +59,7 @@ test("dashboard diferencia escaneado de envio real e degrada graciosamente",()=>
  assert.match(ui,/crm_automation_queue_items/);
  assert.match(ui,/setAutomation\(reportResult\.error \? null/);
  assert.match(ui,/setAutomationQueue\(queueResult\.error \? \{\}/);
- assert.match(ui,/Nenhuma mensagem é enviada automaticamente/);
+ assert.match(ui,/nenhuma mensagem é enviada automaticamente/i);
  assert.match(ui,/Envio desligado/);
  assert.match(ui,/Monitor de automação ainda indisponível/);
  assert.match(ui,/<summary>Motivos do bloqueio/);

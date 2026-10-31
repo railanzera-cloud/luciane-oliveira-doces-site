@@ -1,0 +1,1 @@
+export default function MobileQa(){return <main style={{background:'#17120f',padding:20,color:'white',minHeight:'100vh'}}><h1>QA — viewport de iPhone 390 × 844</h1><p>Chromium, dados sintéticos. Não representa Safari físico.</p><iframe title="iPhone 390 × 844" src="/crm-qa" width="390" height="844" style={{border:'2px solid #c58b52',display:'block'}}/></main>}

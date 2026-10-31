@@ -64,6 +64,8 @@ on:
       - components/admin-crm-panel.tsx
       - components/admin-crm-panel.css
       - lib/crm-follow-up.ts
+      - lib/crm-assisted.ts
+      - supabase/migrations/20261031175609_crm_assisted_followup_guard.sql
       - supabase/functions/tintim-webhook/product-hint.mjs
       - tests/crm-fatia-rascunhos-personalizados-20261026.test.mjs
       - tests/crm-painel-confirma-interesse-20261027.test.mjs
