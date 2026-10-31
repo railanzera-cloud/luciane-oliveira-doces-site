@@ -151,6 +151,14 @@ if patches:
  record('rollback restores original action function',db.execute("SELECT to_regprocedure('public.crm_record_action(uuid,text,text,integer,text)') IS NOT NULL AND to_regprocedure('public.crm_record_action_core(uuid,text,text,integer,text)') IS NULL").fetchone()[0])
  record('rollback preserves consent audit evidence',db.execute('SELECT count(*) FROM crm_consent_audit WHERE customer_id=%s',(audit['customer'],)).fetchone()[0]==3)
  record('rollback preserves operational records',db.execute('SELECT count(*) FROM crm_follow_ups').fetchone()[0]>0)
+ original=next(x for x in json.loads((root/'tests/activation/live-crm-functions.json').read_text()) if x['signature']=='crm_record_action(uuid,text,text,integer,text)')
+ import re
+ expected=re.search(r'AS \$function\$\n?(.*)\$function\$',original['definition'],re.S).group(1)
+ actual=db.execute("SELECT prosrc FROM pg_proc WHERE oid='crm_record_action(uuid,text,text,integer,text)'::regprocedure").fetchone()[0]
+ normalize=lambda text:re.sub(r'\s+',' ',text).strip()
+ record('rollback restores exact deployed action body',normalize(actual)==normalize(expected))
+ record('rollback restores authenticated and service permissions',db.execute("SELECT has_function_privilege('authenticated','crm_record_action(uuid,text,text,integer,text)','EXECUTE') AND has_function_privilege('service_role','crm_record_action(uuid,text,text,integer,text)','EXECUTE') AND NOT has_function_privilege('anon','crm_record_action(uuid,text,text,integer,text)','EXECUTE')").fetchone()[0])
+
  record('rollback makes new RPC fail closed',rpc('crm_assisted_followup_review',{'p_follow_up_id':str(f['follow'])},token).status_code in [400,403,404])
 else:
  print('No hardening migration provided. Baseline findings must be resolved before activation.')
