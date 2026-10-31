@@ -1,0 +1,10 @@
+{
+  "original_guard_lock_probe": {
+    "sqlstate": "40P01",
+    "http": 204,
+    "http_code": null,
+    "state": "sent_manually"
+  },
+  "deadlock_reproduced": true,
+  "consent_audit_actor_column_present": false
+}

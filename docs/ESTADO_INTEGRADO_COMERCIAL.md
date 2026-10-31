@@ -1,3 +1,17 @@
+# Homologação final do follow-up assistido — 31/10/2026
+
+**Não aplicar a migration original isoladamente e não publicar ainda o ZIP.**
+
+Branch filha `work/homologacao-followup-assistido-20261031`, originada de `f729cf5ab00633d6d564f101099ce8b76b364462`. Commit SQL/testes final: `e1e9bd7a8938649d65923ff2eb790bb3dfe60c7b`; CI `41230661649` success, 50 verificações com PostgreSQL17.6, GoTrue2.197.0 e PostgREST16.5 reais. 29 funções reais comparadas integralmente, sem divergência. Frontend não mudou.
+
+Foi reproduzido deadlock 40P01 na ordem de locks da guard original. Migration adicional `20261031183242_crm_assisted_activation_hardening.sql` padroniza cliente→conversa e preserva versões/autor de consentimento em auditoria privada. Ambas testadas apenas isoladamente. Rollback de corpo, ACL e dados aprovado.
+
+Timestamp original continua ausente nos eventos observados e na forma atual documentada do message.create do Tintim; consentimentos reais registrados=0 na leitura. Cloudflare público: 3 HTMLs e 14 assets iguais ao ZIP anterior de pré-reserva; versão f729cf5 não está publicada na amostra. Deployment ID exato precisa ser capturado antes da ativação.
+
+**Procedimento vigente:** `docs/FOLLOWUP-CHECKLIST-ATIVACAO-20261031.md`, com portões de ativação, hashes SQL/ZIP, pré/pós-checagem e rollback. Não reaplicar migrations antigas nem usar scripts/contas do runner na produção. Nenhuma mudança de produção, main, número/Coexistence ou envio foi realizada.
+
+---
+
 # Estado vigente — 31/10/2026 — follow-up assistido
 
 Branch candidata integrada: `work/followup-assistido-integrado-20261031`.

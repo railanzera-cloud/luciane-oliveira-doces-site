@@ -1,0 +1,14 @@
+{
+  "tests": 50,
+  "passed": 50,
+  "baseline_deadlock": true,
+  "hardening_tested": true,
+  "services": {
+    "postgres": "PostgreSQL 17.6 (Debian 17.6-2.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "auth": {
+      "version": "v2.197.0",
+      "name": "GoTrue",
+      "description": "GoTrue is a user registration and authentication API"
+    }
+  }
+}

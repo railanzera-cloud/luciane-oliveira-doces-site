@@ -1,0 +1,137 @@
+{
+  "checked_at_utc": "2026-10-31T18:36:55.109255+00:00",
+  "assets": [
+    {
+      "path": "/assets/page-bVS6L1jC.css",
+      "sha256": "b5113660f96daa48adc3682fbe39ee99373f92e7c06ece5b7c0b885fd2f3494e",
+      "matches_f729_zip": false,
+      "matches_previous_preorder_zip": true,
+      "new_review_marker": false,
+      "new_send_marker": false
+    },
+    {
+      "path": "/assets/site-order-DyzH3Ucp.js",
+      "sha256": "61f77240394a3ab05c5e19f0e90d25d17f4707d8923e7e71b752dddeca6fc044",
+      "matches_f729_zip": true,
+      "matches_previous_preorder_zip": true,
+      "new_review_marker": false,
+      "new_send_marker": false
+    },
+    {
+      "path": "/assets/public-menu-availability-DK9GeD_x.js",
+      "sha256": "f230153f6ab1497895786ba86b9a8c947b85bdafc0583c13e405471f88a29a17",
+      "matches_f729_zip": true,
+      "matches_previous_preorder_zip": true,
+      "new_review_marker": false,
+      "new_send_marker": false
+    },
+    {
+      "path": "/assets/rolldown-runtime-DWdDZTNf.js",
+      "sha256": "cb2fb01f2064eb36487466778d2ffc4c97ad86af89be1635209de18f0b5b2236",
+      "matches_f729_zip": true,
+      "matches_previous_preorder_zip": true,
+      "new_review_marker": false,
+      "new_send_marker": false
+    },
+    {
+      "path": "/assets/query-RNEeZVC5.js",
+      "sha256": "5e3ecc5fd4f80c9c8228cef75d2d4a8bb5f8f95ca267e7a4e62923aad52b5db8",
+      "matches_f729_zip": true,
+      "matches_previous_preorder_zip": true,
+      "new_review_marker": false,
+      "new_send_marker": false
+    },
+    {
+      "path": "/assets/page-DvbjBFq5.js",
+      "sha256": "1658e8f1b829f65c335f0cc11a91e15ce315eb8b7516a10e2160f9c0d4273c1c",
+      "matches_f729_zip": false,
+      "matches_previous_preorder_zip": true,
+      "new_review_marker": false,
+      "new_send_marker": false
+    },
+    {
+      "path": "/assets/framework-Dykh5YIU.js",
+      "sha256": "05cae160de67041dfe14a7c6553389e2d342974d979bcd0bfbd30a92cda092ae",
+      "matches_f729_zip": true,
+      "matches_previous_preorder_zip": true,
+      "new_review_marker": false,
+      "new_send_marker": false
+    },
+    {
+      "path": "/assets/page-DQCY6xnm.js",
+      "sha256": "35f487ce5facec74d4107bc2a429c6a3fff1245ae64e9aa9e0c1db1ceff3ce5e",
+      "matches_f729_zip": false,
+      "matches_previous_preorder_zip": true,
+      "new_review_marker": false,
+      "new_send_marker": false
+    },
+    {
+      "path": "/assets/index-d-LmDB3x.css",
+      "sha256": "5f9d751e3242b303c8edca6cc27db59ee8c973bf91b2ae27ee3c5b1ac0233c43",
+      "matches_f729_zip": false,
+      "matches_previous_preorder_zip": true,
+      "new_review_marker": false,
+      "new_send_marker": false
+    },
+    {
+      "path": "/assets/index-CCdr0N-r.js",
+      "sha256": "2fddb1669ebf6c922b421d8f4edbf3aa8a131a0f8257160f88f1f12d26e71663",
+      "matches_f729_zip": false,
+      "matches_previous_preorder_zip": true,
+      "new_review_marker": false,
+      "new_send_marker": false
+    },
+    {
+      "path": "/assets/layout-segment-context-8LdtevCr.js",
+      "sha256": "679e5d1048dca22167c43c168f407dadaffcb2155db587f66836152d8190f5f8",
+      "matches_f729_zip": false,
+      "matches_previous_preorder_zip": true,
+      "new_review_marker": false,
+      "new_send_marker": false
+    },
+    {
+      "path": "/assets/supabase-config-IOpYacGi.js",
+      "sha256": "94babea3eac2f5e4920bebbce6dedaf77d1a044a403570907b0551b269cac5b4",
+      "matches_f729_zip": true,
+      "matches_previous_preorder_zip": true,
+      "new_review_marker": false,
+      "new_send_marker": false
+    },
+    {
+      "path": "/assets/page-DjaN5IV1.js",
+      "sha256": "5ce0c7bfab5ef7aa11eb0b493cd6e38ac2a29bc7ebbf91c85ca848ef856590b2",
+      "matches_f729_zip": true,
+      "matches_previous_preorder_zip": true,
+      "new_review_marker": false,
+      "new_send_marker": false
+    },
+    {
+      "path": "/assets/admin-orders-client-DUajiFgc.js",
+      "sha256": "36ace7e11e5823a87723a7c873c25dabfc5163592cab634eb97e242429165e0c",
+      "matches_f729_zip": true,
+      "matches_previous_preorder_zip": true,
+      "new_review_marker": false,
+      "new_send_marker": false
+    }
+  ],
+  "html": [
+    {
+      "route": "index",
+      "sha256": "037637d12c679edc40f993381724715db4fb4add8cf271801a0c1665b1c751f7",
+      "matches_f729_zip": false,
+      "matches_previous_preorder_zip": true
+    },
+    {
+      "route": "admin",
+      "sha256": "13bb9343ccdc366fe559f680e103552d87f14db263d98b77c2c512148c762c76",
+      "matches_f729_zip": false,
+      "matches_previous_preorder_zip": true
+    },
+    {
+      "route": "pedido",
+      "sha256": "c02a2523cc14b6d52ddfafac4f2737dbdf4832330ee0ef928c8705a8460c5c61",
+      "matches_f729_zip": false,
+      "matches_previous_preorder_zip": true
+    }
+  ]
+}

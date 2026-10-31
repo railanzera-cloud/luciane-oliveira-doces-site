@@ -1,0 +1,10 @@
+{
+  "frontend_commit": "f729cf5ab00633d6d564f101099ce8b76b364462",
+  "source_tree": "165e0a96e46c04f8532775225c82bb308d44bbbc",
+  "cloudflare_zip_sha256": "e0b454e4ffa41b7229ad7535d2ce5ad29f0ef9b51af6000fe7dc5afab83ab1d3",
+  "live_matches_previous_zip_html": true,
+  "live_matches_previous_zip_assets": true,
+  "live_has_new_assisted_functions": false,
+  "html_checked": 3,
+  "assets_checked": 14
+}

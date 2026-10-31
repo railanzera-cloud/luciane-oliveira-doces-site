@@ -1,0 +1,216 @@
+[
+  {
+    "name": "actual GoTrue JWT accepted by Auth",
+    "passed": true
+  },
+  {
+    "name": "staff RPC via PostgREST",
+    "passed": true
+  },
+  {
+    "name": "anonymous RPC denied",
+    "passed": true
+  },
+  {
+    "name": "authenticated outsider and forged user_metadata denied",
+    "passed": true
+  },
+  {
+    "name": "expired JWT denied",
+    "passed": true
+  },
+  {
+    "name": "bad JWT signature denied",
+    "passed": true
+  },
+  {
+    "name": "direct private table denied: anonymous",
+    "passed": true
+  },
+  {
+    "name": "direct private table denied: staff",
+    "passed": true
+  },
+  {
+    "name": "identify interested contact",
+    "passed": true
+  },
+  {
+    "name": "confirm product independently",
+    "passed": true
+  },
+  {
+    "name": "reject short consent evidence",
+    "passed": true
+  },
+  {
+    "name": "register synthetic consent through staff RPC",
+    "passed": true
+  },
+  {
+    "name": "consent evidence, date and opt-out state retained",
+    "passed": true
+  },
+  {
+    "name": "ingest synthetic verified inbound",
+    "passed": true
+  },
+  {
+    "name": "ingest synthetic verified business_outbound",
+    "passed": true
+  },
+  {
+    "name": "45 minute interval retained",
+    "passed": true
+  },
+  {
+    "name": "not eligible before 45 minutes",
+    "passed": true
+  },
+  {
+    "name": "eligible after synthetic 45 minute clock advance",
+    "passed": true
+  },
+  {
+    "name": "server reviewed correct recipient and saved product",
+    "passed": true
+  },
+  {
+    "name": "opening/review does not mark sent",
+    "passed": true
+  },
+  {
+    "name": "manual send recorded over PostgREST",
+    "passed": true
+  },
+  {
+    "name": "manual retry rejected",
+    "passed": true
+  },
+  {
+    "name": "one manual send event only",
+    "passed": true
+  },
+  {
+    "name": "opt-out recorded",
+    "passed": true
+  },
+  {
+    "name": "opt-out blocks consent grant",
+    "passed": true
+  },
+  {
+    "name": "opt-out blocks assisted send",
+    "passed": true
+  },
+  {
+    "name": "PostgREST blocks unconfirmed product",
+    "passed": true
+  },
+  {
+    "name": "manual record blocked: unconfirmed product",
+    "passed": true
+  },
+  {
+    "name": "PostgREST blocks receipt time only",
+    "passed": true
+  },
+  {
+    "name": "manual record blocked: receipt time only",
+    "passed": true
+  },
+  {
+    "name": "PostgREST blocks consent unknown",
+    "passed": true
+  },
+  {
+    "name": "manual record blocked: consent unknown",
+    "passed": true
+  },
+  {
+    "name": "customer reply registered",
+    "passed": true
+  },
+  {
+    "name": "customer reply blocks send",
+    "passed": true
+  },
+  {
+    "name": "Tintim possible purchase blocks send",
+    "passed": true
+  },
+  {
+    "name": "transport remains disabled",
+    "passed": true
+  },
+  {
+    "name": "concurrent duplicate submit: one success only",
+    "passed": true,
+    "statuses": [
+      204,
+      403
+    ]
+  },
+  {
+    "name": "corrected lock order: reply commits and blocked sender revalidates",
+    "passed": true,
+    "probe": {
+      "sqlstate": null,
+      "http": 403,
+      "http_code": "42501",
+      "state": "canceled"
+    }
+  },
+  {
+    "name": "corrected migration duplicate transactions",
+    "passed": true,
+    "statuses": [
+      403,
+      204
+    ]
+  },
+  {
+    "name": "audited consent A",
+    "passed": true
+  },
+  {
+    "name": "audited consent B",
+    "passed": true
+  },
+  {
+    "name": "audited opt-out",
+    "passed": true
+  },
+  {
+    "name": "immutable consent evidence and actor retained",
+    "passed": true
+  },
+  {
+    "name": "staff cannot rewrite consent audit",
+    "passed": true
+  },
+  {
+    "name": "rollback restores original action function",
+    "passed": true
+  },
+  {
+    "name": "rollback preserves consent audit evidence",
+    "passed": true
+  },
+  {
+    "name": "rollback preserves operational records",
+    "passed": true
+  },
+  {
+    "name": "rollback restores exact deployed action body",
+    "passed": true
+  },
+  {
+    "name": "rollback restores authenticated and service permissions",
+    "passed": true
+  },
+  {
+    "name": "rollback makes new RPC fail closed",
+    "passed": true
+  }
+]

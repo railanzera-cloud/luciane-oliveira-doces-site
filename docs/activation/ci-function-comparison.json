@@ -1,0 +1,147 @@
+[
+  {
+    "signature": "crm_automation_evaluate_pending()",
+    "body_equal": true,
+    "deployed_sha256": "db75c19c59d5a20102128d7d2f2298def90cfc879c3d00c9c7bbc7a5dab62d6c"
+  },
+  {
+    "signature": "crm_automation_operational_report()",
+    "body_equal": true,
+    "deployed_sha256": "eebe42e9ec73815291e63ab4b93255804cf766c87651bd5c7cd4e881cf78fd8b"
+  },
+  {
+    "signature": "crm_automation_queue_items()",
+    "body_equal": true,
+    "deployed_sha256": "c398bc094d5d5cc6b8ab2843ea4af762aa4bb3a09844f5ba9ade19b41c366d3f"
+  },
+  {
+    "signature": "crm_cancel_customer_followups_on_conversion()",
+    "body_equal": true,
+    "deployed_sha256": "582d0185a4dc5ceada920c10b9a2d294f40af8cc54cd28aa7fbda039ce823a8d"
+  },
+  {
+    "signature": "crm_confirm_interest(uuid,text)",
+    "body_equal": true,
+    "deployed_sha256": "b31db3d65bc13d9d4ba80c8f7351f11b672e41f1306db5e48c6eba2bbec8dd68"
+  },
+  {
+    "signature": "crm_delivery_prepare_holds()",
+    "body_equal": true,
+    "deployed_sha256": "289adab13da10f59311b18ab3441ea22258688749dbb0cc504fa7ceae1b92084"
+  },
+  {
+    "signature": "crm_delivery_readiness()",
+    "body_equal": true,
+    "deployed_sha256": "ac7e9118c1103fd4631648c9b0ac329b231563bc2510905c0f954de5052c5567"
+  },
+  {
+    "signature": "crm_delivery_receipt_summary()",
+    "body_equal": true,
+    "deployed_sha256": "58dd59c67fc8c51a97a9ca7600294ea33af65ae4c603a55e3bcac35f660c82cf"
+  },
+  {
+    "signature": "crm_followup_send_preflight(uuid)",
+    "body_equal": true,
+    "deployed_sha256": "a47922bc3d64606fae2c4cfe34ea11bb8a1d8568bf9207a960967933b895fd4f"
+  },
+  {
+    "signature": "crm_hold_tintim_purchase_signals()",
+    "body_equal": true,
+    "deployed_sha256": "dad049b05fd802bb799eded9d793753240e814e541b24285be88351b2f089be9"
+  },
+  {
+    "signature": "crm_ingest_tintim_on_change()",
+    "body_equal": true,
+    "deployed_sha256": "b84c43ab9514c60ecca0ad321e8c734b625b2ac440b59bfbd5375249743d6b8d"
+  },
+  {
+    "signature": "crm_list_opportunities()",
+    "body_equal": true,
+    "deployed_sha256": "5c93ce7879f558873a94139f8f8f9b1629c594c20b1e4f3dc36b392a90f35988"
+  },
+  {
+    "signature": "crm_list_tintim_candidates(integer)",
+    "body_equal": true,
+    "deployed_sha256": "5bbccb7456a44d16cee563278700ee7ab464e6d40093326ca642bfee5071de08"
+  },
+  {
+    "signature": "crm_list_tintim_product_hints()",
+    "body_equal": true,
+    "deployed_sha256": "0aef4b9473db08e9646dc0a73ab6063e1c1242ddb0a8b05acb8da1d77e14ab57"
+  },
+  {
+    "signature": "crm_list_tintim_signals()",
+    "body_equal": true,
+    "deployed_sha256": "3df67a46518ecc213fc0fd33fd4f29c0e518e516951657ba784bbe0b7a313c5c"
+  },
+  {
+    "signature": "crm_normalize_br_phone(text)",
+    "body_equal": true,
+    "deployed_sha256": "80152915a50ff63f934fa7fa6223bed51e545ea1e7fefd57ea82aff131c4bba0"
+  },
+  {
+    "signature": "crm_open_opportunity(uuid,text,text)",
+    "body_equal": true,
+    "deployed_sha256": "3321090bed155322c078a48eab8577c04ef23da8aadde3957ae85f9efad0d5e0"
+  },
+  {
+    "signature": "crm_protect_purchase_signal_followup()",
+    "body_equal": true,
+    "deployed_sha256": "ab8f78c135eccca5abaa26abb80d49f6a5dd51ab59b37bb3a98ea6f1dd1acb8f"
+  },
+  {
+    "signature": "crm_record_action(uuid,text,text,integer,text)",
+    "body_equal": true,
+    "deployed_sha256": "1af59c4b4b27811440101cf87a17dd25eb98e1cdaff32fbee4a0c17798bf3f73"
+  },
+  {
+    "signature": "crm_record_meta_delivery_status(text,text,timestamp with time zone)",
+    "body_equal": true,
+    "deployed_sha256": "3ad078c600f2128b3c4f3cdc10a6fa0bc7222929a4c6e6d834934f9c788f9784"
+  },
+  {
+    "signature": "crm_record_meta_message(text,text,text,timestamp with time zone)",
+    "body_equal": true,
+    "deployed_sha256": "c09698557999386a3e80dc4ed467db5ce1dd315ab2d1ced03dd092c38382b11b"
+  },
+  {
+    "signature": "crm_record_tintim_message(text,text,text,timestamp with time zone,text)",
+    "body_equal": true,
+    "deployed_sha256": "3890ac932fc0c9422c3cac7c4844bfbe5e0af771b597e3f40d3eda22e2f89eeb"
+  },
+  {
+    "signature": "crm_record_tintim_message_diagnostic(text,text)",
+    "body_equal": true,
+    "deployed_sha256": "c9078d8babb4c357bfcbeb3e3dd178dfddcb22f9454bbd70e94caa72c2deb78f"
+  },
+  {
+    "signature": "crm_record_tintim_message_v2(text,text,text,timestamp with time zone,text,text)",
+    "body_equal": true,
+    "deployed_sha256": "c5ad82c4e1e24772efc72dfabf441bd9a728f4082a7cf3950d3f7df6ca69d380"
+  },
+  {
+    "signature": "crm_record_tintim_product_mention(text,text,text)",
+    "body_equal": true,
+    "deployed_sha256": "6d51a187a8a1f6e87e77ef776901f57c90e7a7de574aab7b134f6b7864b63493"
+  },
+  {
+    "signature": "crm_require_staff()",
+    "body_equal": true,
+    "deployed_sha256": "70eb1262739b7949a17090bec3ca58d98ea516ea4b728e75f42506dd8e4cfacc"
+  },
+  {
+    "signature": "crm_sync_recent_tintim(integer,integer)",
+    "body_equal": true,
+    "deployed_sha256": "9bfbf05c48df851ed89f1addc19c421de6db060deb3d45ed167a6e10fbf4daf5"
+  },
+  {
+    "signature": "crm_tintim_message_diagnostic_summary()",
+    "body_equal": true,
+    "deployed_sha256": "0c79954b77835c9eea7d5613b0e287a4b449d6b6391d5c3ad08e97d742cc3d4f"
+  },
+  {
+    "signature": "crm_tintim_message_diagnostics()",
+    "body_equal": true,
+    "deployed_sha256": "2555eced2571a207eefe00415fd613fba0bc9d3cd8b36546a9c8ad5421ec8c38"
+  }
+]
