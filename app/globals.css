@@ -4375,111 +4375,95 @@ footer {
 }
 
 
-/* 31/10 — Últimas fatias: escassez real, sem contagem estática ou cronômetro enganoso. */
+/* 31/10 — Últimas fatias: fotos na frente, comunicado curto; sem números falsos. */
 .storefront .last-slices-banner {
   display: grid;
-  gap: 12px;
-  margin: 18px 0 23px;
-  padding: clamp(18px, 5vw, 25px);
-  border: 1px solid rgba(232, 179, 113, .64);
-  border-radius: 22px;
-  background:
-    radial-gradient(circle at 92% 0%, rgba(216, 142, 70, .23), transparent 52%),
-    linear-gradient(140deg, #44281a 0%, #29180f 60%, #20130e 100%);
-  color: #f7e7d2;
-  box-shadow: 0 15px 32px rgba(14, 6, 2, .19), inset 0 1px 0 rgba(255, 235, 198, .1);
+  gap: 7px;
+  margin: 10px 0 15px;
+  padding: 14px 16px;
+  border: 1px solid rgba(235, 176, 102, .5);
+  border-left: 3px solid #dfa66d;
+  border-radius: 15px;
+  background: linear-gradient(110deg, #382318 0%, #251710 100%);
+  color: #f7e8d4;
+  box-shadow: inset 0 1px rgba(255, 235, 199, .06);
+}
+.storefront .last-slices-banner-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 5px 12px;
 }
 .storefront .last-slices-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  width: fit-content;
-  color: #f0bc7f;
-  font-size: .71rem;
+  gap: 7px;
+  color: #f6bd7c;
+  font-size: .68rem;
   font-weight: 800;
-  letter-spacing: .115em;
+  letter-spacing: .09em;
+  line-height: 1.4;
+}
+.storefront .last-slices-eyebrow svg { flex: none; }
+.storefront .last-slices-hours {
+  color: #edd2b0;
+  font-size: .72rem;
+  font-weight: 650;
+  white-space: normal;
 }
 .storefront .last-slices-banner > strong {
   display: block;
-  color: #fff9ee;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(1.55rem, 5.5vw, 2.1rem);
-  font-weight: 500;
-  line-height: 1.14;
-  letter-spacing: -.03em;
+  color: #fff8ed;
+  font: 500 clamp(1.24rem, 4.6vw, 1.5rem)/1.17 Georgia, "Times New Roman", serif;
+  letter-spacing: -.023em;
 }
 .storefront .last-slices-banner > p {
-  max-width: 48ch;
   margin: 0;
-  color: #ebd8c3;
-  font-size: .96rem;
-  line-height: 1.6;
-}
-.storefront .last-slices-hours {
-  display: inline-flex;
-  align-items: center;
-  color: #f3c48b;
+  max-width: 65ch;
+  color: #e9d5bd;
   font-size: .84rem;
+  line-height: 1.5;
+}
+.storefront .last-slices-banner > p b {
+  color: #fff0d4;
   font-weight: 750;
 }
-.storefront .last-slices-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 3px;
-}
-.storefront .last-slices-action {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  min-height: 68px;
-  padding: 11px 12px;
-  border: 1px solid rgba(240, 198, 146, .35);
-  border-radius: 14px;
-  background: #e2ab71;
-  color: #211207;
-  cursor: pointer;
-  text-align: left;
-  font-weight: 750;
-  transition: background .2s ease, transform .2s ease;
-}
-.storefront .last-slices-action > span {
-  min-width: 0;
-  font-size: .81rem;
-  line-height: 1.24;
-}
-.storefront .last-slices-action > b {
-  flex: none;
-  white-space: nowrap;
-  font-size: .78rem;
-}
-.storefront .last-slices-action > svg { flex: none; }
-.storefront .last-slices-action:hover,
-.storefront .last-slices-action:focus-visible { background: #f5c68e; }
-.storefront .last-slices-action:focus-visible { outline: 3px solid #fff8eb; outline-offset: 3px; }
-.storefront .last-slices-banner > small { color: #cdb69c; line-height: 1.4; }
 .storefront .slice-card.is-last-slices {
-  border-color: rgba(237, 177, 101, .8);
-  box-shadow: 0 0 0 1px rgba(237, 177, 101, .15), 0 13px 29px rgba(10, 5, 2, .22);
+  border-color: rgba(237, 177, 101, .76);
+  box-shadow: 0 0 0 1px rgba(237, 177, 101, .1), 0 11px 24px rgba(10, 5, 2, .17);
 }
-.storefront .last-slices-card-tag {
+.storefront .slice-card .slice-media > .last-slices-card-tag {
+  position: absolute;
+  left: 9px;
+  bottom: 10px;
+  z-index: 2;
   display: inline-flex;
-  align-self: flex-start;
-  padding: 5px 8px;
-  border: 1px solid rgba(239, 182, 117, .49);
+  max-width: calc(100% - 18px);
+  padding: 6px 9px;
+  border: 1px solid rgba(255, 220, 171, .67);
   border-radius: 999px;
-  background: rgba(165, 94, 44, .22);
-  color: #f7c891;
-  font-size: .65rem;
-  font-weight: 750;
-  letter-spacing: .01em;
+  background: rgba(37, 19, 11, .92);
+  color: #ffdb9e;
+  font-size: .69rem;
+  font-weight: 800;
+  line-height: 1.16;
+  letter-spacing: .005em;
+  box-shadow: 0 3px 10px rgba(0,0,0,.22);
+  pointer-events: none;
 }
 @media (max-width: 580px) {
-  .storefront .last-slices-actions { grid-template-columns: 1fr; }
-  .storefront .last-slices-action { min-height: 55px; }
-  .storefront .last-slices-banner > p { font-size: .91rem; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .storefront .last-slices-action { transition: none; }
+  .storefront .last-slices-banner {
+    margin: 6px 0 12px;
+    padding: 12px 13px;
+    gap: 6px;
+  }
+  .storefront .last-slices-banner > strong { font-size: 1.27rem; }
+  .storefront .last-slices-banner > p { font-size: .80rem; }
+  .storefront .last-slices-eyebrow { font-size: .64rem; }
+  .storefront .last-slices-hours { font-size: .69rem; }
+  .storefront .slice-card .slice-media > .last-slices-card-tag {
+    font-size: .63rem;
+    padding: 5px 7px;
+  }
 }
