@@ -19,7 +19,9 @@ test("reimpressão não é enfileirada sem sessão QZ ou sem inicial registrada"
  assert.ok(idxPreflight>0&&idxPreflight<idxCreate);
  assert.match(panel,/window\.confirm\(\x60Reimprimir a comanda/);
  assert.match(panel,/segunda etiqueta/);
- assert.doesNotMatch(panel,/await confirmOfflinePayment\(client, order\.id\)/);
+ const reprintBody=panel.split("  async function reprint(order: AdminOrder) {")[1]?.split("  const visibleOrders")[0] ?? "";
+ assert.ok(reprintBody.length>100);
+ assert.doesNotMatch(reprintBody,/confirmOfflinePayment|payment_status\s*=/);
 });
 test("comunica estado local e incerteza de papel físico",()=>{
  assert.match(panel,/Impressora neste dispositivo:/);
