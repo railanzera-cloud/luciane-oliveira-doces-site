@@ -1,3 +1,55 @@
+# CHECKPOINT FINAL DE HOMOLOGAÇÃO — TRUFADAS P/M/G — 01/11/2026
+
+**Este checkpoint substitui quaisquer observações anteriores nesta página sobre o estado da expansão.**
+**Não houve deploy, alteração do banco real ou merge em main.**
+
+**Integração de branches concluída no código:** Trufadas + campanha expirável de
+Últimas Fatias + reimpressão QZ segura (o código anterior dessas duas branches
+foi incorporado por alterações pontuais, sem sobrescrever o checkout).
+
+**Testes SQL concretos:** PostgreSQL 17 descartável via GitHub Actions
+[Trufadas PMG CI](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/41326394689)
+aprovou migration real, permissões, versão otimista, reserva por SKU, cancelamento,
+pagamento único e corrida de dois pedidos sobre o mesmo saldo. Os dados eram
+sintéticos, sem acesso a produção.
+
+**Compatibilidade de rollback garantida em banco isolado:**
+- `admin_get_crocante_inventory` legado permanece com exatamente 2 registros;
+- `admin_set_crocante_inventory` legado preserva assinatura, guarda e resposta;
+- Novo painel usa `admin_get_trufadas_pmg_inventory` e
+  `admin_set_trufadas_pmg_inventory` com Auth staff e permissões explícitas;
+- Public API lê os 11 estoques, mas site legado continua filtrando seus dois;
+- Chocolate continua apenas no histórico; não apagar itens/pedidos/holds.
+
+**Bloqueio único de publicação:** incorporar exatamente os CINCO arquivos WebP
+abaixo, extraídos do ZIP de fotos aprovadas no chat, **na mesma branch**:
+1. `public/images/pipocas-trufadas-ninho-20261101.webp` (206.852 bytes);
+2. `public/images/pipocas-trufadas-pacoca-20261101.webp` (214.544 bytes);
+3. `public/images/pipocas-trufadas-coco-queimado-20261101.webp` (201.814 bytes);
+4. `public/fatia-coco-cremoso-morango.webp` (146.390 bytes, substituir existente);
+5. `public/fatia-coco-cremoso-morango-card.webp` (146.390 bytes, substituir existente).
+O teste `tests/trufadas-approved-assets-20261101.test.mjs` valida os SHA
+de Git dessas cinco fotografias; não desativar o teste. A última CI completa
+antes da guarda de hashes passou em 651/652 testes: único erro era a ausência
+das fotografias. Versões existentes da fatia tinham outros hashes, portanto
+não equivalem aos dois arquivos aprovados do ZIP.
+
+**Ainda não feito:** backup completo e ATUAL do Supabase comercial, aplicação
+da migração em produção, cadastro dos nove saldos reais, CI verde com fotos
+exatas, ZIP Cloudflare do mesmo commit, revisão de Safari/iPhone e publicação.
+A branch de DB Supabase exige autorização de custo adicional; usamos CI
+isolada sem criar a branch cobrada. Nenhuma chamada para editar produção.
+
+**Sequência de ativação sem regressão:** subir as cinco fotos na branch,
+conferir CI TypeScript+testes+SQL, obter backup recuperável atual,
+aplicar somente a migração homologada, verificar as duas RPCs antigas e as
+novas, publicar ZIP da mesma SHA, cadastrar pacotes prontos P/M/G no painel,
+executar pedido sintético de homologação sem cobrança/sem impressão indevida,
+conferir Safari/iPhone/WhatsApp/QZ e liberar estoque físico confirmado.
+Em rollback, reverter só o deploy e desativar os nove estoques no banco;
+não eliminar registros históricos nem inventário com vendas.
+
+---
 # Expansão Trufadas P/M/G — 01/11/2026 — CHECKPOINT EM HOMOLOGAÇÃO
 
 **NÃO PUBLICAR / NÃO MIGRAR PRODUÇÃO / NÃO MESCLAR NA MAIN.**
