@@ -63,16 +63,19 @@ function renderMenu(state, ready = true) {
   return renderToStaticMarkup(React.createElement(Home));
 }
 
-const productLabel = pageFunction("productLabel");
+// Mesma lista de IDs operacionais e legados usada no storefront; as funções
+// são avaliadas isoladamente neste harness e recebem suas dependências.
+const isTrufadaOrLegacy = id => ["crocante-ninho","trufada-pacoca","trufada-coco-queimado","crocante-chocolate"].includes(id);
+const productLabel = pageFunction("productLabel", { isTrufadaOrLegacy });
 const isCategoryEnabled = pageFunction("isCategoryEnabled", catalog);
 const isProductEnabled = pageFunction("isProductEnabled", { ...catalog, isCategoryEnabled });
-const itemUnitPrice = pageFunction("itemUnitPrice", { popcornPrice: catalog.popcornPrice });
+const itemUnitPrice = pageFunction("itemUnitPrice", { popcornPrice: catalog.popcornPrice, isTrufadaOrLegacy });
 const unavailableReason = pageFunction("unavailableReason", availability);
 const cartAvailabilityIssues = pageFunction("cartAvailabilityIssues", {
-  ...catalog, ...availability, isProductEnabled, productLabel, unavailableReason,
+  ...catalog, ...availability, isProductEnabled, productLabel, unavailableReason, isTrufadaOrLegacy,
 });
 const sanitizeSavedCart = pageFunction("sanitizeSavedCart", {
-  ...catalog, isProductEnabled, makeCartId: () => "generated-id",
+  ...catalog, isProductEnabled, isTrufadaOrLegacy, makeCartId: () => "generated-id",
 });
 const sliceItem = { id: "slice-1", productId: "fatia-prestigio", variantId: "fatia", optionIds: ["sem-calda"], quantity: 2 };
 const popcornItem = { id: "popcorn-1", productId: "pipoca-gourmet", variantId: "500ml", optionIds: ["kinder-bueno-crisp", "leitinho"], quantity: 1 };
@@ -1095,7 +1098,7 @@ test('direct category navigation isolates the cup campaign, rejects unavailable 
 test('limited campaign opens in discovery, without altering saved cart', () => {
   let category=null,preview=false,engaged=true,scroll=null;
   const open=pageFunction('openLimitedCupEdition',{
-    categoryIsAvailable:()=>true,setShowLimitedCupView:value=>preview=value,setCupFlavorPreview:()=>{},setCupAddedNotice:()=>{},
+    categoryIsAvailable:()=>true,setShowLimitedCupView:value=>preview=value,setCupFlavorPreview:()=>{},setCupSizeId:()=>{},setCupAddedNotice:()=>{},
     categoryFromUrl:navigation.categoryFromUrl,
     setRequestedCategory:value=>category=value,setEditingId:()=>{},setSelectionMessage:()=>{},setAddedNotice:()=>{},
     setBuilderEngaged:value=>engaged=value,setCart:()=>assert.fail('Preview must preserve cart'),
@@ -1110,7 +1113,7 @@ test('limited campaign opens in discovery, without altering saved cart', () => {
 test('return to categories preserves the order while restoring the launch teaser', () => {
   let category='pipocas',preview=true,engaged=true,scrollArgs=null,historyUrl='';
   const returnHome=pageFunction('returnToCategories',{
-    setShowLimitedCupView:value=>preview=value,setCupFlavorPreview:()=>{},
+    setShowLimitedCupView:value=>preview=value,setCupFlavorPreview:()=>{},setCupSizeId:()=>{},
     setRequestedCategory:value=>category=value,setEditingId:()=>{},setSelectionMessage:()=>{},setAddedNotice:()=>{},
     setBuilderEngaged:value=>engaged=value,setCart:()=>assert.fail('Return must preserve cart'),
     window:{history:{state:{},pushState:(_state,_title,url)=>{historyUrl=url;}},location:{href:'https://example.test/?categoria=pipocas&utm_source=ig'},scrollTo:value=>{scrollArgs=value;}},

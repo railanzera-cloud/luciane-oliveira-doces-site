@@ -1,0 +1,48 @@
+name: Trufadas PMG - PostgreSQL isolado, reservas e concorrencia
+on:
+  push:
+    branches:
+      - work/trufadas-variantes-pmg-20261101
+    paths:
+      - 'tests/trufadas-pmg/**'
+      - 'supabase/migrations/20261101160000_trufadas_pmg_nove_skus_20261101.sql'
+      - '.github/workflows/trufadas-pmg-isolated-db.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  postgres-isolated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17.6
+        env:
+          POSTGRES_PASSWORD: synthetic_ci_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 3s --health-timeout 3s --health-retries 20
+    env:
+      PGPASSWORD: synthetic_ci_only
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Bootstrap synthetico das funcoes reais
+        run: psql -v ON_ERROR_STOP=1 -f tests/trufadas-pmg/bootstrap.sql
+      - name: Aplicar migration em banco descartavel
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261101160000_trufadas_pmg_nove_skus_20261101.sql
+      - name: Contratos, RLS simulado, estoque, cancelamento e baixa unica
+        run: psql -v ON_ERROR_STOP=1 -f tests/trufadas-pmg/assert.sql
+      - name: Instalar driver SQL de teste
+        run: pip install 'psycopg[binary]==3.2.13'
+      - name: Duas transacoes simultaneas na mesma unidade
+        env:
+          LOD_TEST_PG_DSN: postgresql://postgres:synthetic_ci_only@127.0.0.1:5432/postgres
+        run: python tests/trufadas-pmg/concurrency.py

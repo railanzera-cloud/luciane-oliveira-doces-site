@@ -15,7 +15,7 @@ test("Recontagem é marca temporal segura, não altera estoque/pedidos históric
   assert.doesNotMatch(migration,/UPDATE public\.crocante_inventory_holds\s+SET state='committed'[\s\S]*WHERE state='held';/);
   assert.match(migration,/REVOKE ALL ON FUNCTION public\.lod_crocante_active_reserved\(text,uuid\) FROM PUBLIC/);
   assert.match(migration,/REVOKE ALL ON FUNCTION public\.lod_crocante_active_reserved\(text,uuid\) FROM anon, authenticated/);
-  assert.match(admin,/client\.rpc\("admin_set_crocante_inventory"/);
+  assert.match(admin,/client\.rpc\("admin_set_trufadas_pmg_inventory"/);
 });
 
 test("Novo saldo exclui pedidos pré-contagem e segura reserva operacional confirmada", () => {

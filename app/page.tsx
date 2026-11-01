@@ -60,7 +60,8 @@ import {
 } from "@/app/catalog";
 import {
   CATEGORY_ITEM_KEYS,
-  CROCANTES_ITEM_KEYS,
+  TRUFADA_STOCK_ITEM_KEYS,
+  trufadaStockItemKey,
   POPCORN_FLAVOR_ITEM_KEYS,
   POPCORN_SIZE_ITEM_KEYS,
   SLICE_ITEM_KEYS,
@@ -71,6 +72,7 @@ import {
 } from "@/app/menu-availability";
 import { categoryFromUrl, categoryUrl, publicCategories, resolveMenuCategory } from "@/app/menu-navigation";
 import { useMenuAvailability } from "@/hooks/use-menu-availability";
+import { isLastSlicesWindow, LAST_SLICES_PRODUCT_IDS } from "@/app/last-slices-campaign";
 import { usePopcornPromotion } from "@/hooks/use-popcorn-promotion";
 import { getLimitedCupPhase, type LimitedCupPhase } from "@/app/limited-cup-release";
 import { isPopcornPromotionActive } from "@/supabase/functions/_shared/popcorn-promotion.mjs";
@@ -259,8 +261,14 @@ function makeCartId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+const TRUFADA_PRODUCT_IDS = ["crocante-ninho", "trufada-pacoca", "trufada-coco-queimado"] as const;
+type TrufadaProductId = (typeof TRUFADA_PRODUCT_IDS)[number];
+const isTrufadaId = (id: string) => (TRUFADA_PRODUCT_IDS as readonly string[]).includes(id);
+const isTrufadaOrLegacy = (id: string) => isTrufadaId(id) || id === "crocante-chocolate";
+const TRUFADA_SIZES = ["p", "m", "g"] as const;
+type TrufadaSizeId = (typeof TRUFADA_SIZES)[number];
 function productLabel(product: Product) {
-  if (product.id === "crocante-ninho" || product.id === "crocante-chocolate") {
+  if (isTrufadaOrLegacy(product.id)) {
     return `Pipocas Trufadas — ${product.name}`;
   }
   // A descrição editorial deste sabor já integra seu nome oficial.
@@ -286,7 +294,7 @@ function trackMetaEvent(eventName: MetaEventName, payload?: Record<string, unkno
 function itemUnitPrice(product: Product, variant: Variant, optionIds: string[] = [], now = Date.now()) {
   // Carrinhos com tamanho retirado ficam sem valor de venda até serem corrigidos.
   if (variant.retired) return 0;
-  return product.kind === "popcorn" && !(product.id === "crocante-ninho" || product.id === "crocante-chocolate") ? popcornPrice(variant.id, optionIds, now) : variant.price;
+  return product.kind === "popcorn" && !isTrufadaOrLegacy(product.id) ? popcornPrice(variant.id, optionIds, now) : variant.price;
 }
 
 function unavailableReason(snapshot: AvailabilitySnapshot, itemKey: string, label: string) {
@@ -322,14 +330,14 @@ function cartAvailabilityIssues(
       }
     }
 
-    if ((product.id === "crocante-ninho" || product.id === "crocante-chocolate")) {
-      const key = CROCANTES_ITEM_KEYS[product.id];
+    if (isTrufadaOrLegacy(product.id)) {
+      const key = trufadaStockItemKey(product.id, variant.id);
       if (snapshot.source !== "supabase" || !key || !isItemAvailable(snapshot, key) || !snapshot.stockChecked) {
         reasons.push("Pacote indisponível no momento.");
       } else {
         // Soma as quantidades do mesmo sabor no carrinho: a reserva no banco
         // acontece somente na finalização, nunca ao tocar em "adicionar".
-        const requested = cart.filter(entry => entry.productId === item.productId)
+        const requested = cart.filter(entry => entry.productId === item.productId && entry.variantId === item.variantId)
           .reduce((sum, entry) => sum + entry.quantity, 0);
         const left = snapshot.stockRemaining[key] ?? 0;
         if (requested > left) reasons.push(`Há apenas ${left} ${left === 1 ? "pacote disponível" : "pacotes disponíveis"} deste sabor. Ajuste a quantidade.`);
@@ -399,7 +407,7 @@ function sanitizeSavedCart(value: unknown): CartItem[] {
       ? item.optionIds.filter((id): id is string => typeof id === "string" && (product.kind !== "slice" || product.options.some(option => option.id === id)))
       : [];
     const optionsAreAvailable = optionIds.every((id) => product.options.some((option) => option.id === id && option.available));
-    const optionsAreValid = (product.id === "crocante-ninho" || product.id === "crocante-chocolate") ? optionIds.length === 0
+    const optionsAreValid = isTrufadaOrLegacy(product.id) ? optionIds.length === 0
       : product.kind === "popcorn"
       ? optionIds.length > 0 && optionIds.length <= (variant.maxOptions ?? 0) && new Set(optionIds).size === optionIds.length
       : product.kind === "slice" ? optionIds.length <= 1 : optionIds.length === 0;
@@ -492,29 +500,50 @@ export default function Home() {
   const checkoutFingerprintRef = useRef("");
   const unlockTimerRef = useRef<number | undefined>(undefined);
   const { availability, hasResolvedAvailability, refreshAvailability } = useMenuAvailability();
+  const [lastSlicesNow, setLastSlicesNow] = useState(() => new Date());
+  useEffect(() => {
+    const refresh = () => setLastSlicesNow(new Date());
+    const timer = window.setInterval(refresh, 30_000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, []);
   const cupSalesEnabled = true; // Formulário pronto; pedidos dependem de orders_open e estoque.
   const cupPhase: LimitedCupPhase = getLimitedCupPhase(
     availability.ordersOpen,
     availability.source === "supabase" && isItemAvailable(availability, CATEGORY_ITEM_KEYS.pipocas)
-      && Object.values(CROCANTES_ITEM_KEYS).some((key) => isItemAvailable(availability, key)),
-    availability.source === "supabase" && Object.values(CROCANTES_ITEM_KEYS).every((key) => statusFor(availability, key) === "sold_out"),
+      && availability.stockChecked && TRUFADA_STOCK_ITEM_KEYS.some((key: string) => isItemAvailable(availability, key)),
+    availability.source === "supabase" && availability.stockChecked && TRUFADA_STOCK_ITEM_KEYS.every((key: string) => statusFor(availability, key) === "sold_out"),
   );
-  const [cupFlavorPreview, setCupFlavorPreview] = useState<"ninho" | "chocolate" | null>(null);
+  const [cupFlavorPreview, setCupFlavorPreview] = useState<TrufadaProductId | null>(null);
+  const [cupSizeId, setCupSizeId] = useState<TrufadaSizeId | null>(null);
   const [cupQuantity, setCupQuantity] = useState(1);
   const [cupAddedNotice, setCupAddedNotice] = useState("");
   const [cupAdding, setCupAdding] = useState(false);
   const [cupInlineActionVisible, setCupInlineActionVisible] = useState(false);
-  function selectCupFlavor(flavor: "ninho" | "chocolate") {
-    // Escolher novamente o mesmo sabor não desfaz o pedido em montagem.
+  function selectCupFlavor(flavor: TrufadaProductId) {
     if (cupFlavorPreview === flavor) return;
     setCupFlavorPreview(flavor);
+    setCupSizeId(null);
+    setCupQuantity(1);
+    setCupAddedNotice("");
+    requestScroll("crocantes-tamanhos");
+  }
+  function selectCupSize(size: TrufadaSizeId) {
+    if (cupSizeId === size) return;
+    setCupSizeId(size);
+    setCupQuantity(1);
     setCupAddedNotice("");
     requestScroll("crocantes-quantidade");
   }
   const cupLaunchCopy = cupPhase === "closed"
     ? { eyebrow: "PIPOCAS TRUFADAS · LOJA FECHADA", description: "As vendas estão pausadas. Você ainda pode conhecer os sabores." }
     : cupPhase === "sold-out"
-      ? { eyebrow: "PIPOCAS TRUFADAS · ESGOTADA", description: "Os dois sabores estão esgotados no momento." }
+      ? { eyebrow: "PIPOCAS TRUFADAS · ESGOTADA", description: "Os sabores estão esgotados no momento." }
       : cupPhase === "unavailable"
         ? { eyebrow: "PIPOCAS TRUFADAS · INDISPONÍVEL", description: "Pacotes indisponíveis no momento. Consulte novamente mais tarde." }
         : { eyebrow: "PIPOCAS TRUFADAS · DISPONÍVEL", description: "Escolha seu sabor e peça pelo WhatsApp enquanto houver estoque." };
@@ -795,22 +824,29 @@ export default function Home() {
 
   const cartNeedsSizeReview = cart.some((item) => PRODUCTS.find((product) => product.id === item.productId)?.variants.find((variant) => variant.id === item.variantId)?.retired);
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
-  const cartContainsCrocantes = cart.some((item) => (item.productId === "crocante-ninho" || item.productId === "crocante-chocolate"));
-  const cupProductId = cupFlavorPreview === "ninho" ? "crocante-ninho" : cupFlavorPreview === "chocolate" ? "crocante-chocolate" : "";
-  const cupStockKey = cupProductId ? CROCANTES_ITEM_KEYS[cupProductId] : "";
-  const cartStockCount = (productId: string) => cart
-    .filter(item => item.productId === productId).reduce((sum, item) => sum + item.quantity, 0);
-  const remainingForFlavor = (productId: string) => {
-    const key = CROCANTES_ITEM_KEYS[productId];
+  const cartContainsCrocantes = cart.some((item) => isTrufadaOrLegacy(item.productId));
+  const cupProductId = cupFlavorPreview ?? "";
+  const cupProduct = PRODUCTS.find(product => product.id === cupProductId);
+  const cupVariant = cupProduct?.variants.find(variant => variant.id === cupSizeId);
+  const cupStockKey = cupProductId && cupSizeId ? trufadaStockItemKey(cupProductId, cupSizeId) : null;
+  const cartStockCount = (productId: string, variantId: string) => cart
+    .filter(item => item.productId === productId && item.variantId === variantId)
+    .reduce((sum, item) => sum + item.quantity, 0);
+  const remainingForFlavor = (productId: string, sizeId: string) => {
+    const key = trufadaStockItemKey(productId, sizeId);
     return availability.stockChecked && key
-      ? Math.max(0, (availability.stockRemaining[key] ?? 0) - cartStockCount(productId))
+      ? Math.max(0, (availability.stockRemaining[key] ?? 0) - cartStockCount(productId, sizeId))
       : 0;
   };
-  const cupRemaining = cupProductId ? remainingForFlavor(cupProductId) : 0;
+  const cupRemaining = cupProductId && cupSizeId ? remainingForFlavor(cupProductId, cupSizeId) : 0;
   const cupCanOrder = cupSalesEnabled && pipocasAvailable && availability.ordersOpen && availability.source === "supabase"
-    && Boolean(cupStockKey && isItemAvailable(availability, cupStockKey) && cupRemaining >= cupQuantity);
+    && availability.stockChecked && Boolean(cupVariant?.available && cupStockKey && isItemAvailable(availability, cupStockKey) && cupRemaining >= cupQuantity);
   const cupCanBeAddedFromCheckout = cupSalesEnabled && pipocasAvailable && availability.ordersOpen && availability.source === "supabase"
-    && Object.keys(CROCANTES_ITEM_KEYS).some(productId => isItemAvailable(availability, CROCANTES_ITEM_KEYS[productId]) && remainingForFlavor(productId) > 0);
+    && availability.stockChecked && TRUFADA_PRODUCT_IDS.some(productId =>
+      TRUFADA_SIZES.some(size => {
+        const key = trufadaStockItemKey(productId, size);
+        return Boolean(key && isItemAvailable(availability, key) && remainingForFlavor(productId, size) > 0);
+      }));
   useEffect(() => {
     if (cartContainsCrocantes && checkoutChannel !== "whatsapp") {
       setCheckoutChannel("whatsapp");
@@ -854,6 +890,17 @@ export default function Home() {
         timeZone: "America/Belem", hour: "2-digit", minute: "2-digit", hour12: false,
       }).format(new Date(strawberryPreorder.ready_at!)).replace(":", "h")
     : "horário a confirmar";
+  const lastSlicesProducts = activeCategory === "fatias"
+    && hasResolvedAvailability
+    && availability.source === "supabase"
+    && availability.ordersOpen
+    && fatiasAvailable
+    && !strawberryPreorder
+    && isLastSlicesWindow(lastSlicesNow)
+    ? SLICES.filter((slice) => LAST_SLICES_PRODUCT_IDS.some((id) => id === slice.id)
+      && slice.available && Boolean(slice.variants[0]?.available) && sliceIsAvailable(slice.id))
+    : [];
+  const lastSlicesIds = new Set(lastSlicesProducts.map((slice) => slice.id));
   const cartHasStrawberryPreorder = Boolean(strawberryPreorder && cart.some(item=>item.productId==="fatia-chocolate-morango"));
   const reservedInCart = cart.filter(item=>item.productId==="fatia-chocolate-morango").reduce((sum,item)=>sum+item.quantity,0);
   const sliceReady = Boolean(
@@ -924,7 +971,7 @@ export default function Home() {
   const stickyUsesCheckoutAction = !builderFlowActive && !cupBuilderFlowActive;
   const stickyIsCheckoutReady = stickyUsesCheckoutAction && checkoutReady;
   const stickyPriceLabel = cupBuilderFlowActive
-    ? currency.format(15.9 * cupQuantity)
+    ? currency.format((cupVariant?.price ?? 14.9) * (cupSizeId ? cupQuantity : 1))
     : cart.length > 0 && !builderFlowActive
     ? cartNeedsSizeReview ? "Revise o tamanho" : currency.format(hasEstimatedTotal ? orderTotal : cartSubtotal)
     : draftSubtotal === null
@@ -932,8 +979,8 @@ export default function Home() {
       : currency.format(draftSubtotal);
   const stickyPriceCaption = cupBuilderFlowActive
     ? cupFlavorPreview
-      ? `${cupFlavorPreview === "ninho" ? "Ninho" : "Chocolate"} · ${cupQuantity} ${cupQuantity === 1 ? "pacote" : "pacotes"}`
-      : "Preço por pacote"
+      ? `${cupProduct?.name ?? "Trufadas"}${cupSizeId ? ` · Pacote ${cupSizeId.toUpperCase()}` : ""} · ${cupQuantity} ${cupQuantity === 1 ? "pacote" : "pacotes"}`
+      : "A partir de"
     : cart.length > 0 && !builderFlowActive
     ? hasEstimatedTotal ? "Total do pedido" : "Subtotal do pedido"
     : cart.length > 0 ? "Item em montagem" : activeCategory === "pipocas" ? "Sua pipoca" : "Sua fatia";
@@ -974,7 +1021,7 @@ export default function Home() {
           ? finalButtonLabel
           : checkoutNextActionLabel;
   const stickyButtonLabel = typeof cupBuilderFlowActive !== "undefined" && cupBuilderFlowActive
-    ? cupAdding ? "Conferindo estoque…" : !cupFlavorPreview ? "Escolher meu sabor" : !cupCanOrder ? !availability.ordersOpen ? "Pedidos fechados" : "Sabor indisponível" : `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "pacote" : "pacotes"}`
+    ? cupAdding ? "Conferindo estoque…" : !cupFlavorPreview ? "Escolher meu sabor" : !cupSizeId ? "Escolher tamanho" : !cupCanOrder ? !availability.ordersOpen ? "Pedidos fechados" : "Tamanho indisponível" : `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "pacote" : "pacotes"}`
     : isFinalizing ? finalButtonLabel : !availability.ordersOpen
     ? "Pedidos fechados"
     : !categoryIsAvailable(activeCategory) && builderFlowActive
@@ -1085,6 +1132,7 @@ export default function Home() {
     if (!categoryIsAvailable("pipocas")) return;
     setShowLimitedCupView(true);
     setCupFlavorPreview(null);
+    setCupSizeId(null);
     setCupAddedNotice("");
     setRequestedCategory("pipocas");
     setEditingId(null);
@@ -1101,6 +1149,7 @@ export default function Home() {
   function returnToCategories() {
     setShowLimitedCupView(false);
     setCupFlavorPreview(null);
+    setCupSizeId(null);
     setRequestedCategory(null);
     setEditingId(null);
     setSelectionMessage("");
@@ -1264,7 +1313,7 @@ export default function Home() {
   }
 
   function chooseCheckoutChannel(value: string) {
-    const next = value === "site" && COMMERCE_CONFIG.siteOrderingEnabled && !cart.some((item) => (item.productId === "crocante-ninho" || item.productId === "crocante-chocolate")) ? "site" : "whatsapp";
+    const next = value === "site" && COMMERCE_CONFIG.siteOrderingEnabled && !cart.some((item) => isTrufadaOrLegacy(item.productId)) ? "site" : "whatsapp";
     if (next === checkoutChannel) return;
     setCheckoutChannel(next);
     setPayment("");
@@ -1284,7 +1333,7 @@ export default function Home() {
   async function addCrocantesCup() {
     if (cupAddLockRef.current) return;
     const product = PRODUCTS.find((candidate) => candidate.id === cupProductId);
-    const variant = product?.variants[0];
+    const variant = cupVariant;
     if (!product || !variant || !cupCanOrder) {
       setCupAddedNotice(!availability.ordersOpen ? "A loja está fechada no momento." : "Este pacote ainda não está disponível.");
       return;
@@ -1294,11 +1343,12 @@ export default function Home() {
     try {
     const latest = await refreshAvailability();
     const qty = Math.min(99, Math.max(1, cupQuantity));
-    const confirmedStock = latest.snapshot.stockRemaining[CROCANTES_ITEM_KEYS[product.id]] ?? 0;
-    const alreadyInCart = cartStockCount(product.id);
+    const exactKey = trufadaStockItemKey(product.id, variant.id);
+    const confirmedStock = exactKey ? (latest.snapshot.stockRemaining[exactKey] ?? 0) : 0;
+    const alreadyInCart = cartStockCount(product.id, variant.id);
     if (latest.usedFallback || !latest.snapshot.ordersOpen || !latest.snapshot.stockChecked
       || !isItemAvailable(latest.snapshot, CATEGORY_ITEM_KEYS.pipocas)
-      || !isItemAvailable(latest.snapshot, CROCANTES_ITEM_KEYS[product.id])
+      || !exactKey || !isItemAvailable(latest.snapshot, exactKey)
       || qty + alreadyInCart > confirmedStock) {
       setCupAddedNotice("Estoque insuficiente para essa quantidade. Atualize a seleção ou escolha outro sabor.");
       return;
@@ -1316,6 +1366,7 @@ export default function Home() {
     setCheckoutAvailabilityMessage("");
     setCupAddedNotice("");
     setCupFlavorPreview(null);
+    setCupSizeId(null);
     setCupQuantity(1);
     setShowLimitedCupView(false);
     setRequestedCategory(null);
@@ -1450,7 +1501,7 @@ export default function Home() {
 
   function editItem(item: CartItem) {
     const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
-    if ((product.id === "crocante-ninho" || product.id === "crocante-chocolate")) return; // Quantidade é alterável no carrinho.
+    if (isTrufadaOrLegacy(product.id)) return; // Quantidade é alterável no carrinho.
     if (product.kind === "drink" || !isProductEnabled(product)) return;
     const itemCategory = product.kind === "popcorn" ? "pipocas" : "fatias";
     if (!categoryIsAvailable(itemCategory)) {
@@ -1491,12 +1542,12 @@ export default function Home() {
     if (delta > 0 && (!availability.ordersOpen || itemIssue)) return;
     if (delta > 0) {
       const selected = cart.find(item => item.id === id);
-      const key = selected ? CROCANTES_ITEM_KEYS[selected.productId] : undefined;
+      const key = selected ? trufadaStockItemKey(selected.productId, selected.variantId) : null;
       if (selected?.productId==="fatia-chocolate-morango" && strawberryPreorder
         && reservedInCart >= strawberryPreorder.remaining) {
         setCheckoutAvailabilityMessage("Não há mais fatias disponíveis para pré-reserva.");return;
       }
-      if (key && (!availability.stockChecked || cartStockCount(selected!.productId) >= (availability.stockRemaining[key] ?? 0))) {
+      if (key && (!availability.stockChecked || cartStockCount(selected!.productId, selected!.variantId) >= (availability.stockRemaining[key] ?? 0))) {
         setCheckoutAvailabilityMessage("Não há mais pacotes disponíveis deste sabor para aumentar a quantidade.");
         return;
       }
@@ -1516,7 +1567,7 @@ export default function Home() {
 
 
   async function finishOnSite(card?: MercadoPagoCardData) {
-    if (cart.some((item) => (item.productId === "crocante-ninho" || item.productId === "crocante-chocolate"))) {
+    if (cart.some((item) => isTrufadaOrLegacy(item.productId))) {
       setCheckoutChannel("whatsapp");
       setCheckoutAvailabilityMessage("Pedidos com pacotes Trufados são concluídos pelo WhatsApp.");
       return;
@@ -1728,6 +1779,10 @@ export default function Home() {
       requestScroll("crocantes-sabores");
       return;
     }
+    if (!cupSizeId) {
+      requestScroll("crocantes-tamanhos");
+      return;
+    }
     if (!cupCanOrder) {
       setCupAddedNotice("Este sabor está indisponível no momento.");
       return;
@@ -1866,7 +1921,7 @@ export default function Home() {
             <p className="eyebrow">Luciane Oliveira Doces</p>
             <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : activeCategory === "fatias" ? "Fatias Artesanais" : "Escolha o que deseja pedir"}</h1>
             <p className="entry-copy">{activeCategory === "pipocas"
-              ? showLimitedCupView ? "Conheça nossos dois sabores na nova embalagem com zíper." : "Escolha o tamanho e combine seus sabores."
+              ? showLimitedCupView ? "Três sabores artesanais em pacotes P, M e G." : "Escolha o tamanho e combine seus sabores."
               : activeCategory === "fatias"
                 ? "Sabores disponíveis"
                 : COMMERCE_CONFIG.siteOrderingEnabled
@@ -1884,16 +1939,16 @@ export default function Home() {
           </div>
           {!activeCategory && <p className="delivery-note"><Truck size={16} aria-hidden="true" /> Entrega a partir de R$8 ou retirada em Paragominas</p>}
           {!activeCategory && hasResolvedAvailability && (
-            <button className="limited-cup-teaser" type="button" onClick={openLimitedCupEdition} disabled={!categoryIsAvailable("pipocas")} aria-label="Conhecer a nova embalagem de Pipocas Trufadas, Ninho e Chocolate, R$ 15,90">
+            <button className="limited-cup-teaser" type="button" onClick={openLimitedCupEdition} disabled={!categoryIsAvailable("pipocas")} aria-label="Conhecer Pipocas Trufadas nos sabores Ninho, Paçoca e Coco Queimado, a partir de R$ 14,90">
               <span className="limited-cup-teaser-content">
                 <span className="limited-cup-teaser-mark"><span aria-hidden="true">✦</span> {cupLaunchCopy.eyebrow}</span>
                 <strong>Pipocas <em>Trufadas</em></strong>
-                <span className="limited-cup-teaser-price"><span>Escolha entre 2 sabores</span><b>R$ 15,90</b></span>
+                <span className="limited-cup-teaser-price"><span>3 sabores · P, M e G</span><b>A partir de R$ 14,90</b></span>
                 <span className="limited-cup-teaser-cta">Conhecer os sabores <ChevronRight size={16} aria-hidden="true" /></span>
               </span>
               <span className="limited-cup-teaser-visual" aria-hidden="true">
-                <span className="limited-cup-teaser-shot is-ninho"><img src="/images/pipocas-trufadas-ninho.avif?v=20261017-zoom2" alt="" width="840" height="1050" loading="eager" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} /></span>
-                <span className="limited-cup-teaser-shot is-chocolate"><img src="/images/pipocas-trufadas-chocolate.avif?v=20261017-zoom2" alt="" width="840" height="1050" loading="eager" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} /></span>
+                <span className="limited-cup-teaser-shot is-ninho"><img src="/images/pipocas-trufadas-ninho-20261101.webp" alt="" width="840" height="1050" loading="eager" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} /></span>
+                <span className="limited-cup-teaser-shot is-chocolate"><img src="/images/pipocas-trufadas-pacoca-20261101.webp" alt="" width="840" height="1050" loading="eager" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} /></span>
               </span>
             </button>
           )}
@@ -1962,97 +2017,116 @@ export default function Home() {
               <div className="limited-cup-story-heading">
                 <span className="limited-cup-story-kicker">PIPOCAS TRUFADAS</span>
                 <h2>Pipocas <em>Trufadas</em></h2>
-                <p>Pipocas caramelizadas e trufadas em pacotes com zíper. Escolha entre Ninho e Chocolate.</p>
+                <p>Três sabores em pacotes com zíper. Escolha o sabor, o tamanho e a quantidade do seu pedido.</p>
               </div>
               <div className="limited-cup-selection-heading" id="crocantes-sabores">
                 <span>01 · ESCOLHA SEU SABOR</span>
-                <small>{cupPhase === "available" ? "Toque em Ninho ou Chocolate para continuar." : "Toque em um sabor para conhecer os detalhes."}</small>
-                {cupPhase === "available" && cupFlavorPreview && (
+                <small>Selecione um dos três sabores para ver os tamanhos e os preços.</small>
+                {cupFlavorPreview && (
                   <span className="limited-cup-choice-confirmed" role="status">
-                    <Check size={13} aria-hidden="true" /> {cupFlavorPreview === "ninho" ? "Ninho escolhido" : "Chocolate escolhido"}
+                    <Check size={13} aria-hidden="true" /> {cupProduct?.name} selecionado
                   </span>
                 )}
               </div>
-              <div className="limited-cup-duo" aria-label="Escolha um sabor de Pipocas Trufadas">
-                <button type="button" disabled={cupAdding} className={cupFlavorPreview === "ninho" ? "limited-cup-duo-item is-ninho is-selected" : "limited-cup-duo-item is-ninho"} aria-pressed={cupFlavorPreview === "ninho"} aria-controls="crocantes-quantidade" onClick={() => selectCupFlavor("ninho")}>
-                  <img src="/images/pipocas-trufadas-ninho.avif?v=20261017-zoom2" alt="Pacote com zíper de Pipocas Trufadas de Caramelo e Ninho" width="840" height="1050" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
-                  <span className="limited-cup-card-check" aria-hidden="true"><Check size={16} /></span>
-                  <span className="limited-cup-duo-caption"><small>NINHO</small><strong>Caramelo e Ninho</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "ninho" ? "Selecionado" : "Escolher Ninho"} {cupFlavorPreview === "ninho" ? <Check size={13} aria-hidden="true" /> : <ChevronRight size={13} aria-hidden="true" />}</span></span>
-                </button>
-                <button type="button" disabled={cupAdding} className={cupFlavorPreview === "chocolate" ? "limited-cup-duo-item is-chocolate is-selected" : "limited-cup-duo-item is-chocolate"} aria-pressed={cupFlavorPreview === "chocolate"} aria-controls="crocantes-quantidade" onClick={() => selectCupFlavor("chocolate")}>
-                  <img src="/images/pipocas-trufadas-chocolate.avif?v=20261017-zoom2" alt="Pacote com zíper de Pipocas Trufadas de Caramelo e Chocolate" width="840" height="1050" loading="lazy" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} />
-                  <span className="limited-cup-card-check" aria-hidden="true"><Check size={16} /></span>
-                  <span className="limited-cup-duo-caption"><small>CHOCOLATE</small><strong>Caramelo e Chocolate</strong><span className="limited-cup-duo-disclosure">{cupFlavorPreview === "chocolate" ? "Selecionado" : "Escolher Chocolate"} {cupFlavorPreview === "chocolate" ? <Check size={13} aria-hidden="true" /> : <ChevronRight size={13} aria-hidden="true" />}</span></span>
-                </button>
+              <div className="limited-cup-duo is-trio" aria-label="Escolha um sabor de Pipocas Trufadas">
+                {TRUFADA_PRODUCT_IDS.map((id) => {
+                  const product = PRODUCTS.find(candidate => candidate.id === id);
+                  if (!product) return null;
+                  const selected = cupFlavorPreview === id;
+                  return (
+                    <button type="button" key={id} disabled={cupAdding}
+                      className={`limited-cup-duo-item ${selected ? "is-selected" : ""}`}
+                      aria-pressed={selected} aria-controls="crocantes-tamanhos" onClick={() => selectCupFlavor(id)}>
+                      {product.image && <img src={product.image} alt={product.imageAlt ?? `Pipocas Trufadas ${product.name}`}
+                        width="840" height="1050" loading="lazy" decoding="async" />}
+                      <span className="limited-cup-card-check" aria-hidden="true"><Check size={16} /></span>
+                      <span className="limited-cup-duo-caption">
+                        <small>PIPOCAS TRUFADAS</small><strong>{product.name}</strong>
+                        <span className="limited-cup-duo-disclosure">
+                          {selected ? "Selecionado" : `Escolher ${product.name}`}
+                          {selected ? <Check size={13} aria-hidden="true" /> : <ChevronRight size={13} aria-hidden="true" />}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="limited-cup-size-section" id="crocantes-tamanhos">
+                <div className="limited-cup-buy-heading">
+                  <strong>02 · ESCOLHA O TAMANHO</strong>
+                  <small>{cupProduct ? `${cupProduct.name} — escolha o pacote P, M ou G.` : "Selecione um sabor primeiro."}</small>
+                </div>
+                <div className="limited-cup-size-options" role="group" aria-label="Tamanho do pacote">
+                  {TRUFADA_SIZES.map((size) => {
+                    const variant = cupProduct?.variants.find(entry => entry.id === size);
+                    const key = cupProduct ? trufadaStockItemKey(cupProduct.id, size) : null;
+                    const stock = key ? availability.stockRemaining[key] ?? 0 : 0;
+                    const available = availability.stockChecked && Boolean(key && isItemAvailable(availability, key) && stock > 0);
+                    return (
+                      <button type="button" key={size} className={`limited-cup-size-option ${cupSizeId === size ? "is-selected" : ""}`}
+                        disabled={!cupProduct || cupAdding} aria-pressed={cupSizeId === size}
+                        onClick={() => selectCupSize(size)}>
+                        <strong>{size.toUpperCase()}</strong>
+                        <span>{variant ? currency.format(variant.price) : "—"}</span>
+                        <small>{!availability.stockChecked ? "Aguardando estoque" : available ? "Disponível" : "Esgotado"}</small>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               <div className="limited-cup-story-bottom">
-                {cupSalesEnabled ? (
-                  <div className="limited-cup-sale-compact" aria-label="Informações do pacote">
-                    <span>Pacote com zíper</span><strong>R$ 15,90 por pacote</strong>
-                  </div>
-                ) : (
-                <div className="limited-cup-story-sale">
-                  <div className="limited-cup-story-price"><span>PIPOCAS TRUFADAS</span><strong>R$ 15,90</strong><small>por pacote</small></div>
-                  <div className="limited-cup-story-measure" aria-label="Nova embalagem"><span>Pacote com zíper</span></div>
+                <div className="limited-cup-sale-compact">
+                  <span>Pacotes P, M e G</span><strong>A partir de R$ 14,90</strong>
                 </div>
-                )}
-                {!cupSalesEnabled && <div id="limited-cup-flavor-panel" className="limited-cup-flavor-slot">
-                  {cupFlavorPreview ? (
-                    <div className="limited-cup-flavor-details" role="status" aria-live="polite" aria-atomic="true">
-                      <strong>{cupFlavorPreview === "ninho" ? "Ninho" : "Chocolate"}</strong>
-                      <span>{cupFlavorPreview === "ninho" ? "Caramelizadas com leite em pó." : "Caramelizadas com crosta de chocolate."}</span>
-                    </div>
-                  ) : (
-                    <p className="limited-cup-flavor-hint">Escolha um dos sabores para conhecer os detalhes.</p>
-                  )}
-                </div>}
-                {cupSalesEnabled && cupPhase !== "available" && (
-                  <div className="limited-cup-flavor-summary" id="crocantes-quantidade" role="status" aria-live="polite">
-                    {cupFlavorPreview && (
-                      <>
-                        <strong>{cupFlavorPreview === "ninho" ? "Ninho" : "Chocolate"}</strong>
-                        <span>{cupFlavorPreview === "ninho" ? "Caramelizadas com leite em pó." : "Caramelizadas com crosta de chocolate."}</span>
-                      </>
-                    )}
+                <div className="limited-cup-buy" id="crocantes-quantidade" aria-label="Quantidade e inclusão no pedido">
+                  <div className="limited-cup-buy-heading">
+                    <strong>03 · QUANTOS PACOTES?</strong>
+                    <small>{cupProduct && cupVariant ? `${cupProduct.name} · ${cupVariant.label}` : "Escolha o sabor e o tamanho acima."}</small>
                   </div>
-                )}
-                {cupSalesEnabled && cupPhase === "available" && (
-                  <div className="limited-cup-buy" id="crocantes-quantidade" aria-label="Quantidade e inclusão no pedido">
-                    <div className="limited-cup-buy-heading"><strong>02 · QUANTOS PACOTES?</strong><small>{cupFlavorPreview ? (cupFlavorPreview === "ninho" ? "Ninho — caramelizadas com leite em pó." : "Chocolate — caramelizadas com crosta de chocolate.") : "Primeiro selecione Ninho ou Chocolate acima."}</small></div>
-                    <div className="limited-cup-buy-actions">
-                      <div className="limited-cup-buy-composition">
-                        <div className="limited-cup-quantity-control">
-                          <span className="limited-cup-quantity-label">Quantidade</span>
-                          <div className="mini-quantity" role="group" aria-label="Quantidade de pacotes" aria-disabled={cupPhase !== "available"}>
-                            <Button type="button" variant="ghost" size="icon" aria-label="Diminuir quantidade de pacotes" disabled={cupPhase !== "available" || cupQuantity <= 1 || cupAdding} onClick={() => setCupQuantity((n) => Math.max(1, n - 1))}><Minus size={16} /></Button>
-                            <strong aria-live="polite">{cupQuantity}</strong>
-                            <Button type="button" variant="ghost" size="icon" aria-label="Aumentar quantidade de pacotes" disabled={cupPhase !== "available" || !cupFlavorPreview || cupQuantity >= Math.min(99, cupRemaining) || cupAdding} onClick={() => setCupQuantity((n) => Math.min(99, cupRemaining, n + 1))}><Plus size={16} /></Button>
-                          </div>
-                        </div>
-                        <div className="limited-cup-buy-estimate" aria-live="polite" aria-atomic="true">
-                          <span>{cupFlavorPreview ? "Subtotal" : "Valor por pacote"}</span>
-                          <strong key={`${cupFlavorPreview ?? "unit"}-${cupQuantity}`}>{currency.format(15.9 * (cupFlavorPreview ? cupQuantity : 1))}</strong>
+                  <div className="limited-cup-buy-actions">
+                    <div className="limited-cup-buy-composition">
+                      <div className="limited-cup-quantity-control">
+                        <span className="limited-cup-quantity-label">Quantidade</span>
+                        <div className="mini-quantity" role="group" aria-label="Quantidade de pacotes">
+                          <Button type="button" variant="ghost" size="icon" aria-label="Diminuir quantidade de pacotes"
+                            disabled={!cupVariant || cupQuantity <= 1 || cupAdding} onClick={() => setCupQuantity(n => Math.max(1, n - 1))}><Minus size={16} /></Button>
+                          <strong aria-live="polite">{cupQuantity}</strong>
+                          <Button type="button" variant="ghost" size="icon" aria-label="Aumentar quantidade de pacotes"
+                            disabled={!cupCanOrder || cupQuantity >= Math.min(99, cupRemaining) || cupAdding}
+                            onClick={() => setCupQuantity(n => Math.min(99, cupRemaining, n + 1))}><Plus size={16} /></Button>
                         </div>
                       </div>
-                      <Button type="button" className="limited-cup-buy-cta" disabled={cupAdding || cupPhase !== "available" || (Boolean(cupFlavorPreview) && !cupCanOrder)} onClick={handleCupPurchaseAction}>
-                        {cupAdding ? <LoaderCircle className="admin-spinner" size={16} aria-hidden="true" /> : cupFlavorPreview ? <ShoppingBag size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
-                        {cupAdding ? "Conferindo estoque…" : !cupFlavorPreview ? "Escolher meu sabor" : cupCanOrder ? `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "pacote" : "pacotes"} ao pedido` : "Sabor indisponível"}
-                      </Button>
+                      <div className="limited-cup-buy-estimate" aria-live="polite" aria-atomic="true">
+                        <span>{cupVariant ? "Subtotal" : "A partir de"}</span>
+                        <strong key={`${cupFlavorPreview ?? "unit"}-${cupSizeId ?? "size"}-${cupQuantity}`}>
+                          {currency.format((cupVariant?.price ?? 14.9) * (cupVariant ? cupQuantity : 1))}
+                        </strong>
+                      </div>
                     </div>
-                    {cupFlavorPreview && availability.stockChecked && <p className="limited-cup-stock-note" role="status">{cupRemaining > 0 ? `${cupRemaining} ${cupRemaining === 1 ? "pacote disponível" : "pacotes disponíveis"} deste sabor para adicionar ao pedido.` : "Esse sabor está esgotado ou já está totalmente no seu carrinho."}</p>}
-                    {cartContainsCrocantes && <button type="button" className="limited-cup-to-cart" onClick={() => requestScroll("carrinho")}><ShoppingBag size={16} aria-hidden="true" /><span>Ver carrinho e continuar pedido</span><ChevronRight size={16} aria-hidden="true" /></button>}
+                    <Button type="button" className="limited-cup-buy-cta"
+                      disabled={cupAdding || cupPhase !== "available" || (Boolean(cupSizeId) && !cupCanOrder)}
+                      onClick={handleCupPurchaseAction}>
+                      {cupAdding ? <LoaderCircle className="admin-spinner" size={16} aria-hidden="true" /> : <ShoppingBag size={16} aria-hidden="true" />}
+                      {cupAdding ? "Conferindo estoque…" : !cupFlavorPreview ? "Escolher sabor" : !cupSizeId ? "Escolher tamanho" : cupCanOrder ? `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "pacote" : "pacotes"} ao pedido` : "Tamanho esgotado"}
+                    </Button>
                   </div>
-                )}
+                  {cupVariant && availability.stockChecked && (
+                    <p className="limited-cup-stock-note" role="status">
+                      {cupRemaining > 0 ? `${cupRemaining} ${cupRemaining === 1 ? "pacote disponível" : "pacotes disponíveis"} nesta combinação.` : "Esse tamanho está esgotado ou já está totalmente no seu carrinho."}
+                    </p>
+                  )}
+                  {cartContainsCrocantes && <button type="button" className="limited-cup-to-cart" onClick={() => requestScroll("carrinho")}>
+                    <ShoppingBag size={16} aria-hidden="true" /><span>Ver carrinho e continuar pedido</span><ChevronRight size={16} aria-hidden="true" />
+                  </button>}
+                </div>
                 {cupAddedNotice && <p className="limited-cup-buy-feedback" role="status">{cupAddedNotice}</p>}
                 {cupPhase === "available" ? (
-                  <p className="limited-cup-stock-note"><span aria-hidden="true">✦</span> Produção artesanal · disponível enquanto houver estoque.</p>
+                  <p className="limited-cup-stock-note"><span aria-hidden="true">✦</span> Produção artesanal · sujeito à disponibilidade de cada tamanho.</p>
                 ) : (
-                <div className={`limited-cup-story-availability is-current ${cupPhase === "closed" ? "is-closed" : ""}`}>
-                  <span className="limited-cup-story-availability-kicker">
-                    {cupPhase === "closed" ? "LOJA FECHADA" : cupPhase === "sold-out" ? "ESGOTADO NO MOMENTO" : "INDISPONÍVEL NO MOMENTO"}
-                  </span>
-                  <p>{cupLaunchCopy.description}</p>
-                </div>
+                  <div className={`limited-cup-story-availability is-current ${cupPhase === "closed" ? "is-closed" : ""}`}>
+                    <span className="limited-cup-story-availability-kicker">{cupPhase === "closed" ? "LOJA FECHADA" : cupPhase === "sold-out" ? "ESGOTADO NO MOMENTO" : "INDISPONÍVEL NO MOMENTO"}</span>
+                    <p>{cupLaunchCopy.description}</p>
+                  </div>
                 )}
                 <div className="limited-cup-story-footer">
                   <div className="limited-cup-more-intro">
@@ -2288,7 +2362,15 @@ export default function Home() {
           ) : activeCategory === "fatias" && fatiasVisible ? (
             <div className="builder-card slice-builder">
               <section className={`step-block step-state-${sliceProductStepState}`} id="fatias" aria-labelledby="step-slice" aria-current={sliceProductStepState === "active" ? "step" : undefined}>
-                <div className="step-heading"><StepMarker number={1} state={sliceProductStepState} /><div><h3 id="step-slice">Escolha sua fatia</h3><p>Selecione um sabor por vez. Depois de adicionar, você poderá escolher outro.</p></div></div>
+                <div className="step-heading"><StepMarker number={1} state={sliceProductStepState} /><div><h3 id="step-slice">Escolha sua fatia</h3><p>{lastSlicesProducts.length > 0 ? "Toque na foto do sabor que deseja provar." : "Selecione um sabor por vez. Depois de adicionar, você poderá escolher outro."}</p></div></div>
+                {lastSlicesProducts.length > 0 && <aside className="last-slices-banner" aria-label="Últimas fatias disponíveis hoje">
+                  <div className="last-slices-banner-top">
+                    <span className="last-slices-eyebrow"><Clock3 size={15} aria-hidden="true" /> ÚLTIMAS FATIAS DE HOJE</span>
+                    <span className="last-slices-hours">Até 20h · enquanto houver</span>
+                  </div>
+                  <strong>Ainda dá tempo de garantir a sua.</strong>
+                  <p>{lastSlicesProducts.map((slice) => slice.name).join(" e ")} {lastSlicesProducts.length === 1 ? "está nas últimas unidades" : "estão nas últimas unidades"}. <b>Escolha a fatia na foto abaixo</b> e continue seu pedido.</p>
+                </aside>}
                 {strawberryPreorder && <aside className="slice-preorder-banner" role="status">
                   <span className="slice-preorder-kicker">Nova produção de hoje · Pré-reserva</span>
                   <strong>Chocolate com Morango: garanta sua fatia para hoje</strong>
@@ -2312,10 +2394,11 @@ export default function Home() {
                     const variant = slice.variants[0];
                     const available = fatiasAvailable && slice.available && variant.available && sliceIsAvailable(slice.id);
                     return (
-                      <label className={`slice-card ${selected ? "is-selected" : ""} ${!available ? "is-unavailable" : ""} ${slice.availabilityLabel ? "is-upcoming" : ""}`} htmlFor={`slice-${slice.id}`} key={slice.id}>
+                      <label className={`slice-card ${selected ? "is-selected" : ""} ${!available ? "is-unavailable" : ""} ${slice.availabilityLabel ? "is-upcoming" : ""} ${lastSlicesIds.has(slice.id) && available ? "is-last-slices" : ""}`} htmlFor={`slice-${slice.id}`} key={slice.id}>
                         <RadioGroupItem id={`slice-${slice.id}`} value={slice.id} disabled={!available} />
                         <span className="slice-media">
-                          {slice.image ? <img src={slice.cardImage ?? slice.image} alt={slice.imageAlt} width="640" height="480" loading="lazy" decoding="async" fetchPriority="low" sizes="(max-width: 599px) calc(50vw - 27px), (max-width: 899px) calc(50vw - 36px), 240px" /> : <span className="slice-placeholder"><CakeSlice size={30} strokeWidth={1.4} /><small>Foto em breve</small></span>}
+                          {slice.image ? <img src={slice.cardImage ?? slice.image} alt={slice.imageAlt} width="640" height="480" loading={lastSlicesIds.has(slice.id) && available ? "eager" : "lazy"} decoding="async" fetchPriority={lastSlicesIds.has(slice.id) && available ? "high" : "low"} sizes="(max-width: 599px) calc(50vw - 27px), (max-width: 899px) calc(50vw - 36px), 240px" /> : <span className="slice-placeholder"><CakeSlice size={30} strokeWidth={1.4} /><small>Foto em breve</small></span>}
+                          {lastSlicesIds.has(slice.id) && available && <span className="last-slices-card-tag">Últimas de hoje</span>}
                         </span>
                         <span className="slice-card-copy">
                           <span className="boutique-slice-card-title">
@@ -2527,7 +2610,7 @@ export default function Home() {
                             <span>{item.quantity}</span>
                             <Button type="button" variant="ghost" size="icon" onClick={() => changeCartQuantity(item.id, 1)} disabled={!availability.ordersOpen || Boolean(itemIssue) || item.quantity >= 99} aria-label="Aumentar quantidade deste item"><Plus size={15} /></Button>
                           </div>
-                          {product.kind !== "drink" && !(product.id === "crocante-ninho" || product.id === "crocante-chocolate") && <Button type="button" variant="ghost" className="text-action" onClick={() => editItem(item)}><Pencil size={15} /> Editar</Button>}
+                          {product.kind !== "drink" && !isTrufadaOrLegacy(product.id) && <Button type="button" variant="ghost" className="text-action" onClick={() => editItem(item)}><Pencil size={15} /> Editar</Button>}
                           <Button type="button" variant="ghost" className="text-action destructive-action" onClick={() => removeItem(item.id)}><Trash2 size={15} /> Remover</Button>
                         </div>
                       </article>
@@ -2823,7 +2906,7 @@ export default function Home() {
       {(activeCategory || cart.length > 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && (
       <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"} ${stickyIsCheckoutReady && checkoutChannel === "whatsapp" ? "is-whatsapp" : ""} ${cupBuilderFlowActive ? "is-crocantes-step" : ""} ${stickyUsesCheckoutAction ? "is-checkout-flow" : ""}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
         <div className="mobile-sticky-price" aria-live="polite" aria-atomic="true"><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></div>
-        <Button type="button" onClick={handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || cupAdding || (cupBuilderFlowActive && Boolean(cupFlavorPreview) && !cupCanOrder) || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
+        <Button type="button" onClick={handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || cupAdding || (cupBuilderFlowActive && Boolean(cupFlavorPreview && cupSizeId) && !cupCanOrder) || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
           {stickyButtonLabel}
           {stickyIsCheckoutReady ? checkoutChannel === "whatsapp" ? <MessageCircle size={17} /> : <ShoppingBag size={17} /> : <ChevronRight size={17} />}
         </Button>
