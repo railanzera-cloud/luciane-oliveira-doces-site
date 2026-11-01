@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { AlertCircle, Check, LoaderCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getSupabaseClient } from "@/lib/supabase";
-import { CROCANTES_ITEM_KEYS } from "@/app/menu-availability";
+import { TRUFADA_STOCK_ITEM_KEYS } from "@/app/menu-availability";
+import { TRUFADAS_VARIANTS, TRUFADAS_SIZES } from "../supabase/functions/_shared/trufadas-variants.mjs";
 
 type InventoryRow = {
   item_key: string;
@@ -17,10 +18,13 @@ type InventoryRow = {
 };
 
 type Draft = { total: string; enabled: boolean };
-const FLAVORS = [
-  { itemKey: CROCANTES_ITEM_KEYS["crocante-ninho"], name: "Caramelo e Ninho" },
-  { itemKey: CROCANTES_ITEM_KEYS["crocante-chocolate"], name: "Caramelo e Chocolate" },
-] as const;
+const FLAVORS = Object.values(TRUFADAS_VARIANTS).flatMap((product) =>
+  TRUFADAS_SIZES.map((size: string) => ({
+    itemKey: product.sizes[size as keyof typeof product.sizes].itemKey,
+    name: product.name,
+    sizeLabel: `Pacote ${size.toUpperCase()}`,
+  })),
+);
 
 function validatedRows(data: unknown): InventoryRow[] {
   if (!Array.isArray(data)) throw new Error("A resposta de estoque não é válida.");
@@ -34,8 +38,8 @@ function validatedRows(data: unknown): InventoryRow[] {
     if (typeof item.item_key !== "string" || typeof item.enabled !== "boolean") throw new Error("Estoque incompleto.");
     return item as InventoryRow;
   });
-  if (rows.length !== FLAVORS.length || FLAVORS.some(({ itemKey }) => rows.filter(row => row.item_key === itemKey).length !== 1)) {
-    throw new Error("Não foi possível localizar os dois sabores no estoque.");
+  if (rows.length < TRUFADA_STOCK_ITEM_KEYS.length || FLAVORS.some(({ itemKey }) => rows.filter(row => row.item_key === itemKey).length !== 1)) {
+    throw new Error("Estoque dos nove pacotes ainda não está configurado no servidor.");
   }
   return rows;
 }
@@ -124,25 +128,25 @@ export function AdminTrufadasStock({ onChanged }: { onChanged?: () => Promise<vo
           {loading ? <LoaderCircle className="admin-spinner" size={16} /> : <RefreshCw size={16} />} Atualizar
         </Button>
       </div>
-      <p className="admin-stock-intro">Cadastre somente os pacotes que já estão prontos. Cada sabor tem seu estoque independente. Quando chegar a zero, a venda fica indisponível.</p>
+      <p className="admin-stock-intro">Cadastre somente pacotes prontos. Cada sabor e tamanho tem estoque independente; venda bloqueada sem saldo validado.</p>
       {error && <p className="admin-load-error" role="alert"><AlertCircle size={17}/>{error}</p>}
       {notice && <p className="admin-stock-notice" role="status"><Check size={17}/>{notice}</p>}
       <div className="admin-stock-grid" aria-busy={loading}>
-        {FLAVORS.map(({ itemKey, name }) => {
+        {FLAVORS.map(({ itemKey, name, sizeLabel }) => {
           const row = rows.find(item => item.item_key === itemKey);
           const draft = drafts[itemKey];
           const busy = pendingKey === itemKey;
           const otherPending = Boolean(pendingKey) && !busy;
           return (
             <article className="admin-stock-card" key={itemKey}>
-              <strong>{name}</strong>
+              <strong>{name} · {sizeLabel}</strong>
               {row && draft ? (
                 <>
                   <div className="admin-stock-summary">
                     <span><small>Disponíveis</small><b>{row.available}</b></span>
                     <span><small>Reservados</small><b>{row.reserved}</b></span>
                   </div>
-                  <label className="admin-stock-label" htmlFor={`stock-${itemKey}`}>Pacotes em estoque</label>
+                  <label className="admin-stock-label" htmlFor={`stock-${itemKey}`}>Pacotes {sizeLabel.replace("Pacote ", "")} em estoque</label>
                   <input id={`stock-${itemKey}`} className="admin-stock-input" type="number" inputMode="numeric" min="0" max="100000" step="1" value={draft.total} disabled={busy || otherPending || loading} onChange={event => setDrafts(current => ({ ...current, [itemKey]: { ...current[itemKey], total: event.target.value } }))} />
                   <label className="admin-stock-toggle">
                     <input type="checkbox" checked={draft.enabled} disabled={busy || otherPending || loading} onChange={event => setDrafts(current => ({ ...current, [itemKey]: { ...current[itemKey], enabled: event.target.checked } }))} />
