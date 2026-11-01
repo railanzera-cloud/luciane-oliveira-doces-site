@@ -110,6 +110,12 @@ const requiredFiles = [
   "fatia-prestigio-card.webp",
   "fatia-chocolatudo-card-518c74f4.webp",
   "fatia-chocolate-cenoura-card-6de0c35d.webp",
+  // Publicação PMG bloqueada sem TODAS as fotos efetivamente compiladas.
+  "images/pipocas-trufadas-ninho-20261101.webp",
+  "images/pipocas-trufadas-pacoca-20261101.webp",
+  "images/pipocas-trufadas-coco-queimado-20261101.webp",
+  "fatia-coco-cremoso-morango.webp",
+  "fatia-coco-cremoso-morango-card.webp",
 ];
 for (const requiredFile of requiredFiles) {
   await access(path.join(packageDirectory, requiredFile));
