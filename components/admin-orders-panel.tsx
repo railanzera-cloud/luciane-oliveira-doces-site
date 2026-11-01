@@ -689,12 +689,33 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   }
 
   async function reprint(order: AdminOrder) {
+    // Reimpressão é uma ação excepcional: não enfileirar remotamente pelo celular
+    // nem presumir papel emitido apenas porque o QZ respondeu sem erro.
+    if (!printerReady || !printerOnline) {
+      setError("Reimprima pelo painel aberto no notebook Windows, depois de conectar o QZ Tray e conferir a impressora POS-58.");
+      return;
+    }
+    if (order.order_status === "cancelled" || order.order_status === "payment_pending"
+        || ["failed", "cancelled", "refunded"].includes(order.payment_status)) {
+      setError("Este pedido não está elegível para reimpressão.");
+      return;
+    }
     setPendingId(order.id);
     setError("");
     try {
+      // Não criar trabalho permanente sem inicial concluída: a RPC de claim
+      // exigirá esta condição e poderia deixar uma reimpressão presa na fila.
+      const { data, error: lookupError } = await client.from("print_jobs")
+        .select("id").eq("order_uuid", order.id)
+        .eq("kind", "initial").eq("status", "printed").limit(1);
+      if (lookupError) throw new Error("Não foi possível conferir a comanda original. Não foi criada uma reimpressão.");
+      if (!data?.length) {
+        throw new Error("A comanda original ainda não consta como enviada ao QZ. Verifique a conexão e a fila antes de solicitar uma reimpressão.");
+      }
+      if (!window.confirm(`Reimprimir a comanda do pedido #${order.order_number}? Confira primeiro se o papel já saiu: o QZ pode registrar sucesso sem garantir a impressão física. A confirmação poderá gerar uma segunda etiqueta.`)) return;
       await createReprint(client, order.id);
-      setNotice(`Reimpressão do pedido #${order.order_number} adicionada à fila.`);
-      if (printerReady) await processPrints();
+      setNotice(`Reimpressão do pedido #${order.order_number} adicionada à fila uma única vez. Confira o papel na POS-58.`);
+      await processPrints();
     } catch (actionError) {
       setError(actionError instanceof Error ? actionError.message : "Não foi possível reimprimir.");
     } finally { setPendingId(""); }
@@ -747,7 +768,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
         <div className="admin-kitchen-operation-status">
           <span><span className={kitchenMode?.enabled ? "admin-status-dot is-online" : "admin-status-dot"} />
             Automático: <strong>{kitchenMode?.enabled ? "Ligado" : "Desligado"}</strong></span>
-          <span><Printer size={15} /> Impressora: <strong>{printerOnline ? printerName : printerReady ? "Desconectada — tentando recuperar" : "Não conectada"}</strong></span>
+          <span><Printer size={15} /> Impressora neste dispositivo: <strong>{printerOnline ? printerName : printerReady ? "Desconectada — tentando recuperar" : "Não conectada"}</strong></span>
           <span><Check size={15} /> Fila: <strong>{printing ? "Processando em segundo plano" : "Aguardando novos pedidos"}</strong></span>
           <span><BellRing size={15} /> Aviso normal: <strong>2 toques e silêncio</strong></span>
           {lastPrintInfo && <span><Check size={15} /> {lastPrintInfo}</span>}
@@ -809,9 +830,11 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
           </Button>
         </div>
         {kitchenModeError && <p className="admin-kitchen-error" role="alert">{kitchenModeError}</p>}
-        <small>Som depende do navegador e do volume do Windows. Fila e modo automático dependem do
-          notebook ligado, navegador ativo, QZ Tray e impressora conectada. Pedidos pagos online só
-          entram na fila após aprovação do Mercado Pago; Pix manual impresso pendente exige conferência.</small>
+        <small>O estado da impressora acima pertence a este aparelho: no celular aparecer "Não conectada" é esperado;
+          quem imprime é o painel aberto no notebook Windows com QZ Tray. "Automático ligado" no Supabase não
+          garante sessão local ativa nem saída do papel. Mantenha Windows acordado, Chrome na aba Pedidos,
+          QZ Tray e POS-58 conectados. Pedidos pagos online só entram na fila após aprovação do Mercado Pago;
+          Pix manual impresso pendente exige conferência.</small>
       </div>
 
       {notice && <div className="admin-notice" role="status"><Check size={16} />{notice}</div>}
@@ -953,7 +976,9 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
                 <div className="admin-order-actions">
                   {next && NextIcon && <Button type="button" onClick={() => void runOrderAction(order, next.status, `Pedido #${order.order_number}: ${next.label.toLowerCase()}.`)} disabled={pending}><NextIcon size={16} /> {next.label}</Button>}
                   {order.payment_status === "pending" && (order.payment_method === "cash" || order.payment_method === "card_on_delivery" || order.payment_method === "manual_pix") && <Button type="button" variant="outline" onClick={() => void confirmPayment(order)} disabled={pending}><Check size={16} /> Confirmar pagamento</Button>}
-                  {order.sales_channel !== "whatsapp" && actionable(order) && <Button type="button" variant="outline" onClick={() => void reprint(order)} disabled={pending}><RotateCcw size={16} /> Reimprimir</Button>}
+                  {["confirmed", "preparing", "ready", "ready_for_pickup", "out_for_delivery", "completed"].includes(order.order_status)
+                    && !["failed", "cancelled", "refunded"].includes(order.payment_status)
+                    && <Button type="button" variant="outline" onClick={() => void reprint(order)} disabled={pending}><RotateCcw size={16} /> Reimprimir comanda</Button>}
                   {!['completed', 'cancelled'].includes(order.order_status) && <Button type="button" variant="ghost" className="admin-cancel-order" onClick={() => void runOrderAction(order, "cancelled", `Pedido #${order.order_number} cancelado.`)} disabled={pending}><X size={16} /> Cancelar</Button>}
                 </div>
               </article>
