@@ -61,13 +61,20 @@ test("demais produtos e outros tamanhos não perdem a descrição original", () 
   assert.match(txt,/Produto avulso Pacote/);
   assert.match(txt,/Pipocas Trufadas — Caramelo e Ninho 750 ml/);
 });
-test("o catálogo, estoque, preço e pedido backend continuam com os dados originais", async () => {
-  const catalog=await readFile(new URL("../app/catalog.ts", import.meta.url),"utf8");
+test("tamanhos novos aparecem no WhatsApp sem ocultar P M ou G",()=>{
+  const txt=buildRegisteredOrderMessage(order([
+    item("trufada-pacoca","Pipocas Trufadas — Paçoca","Pacote P"),
+    item("crocante-ninho","Pipocas Trufadas — Ninho","Pacote G"),
+  ]),1320,"",{holder:"",key:"",keyType:""},false);
+  assert.match(txt,/Pipocas Trufadas — Paçoca Pacote P/);
+  assert.match(txt,/Pipocas Trufadas — Ninho Pacote G/);
+});
+test("legado continua sem sufixo Pacote e novos IDs ficam preservados",async()=>{
+  const catalog=await readFile(new URL("../app/catalog.ts",import.meta.url),"utf8");
   const backend=await readFile(new URL("../supabase/functions/_shared/commerce-catalog.mjs",import.meta.url),"utf8");
   assert.match(catalog,/id: "crocante-ninho"/);
   assert.match(catalog,/id: "crocante-chocolate"/);
-  assert.match(catalog,/label: "Pacote", whatsappLabel: "Pacote"/);
-  assert.match(backend,/size_label: "Pacote"/);
-  assert.match(backend,/priceCents: 1590/);
+  assert.match(catalog,/id: "trufada-pacoca"/);
+  assert.match(backend,/getTrufadaVariant/);
   assert.match(source,/isTrufada && item.size.trim\(\).toLowerCase\(\) === "pacote"/);
 });
