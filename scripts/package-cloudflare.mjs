@@ -97,8 +97,6 @@ await writeFile(
   "utf8",
 );
 
-await execFileAsync("zip", ["-q", "-r", zipPath, "."], { cwd: packageDirectory });
-
 const requiredFiles = [
   "_worker.js",
   "_routes.json",
@@ -120,5 +118,8 @@ const requiredFiles = [
 for (const requiredFile of requiredFiles) {
   await access(path.join(packageDirectory, requiredFile));
 }
+
+// Nunca gerar nem deixar ZIP incompleto se faltar alguma fotografia.
+await execFileAsync("zip", ["-q", "-r", zipPath, "."], { cwd: packageDirectory });
 
 console.log(zipPath);
