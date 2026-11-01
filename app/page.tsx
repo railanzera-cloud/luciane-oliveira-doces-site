@@ -2068,7 +2068,7 @@ export default function Home() {
                         onClick={() => selectCupSize(size)}>
                         <strong>{size.toUpperCase()}</strong>
                         <span>{variant ? currency.format(variant.price) : "—"}</span>
-                        <small>{!availability.stockChecked ? "Aguardando estoque" : available ? "Disponível" : "Esgotado"}</small>
+                        <small>{!cupProduct ? "Escolha um sabor" : !availability.stockChecked ? "Consultando estoque" : available ? "Disponível" : "Esgotado"}</small>
                       </button>
                     );
                   })}
@@ -2076,7 +2076,7 @@ export default function Home() {
               </div>
               <div className="limited-cup-story-bottom">
                 <div className="limited-cup-sale-compact">
-                  <span>Pacotes P, M e G</span><strong>A partir de R$ 14,90</strong>
+                  <span>{cupProduct ? `${cupProduct.name} · ${cupSizeId ? `Pacote ${cupSizeId.toUpperCase()}` : "P, M e G"}` : "Pacotes P, M e G"}</span><strong>{cupVariant ? currency.format(cupVariant.price) : "A partir de R$ 14,90"}</strong>
                 </div>
                 <div className="limited-cup-buy" id="crocantes-quantidade" aria-label="Quantidade e inclusão no pedido">
                   <div className="limited-cup-buy-heading">
