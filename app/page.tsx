@@ -828,6 +828,7 @@ export default function Home() {
   const cupProductId = cupFlavorPreview ?? "";
   const cupProduct = PRODUCTS.find(product => product.id === cupProductId);
   const cupVariant = cupProduct?.variants.find(variant => variant.id === cupSizeId);
+  const cupStartingPrice = cupProduct?.variants.find(variant => variant.id === "p")?.price ?? 14.9;
   const cupStockKey = cupProductId && cupSizeId ? trufadaStockItemKey(cupProductId, cupSizeId) : null;
   const cartStockCount = (productId: string, variantId: string) => cart
     .filter(item => item.productId === productId && item.variantId === variantId)
@@ -971,7 +972,7 @@ export default function Home() {
   const stickyUsesCheckoutAction = !builderFlowActive && !cupBuilderFlowActive;
   const stickyIsCheckoutReady = stickyUsesCheckoutAction && checkoutReady;
   const stickyPriceLabel = cupBuilderFlowActive
-    ? currency.format((cupVariant?.price ?? 14.9) * (cupSizeId ? cupQuantity : 1))
+    ? currency.format((cupVariant?.price ?? cupStartingPrice) * (cupSizeId ? cupQuantity : 1))
     : cart.length > 0 && !builderFlowActive
     ? cartNeedsSizeReview ? "Revise o tamanho" : currency.format(hasEstimatedTotal ? orderTotal : cartSubtotal)
     : draftSubtotal === null
@@ -1358,7 +1359,7 @@ export default function Home() {
     setAddedNotice({
       category: "pipocas",
       productId: product.id,
-      description: `${qty}x Pipocas Trufadas · ${product.name}`,
+      description: `${product.name} · ${variant.label} · ${qty} ${qty === 1 ? "unidade" : "unidades"} · ${currency.format(variant.price * qty)}`,
     });
     setCheckoutChannel("whatsapp");
     setPayment("");
@@ -2041,9 +2042,9 @@ export default function Home() {
                         width="840" height="1050" loading="lazy" decoding="async" />}
                       <span className="limited-cup-card-check" aria-hidden="true"><Check size={16} /></span>
                       <span className="limited-cup-duo-caption">
-                        <small>PIPOCAS TRUFADAS</small><strong>{product.name}</strong>
+                        <strong>{product.name}</strong>
                         <span className="limited-cup-duo-disclosure">
-                          {selected ? "Selecionado" : `Escolher ${product.name}`}
+                          {selected ? "Selecionado" : "Escolher"}
                           {selected ? <Check size={13} aria-hidden="true" /> : <ChevronRight size={13} aria-hidden="true" />}
                         </span>
                       </span>
@@ -2064,7 +2065,8 @@ export default function Home() {
                     const available = availability.stockChecked && Boolean(key && isItemAvailable(availability, key) && stock > 0);
                     return (
                       <button type="button" key={size} className={`limited-cup-size-option ${cupSizeId === size ? "is-selected" : ""}`}
-                        disabled={!cupProduct || cupAdding} aria-pressed={cupSizeId === size}
+                        disabled={!cupProduct || cupAdding || !available} aria-pressed={cupSizeId === size}
+                        aria-label={cupProduct && variant ? `${cupProduct.name}, pacote ${size.toUpperCase()}, ${currency.format(variant.price)}, ${available ? "disponível" : "indisponível"}` : `Pacote ${size.toUpperCase()}, escolha primeiro o sabor`}
                         onClick={() => selectCupSize(size)}>
                         <strong>{size.toUpperCase()}</strong>
                         <span>{variant ? currency.format(variant.price) : "—"}</span>
@@ -2076,12 +2078,12 @@ export default function Home() {
               </div>
               <div className="limited-cup-story-bottom">
                 <div className="limited-cup-sale-compact">
-                  <span>{cupProduct ? `${cupProduct.name} · ${cupSizeId ? `Pacote ${cupSizeId.toUpperCase()}` : "P, M e G"}` : "Pacotes P, M e G"}</span><strong>{cupVariant ? currency.format(cupVariant.price) : "A partir de R$ 14,90"}</strong>
+                  <span>{cupProduct ? `${cupProduct.name} · ${cupSizeId ? `Pacote ${cupSizeId.toUpperCase()}` : "Escolha o tamanho"}` : "Pacotes P, M e G"}</span><strong>{cupVariant ? currency.format(cupVariant.price) : `A partir de ${currency.format(cupStartingPrice)}`}</strong>
                 </div>
                 <div className="limited-cup-buy" id="crocantes-quantidade" aria-label="Quantidade e inclusão no pedido">
                   <div className="limited-cup-buy-heading">
                     <strong>03 · QUANTOS PACOTES?</strong>
-                    <small>{cupProduct && cupVariant ? `${cupProduct.name} · ${cupVariant.label}` : "Escolha o sabor e o tamanho acima."}</small>
+                    <small>{cupProduct && cupVariant ? `${cupProduct.name} · ${cupVariant.label}` : "Selecione um sabor e depois o tamanho."}</small>
                   </div>
                   <div className="limited-cup-buy-actions">
                     <div className="limited-cup-buy-composition">
@@ -2099,7 +2101,7 @@ export default function Home() {
                       <div className="limited-cup-buy-estimate" aria-live="polite" aria-atomic="true">
                         <span>{cupVariant ? "Subtotal" : "A partir de"}</span>
                         <strong key={`${cupFlavorPreview ?? "unit"}-${cupSizeId ?? "size"}-${cupQuantity}`}>
-                          {currency.format((cupVariant?.price ?? 14.9) * (cupVariant ? cupQuantity : 1))}
+                          {currency.format((cupVariant?.price ?? cupStartingPrice) * (cupVariant ? cupQuantity : 1))}
                         </strong>
                       </div>
                     </div>
@@ -2130,20 +2132,19 @@ export default function Home() {
                 )}
                 <div className="limited-cup-story-footer">
                   <div className="limited-cup-more-intro">
-                    <span>CONTINUE EXPLORANDO</span>
+                    <span>COMPLETE SEU PEDIDO</span>
                     <strong>Que tal mais uma delícia?</strong>
-                    <p>Conheça outras opções e monte seu pedido no seu ritmo.</p>
                   </div>
                   {categoryIsAvailable("pipocas") && (
                     <button type="button" onClick={() => selectCategory("pipocas")}>
-                      <span>Prefere os potes recheados?</span>
-                      <strong>Escolher tamanho <ChevronRight size={15} aria-hidden="true" /></strong>
+                      <span>Pipocas Gourmet</span>
+                      <strong>Ver sabores <ChevronRight size={15} aria-hidden="true" /></strong>
                     </button>
                   )}
                   {fatiasAvailable && (
                     <button type="button" className="limited-cup-more-slices" onClick={() => selectCategory("fatias")}>
-                      <span>Quer conhecer as Fatias Artesanais?</span>
-                      <strong>Escolher minha fatia <ChevronRight size={15} aria-hidden="true" /></strong>
+                      <span>Fatias Artesanais</span>
+                      <strong>Ver fatias <ChevronRight size={15} aria-hidden="true" /></strong>
                     </button>
                   )}
                 </div>
@@ -2903,7 +2904,7 @@ export default function Home() {
 
       <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
-      {(activeCategory || cart.length > 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && (
+      {(activeCategory || cart.length > 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen && Boolean(cupFlavorPreview && cupSizeId) && cupCanOrder)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && (
       <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"} ${stickyIsCheckoutReady && checkoutChannel === "whatsapp" ? "is-whatsapp" : ""} ${cupBuilderFlowActive ? "is-crocantes-step" : ""} ${stickyUsesCheckoutAction ? "is-checkout-flow" : ""}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
         <div className="mobile-sticky-price" aria-live="polite" aria-atomic="true"><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></div>
         <Button type="button" onClick={handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || cupAdding || (cupBuilderFlowActive && Boolean(cupFlavorPreview && cupSizeId) && !cupCanOrder) || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
