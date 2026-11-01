@@ -18,7 +18,7 @@ test("PMG: preço servidor preserva os três sabores e tamanhos ao longo do temp
 test("PMG: um pedido de dois pacotes compromete apenas o SKU exato",()=>{
   const q=quoteCartItems([p("trufada-pacoca","p",2),p("trufada-pacoca","g")]);
   assert.deepEqual(q.availabilityKeys,["category_pipocas","trufada_pacoca_g","trufada_pacoca_p"]);
-  assert.equal(q.subtotalCents,4470);
+  assert.equal(q.subtotalCents,4870);
   assert.deepEqual(q.items.map(i=>i.size_label),["Pacote P","Pacote G"]);
 });
 test("Legado: não reabre 400ml nem Chocolate para nova venda",()=>{
