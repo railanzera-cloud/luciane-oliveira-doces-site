@@ -43,15 +43,14 @@ test("mensagem de pedido real mantém Pix, chave e instruções como antes",()=>
   assert.match(message,/Vou fazer o Pix e enviar o comprovante/);
   assert.doesNotMatch(message,/TESTE DE HOMOLOGAÇÃO|NÃO EFETUAR PAGAMENTO/);
 });
-test("e-commerce Crocantes conciso, sem bloquear por estreia",()=>{
-  assert.match(page,/cupSalesEnabled \? \(/);
+test("nova experiência Trufadas usa tamanho e preço corretos sem data de estreia",()=>{
   assert.ok(page.includes('className="limited-cup-sale-compact"'));
   assert.ok(page.includes('className="limited-cup-stock-note"'));
-  assert.ok(page.includes('!cupSalesEnabled && <div id="limited-cup-flavor-panel"'));
-  assert.ok(page.includes('Caramelizadas com leite em pó.'));
+  assert.ok(page.includes("TRUFADA_SIZES.map"));
+  assert.ok(page.includes('id="crocantes-tamanhos"'));
   assert.ok(page.includes('LOJA FECHADA'));
   assert.ok(!page.includes('ESTREIA · QUINTA, 15/10, ÀS 12H'));
-  assert.ok(page.includes('R$ 15,90 por pacote'));
+  assert.ok(page.includes('A partir de R$ 14,90'));
   assert.ok(css.includes('.limited-cup-sale-compact'));
 });
 test("compras adicionais identificam outro copo e mantêm o fluxo original",()=>{
