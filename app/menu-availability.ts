@@ -47,7 +47,7 @@ import { TRUFADAS_ACTIVE_ITEM_KEYS, TRUFADAS_VARIANTS, TRUFADAS_LEGACY } from ".
 export const CROCANTES_ITEM_KEYS: Record<string, string> = Object.fromEntries(
   Object.values(TRUFADAS_VARIANTS).map((product) => [product.productId, product.sizes.p.itemKey]),
 );
-export const TRUFADA_STOCK_ITEM_KEYS = TRUFADAS_ACTIVE_ITEM_KEYS;
+export const TRUFADA_STOCK_ITEM_KEYS: readonly string[] = TRUFADAS_ACTIVE_ITEM_KEYS;
 export const TRUFADA_LEGACY_ITEM_KEYS = Object.values(TRUFADAS_LEGACY).map((item) => item.itemKey);
 export function trufadaStockItemKey(productId: string, variantId: string): string | null {
   const product = Object.hasOwn(TRUFADAS_VARIANTS, productId)
