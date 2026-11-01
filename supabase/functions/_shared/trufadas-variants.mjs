@@ -1,11 +1,11 @@
 /**
  * Matriz comercial preparada em 01/11/2026.
  *
- * NAO esta conectada ao checkout nem ativa para vendas. A publicacao depende
- * de migracao aditiva do estoque, contratos de backend, disponibilidade e testes.
- * Valores em centavos. Os IDs legados sao imutaveis para pedidos historicos.
+ * Integrada ao frontend e cotacao backend na branch de homologacao.
+ * A liberacao depende de estoque real, flags is_enabled, menu_availability
+ * e migration aditiva ainda NAO aplicada em producao. NAO existe flag de
+ * liberacao falsa/desconectada. Precos em centavos; IDs historicos imutaveis.
  */
-export const TRUFADAS_RELEASE_ENABLED = false;
 export const TRUFADAS_SIZES = Object.freeze(["p", "m", "g"]);
 
 function size(id, priceCents, itemKey) {
