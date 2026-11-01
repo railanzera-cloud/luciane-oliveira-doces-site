@@ -7,7 +7,7 @@ const css = readFileSync("app/storefront-checkout-premium.css", "utf8");
 const oldCss = readFileSync("app/storefront-vitrine-editorial-experiment.css", "utf8");
 const checkout = readFileSync("app/order-checkout.ts", "utf8");
 test("Trufadas: mensagem curta conserva sabor e regras estruturais", () => {
-  assert.ok(page.includes("description: `${qty}x Pipocas Trufadas · ${product.name}`,"));
+  assert.ok(page.includes('description: `${product.name} · ${variant.label} · ${qty}'));
   assert.ok(!page.includes("description: `${qty}x Pipocas Trufadas · ${product.name} · pacote com zíper`,"));
   assert.ok(page.includes("<p>{addedNotice.description}</p>"));
   assert.ok(page.includes("qty + alreadyInCart > confirmedStock"));
