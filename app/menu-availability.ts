@@ -42,10 +42,22 @@ export type AvailabilitySnapshot = {
   loadedAt: number;
 };
 
-export const CROCANTES_ITEM_KEYS: Record<string, string> = {
-  "crocante-ninho": "crocante_copo_ninho",
-  "crocante-chocolate": "crocante_copo_chocolate",
-};
+import { TRUFADAS_ACTIVE_ITEM_KEYS, TRUFADAS_VARIANTS, TRUFADAS_LEGACY } from "../supabase/functions/_shared/trufadas-variants.mjs";
+
+export const CROCANTES_ITEM_KEYS: Record<string, string> = Object.fromEntries(
+  Object.values(TRUFADAS_VARIANTS).map((product) => [product.productId, product.sizes.p.itemKey]),
+);
+export const TRUFADA_STOCK_ITEM_KEYS = TRUFADAS_ACTIVE_ITEM_KEYS;
+export const TRUFADA_LEGACY_ITEM_KEYS = Object.values(TRUFADAS_LEGACY).map((item) => item.itemKey);
+export function trufadaStockItemKey(productId: string, variantId: string): string | null {
+  const product = Object.hasOwn(TRUFADAS_VARIANTS, productId)
+    ? TRUFADAS_VARIANTS[productId as keyof typeof TRUFADAS_VARIANTS]
+    : null;
+  if (!product) return null;
+  return Object.hasOwn(product.sizes, variantId)
+    ? product.sizes[variantId as keyof typeof product.sizes].itemKey
+    : null;
+}
 export const CATEGORY_ITEM_KEYS: Record<CategoryId, string> = {
   pipocas: "category_pipocas",
   fatias: "category_fatias",
@@ -117,8 +129,15 @@ const SLICE_ITEMS: MenuAvailabilityItem[] = SLICES.map((slice) => ({
 
 export const MENU_AVAILABILITY_ITEMS: MenuAvailabilityItem[] = [
   ...CATEGORY_ITEMS,
-  { itemKey: CROCANTES_ITEM_KEYS["crocante-ninho"], name: "Trufadas — Caramelo e Ninho (pacote)", itemType: "product", categoryKey: CATEGORY_ITEM_KEYS.pipocas },
-  { itemKey: CROCANTES_ITEM_KEYS["crocante-chocolate"], name: "Trufadas — Caramelo e Chocolate (pacote)", itemType: "product", categoryKey: CATEGORY_ITEM_KEYS.pipocas },
+  ...Object.values(TRUFADAS_VARIANTS).flatMap((product) =>
+    Object.values(product.sizes).map((variant) => ({
+      itemKey: variant.itemKey,
+      name: `Trufadas — ${product.name} · ${variant.label}`,
+      itemType: "product" as const,
+      categoryKey: CATEGORY_ITEM_KEYS.pipocas,
+    }))),
+  { itemKey: TRUFADAS_LEGACY["crocante-ninho"].itemKey, name: "Histórico — Ninho, pacote antigo", itemType: "product", categoryKey: CATEGORY_ITEM_KEYS.pipocas },
+  { itemKey: TRUFADAS_LEGACY["crocante-chocolate"].itemKey, name: "Histórico — Caramelo e Chocolate", itemType: "product", categoryKey: CATEGORY_ITEM_KEYS.pipocas },
   ...POPCORN_SIZE_ITEMS,
   ...POPCORN_FLAVOR_ITEMS,
   ...SLICE_ITEMS,
@@ -142,7 +161,7 @@ export function createFallbackAvailability(): AvailabilitySnapshot {
   for (const option of POPCORN.options) {
     statuses[POPCORN_FLAVOR_ITEM_KEYS[option.id]] = staticStatus(POPCORN.available && option.available);
   }
-  for (const key of Object.values(CROCANTES_ITEM_KEYS)) statuses[key] = "sold_out";
+  for (const key of [...TRUFADA_STOCK_ITEM_KEYS, ...TRUFADA_LEGACY_ITEM_KEYS]) statuses[key] = "sold_out";
   for (const slice of SLICES) {
     statuses[SLICE_ITEM_KEYS[slice.id]] = staticStatus(Boolean(slice.available && slice.variants[0]?.available));
   }
@@ -186,11 +205,11 @@ export function mergeRemoteAvailability(
   // Produtos Gourmet e fatias continuam com a disponibilidade própria.
   if (trufadasStock !== undefined) {
     const valid = Array.isArray(trufadasStock)
-      && Object.values(CROCANTES_ITEM_KEYS).every(key => trufadasStock.filter(row =>
+      && TRUFADA_STOCK_ITEM_KEYS.every(key => trufadasStock.filter(row =>
         row?.item_key === key && Number.isSafeInteger(row.available) && row.available >= 0,
       ).length === 1);
     stockChecked = Boolean(valid);
-    for (const key of Object.values(CROCANTES_ITEM_KEYS)) {
+    for (const key of TRUFADA_STOCK_ITEM_KEYS) {
       const remaining = valid ? (trufadasStock as PublicTrufadasStockRow[]).find(row => row.item_key === key)!.available : 0;
       stockRemaining[key] = remaining;
       if (remaining === 0 && statuses[key] !== "hidden") statuses[key] = "sold_out";
