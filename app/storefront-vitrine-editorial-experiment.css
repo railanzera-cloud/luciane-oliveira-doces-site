@@ -2723,3 +2723,88 @@
     transform: none !important;
   }
 }
+
+
+/* Expansão das Trufadas — 01/11/2026: três sabores e tamanhos P/M/G. */
+.storefront .limited-cup-duo.is-trio {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(8px, 1.5vw, 16px);
+}
+.storefront .limited-cup-duo.is-trio .limited-cup-duo-item {
+  min-width: 0;
+  width: 100%;
+}
+.storefront .limited-cup-duo.is-trio .limited-cup-duo-caption {
+  min-width: 0;
+}
+.storefront .limited-cup-duo.is-trio .limited-cup-duo-caption strong {
+  overflow-wrap: anywhere;
+}
+.storefront .limited-cup-size-section {
+  margin-top: 24px;
+  scroll-margin-top: 22px;
+}
+.storefront .limited-cup-size-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.storefront .limited-cup-size-option {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  min-height: 90px;
+  padding: 14px 9px;
+  border: 1px solid rgba(197, 139, 82, 0.4);
+  border-radius: 14px;
+  background: rgba(255, 250, 242, 0.08);
+  color: #f8e9d8;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.storefront .limited-cup-size-option strong {
+  font-size: 1.12rem;
+  font-weight: 700;
+}
+.storefront .limited-cup-size-option span {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.storefront .limited-cup-size-option small {
+  color: #dcc7b6;
+  font-size: .72rem;
+  text-align: center;
+}
+.storefront .limited-cup-size-option.is-selected {
+  border-color: #e7aa6a;
+  background: rgba(197, 139, 82, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(231, 170, 106, 0.5);
+}
+.storefront .limited-cup-size-option:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+.storefront .limited-cup-size-option:focus-visible {
+  outline: 3px solid #f2c089;
+  outline-offset: 2px;
+}
+@media (max-width: 680px) {
+  .storefront .limited-cup-duo.is-trio {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .storefront .limited-cup-duo.is-trio .limited-cup-duo-item:last-child {
+    grid-column: 1 / -1;
+    width: min(100%, 280px);
+    justify-self: center;
+  }
+  .storefront .limited-cup-size-options { gap: 7px; }
+  .storefront .limited-cup-size-option { min-height: 82px; padding: 10px 5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront .limited-cup-size-option { transition: none; }
+}
