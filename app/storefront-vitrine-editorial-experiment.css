@@ -2805,6 +2805,40 @@
   .storefront .limited-cup-size-options { gap: 7px; }
   .storefront .limited-cup-size-option { min-height: 82px; padding: 10px 5px; }
 }
+/* Safari iPhone: three equal flavor choices and compact selection without clipping. */
+@media (max-width: 680px) {
+  .storefront .limited-cup-duo.is-trio {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+  .storefront .limited-cup-duo.is-trio .limited-cup-duo-item,
+  .storefront .limited-cup-duo.is-trio .limited-cup-duo-item:last-child {
+    grid-column: auto;
+    width: 100%;
+    height: clamp(164px, 49vw, 212px);
+    min-width: 0;
+    justify-self: stretch;
+  }
+  .storefront .limited-cup-duo.is-trio .limited-cup-duo-caption {
+    padding: 8px 6px;
+  }
+  .storefront .limited-cup-duo.is-trio .limited-cup-duo-caption small {
+    display: none;
+  }
+  .storefront .limited-cup-duo.is-trio .limited-cup-duo-caption strong {
+    font-size: clamp(11px, 3vw, 14px);
+    line-height: 1.2;
+  }
+  .storefront .limited-cup-duo.is-trio .limited-cup-duo-disclosure {
+    font-size: 10px;
+    gap: 2px;
+  }
+  .storefront .limited-cup-size-section { margin-top: 17px; }
+  .storefront .limited-cup-size-option { transition: background .18s ease, border-color .18s ease, box-shadow .18s ease; }
+}
+@media (max-width: 360px) {
+  .storefront .limited-cup-duo.is-trio .limited-cup-duo-disclosure { font-size: 9px; }
+}
 @media (prefers-reduced-motion: reduce) {
   .storefront .limited-cup-size-option { transition: none; }
 }
