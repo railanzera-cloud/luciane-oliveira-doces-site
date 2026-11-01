@@ -60,7 +60,8 @@ import {
 } from "@/app/catalog";
 import {
   CATEGORY_ITEM_KEYS,
-  CROCANTES_ITEM_KEYS,
+  TRUFADA_STOCK_ITEM_KEYS,
+  trufadaStockItemKey,
   POPCORN_FLAVOR_ITEM_KEYS,
   POPCORN_SIZE_ITEM_KEYS,
   SLICE_ITEM_KEYS,
@@ -259,8 +260,14 @@ function makeCartId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+const TRUFADA_PRODUCT_IDS = ["crocante-ninho", "trufada-pacoca", "trufada-coco-queimado"] as const;
+type TrufadaProductId = (typeof TRUFADA_PRODUCT_IDS)[number];
+const isTrufadaId = (id: string) => (TRUFADA_PRODUCT_IDS as readonly string[]).includes(id);
+const isTrufadaOrLegacy = (id: string) => isTrufadaId(id) || id === "crocante-chocolate";
+const TRUFADA_SIZES = ["p", "m", "g"] as const;
+type TrufadaSizeId = (typeof TRUFADA_SIZES)[number];
 function productLabel(product: Product) {
-  if (product.id === "crocante-ninho" || product.id === "crocante-chocolate") {
+  if (isTrufadaOrLegacy(product.id)) {
     return `Pipocas Trufadas — ${product.name}`;
   }
   // A descrição editorial deste sabor já integra seu nome oficial.
@@ -286,7 +293,7 @@ function trackMetaEvent(eventName: MetaEventName, payload?: Record<string, unkno
 function itemUnitPrice(product: Product, variant: Variant, optionIds: string[] = [], now = Date.now()) {
   // Carrinhos com tamanho retirado ficam sem valor de venda até serem corrigidos.
   if (variant.retired) return 0;
-  return product.kind === "popcorn" && !(product.id === "crocante-ninho" || product.id === "crocante-chocolate") ? popcornPrice(variant.id, optionIds, now) : variant.price;
+  return product.kind === "popcorn" && !isTrufadaOrLegacy(product.id) ? popcornPrice(variant.id, optionIds, now) : variant.price;
 }
 
 function unavailableReason(snapshot: AvailabilitySnapshot, itemKey: string, label: string) {
@@ -322,14 +329,14 @@ function cartAvailabilityIssues(
       }
     }
 
-    if ((product.id === "crocante-ninho" || product.id === "crocante-chocolate")) {
-      const key = CROCANTES_ITEM_KEYS[product.id];
+    if (isTrufadaOrLegacy(product.id)) {
+      const key = trufadaStockItemKey(product.id, variant.id);
       if (snapshot.source !== "supabase" || !key || !isItemAvailable(snapshot, key) || !snapshot.stockChecked) {
         reasons.push("Pacote indisponível no momento.");
       } else {
         // Soma as quantidades do mesmo sabor no carrinho: a reserva no banco
         // acontece somente na finalização, nunca ao tocar em "adicionar".
-        const requested = cart.filter(entry => entry.productId === item.productId)
+        const requested = cart.filter(entry => entry.productId === item.productId && entry.variantId === item.variantId)
           .reduce((sum, entry) => sum + entry.quantity, 0);
         const left = snapshot.stockRemaining[key] ?? 0;
         if (requested > left) reasons.push(`Há apenas ${left} ${left === 1 ? "pacote disponível" : "pacotes disponíveis"} deste sabor. Ajuste a quantidade.`);
@@ -399,7 +406,7 @@ function sanitizeSavedCart(value: unknown): CartItem[] {
       ? item.optionIds.filter((id): id is string => typeof id === "string" && (product.kind !== "slice" || product.options.some(option => option.id === id)))
       : [];
     const optionsAreAvailable = optionIds.every((id) => product.options.some((option) => option.id === id && option.available));
-    const optionsAreValid = (product.id === "crocante-ninho" || product.id === "crocante-chocolate") ? optionIds.length === 0
+    const optionsAreValid = isTrufadaOrLegacy(product.id) ? optionIds.length === 0
       : product.kind === "popcorn"
       ? optionIds.length > 0 && optionIds.length <= (variant.maxOptions ?? 0) && new Set(optionIds).size === optionIds.length
       : product.kind === "slice" ? optionIds.length <= 1 : optionIds.length === 0;
@@ -496,25 +503,34 @@ export default function Home() {
   const cupPhase: LimitedCupPhase = getLimitedCupPhase(
     availability.ordersOpen,
     availability.source === "supabase" && isItemAvailable(availability, CATEGORY_ITEM_KEYS.pipocas)
-      && Object.values(CROCANTES_ITEM_KEYS).some((key) => isItemAvailable(availability, key)),
-    availability.source === "supabase" && Object.values(CROCANTES_ITEM_KEYS).every((key) => statusFor(availability, key) === "sold_out"),
+      && availability.stockChecked && TRUFADA_STOCK_ITEM_KEYS.some((key) => isItemAvailable(availability, key)),
+    availability.source === "supabase" && availability.stockChecked && TRUFADA_STOCK_ITEM_KEYS.every((key) => statusFor(availability, key) === "sold_out"),
   );
-  const [cupFlavorPreview, setCupFlavorPreview] = useState<"ninho" | "chocolate" | null>(null);
+  const [cupFlavorPreview, setCupFlavorPreview] = useState<TrufadaProductId | null>(null);
+  const [cupSizeId, setCupSizeId] = useState<TrufadaSizeId | null>(null);
   const [cupQuantity, setCupQuantity] = useState(1);
   const [cupAddedNotice, setCupAddedNotice] = useState("");
   const [cupAdding, setCupAdding] = useState(false);
   const [cupInlineActionVisible, setCupInlineActionVisible] = useState(false);
-  function selectCupFlavor(flavor: "ninho" | "chocolate") {
-    // Escolher novamente o mesmo sabor não desfaz o pedido em montagem.
+  function selectCupFlavor(flavor: TrufadaProductId) {
     if (cupFlavorPreview === flavor) return;
     setCupFlavorPreview(flavor);
+    setCupSizeId(null);
+    setCupQuantity(1);
+    setCupAddedNotice("");
+    requestScroll("crocantes-tamanhos");
+  }
+  function selectCupSize(size: TrufadaSizeId) {
+    if (cupSizeId === size) return;
+    setCupSizeId(size);
+    setCupQuantity(1);
     setCupAddedNotice("");
     requestScroll("crocantes-quantidade");
   }
   const cupLaunchCopy = cupPhase === "closed"
     ? { eyebrow: "PIPOCAS TRUFADAS · LOJA FECHADA", description: "As vendas estão pausadas. Você ainda pode conhecer os sabores." }
     : cupPhase === "sold-out"
-      ? { eyebrow: "PIPOCAS TRUFADAS · ESGOTADA", description: "Os dois sabores estão esgotados no momento." }
+      ? { eyebrow: "PIPOCAS TRUFADAS · ESGOTADA", description: "Os sabores estão esgotados no momento." }
       : cupPhase === "unavailable"
         ? { eyebrow: "PIPOCAS TRUFADAS · INDISPONÍVEL", description: "Pacotes indisponíveis no momento. Consulte novamente mais tarde." }
         : { eyebrow: "PIPOCAS TRUFADAS · DISPONÍVEL", description: "Escolha seu sabor e peça pelo WhatsApp enquanto houver estoque." };
@@ -795,22 +811,29 @@ export default function Home() {
 
   const cartNeedsSizeReview = cart.some((item) => PRODUCTS.find((product) => product.id === item.productId)?.variants.find((variant) => variant.id === item.variantId)?.retired);
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
-  const cartContainsCrocantes = cart.some((item) => (item.productId === "crocante-ninho" || item.productId === "crocante-chocolate"));
-  const cupProductId = cupFlavorPreview === "ninho" ? "crocante-ninho" : cupFlavorPreview === "chocolate" ? "crocante-chocolate" : "";
-  const cupStockKey = cupProductId ? CROCANTES_ITEM_KEYS[cupProductId] : "";
-  const cartStockCount = (productId: string) => cart
-    .filter(item => item.productId === productId).reduce((sum, item) => sum + item.quantity, 0);
-  const remainingForFlavor = (productId: string) => {
-    const key = CROCANTES_ITEM_KEYS[productId];
+  const cartContainsCrocantes = cart.some((item) => isTrufadaOrLegacy(item.productId));
+  const cupProductId = cupFlavorPreview ?? "";
+  const cupProduct = PRODUCTS.find(product => product.id === cupProductId);
+  const cupVariant = cupProduct?.variants.find(variant => variant.id === cupSizeId);
+  const cupStockKey = cupProductId && cupSizeId ? trufadaStockItemKey(cupProductId, cupSizeId) : null;
+  const cartStockCount = (productId: string, variantId: string) => cart
+    .filter(item => item.productId === productId && item.variantId === variantId)
+    .reduce((sum, item) => sum + item.quantity, 0);
+  const remainingForFlavor = (productId: string, sizeId: string) => {
+    const key = trufadaStockItemKey(productId, sizeId);
     return availability.stockChecked && key
-      ? Math.max(0, (availability.stockRemaining[key] ?? 0) - cartStockCount(productId))
+      ? Math.max(0, (availability.stockRemaining[key] ?? 0) - cartStockCount(productId, sizeId))
       : 0;
   };
-  const cupRemaining = cupProductId ? remainingForFlavor(cupProductId) : 0;
+  const cupRemaining = cupProductId && cupSizeId ? remainingForFlavor(cupProductId, cupSizeId) : 0;
   const cupCanOrder = cupSalesEnabled && pipocasAvailable && availability.ordersOpen && availability.source === "supabase"
-    && Boolean(cupStockKey && isItemAvailable(availability, cupStockKey) && cupRemaining >= cupQuantity);
+    && availability.stockChecked && Boolean(cupVariant?.available && cupStockKey && isItemAvailable(availability, cupStockKey) && cupRemaining >= cupQuantity);
   const cupCanBeAddedFromCheckout = cupSalesEnabled && pipocasAvailable && availability.ordersOpen && availability.source === "supabase"
-    && Object.keys(CROCANTES_ITEM_KEYS).some(productId => isItemAvailable(availability, CROCANTES_ITEM_KEYS[productId]) && remainingForFlavor(productId) > 0);
+    && availability.stockChecked && TRUFADA_PRODUCT_IDS.some(productId =>
+      TRUFADA_SIZES.some(size => {
+        const key = trufadaStockItemKey(productId, size);
+        return Boolean(key && isItemAvailable(availability, key) && remainingForFlavor(productId, size) > 0);
+      }));
   useEffect(() => {
     if (cartContainsCrocantes && checkoutChannel !== "whatsapp") {
       setCheckoutChannel("whatsapp");
@@ -924,7 +947,7 @@ export default function Home() {
   const stickyUsesCheckoutAction = !builderFlowActive && !cupBuilderFlowActive;
   const stickyIsCheckoutReady = stickyUsesCheckoutAction && checkoutReady;
   const stickyPriceLabel = cupBuilderFlowActive
-    ? currency.format(15.9 * cupQuantity)
+    ? currency.format((cupVariant?.price ?? 14.9) * (cupSizeId ? cupQuantity : 1))
     : cart.length > 0 && !builderFlowActive
     ? cartNeedsSizeReview ? "Revise o tamanho" : currency.format(hasEstimatedTotal ? orderTotal : cartSubtotal)
     : draftSubtotal === null
@@ -932,8 +955,8 @@ export default function Home() {
       : currency.format(draftSubtotal);
   const stickyPriceCaption = cupBuilderFlowActive
     ? cupFlavorPreview
-      ? `${cupFlavorPreview === "ninho" ? "Ninho" : "Chocolate"} · ${cupQuantity} ${cupQuantity === 1 ? "pacote" : "pacotes"}`
-      : "Preço por pacote"
+      ? `${cupProduct?.name ?? "Trufadas"}${cupSizeId ? ` · Pacote ${cupSizeId.toUpperCase()}` : ""} · ${cupQuantity} ${cupQuantity === 1 ? "pacote" : "pacotes"}`
+      : "A partir de"
     : cart.length > 0 && !builderFlowActive
     ? hasEstimatedTotal ? "Total do pedido" : "Subtotal do pedido"
     : cart.length > 0 ? "Item em montagem" : activeCategory === "pipocas" ? "Sua pipoca" : "Sua fatia";
@@ -974,7 +997,7 @@ export default function Home() {
           ? finalButtonLabel
           : checkoutNextActionLabel;
   const stickyButtonLabel = typeof cupBuilderFlowActive !== "undefined" && cupBuilderFlowActive
-    ? cupAdding ? "Conferindo estoque…" : !cupFlavorPreview ? "Escolher meu sabor" : !cupCanOrder ? !availability.ordersOpen ? "Pedidos fechados" : "Sabor indisponível" : `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "pacote" : "pacotes"}`
+    ? cupAdding ? "Conferindo estoque…" : !cupFlavorPreview ? "Escolher meu sabor" : !cupSizeId ? "Escolher tamanho" : !cupCanOrder ? !availability.ordersOpen ? "Pedidos fechados" : "Tamanho indisponível" : `Adicionar ${cupQuantity} ${cupQuantity === 1 ? "pacote" : "pacotes"}`
     : isFinalizing ? finalButtonLabel : !availability.ordersOpen
     ? "Pedidos fechados"
     : !categoryIsAvailable(activeCategory) && builderFlowActive
@@ -1085,6 +1108,7 @@ export default function Home() {
     if (!categoryIsAvailable("pipocas")) return;
     setShowLimitedCupView(true);
     setCupFlavorPreview(null);
+    setCupSizeId(null);
     setCupAddedNotice("");
     setRequestedCategory("pipocas");
     setEditingId(null);
@@ -1101,6 +1125,7 @@ export default function Home() {
   function returnToCategories() {
     setShowLimitedCupView(false);
     setCupFlavorPreview(null);
+    setCupSizeId(null);
     setRequestedCategory(null);
     setEditingId(null);
     setSelectionMessage("");
@@ -1264,7 +1289,7 @@ export default function Home() {
   }
 
   function chooseCheckoutChannel(value: string) {
-    const next = value === "site" && COMMERCE_CONFIG.siteOrderingEnabled && !cart.some((item) => (item.productId === "crocante-ninho" || item.productId === "crocante-chocolate")) ? "site" : "whatsapp";
+    const next = value === "site" && COMMERCE_CONFIG.siteOrderingEnabled && !cart.some((item) => isTrufadaOrLegacy(item.productId)) ? "site" : "whatsapp";
     if (next === checkoutChannel) return;
     setCheckoutChannel(next);
     setPayment("");
@@ -1284,7 +1309,7 @@ export default function Home() {
   async function addCrocantesCup() {
     if (cupAddLockRef.current) return;
     const product = PRODUCTS.find((candidate) => candidate.id === cupProductId);
-    const variant = product?.variants[0];
+    const variant = cupVariant;
     if (!product || !variant || !cupCanOrder) {
       setCupAddedNotice(!availability.ordersOpen ? "A loja está fechada no momento." : "Este pacote ainda não está disponível.");
       return;
@@ -1294,11 +1319,12 @@ export default function Home() {
     try {
     const latest = await refreshAvailability();
     const qty = Math.min(99, Math.max(1, cupQuantity));
-    const confirmedStock = latest.snapshot.stockRemaining[CROCANTES_ITEM_KEYS[product.id]] ?? 0;
-    const alreadyInCart = cartStockCount(product.id);
+    const exactKey = trufadaStockItemKey(product.id, variant.id);
+    const confirmedStock = exactKey ? (latest.snapshot.stockRemaining[exactKey] ?? 0) : 0;
+    const alreadyInCart = cartStockCount(product.id, variant.id);
     if (latest.usedFallback || !latest.snapshot.ordersOpen || !latest.snapshot.stockChecked
       || !isItemAvailable(latest.snapshot, CATEGORY_ITEM_KEYS.pipocas)
-      || !isItemAvailable(latest.snapshot, CROCANTES_ITEM_KEYS[product.id])
+      || !exactKey || !isItemAvailable(latest.snapshot, exactKey)
       || qty + alreadyInCart > confirmedStock) {
       setCupAddedNotice("Estoque insuficiente para essa quantidade. Atualize a seleção ou escolha outro sabor.");
       return;
@@ -1316,6 +1342,7 @@ export default function Home() {
     setCheckoutAvailabilityMessage("");
     setCupAddedNotice("");
     setCupFlavorPreview(null);
+    setCupSizeId(null);
     setCupQuantity(1);
     setShowLimitedCupView(false);
     setRequestedCategory(null);
@@ -1450,7 +1477,7 @@ export default function Home() {
 
   function editItem(item: CartItem) {
     const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
-    if ((product.id === "crocante-ninho" || product.id === "crocante-chocolate")) return; // Quantidade é alterável no carrinho.
+    if (isTrufadaOrLegacy(product.id)) return; // Quantidade é alterável no carrinho.
     if (product.kind === "drink" || !isProductEnabled(product)) return;
     const itemCategory = product.kind === "popcorn" ? "pipocas" : "fatias";
     if (!categoryIsAvailable(itemCategory)) {
@@ -1491,12 +1518,12 @@ export default function Home() {
     if (delta > 0 && (!availability.ordersOpen || itemIssue)) return;
     if (delta > 0) {
       const selected = cart.find(item => item.id === id);
-      const key = selected ? CROCANTES_ITEM_KEYS[selected.productId] : undefined;
+      const key = selected ? trufadaStockItemKey(selected.productId, selected.variantId) : null;
       if (selected?.productId==="fatia-chocolate-morango" && strawberryPreorder
         && reservedInCart >= strawberryPreorder.remaining) {
         setCheckoutAvailabilityMessage("Não há mais fatias disponíveis para pré-reserva.");return;
       }
-      if (key && (!availability.stockChecked || cartStockCount(selected!.productId) >= (availability.stockRemaining[key] ?? 0))) {
+      if (key && (!availability.stockChecked || cartStockCount(selected!.productId, selected!.variantId) >= (availability.stockRemaining[key] ?? 0))) {
         setCheckoutAvailabilityMessage("Não há mais pacotes disponíveis deste sabor para aumentar a quantidade.");
         return;
       }
@@ -1516,7 +1543,7 @@ export default function Home() {
 
 
   async function finishOnSite(card?: MercadoPagoCardData) {
-    if (cart.some((item) => (item.productId === "crocante-ninho" || item.productId === "crocante-chocolate"))) {
+    if (cart.some((item) => isTrufadaOrLegacy(item.productId))) {
       setCheckoutChannel("whatsapp");
       setCheckoutAvailabilityMessage("Pedidos com pacotes Trufados são concluídos pelo WhatsApp.");
       return;
@@ -1726,6 +1753,10 @@ export default function Home() {
   function handleCupPurchaseAction() {
     if (!cupFlavorPreview) {
       requestScroll("crocantes-sabores");
+      return;
+    }
+    if (!cupSizeId) {
+      requestScroll("crocantes-tamanhos");
       return;
     }
     if (!cupCanOrder) {
@@ -2527,7 +2558,7 @@ export default function Home() {
                             <span>{item.quantity}</span>
                             <Button type="button" variant="ghost" size="icon" onClick={() => changeCartQuantity(item.id, 1)} disabled={!availability.ordersOpen || Boolean(itemIssue) || item.quantity >= 99} aria-label="Aumentar quantidade deste item"><Plus size={15} /></Button>
                           </div>
-                          {product.kind !== "drink" && !(product.id === "crocante-ninho" || product.id === "crocante-chocolate") && <Button type="button" variant="ghost" className="text-action" onClick={() => editItem(item)}><Pencil size={15} /> Editar</Button>}
+                          {product.kind !== "drink" && !isTrufadaOrLegacy(product.id) && <Button type="button" variant="ghost" className="text-action" onClick={() => editItem(item)}><Pencil size={15} /> Editar</Button>}
                           <Button type="button" variant="ghost" className="text-action destructive-action" onClick={() => removeItem(item.id)}><Trash2 size={15} /> Remover</Button>
                         </div>
                       </article>
@@ -2823,7 +2854,7 @@ export default function Home() {
       {(activeCategory || cart.length > 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && (
       <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"} ${stickyIsCheckoutReady && checkoutChannel === "whatsapp" ? "is-whatsapp" : ""} ${cupBuilderFlowActive ? "is-crocantes-step" : ""} ${stickyUsesCheckoutAction ? "is-checkout-flow" : ""}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
         <div className="mobile-sticky-price" aria-live="polite" aria-atomic="true"><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></div>
-        <Button type="button" onClick={handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || cupAdding || (cupBuilderFlowActive && Boolean(cupFlavorPreview) && !cupCanOrder) || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
+        <Button type="button" onClick={handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || cupAdding || (cupBuilderFlowActive && Boolean(cupFlavorPreview && cupSizeId) && !cupCanOrder) || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
           {stickyButtonLabel}
           {stickyIsCheckoutReady ? checkoutChannel === "whatsapp" ? <MessageCircle size={17} /> : <ShoppingBag size={17} /> : <ChevronRight size={17} />}
         </Button>
