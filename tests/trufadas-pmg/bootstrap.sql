@@ -1,7 +1,7 @@
 -- DADOS 100% SINTÉTICOS. Estrutura mínima correspondente à implantação real.
 -- Funções abaixo: pg_get_functiondef de public em 01/11/2026, antes da migração PMG.
 -- Execução restrita ao PostgreSQL 17 isolado da CI (sem conexão comercial).
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+-- Standalone role identities mirroring Supabase PostgREST grants. No Auth data.\nDO $roles$ BEGIN\n IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN CREATE ROLE anon; END IF;\n IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN CREATE ROLE authenticated; END IF;\nEND; $roles$;\nCREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE TYPE public.item_status AS ENUM ('available','sold_out','hidden');
 CREATE TYPE public.lod_order_status AS ENUM ('payment_pending','new','confirmed','preparing','ready','ready_for_pickup','out_for_delivery','completed','cancelled');
 CREATE TYPE public.lod_payment_status AS ENUM ('pending','paid','cancelled','failed','refunded');
