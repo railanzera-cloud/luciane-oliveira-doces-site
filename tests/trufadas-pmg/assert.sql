@@ -40,7 +40,7 @@ SELECT set_config('lod.test.staff','yes',false);
 
 -- API antiga continua retornando dois registros, sem quebrar rollback.
 SELECT set_config('lod.test.staff','yes',false);
-DO $
+DO $verify_version$
 DECLARE old_count integer; new_count integer;
 BEGIN
  SELECT jsonb_array_length(public.admin_get_crocante_inventory()) INTO old_count;
@@ -58,7 +58,7 @@ BEGIN
    RAISE EXCEPTION 'Authenticated PMG getter unavailable';
  END IF;
 END;
-$;
+$verify_version$;
 
 -- Administrador configura dois SKUs sem tocar nos outros 7 ou nos IDs antigos.
 SELECT public.admin_set_trufadas_pmg_inventory('trufada_pacoca_p',3,1,true);
