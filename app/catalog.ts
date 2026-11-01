@@ -113,16 +113,44 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: "crocante-ninho", kind: "popcorn", category: "Pipocas Trufadas",
-    name: "Caramelo e Ninho", available: true,
-    image: "/images/pipocas-trufadas-ninho.avif?v=20261017-zoom2", imageAlt: "Pacote com zíper de Pipocas Trufadas de Caramelo e Ninho",
-    variants: [{ id: "400ml", label: "Pacote", whatsappLabel: "Pacote", price: 15.9, maxOptions: 0, available: true }],
+    name: "Ninho", available: true,
+    image: "/images/pipocas-trufadas-ninho-20261101.webp", imageAlt: "Pacote com zíper de Pipocas Trufadas Ninho",
+    variants: [
+      // 400ml e um ID historico, nao corresponde automaticamente ao novo P.
+      { id: "400ml", label: "Pacote antigo", whatsappLabel: "Pacote", price: 15.9, maxOptions: 0, available: false, retired: true },
+      { id: "p", label: "Pacote P", whatsappLabel: "Pacote P", price: 15.9, maxOptions: 0, available: true },
+      { id: "m", label: "Pacote M", whatsappLabel: "Pacote M", price: 18.9, maxOptions: 0, available: true },
+      { id: "g", label: "Pacote G", whatsappLabel: "Pacote G", price: 20.9, maxOptions: 0, available: true },
+    ],
+    options: [],
+  },
+  {
+    id: "trufada-pacoca", kind: "popcorn", category: "Pipocas Trufadas",
+    name: "Paçoca", available: true,
+    image: "/images/pipocas-trufadas-pacoca-20261101.webp", imageAlt: "Pacote com zíper de Pipocas Trufadas Paçoca",
+    variants: [
+      { id: "p", label: "Pacote P", whatsappLabel: "Pacote P", price: 14.9, maxOptions: 0, available: true },
+      { id: "m", label: "Pacote M", whatsappLabel: "Pacote M", price: 16.9, maxOptions: 0, available: true },
+      { id: "g", label: "Pacote G", whatsappLabel: "Pacote G", price: 18.9, maxOptions: 0, available: true },
+    ],
+    options: [],
+  },
+  {
+    id: "trufada-coco-queimado", kind: "popcorn", category: "Pipocas Trufadas",
+    name: "Coco Queimado", available: true,
+    image: "/images/pipocas-trufadas-coco-queimado-20261101.webp", imageAlt: "Pacote com zíper de Pipocas Trufadas Coco Queimado",
+    variants: [
+      { id: "p", label: "Pacote P", whatsappLabel: "Pacote P", price: 14.9, maxOptions: 0, available: true },
+      { id: "m", label: "Pacote M", whatsappLabel: "Pacote M", price: 16.9, maxOptions: 0, available: true },
+      { id: "g", label: "Pacote G", whatsappLabel: "Pacote G", price: 18.9, maxOptions: 0, available: true },
+    ],
     options: [],
   },
   {
     id: "crocante-chocolate", kind: "popcorn", category: "Pipocas Trufadas",
-    name: "Caramelo e Chocolate", available: true,
-    image: "/images/pipocas-trufadas-chocolate.avif?v=20261017-zoom2", imageAlt: "Pacote com zíper de Pipocas Trufadas de Caramelo e Chocolate",
-    variants: [{ id: "400ml", label: "Pacote", whatsappLabel: "Pacote", price: 15.9, maxOptions: 0, available: true }],
+    name: "Caramelo e Chocolate", available: false,
+    image: "/images/pipocas-trufadas-chocolate.avif?v=20261017-zoom2", imageAlt: "Pacote historico de Caramelo e Chocolate",
+    variants: [{ id: "400ml", label: "Pacote antigo", whatsappLabel: "Pacote", price: 15.9, maxOptions: 0, available: false, retired: true }],
     options: [],
   },
   {
