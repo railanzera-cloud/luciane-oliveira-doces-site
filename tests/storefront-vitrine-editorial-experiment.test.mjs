@@ -258,7 +258,7 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes('setShowLimitedCupView(requestedCategory === "pipocas" && window.history.state?.lucianeCrocante === true)'));
   assert.ok(!page.includes('href="#potes-recheados"'));
   assert.ok(page.includes("A partir de R$ 14,90"));
-  assert.ok(page.includes("Pacote com zíper"));
+  assert.ok(page.includes("Pacotes P, M e G"));
   assert.ok(!page.includes("190 g"));
   assert.ok(page.includes("/images/pipocas-trufadas-ninho-20261101.webp"));
   assert.ok(page.includes("/images/pipocas-trufadas-pacoca-20261101.webp"));
