@@ -18,6 +18,6 @@ test("loja e estoque continuam substituindo datas promocionais",()=>{
 });
 test("atalho de Gourmet não compete com a escolha de Trufadas",()=>{
   assert.match(page,/onClick=\{\(\) => selectCategory\("pipocas"\)\}/);
-  assert.match(page,/Prefere os potes recheados\?/);
+  assert.match(page,/<span>Pipocas Gourmet<\/span>/);
   assert.match(css,/\.limited-cup-duo-item\.is-selected/);
 });
