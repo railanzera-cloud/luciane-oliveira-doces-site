@@ -8,8 +8,8 @@ const migration=readFileSync("supabase/migrations/20261101160000_trufadas_pmg_no
 test("Admin: nove pacotes agrupados logicamente por sabor e tamanho",()=>{
   assert.match(admin,/TRUFADAS_VARIANTS/);
   assert.match(admin,/TRUFADAS_SIZES/);
-  assert.match(admin,/admin_get_crocante_inventory/);
-  assert.match(admin,/admin_set_crocante_inventory/);
+  assert.match(admin,/admin_get_trufadas_pmg_inventory/);
+  assert.match(admin,/admin_set_trufadas_pmg_inventory/);
   assert.match(admin,/p_version: row.version/);
   assert.match(admin,/p_item_key: row.item_key/);
   assert.match(admin,/p_enabled: draft.enabled/);
