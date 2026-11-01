@@ -136,6 +136,7 @@ on:
       - supabase/migrations/20261031110500_chocolate_morango_24_fatias.sql
       - ESTADO_ATUAL_VITRINE.md
       # Todos os testes da vitrine ativam a CI; evita checkpoint sem ZIP.
+      - 'scripts/package-cloudflare.mjs'
       - 'tests/*.test.mjs'
       - tsconfig.boutique.json
       - .github/workflows/design-boutique-preview.yml
