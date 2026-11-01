@@ -205,7 +205,7 @@ test("v8 remove foco azul programático apenas dos títulos e acomoda viewport c
   assert.ok(css.includes('border-color: rgba(208, 149, 94, .30)'));
   assert.ok(page.includes('onClick={returnToCategories}'));
   assert.ok(page.includes('onClick={openLimitedCupEdition}>Conhecer Trufadas'));
-  assert.ok(page.includes('R$ 15,90'));
+  assert.ok(page.includes('A partir de R$ 14,90'));
 });
 
 test("v7 nomeia lançamento Pipocas Trufadas e dá saída clara em todos os caminhos", () => {
@@ -243,11 +243,11 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes('id="tamanhos"'));
   assert.ok(page.includes('onClick={() => selectCategory("pipocas")}')); 
   assert.ok(page.includes('<span>Prefere os potes recheados?</span>'));
-  assert.ok(page.includes('Escolha um dos sabores para conhecer os detalhes.'));
+  assert.ok(page.includes('Selecione um dos três sabores para ver os tamanhos e os preços.'));
   assert.ok(page.includes("Conhecer os sabores"));
   assert.ok(!page.includes('className="limited-cup-story-primary"'));
-  assert.ok(page.includes('aria-pressed={cupFlavorPreview === "ninho"}'));
-  assert.ok(page.includes('aria-pressed={cupFlavorPreview === "chocolate"}'));
+  assert.ok(page.includes('aria-pressed={selected}'));
+  assert.ok(page.includes('aria-pressed={cupSizeId === size}'));
   assert.ok(page.includes('className="limited-cup-teaser-cta"'));
   assert.ok(page.includes('(!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen))'));
   assert.ok(page.includes('setShowLimitedCupView(false);\n    setBuilderEngaged(true);'));
@@ -256,11 +256,12 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes('setRequestedCategory(category);'));
   assert.ok(page.includes('setShowLimitedCupView(requestedCategory === "pipocas" && window.history.state?.lucianeCrocante === true)'));
   assert.ok(!page.includes('href="#potes-recheados"'));
-  assert.ok(page.includes("R$ 15,90"));
+  assert.ok(page.includes("A partir de R$ 14,90"));
   assert.ok(page.includes("Pacote com zíper"));
   assert.ok(!page.includes("190 g"));
-  assert.ok(page.includes("/images/pipocas-trufadas-ninho.avif"));
-  assert.ok(page.includes("/images/pipocas-trufadas-chocolate.avif"));
+  assert.ok(page.includes("/images/pipocas-trufadas-ninho-20261101.webp"));
+  assert.ok(page.includes("/images/pipocas-trufadas-pacoca-20261101.webp"));
+  assert.ok(catalog.includes("/images/pipocas-trufadas-coco-queimado-20261101.webp"));
   assert.ok(!page.includes("edicao-crocante-copos-reais.webp"));
   assert.ok(css.includes(".limited-cup-flavor-hint"));
   assert.ok(css.includes(".limited-cup-story-footer > button:focus-visible"));
@@ -311,6 +312,9 @@ test("fotografias comerciais aprovadas sempre acompanham o codigo e o ZIP do Clo
     "edicao-crocante-ninho.webp",
     "edicao-crocante-chocolate.webp",
     "edicao-crocante-textura.webp",
+    "pipocas-trufadas-ninho-20261101.webp",
+    "pipocas-trufadas-pacoca-20261101.webp",
+    "pipocas-trufadas-coco-queimado-20261101.webp",
   ];
   for (const name of names) {
     const data = await readFile(new URL(`../public/images/${name}`, import.meta.url));
@@ -321,8 +325,8 @@ test("fotografias comerciais aprovadas sempre acompanham o codigo e o ZIP do Clo
   assert.ok(page.includes("/images/categoria-fatias-editorial.webp"));
   assert.ok(page.includes("/images/categoria-pipocas-editorial-enquadrada-v107.webp"));
   assert.ok(page.includes("/images/categoria-pipocas-editorial.webp"));
-  assert.ok(page.includes("/images/pipocas-trufadas-ninho.avif"));
-  assert.ok(page.includes("/images/pipocas-trufadas-chocolate.avif"));
+  assert.ok(page.includes("/images/pipocas-trufadas-ninho-20261101.webp"));
+  assert.ok(page.includes("/images/pipocas-trufadas-pacoca-20261101.webp"));
 });
 
 test("v107: fotografia e enquadramento preservados na liberação operacional", async () => {
