@@ -71,7 +71,7 @@ export function AdminTrufadasStock({ onChanged }: { onChanged?: () => Promise<vo
     setLoading(true);
     setError("");
     try {
-      const { data, error: rpcError } = await client.rpc("admin_get_crocante_inventory");
+      const { data, error: rpcError } = await client.rpc("admin_get_trufadas_pmg_inventory");
       if (rpcError) throw rpcError;
       applyRows(validatedRows(data));
     } catch (cause) {
@@ -103,7 +103,7 @@ export function AdminTrufadasStock({ onChanged }: { onChanged?: () => Promise<vo
     setError("");
     setNotice("");
     try {
-      const { data, error: rpcError } = await client.rpc("admin_set_crocante_inventory", {
+      const { data, error: rpcError } = await client.rpc("admin_set_trufadas_pmg_inventory", {
         p_item_key: row.item_key,
         p_total: total,
         p_version: row.version,
