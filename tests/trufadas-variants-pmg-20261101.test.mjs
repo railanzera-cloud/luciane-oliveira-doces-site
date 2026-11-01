@@ -3,7 +3,6 @@ import test from "node:test";
 import {
   TRUFADAS_ACTIVE_ITEM_KEYS,
   TRUFADAS_LEGACY,
-  TRUFADAS_RELEASE_ENABLED,
   TRUFADAS_SIZES,
   TRUFADAS_VARIANTS,
   getTrufadaVariant,
@@ -31,8 +30,7 @@ test("Trufadas PMG: cada combinacao tem chave de estoque unica e nao legada", ()
   assert.equal(TRUFADAS_LEGACY["crocante-chocolate"].retiredFromNewSales, true);
 });
 
-test("Trufadas PMG: nenhum produto novo e liberado nesta preparacao", () => {
-  assert.equal(TRUFADAS_RELEASE_ENABLED, false);
+test("Trufadas PMG: rejeita legado e variantes inválidas na cotação nova", () => {
   assert.equal(getTrufadaVariant("trufada-pacoca", "400ml"), null);
   assert.equal(getTrufadaVariant("crocante-chocolate", "p"), null);
   assert.equal(getTrufadaVariant("__proto__", "p"), null);
