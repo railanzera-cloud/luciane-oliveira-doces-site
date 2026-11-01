@@ -1,3 +1,52 @@
+# Expansão Trufadas P/M/G — 01/11/2026 — CHECKPOINT EM HOMOLOGAÇÃO
+
+**NÃO PUBLICAR / NÃO MIGRAR PRODUÇÃO / NÃO MESCLAR NA MAIN.**
+
+Branch de trabalho: `work/trufadas-variantes-pmg-20261101`, originada de
+`work/homologacao-followup-assistido-20261031` em
+`ad2e7e0de0b0ff6f44473368c355a9f2b3045b57`.
+PR draft de revisão: https://github.com/railanzera-cloud/luciane-oliveira-doces-site/pull/4
+HEAD atual deve ser consultado no remoto antes de continuar.
+
+IMPLEMENTADO NO CÓDIGO: catálogo de Trufadas Ninho, Paçoca e Coco Queimado
+nos tamanhos P/M/G, preços em centavos no backend e frontend, nove chaves
+de disponibilidade, carrinho conferindo o SKU exato, interface mobile,
+painel com nove estoques individuais, preservação dos IDs antigos e
+Chocolate retirado da seleção nova. Migration
+`20261101160000_trufadas_pmg_nove_skus_20261101.sql`
+preparada **não aplicada**, com estoque inicial zero/desativado.
+
+IMPEDIMENTO VERIFICADO: os três WebP novos ainda NÃO estão commitados em
+`public/images/`. O catálogo e a vitrine apontam para esses caminhos; a
+suíte completa só falha no teste que exige fotografias aprovadas dentro
+do checkout do repositório. Não retirar a proteção do teste.
+As imagens aprovadas estão em um ZIP isolado de ativos
+`LUCIANE-TRUFADAS-ATIVOS-APROVADOS-20261101.zip`
+no artefato desta conversa; NÃO é pacote Cloudflare. Integrar os WebP
+exatamente nos caminhos especificados, versionar e reexecutar CI.
+A foto `fatia-coco-cremoso-morango.webp` tem referência de cartão
+`fatia-coco-cremoso-morango-card.webp` agora explícita no catálogo.
+
+RESULTADO CI: build e TypeScript OK nas execuções mais recentes. Última
+falha funcional residual vista em `41323761750`: arquivo WebP aprovado
+ausente do GitHub; demais testes funcionais executados passaram
+nesse SHA. Novo HEAD deve repetir os testes após integração.
+Não foram feitos testes reais em iPhone físico, QZ Tray, impressão, Pix,
+Webhook ou transações de produção.
+
+RISCOS AINDA ABERTOS: branches paralelas de Últimas Fatias
+`feature/ultimas-fatias-refino-mobile-20261031` e diagnóstico QZ
+`fix/cozinha-reimpressao-e-diagnostico-20261031` divergem da linha
+CRM. Reconciliar diffs antes do ZIP final; não perder alterações
+validadas. Exige homologação de concorrência da migração com PostgreSQL
+isolado, com guarda dos nove SKUs, locks, baixa, cancelamento e estoque
+recontado. Consultar deploy Cloudflare ativo por evidência antes de
+publicar. Quantidade física de cada P/M/G depende da Luciane.
+Gramagens M e G não confirmadas. "Cocada" 187 g informada no chat
+não equivale automaticamente a "Coco Queimado" no catálogo.
+
+---
+
 # Homologação final do follow-up assistido — 31/10/2026
 
 **Não aplicar a migration original isoladamente e não publicar ainda o ZIP.**
