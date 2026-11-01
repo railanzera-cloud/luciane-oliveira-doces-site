@@ -118,6 +118,10 @@ on:
       - supabase/migrations/20261016224500_admin_sales_summary_v1.sql
       - docs/RESULTADOS-RESTAURACAO-PACOTES-20261017.md
       - 'public/images/pipocas-trufadas-*.avif'
+      - 'public/images/pipocas-trufadas-*.webp'
+      - 'public/fatia-coco-cremoso-morango.webp'
+      - 'public/fatia-coco-cremoso-morango-card.webp'
+      - 'supabase/migrations/20261101160000_trufadas_pmg_nove_skus_20261101.sql'
       - supabase/functions/create-whatsapp-order/index.ts
       - supabase/functions/_shared/commerce-catalog.mjs
       - supabase/migrations/20261014190000_crocantes_lancamento.sql
