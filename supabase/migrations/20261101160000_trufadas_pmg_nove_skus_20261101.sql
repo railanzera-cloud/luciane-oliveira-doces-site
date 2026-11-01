@@ -46,9 +46,59 @@ ON CONFLICT (item_key) DO NOTHING;
 UPDATE public.menu_availability SET status='hidden'::public.item_status, updated_at=now()
 WHERE item_key='crocante_copo_chocolate' AND item_type='product';
 
--- Amplia somente a guarda de identificadores conhecidos; mantem locks,
--- RLS staff, reservas, conflito de versao e prevencao de overbooking.
-CREATE OR REPLACE FUNCTION public.admin_set_crocante_inventory(p_item_key text, p_total integer, p_version bigint, p_enabled boolean)
+-- Backward-compatible RPC strategy: the legacy panel expects EXACTLY TWO
+-- inventory rows. Keep its existing getter/setter contracts even after adding 9.
+-- The new panel calls separate, staff-guarded, versioned RPCs.
+CREATE OR REPLACE FUNCTION public.admin_get_crocante_inventory()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'auth', 'pg_temp'
+AS $function$
+BEGIN
+ PERFORM public.lod_require_authenticated_staff();
+ RETURN (
+  SELECT coalesce(jsonb_agg(jsonb_build_object(
+   'item_key',inv.item_key, 'total',inv.total_stock, 'enabled',inv.is_enabled,
+   'version',inv.version,
+   'reserved',public.lod_crocante_active_reserved(inv.item_key),
+   'available',CASE WHEN inv.is_enabled THEN greatest(
+       inv.total_stock-public.lod_crocante_active_reserved(inv.item_key),0
+     ) ELSE 0 END,
+   'shortages',(SELECT count(*)::integer FROM public.crocante_inventory_holds h
+       WHERE h.item_key=inv.item_key AND h.state='shortage')
+  ) ORDER BY inv.item_key),'[]'::jsonb)
+  FROM public.crocante_inventory inv
+  WHERE inv.item_key IN ('crocante_copo_ninho','crocante_copo_chocolate')
+ );
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.admin_get_trufadas_pmg_inventory()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'auth', 'pg_temp'
+AS $function$
+BEGIN
+ PERFORM public.lod_require_authenticated_staff();
+ RETURN (
+  SELECT coalesce(jsonb_agg(jsonb_build_object(
+   'item_key',inv.item_key, 'total',inv.total_stock, 'enabled',inv.is_enabled,
+   'version',inv.version,
+   'reserved',public.lod_crocante_active_reserved(inv.item_key),
+   'available',CASE WHEN inv.is_enabled THEN greatest(
+       inv.total_stock-public.lod_crocante_active_reserved(inv.item_key),0
+     ) ELSE 0 END,
+   'shortages',(SELECT count(*)::integer FROM public.crocante_inventory_holds h
+       WHERE h.item_key=inv.item_key AND h.state='shortage')
+  ) ORDER BY inv.item_key),'[]'::jsonb)
+  FROM public.crocante_inventory inv
+ );
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.admin_set_trufadas_pmg_inventory(p_item_key text, p_total integer, p_version bigint, p_enabled boolean)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -93,10 +143,19 @@ BEGIN
      updated_at=now()
  WHERE item_key=p_item_key AND item_type='product';
 
- RETURN public.admin_get_crocante_inventory();
+ RETURN public.admin_get_trufadas_pmg_inventory();
 END;
 $function$;
 
+-- No anonymous access to the new SECURITY DEFINER RPCs. Their bodies also
+-- require lod_require_authenticated_staff() and optimistic version checks.
+REVOKE ALL ON FUNCTION public.admin_get_trufadas_pmg_inventory() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.admin_set_trufadas_pmg_inventory(text,integer,bigint,boolean) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_get_trufadas_pmg_inventory() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_set_trufadas_pmg_inventory(text,integer,bigint,boolean) TO authenticated;
+
+-- Extend the existing inventory-row lock trigger without replacing accounting
+-- or altering historical Ninho/Chocolate holds.
 CREATE OR REPLACE FUNCTION public.lod_hold_crocante_on_item_insert()
  RETURNS trigger
  LANGUAGE plpgsql
