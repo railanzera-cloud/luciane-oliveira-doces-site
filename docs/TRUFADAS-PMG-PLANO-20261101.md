@@ -2,8 +2,10 @@
 
 ## Estado desta intervenção
 Contrato comercial preparado em `supabase/functions/_shared/trufadas-variants.mjs`.
-**Ainda não integrado ao frontend/backend; não liberado para vendas.**
-Flag de preparação `TRUFADAS_RELEASE_ENABLED=false`.
+**Integrado ao frontend/backend na branch; não liberado em produção.**
+A venda é bloqueada por estoque indisponível/sem validação e por menu_availability.
+Não existe flag de liberação inerte: exige migração, aprovação da CI, validação
+de imagens e registro de estoque físico antes do lançamento.
 Não alterar produção, main, Cloudflare ou migrar dados com esta etapa.
 
 Base: `work/homologacao-followup-assistido-20261031`, commit `ad2e7e0de0b0ff6f44473368c355a9f2b3045b57`.
