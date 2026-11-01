@@ -503,8 +503,8 @@ export default function Home() {
   const cupPhase: LimitedCupPhase = getLimitedCupPhase(
     availability.ordersOpen,
     availability.source === "supabase" && isItemAvailable(availability, CATEGORY_ITEM_KEYS.pipocas)
-      && availability.stockChecked && TRUFADA_STOCK_ITEM_KEYS.some((key) => isItemAvailable(availability, key)),
-    availability.source === "supabase" && availability.stockChecked && TRUFADA_STOCK_ITEM_KEYS.every((key) => statusFor(availability, key) === "sold_out"),
+      && availability.stockChecked && TRUFADA_STOCK_ITEM_KEYS.some((key: string) => isItemAvailable(availability, key)),
+    availability.source === "supabase" && availability.stockChecked && TRUFADA_STOCK_ITEM_KEYS.every((key: string) => statusFor(availability, key) === "sold_out"),
   );
   const [cupFlavorPreview, setCupFlavorPreview] = useState<TrufadaProductId | null>(null);
   const [cupSizeId, setCupSizeId] = useState<TrufadaSizeId | null>(null);
