@@ -38,7 +38,29 @@ END;
 $$;
 SELECT set_config('lod.test.staff','yes',false);
 
--- API antiga continua retornando dois registros, sem quebrar rollback.\nSELECT set_config('lod.test.staff','yes',false);\nDO $\nDECLARE old_count integer; new_count integer;\nBEGIN\n SELECT jsonb_array_length(public.admin_get_crocante_inventory()) INTO old_count;\n SELECT jsonb_array_length(public.admin_get_trufadas_pmg_inventory()) INTO new_count;\n IF old_count<>2 OR new_count<>11 THEN\n   RAISE EXCEPTION 'Versioned RPC regression: old % new %',old_count,new_count;\n END IF;\n IF has_function_privilege('anon','public.admin_get_trufadas_pmg_inventory()','EXECUTE') THEN\n   RAISE EXCEPTION 'Anonymous PMG getter exposed';\n END IF;\n IF has_function_privilege('anon','public.admin_set_trufadas_pmg_inventory(text,integer,bigint,boolean)','EXECUTE') THEN\n   RAISE EXCEPTION 'Anonymous PMG setter exposed';\n END IF;\n IF NOT has_function_privilege('authenticated','public.admin_get_trufadas_pmg_inventory()','EXECUTE') THEN\n   RAISE EXCEPTION 'Authenticated PMG getter unavailable';\n END IF;\nEND;\n$;\n\n-- Administrador configura dois SKUs sem tocar nos outros 7 ou nos IDs antigos.
+-- API antiga continua retornando dois registros, sem quebrar rollback.
+SELECT set_config('lod.test.staff','yes',false);
+DO $
+DECLARE old_count integer; new_count integer;
+BEGIN
+ SELECT jsonb_array_length(public.admin_get_crocante_inventory()) INTO old_count;
+ SELECT jsonb_array_length(public.admin_get_trufadas_pmg_inventory()) INTO new_count;
+ IF old_count<>2 OR new_count<>11 THEN
+   RAISE EXCEPTION 'Versioned RPC regression: old % new %',old_count,new_count;
+ END IF;
+ IF has_function_privilege('anon','public.admin_get_trufadas_pmg_inventory()','EXECUTE') THEN
+   RAISE EXCEPTION 'Anonymous PMG getter exposed';
+ END IF;
+ IF has_function_privilege('anon','public.admin_set_trufadas_pmg_inventory(text,integer,bigint,boolean)','EXECUTE') THEN
+   RAISE EXCEPTION 'Anonymous PMG setter exposed';
+ END IF;
+ IF NOT has_function_privilege('authenticated','public.admin_get_trufadas_pmg_inventory()','EXECUTE') THEN
+   RAISE EXCEPTION 'Authenticated PMG getter unavailable';
+ END IF;
+END;
+$;
+
+-- Administrador configura dois SKUs sem tocar nos outros 7 ou nos IDs antigos.
 SELECT public.admin_set_trufadas_pmg_inventory('trufada_pacoca_p',3,1,true);
 SELECT public.admin_set_trufadas_pmg_inventory('trufada_ninho_g',2,1,true);
 DO $$
