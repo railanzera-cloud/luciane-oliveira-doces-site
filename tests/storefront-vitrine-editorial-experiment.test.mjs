@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
-const [page,layout,css] = await Promise.all([
+const [page,layout,css,catalog] = await Promise.all([
   readFile(new URL("../app/page.tsx",import.meta.url),"utf8"),
   readFile(new URL("../app/layout.tsx",import.meta.url),"utf8"),
   readFile(new URL("../app/storefront-vitrine-editorial-experiment.css",import.meta.url),"utf8"),
+  readFile(new URL("../app/catalog.ts",import.meta.url),"utf8"),
 ]);
 // As asserções editoriais históricas param antes da camada de acabamento
 // de conversão, que foi explicitamente autorizada depois.
