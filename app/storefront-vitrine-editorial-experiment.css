@@ -2960,181 +2960,395 @@
 
 
 /*
- * Trufadas — configurador guiado (02/11/2026).
- * Escopo intencionalmente isolado da vitrine inicial e das outras categorias.
- * Etapas com feedback visual, fotos reais preservadas e controles táteis.
+ * TRUFADAS — Edição imersiva 02/11/2026.
+ * Só o configurador interno: fotografia fiel, escolhas progressivas,
+ * superfícies com profundidade e movimentos sem loops.
+ * Não alterar a vitrine inicial / Gourmet / Fatias.
  */
-.storefront #configurador.is-cup-discovery .limited-cup-flow-progress {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 7px;
-  padding: 12px 13px;
-  border-bottom: 1px solid rgba(239, 186, 126, .22);
-  background: linear-gradient(118deg, #402619, #291811 72%);
+@keyframes trufadas-enter {
+  from { opacity: .25; transform: translate3d(0, 14px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
-.storefront #configurador.is-cup-discovery .limited-cup-flow-step {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  border: 1px solid transparent;
-  border-radius: 11px;
-  padding: 9px 5px;
-  color: #bca38d;
-  font-size: .73rem;
-  font-weight: 650;
-  line-height: 1.2;
-  white-space: nowrap;
-  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+@keyframes trufadas-stage-reveal {
+  from { opacity: .2; transform: translate3d(0, 13px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
-.storefront #configurador.is-cup-discovery .limited-cup-flow-step b {
-  display: inline-grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  border: 1px solid rgba(231, 176, 122, .35);
-  color: #cdb39a;
-  font-size: .68rem;
-  font-variant-numeric: tabular-nums;
+@keyframes trufadas-size-select {
+  0% { transform: scale(.965); }
+  65% { transform: scale(1.014); }
+  100% { transform: scale(1); }
 }
-.storefront #configurador.is-cup-discovery .limited-cup-flow-step[data-state="current"] {
-  color: #ffe4bf;
-  background: rgba(183, 107, 59, .22);
-  border-color: rgba(239, 184, 118, .68);
-  box-shadow: inset 0 1px rgba(255, 228, 187, .14);
+.storefront #configurador.is-cup-discovery .limited-cup-story {
+  animation: trufadas-enter 420ms cubic-bezier(.2,.76,.24,1) both;
+  border-color: rgba(229,183,127,.6);
+  background: #24140f;
+  box-shadow: 0 18px 38px rgba(15,5,2,.28), inset 0 1px rgba(255,226,174,.16);
 }
-.storefront #configurador.is-cup-discovery .limited-cup-flow-step[data-state="current"] b {
-  background: #edbd82;
-  border-color: #edbd82;
-  color: #29180f;
+.storefront #configurador.is-cup-discovery .v7-navigation-edition {
+  padding: 11px 14px 9px;
+  background: linear-gradient(110deg, #3b2318, #2b1913);
+  border-bottom: 1px solid rgba(237,183,120,.17);
 }
-.storefront #configurador.is-cup-discovery .limited-cup-flow-step[data-state="complete"] {
-  color: #e8c79f;
+.storefront #configurador.is-cup-discovery .v7-navigation-edition button {
+  color: #f5cda2;
+  min-height: 40px;
+  border-radius: 10px;
+  padding: 8px 10px;
 }
-.storefront #configurador.is-cup-discovery .limited-cup-flow-step[data-state="complete"] b {
-  background: rgba(217, 155, 91, .18);
-  border-color: #dbab74;
-  color: #ffe4b7;
+.storefront #configurador.is-cup-discovery .v7-navigation-edition button:active {
+  background: rgba(236,178,116,.16);
+  transform: scale(.985);
 }
 .storefront #configurador.is-cup-discovery .limited-cup-selection-heading {
-  grid-template-columns: minmax(0, 1fr);
-  padding: 14px 15px 8px;
-  gap: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 5px 12px;
+  padding: 19px clamp(15px, 4vw, 27px) 13px;
+  background: linear-gradient(162deg,#2d1a13,#261610);
+  scroll-margin-top: 24px;
 }
 .storefront #configurador.is-cup-discovery .limited-cup-selection-heading > span {
-  letter-spacing: .075em;
+  color: #ffe6c6;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.18rem, 4.3vw, 1.57rem);
+  font-weight: 500;
+  letter-spacing: -.02em;
+  line-height: 1.18;
+  text-transform: none;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-selection-heading > small {
+  color: #d4b595;
+  font-size: .72rem;
+  font-weight: 520;
   line-height: 1.35;
+  letter-spacing: .012em;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-selection-heading[data-editorial-navigation-focus="pointer"]:focus {
+  outline: none;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-selection-heading[data-editorial-navigation-focus="keyboard"]:focus {
+  outline: 3px solid #f3c68e;
+  outline-offset: -3px;
 }
 .storefront #configurador.is-cup-discovery .limited-cup-duo.is-trio {
-  padding-top: 4px;
+  background: linear-gradient(180deg,#2d1a13,#291811);
+  padding: 2px clamp(10px, 3vw, 20px) 17px;
+  gap: clamp(7px, 1.7vw, 14px);
 }
 .storefront #configurador.is-cup-discovery .limited-cup-duo.is-trio .limited-cup-duo-item {
-  border-color: rgba(238, 192, 143, .49);
-  box-shadow: inset 0 1px rgba(255, 244, 222, .14), 0 4px 11px rgba(15, 6, 3, .14);
-  transition: border-color 180ms ease, box-shadow 180ms ease, transform 160ms ease, filter 160ms ease;
+  border: 1px solid rgba(245,204,161,.4);
+  border-radius: 18px;
+  box-shadow: inset 0 1px rgba(255,243,215,.18), 0 9px 17px rgba(15,6,2,.19);
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform 170ms ease, filter 170ms ease;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-duo.is-trio .limited-cup-duo-item::before {
+  background: linear-gradient(0deg,rgba(23,9,5,.96),rgba(29,13,7,.62) 19%,rgba(33,16,9,.04) 56%,rgba(39,21,12,.05));
 }
 .storefront #configurador.is-cup-discovery .limited-cup-duo.is-trio .limited-cup-duo-item.is-selected {
-  border-color: #ffe3b6;
-  box-shadow: 0 0 0 2px #e7b477, 0 0 0 4px rgba(231, 180, 119, .18), 0 8px 19px rgba(17, 6, 3, .28);
+  border-color: #ffdfa9;
+  box-shadow: inset 0 1px rgba(255,244,218,.36), 0 0 0 2px #eab879, 0 0 0 4px rgba(222,162,94,.13), 0 12px 23px rgba(16,6,2,.35);
 }
 .storefront #configurador.is-cup-discovery .limited-cup-duo-disclosure {
-  transition: background-color 170ms ease, border-color 170ms ease, transform 170ms ease;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
 }
 .storefront #configurador.is-cup-discovery .limited-cup-duo.is-trio .limited-cup-duo-item:active:not(:disabled) {
-  transform: scale(.974);
+  transform: scale(.97);
 }
 .storefront #configurador.is-cup-discovery .limited-cup-duo.is-trio .limited-cup-duo-item:active:not(:disabled) .limited-cup-duo-disclosure {
   transform: translateY(1px);
 }
+
+/* Tamanhos surgem apenas após a escolha do sabor. */
 .storefront #configurador.is-cup-discovery .limited-cup-size-section {
-  margin-top: 12px;
+  margin-top: 0;
+  padding: 19px clamp(16px, 4vw, 28px) 22px;
+  scroll-margin-top: 20px;
+  border-top: 1px solid rgba(236,186,129,.24);
+  background:
+    radial-gradient(ellipse at 85% 4%, rgba(183,106,53,.16), transparent 65%),
+    linear-gradient(155deg, #322017, #271711 90%);
+  animation: trufadas-stage-reveal 330ms cubic-bezier(.18,.68,.22,1) both;
 }
-.storefront #configurador.is-cup-discovery .limited-cup-size-option:not(:disabled) {
-  transition: background-color 170ms ease, border-color 170ms ease, box-shadow 170ms ease, transform 140ms ease;
+.storefront #configurador.is-cup-discovery .limited-cup-size-intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
 }
-.storefront #configurador.is-cup-discovery .limited-cup-size-option:active:not(:disabled) {
-  transform: scale(.97);
+.storefront #configurador.is-cup-discovery .limited-cup-size-intro h2 {
+  margin: 0;
+  color: #ffe4bf;
+  font: 500 clamp(1.14rem,4.2vw,1.48rem)/1.19 Georgia,"Times New Roman",serif;
+  letter-spacing: -.015em;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-selected-flavor {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(238,190,130,.46);
+  background: rgba(127,74,41,.27);
+  color: #f6d4a9;
+  font-size: .72rem;
+  font-weight: 675;
+  white-space: nowrap;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-size-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: clamp(8px,2vw,14px);
+  margin-top: 15px;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-size-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  isolation: isolate;
+  gap: 7px;
+  min-width: 0;
+  min-height: 125px;
+  padding: 16px 7px 12px;
+  border: 1px solid rgba(220,169,119,.45);
+  border-radius: 17px;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(208,140,82,.11),transparent 68%),
+    linear-gradient(150deg, #38231b 0%, #2c1b16 75%, #291914 100%);
+  color: #ffe9ce;
+  box-shadow: inset 0 1px 0 rgba(255,222,183,.18), inset 0 -2px 0 rgba(14,5,2,.22), 0 8px 16px rgba(17,7,3,.13);
+  transform: translateZ(0);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 160ms cubic-bezier(.2,.7,.3,1), border-color 180ms ease, box-shadow 180ms ease, background 200ms ease;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-size-option::before {
+  content: "";
+  position: absolute;
+  inset: 1px 1px auto;
+  height: 38%;
+  border-radius: inherit;
+  background: linear-gradient(180deg,rgba(255,242,216,.055),transparent);
+  pointer-events: none;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-size-letter {
+  display: block;
+  color: #ffe5bf;
+  font: 500 clamp(1.7rem,6.2vw,2.25rem)/1 Georgia,"Times New Roman",serif;
+  text-shadow: 0 2px 9px rgba(0,0,0,.23);
+}
+.storefront #configurador.is-cup-discovery .limited-cup-size-option .limited-cup-size-price {
+  display: block;
+  color: #f4d0a4;
+  font-size: clamp(.85rem, 3vw, 1.12rem);
+  font-weight: 730;
+  line-height: 1.15;
+  letter-spacing: -.015em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-size-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 16px;
+  color: #d6b291;
+  font-size: clamp(.62rem,2.2vw,.72rem);
+  line-height: 1.2;
+  font-weight: 560;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-size-status.is-picked {
+  color: #fff1d4;
+  font-weight: 770;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-size-status.is-unavailable {
+  color: #d8b3a1;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-size-check {
+  position: absolute;
+  z-index: 2;
+  top: 7px;
+  right: 7px;
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  border: 1px solid rgba(255,238,203,.65);
+  border-radius: 50%;
+  background: linear-gradient(140deg,#ffe4b5,#d9a46d);
+  color: #382115;
+  box-shadow: 0 3px 10px rgba(17,5,2,.21), inset 0 1px rgba(255,255,235,.5);
+  opacity: 0;
+  transform: scale(.55);
+  transition: opacity 170ms ease, transform 170ms ease;
 }
 .storefront #configurador.is-cup-discovery .limited-cup-size-option[aria-pressed="true"] {
-  border-color: #fbd19b;
-  background: linear-gradient(145deg, rgba(189, 114, 60, .33), rgba(106, 58, 33, .45));
-  box-shadow: inset 0 1px rgba(255, 226, 184, .20), 0 0 0 1px #f0b879, 0 7px 18px rgba(21, 7, 3, .17);
+  border-color: #ffdda6;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(239,179,105,.28), transparent 67%),
+    linear-gradient(155deg,#684027 0%,#4a2b1e 64%,#3c251b 100%);
+  box-shadow: inset 0 1px rgba(255,241,200,.36), inset 0 -2px rgba(36,15,6,.27), 0 0 0 2px #dba265, 0 0 0 4px rgba(229,166,95,.15), 0 12px 23px rgba(20,7,2,.29);
+  animation: trufadas-size-select 250ms cubic-bezier(.16,.7,.27,1) both;
 }
-.storefront #configurador.is-cup-discovery .limited-cup-story-bottom {
-  padding-top: 10px;
+.storefront #configurador.is-cup-discovery .limited-cup-size-option[aria-pressed="true"] .limited-cup-size-letter {
+  color: #fff2d8;
+  text-shadow: 0 2px 11px rgba(245,187,122,.26);
 }
-.storefront #configurador.is-cup-discovery .limited-cup-buy {
-  margin-top: 9px;
-  gap: 10px;
-  padding: 14px;
+.storefront #configurador.is-cup-discovery .limited-cup-size-option[aria-pressed="true"] .limited-cup-size-price {
+  color: #ffe3b4;
 }
-.storefront #configurador.is-cup-discovery .limited-cup-buy-heading strong {
-  letter-spacing: .072em;
+.storefront #configurador.is-cup-discovery .limited-cup-size-option[aria-pressed="true"] .limited-cup-size-check {
+  opacity: 1;
+  transform: scale(1);
 }
-.storefront #configurador.is-cup-discovery .limited-cup-buy-actions .mini-quantity button:not(:disabled) {
-  transition: background-color 150ms ease, color 150ms ease, transform 120ms ease;
+.storefront #configurador.is-cup-discovery .limited-cup-size-option:active:not(:disabled) {
+  transform: scale(.965);
 }
-.storefront #configurador.is-cup-discovery .limited-cup-buy-actions .mini-quantity button:active:not(:disabled) {
-  background: rgba(240, 181, 116, .25);
-  transform: scale(.9);
+.storefront #configurador.is-cup-discovery .limited-cup-size-option:disabled {
+  opacity: .49;
+  cursor: not-allowed;
+  filter: saturate(.62);
+  box-shadow: inset 0 1px rgba(255,220,188,.09);
 }
-.storefront #configurador.is-cup-discovery .limited-cup-buy-cta:not(:disabled) {
-  transition: filter 160ms ease, transform 160ms ease, box-shadow 160ms ease;
-  box-shadow: inset 0 1px rgba(255, 251, 225, .74), 0 9px 23px rgba(14, 5, 2, .3);
-}
-.storefront #configurador.is-cup-discovery .limited-cup-buy-cta:focus-visible {
-  outline: 3px solid #fff0d3;
+.storefront #configurador.is-cup-discovery .limited-cup-size-option:focus-visible {
+  outline: 3px solid #ffdea5;
   outline-offset: 3px;
 }
-.storefront #configurador.is-cup-discovery .limited-cup-story-footer {
-  margin-top: 14px;
+
+/* Só após escolher o tamanho: quantidade, preço real e ação de compra. */
+.storefront #configurador.is-cup-discovery .limited-cup-story-bottom {
+  padding: 0 clamp(14px,4vw,27px) 18px;
+  background: linear-gradient(155deg,#2c1b14,#241510);
 }
-@media (hover: hover) and (pointer: fine) {
-  .storefront #configurador.is-cup-discovery .limited-cup-duo.is-trio .limited-cup-duo-item:hover:not(:disabled) {
-    border-color: #f7cb91;
-    filter: brightness(1.04);
-    transform: translateY(-2px);
+.storefront #configurador.is-cup-discovery .limited-cup-buy {
+  padding: 18px clamp(12px,3vw,22px) 17px;
+  margin-top: 0;
+  gap: 13px;
+  border-radius: 17px;
+  border-color: rgba(236,182,120,.46);
+  background:
+    radial-gradient(ellipse at 90% 0%,rgba(221,137,74,.18),transparent 62%),
+    linear-gradient(145deg,rgba(97,54,34,.68),rgba(45,25,18,.95));
+  box-shadow: inset 0 1px rgba(255,239,207,.21), 0 13px 25px rgba(12,5,2,.18);
+  animation: trufadas-stage-reveal 330ms cubic-bezier(.18,.68,.22,1) both;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-buy-heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-buy-heading strong {
+  color: #ffe3bd;
+  font: 500 1.2rem/1.2 Georgia,"Times New Roman",serif;
+  letter-spacing: -.015em;
+  text-transform: none;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-buy-heading small {
+  color: #e9c9a6;
+  font-size: .78rem;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-buy-composition {
+  align-items: end;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-quantity-label,
+.storefront #configurador.is-cup-discovery .limited-cup-buy-estimate > span {
+  color: #e7c6a0;
+  font-size: .76rem;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-buy-estimate > strong {
+  color: #ffe3b3;
+  text-shadow: 0 2px 14px rgba(245,164,88,.2);
+}
+.storefront #configurador.is-cup-discovery .limited-cup-buy-actions .mini-quantity {
+  border-color: rgba(238,184,116,.54);
+  background: rgba(26,12,7,.52);
+  box-shadow: inset 0 2px 6px rgba(11,4,2,.22);
+}
+.storefront #configurador.is-cup-discovery .limited-cup-buy-actions .mini-quantity button:active:not(:disabled) {
+  background: rgba(239,178,106,.25);
+  transform: scale(.92);
+}
+.storefront #configurador.is-cup-discovery .limited-cup-buy-cta:not(:disabled) {
+  border-color: #ffe1ae;
+  background: linear-gradient(122deg,#f8dcae 0%,#f5c68d 52%,#e6a969 100%);
+  color: #2f1b10;
+  box-shadow: inset 0 1px rgba(255,255,230,.8), 0 10px 23px rgba(13,4,2,.33);
+  transition: transform 160ms ease, filter 160ms ease, box-shadow 160ms ease;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-buy-cta:focus-visible {
+  outline: 3px solid #fff2d9;
+  outline-offset: 3px;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-stock-note[role="status"] {
+  margin-top: 2px;
+  font-size: .73rem;
+  color: #e6c3a0;
+}
+.storefront #configurador.is-cup-discovery .limited-cup-story-footer {
+  margin-top: 16px;
+  padding-top: 13px;
+  border-top: 1px solid rgba(222,164,104,.25);
+}
+@media (hover:hover) and (pointer:fine) {
+  .storefront #configurador.is-cup-discovery .limited-cup-size-option:hover:not(:disabled):not([aria-pressed="true"]) {
+    transform: translateY(-3px);
+    border-color: #e9b983;
+    box-shadow: inset 0 1px rgba(255,229,194,.23), 0 12px 22px rgba(17,5,2,.28);
   }
-  .storefront #configurador.is-cup-discovery .limited-cup-size-option:hover:not(:disabled) {
-    border-color: #f0c48d;
-    background-color: rgba(202, 134, 75, .16);
-    transform: translateY(-2px);
+  .storefront #configurador.is-cup-discovery .limited-cup-duo.is-trio .limited-cup-duo-item:hover:not(:disabled) {
+    transform: translateY(-3px);
+    filter: brightness(1.035);
+    border-color: #f5c58d;
   }
   .storefront #configurador.is-cup-discovery .limited-cup-buy-cta:hover:not(:disabled) {
-    filter: brightness(1.055);
-    box-shadow: inset 0 1px rgba(255, 251, 225, .84), 0 12px 26px rgba(14, 5, 2, .35);
+    filter: brightness(1.045);
+    transform: translateY(-1px);
+    box-shadow: inset 0 1px rgba(255,255,233,.9), 0 13px 29px rgba(13,4,2,.36);
   }
 }
-@media (max-width: 359px) {
-  .storefront #configurador.is-cup-discovery .limited-cup-flow-progress {
-    gap: 4px;
-    padding: 10px 7px;
+@media (max-width:359px) {
+  .storefront #configurador.is-cup-discovery .limited-cup-selection-heading {
+    padding-inline: 12px;
   }
-  .storefront #configurador.is-cup-discovery .limited-cup-flow-step {
-    gap: 4px;
-    font-size: .66rem;
-    padding: 8px 3px;
+  .storefront #configurador.is-cup-discovery .limited-cup-size-section {
+    padding-inline: 12px;
   }
-  .storefront #configurador.is-cup-discovery .limited-cup-flow-step b {
-    width: 22px;
-    height: 22px;
-    font-size: .62rem;
+  .storefront #configurador.is-cup-discovery .limited-cup-size-options {
+    gap: 6px;
   }
-  .storefront #configurador.is-cup-discovery .limited-cup-buy {
-    padding: 12px 10px;
+  .storefront #configurador.is-cup-discovery .limited-cup-size-option {
+    min-height: 111px;
+    padding: 14px 3px 10px;
+  }
+  .storefront #configurador.is-cup-discovery .limited-cup-size-check {
+    top: 5px;
+    right: 5px;
+    width: 19px;
+    height: 19px;
+  }
+  .storefront #configurador.is-cup-discovery .limited-cup-size-option .limited-cup-size-price {
+    font-size: .82rem;
+  }
+  .storefront #configurador.is-cup-discovery .limited-cup-size-status {
+    font-size: .6rem;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .storefront #configurador.is-cup-discovery .limited-cup-flow-step,
+  .storefront #configurador.is-cup-discovery .limited-cup-story,
+  .storefront #configurador.is-cup-discovery .limited-cup-size-section,
+  .storefront #configurador.is-cup-discovery .limited-cup-buy,
+  .storefront #configurador.is-cup-discovery .limited-cup-size-option,
   .storefront #configurador.is-cup-discovery .limited-cup-duo.is-trio .limited-cup-duo-item,
   .storefront #configurador.is-cup-discovery .limited-cup-duo-disclosure,
-  .storefront #configurador.is-cup-discovery .limited-cup-size-option,
-  .storefront #configurador.is-cup-discovery .limited-cup-buy-actions .mini-quantity button,
   .storefront #configurador.is-cup-discovery .limited-cup-buy-cta {
-    transition: none !important;
     animation: none !important;
+    transition: none !important;
   }
 }
