@@ -46,6 +46,28 @@ test("Leitinho não recebe selo de desconto e somente grupos especiais exibem ec
   assert.match(css, /gourmet-feriado-saving/);
 });
 
+test("cartões mostram Até 2/3 sabores sem backticks ou cifrões artificiais",()=>{
+  assert.match(page, /<small>Até \{variant\.maxOptions\} sabores<\/small>/);
+  assert.doesNotMatch(page, /<small>`Até \$\{variant\.maxOptions\} sabores`<\/small>/);
+  assert.match(page, /<b>\{currency\.format\(itemUnitPrice\(POPCORN, variant, popcornOptionIds, promotionTime\)\)\}<\/b>/);
+});
+
+test("Leitinho disponível exibe preço base, mas sem preço riscado ou falsa economia",()=>{
+  // Na promoção, todos os recheios disponíveis exibem preço;
+  // só os grupos mais caros recebem preço riscado e 'Economize'.
+  assert.match(page, /potPriceWithOption !== null && \(!popcornPromotionActive \|\| available\)/);
+  assert.match(page, /popcornPromotionActive && regularSpecialPrice !== null && savedToday > 0/);
+  assert.match(page, /popcornPromotionActive && savedToday > 0 && available/);
+  assert.match(page, /option\.pricingGroup > 1/);
+  assert.doesNotMatch(page, /Sem adicional hoje/);
+  for(const size of ["500ml","750ml","1l"]){
+    const price=POPCORN_PRICES_CENTS[1][size];
+    const item={product_id:"pipoca-gourmet",variant_id:size,option_ids:["leitinho"],quantity:1};
+    assert.equal(quoteCartItems([item],POPCORN_PROMOTION.endsAt-1).subtotalCents,price);
+    assert.equal(quoteCartItems([item],POPCORN_PROMOTION.endsAt).subtotalCents,price);
+  }
+});
+
 test("criativo da campanha conserva expiração e não governa a precificação",()=>{
   assert.match(creative, /POPCORN_PROMOTION\.id/);
   assert.match(creative, /Só até 23h59/);
