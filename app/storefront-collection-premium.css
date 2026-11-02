@@ -351,6 +351,12 @@
 }
 @media (max-width: 350px) {
   .storefront .menu-entry.is-neutral .collection-menu {grid-template-columns: 1fr;}
+  .storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-action {
+    font-size: .73rem;
+    padding-inline: 4px;
+    gap: 2px;
+    white-space: normal;
+  }
   .storefront .menu-entry.is-neutral .collection-choice[data-featured] {grid-column:1;min-height:225px;}
   .storefront .menu-entry.is-neutral .collection-choice:not([data-featured]) {
     display:grid;
