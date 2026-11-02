@@ -56,7 +56,7 @@
 .collection-choice:last-child .collection-photo { border-bottom-left-radius: 5px; }
 .collection-copy { display: flex; flex-direction: column; align-items: start; gap: 4px; padding: 13px clamp(12px,4vw,20px); }
 .collection-format { color: var(--copper); font-size: .61rem; }
-.collection-copy strong { font: 500 clamp(1.26rem,5.4vw,1.65rem)/1.08 Georgia, serif; letter-spacing: -.035em; }
+.collection-copy strong { color: #3a231b; font: 500 clamp(1.26rem,5.4vw,1.65rem)/1.08 Georgia, serif; letter-spacing: -.035em; }
 .collection-description { color: #5e473a; font: 400 .85rem/1.35 system-ui, sans-serif; }
 .collection-action {
   display: inline-flex; align-items: center; justify-content: space-between; gap: .45rem;

@@ -39,7 +39,7 @@ for (const [engineName, engine] of Object.entries({ chromium, webkit })) {
       });
       const page = await context.newPage();
       page.setDefaultTimeout(10000);
-      const campaign = '?utm_source=instagram&fbclid=teste#inicio';
+      const campaign = '?utm_source=instagram&fbclid=teste';
       for (const [version,port] of [['antes',8180],['depois',8181]]) {
         await page.goto('http://127.0.0.1:'+port+'/'+campaign);
         const choices = page.locator(version === 'antes' ? '.limited-cup-teaser,.category-option' : '.collection-choice');
@@ -53,6 +53,9 @@ for (const [engineName, engine] of Object.entries({ chromium, webkit })) {
         const overflows = await page.evaluate(()=>document.documentElement.scrollWidth > innerWidth);
         if (version === 'depois') {
           assert.equal(overflows,false);
+          const colors = await page.locator('.collection-copy strong').evaluateAll(titles =>
+            titles.map(title => getComputedStyle(title).color));
+          assert.deepEqual(colors,Array(3).fill('rgb(58, 35, 27)'));
           assert.ok(rects[0].y < 250);
           if (width >= 375) assert.ok(rects[2].bottom <= height);
         }
@@ -73,17 +76,22 @@ for (const [engineName, engine] of Object.entries({ chromium, webkit })) {
         await page.goBack();
         await choice.waitFor();
         assert.equal(new URL(page.url()).searchParams.get('utm_source'),'instagram');
+        // Um acesso por anúncio começa em uma aba nova, sem navegação anterior em voo.
+        const arrival = await context.newPage();
         const direct = new URL(campaign,'http://127.0.0.1:8181/');
         direct.searchParams.set('categoria',routes[i]);
-        await page.goto(direct.href);
-        await page.getByRole('heading',{name,exact:true,level:1}).waitFor();
+        direct.hash = 'inicio';
+        await arrival.goto(direct.href,{waitUntil:'domcontentloaded'});
+        await arrival.getByRole('heading',{name,exact:true,level:1}).waitFor();
         if (i === 0) {
-          await page.locator('.limited-cup-duo-item').first().click();
-          await page.getByRole('button',{name:/Ninho, pacote P,.*15,90/}).waitFor();
+          await arrival.locator('.limited-cup-duo-item').first().click();
+          await arrival.getByRole('button',{name:/Ninho, pacote P,.*15,90/}).waitFor();
         }
-        assert.equal(new URL(page.url()).searchParams.get('fbclid'),'teste');
-        await page.getByRole('link',{name:'Voltar às categorias'}).click();
-        await choice.waitFor();
+        assert.equal(new URL(arrival.url()).searchParams.get('fbclid'),'teste');
+        await arrival.getByRole('link',{name:'Voltar às categorias'}).click();
+        await arrival.locator('.collection-choice').nth(2).waitFor();
+        assert.equal(new URL(arrival.url()).hash,'#inicio');
+        await arrival.close();
       }
       if (width === 375) {
         for (state of ['closed','sold','empty']) {
