@@ -2042,7 +2042,7 @@ export default function Home() {
               <nav className="v7-navigation v7-navigation-edition" aria-label="Navegação das Pipocas Trufadas">
                 <button type="button" onClick={returnToCategories}><ArrowLeft size={15} aria-hidden="true" /> Voltar às categorias</button>
               </nav>
-              <div className="limited-cup-selection-heading" id="crocantes-sabores">
+              <div className="limited-cup-selection-heading" id="crocantes-sabores" aria-label="Pacotes P, M e G — escolha do sabor">
                 <span>Escolha seu sabor</span>
                 <small>Pacotes com zíper · P, M e G</small>
               </div>
