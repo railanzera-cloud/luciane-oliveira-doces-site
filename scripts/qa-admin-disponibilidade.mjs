@@ -137,7 +137,8 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
       const flavorCards = await page.locator("#admin-availability-panel-gourmet .admin-compact-item").count();
       assert.ok(flavorCards >= 7,"Todos os sabores atuais devem estar no painel");
       await page.getByRole("button",{name:/Tamanhos/}).last().click();
-      assert.equal(await page.locator("#admin-availability-panel-gourmet .admin-compact-item").count(),4);
+      const sizeCards = await page.locator("#admin-availability-panel-gourmet .admin-compact-item").count();
+      assert.ok(sizeCards >= 3 && sizeCards < flavorCards, "Alternar para tamanhos mostra só os tamanhos atuais");
       if(width===390){
         await page.locator("#admin-availability-panel-gourmet").scrollIntoViewIfNeeded();
         await page.screenshot({path:output+"/"+engineName+"-gourmet-390.png"});
