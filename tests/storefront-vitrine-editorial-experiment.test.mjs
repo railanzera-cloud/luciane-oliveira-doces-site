@@ -21,7 +21,7 @@ test("fotografias e legendas são elementos independentes e a ação é explíci
   assert.ok(page.includes('className="collection-photo"'));
   assert.ok(page.includes('className="collection-copy"'));
   assert.ok(page.includes('className="collection-action"'));
-  assert.ok(page.includes('"Montar meu pote" : "Escolher minha fatia"'));
+  assert.ok(page.includes('"Montar pote" : "Escolher fatia"'));
   assert.ok(page.includes("onClick={() => selectCategory(category.id)}"));
   assert.ok(page.includes('disabled={!available}'));
   assert.ok(css.includes("grid-template-columns: minmax(0,44%) minmax(0,56%)"));
@@ -245,7 +245,7 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes('onClick={() => selectCategory("pipocas")}')); 
   assert.ok(page.includes('<span>Pipocas Gourmet</span>'));
   assert.ok(page.includes('Selecione um dos três sabores para ver os tamanhos e os preços.'));
-  assert.ok(page.includes("Escolher sabor"));
+  assert.ok(page.includes("Ver sabores"));
   assert.ok(!page.includes('className="limited-cup-story-primary"'));
   assert.ok(page.includes('aria-pressed={selected}'));
   assert.ok(page.includes('aria-pressed={cupSizeId === size}'));
