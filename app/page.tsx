@@ -264,6 +264,11 @@ function makeCartId() {
 const TRUFADA_PRODUCT_IDS = ["crocante-ninho", "trufada-pacoca", "trufada-coco-queimado"] as const;
 type TrufadaProductId = (typeof TRUFADA_PRODUCT_IDS)[number];
 const isTrufadaId = (id: string) => (TRUFADA_PRODUCT_IDS as readonly string[]).includes(id);
+// O preço da vitrine vem do catálogo real e acompanha mudanças comerciais.
+const TRUFADA_STARTING_PRICE = Math.min(
+  ...PRODUCTS.filter(product => isTrufadaId(product.id))
+    .flatMap(product => product.variants.filter(variant => variant.available).map(variant => variant.price)),
+);
 const isTrufadaOrLegacy = (id: string) => isTrufadaId(id) || id === "crocante-chocolate";
 const TRUFADA_SIZES = ["p", "m", "g"] as const;
 type TrufadaSizeId = (typeof TRUFADA_SIZES)[number];
@@ -426,13 +431,13 @@ function sanitizeSavedCart(value: unknown): CartItem[] {
   });
 }
 
-function CollectionChoice({ format, name, description, action, photo, photoWidth, fallback, disabled, onClick }: {
+function CollectionChoice({ format, name, description, action, price, photo, photoWidth, fallback, disabled, onClick }: {
   format: string; name: string; description: string; action: string; photo: string; photoWidth: number;
-  fallback?: string; disabled: boolean; onClick: () => void;
+  fallback?: string; price?: string; disabled: boolean; onClick: () => void;
 }) {
   return (
-    <button className="collection-choice" type="button" disabled={disabled} onClick={onClick} aria-label={`${name} — ${action}`}>
-      <span className="collection-photo" data-packs={format === "Pacote com zíper" || undefined}>
+    <button className="collection-choice" type="button" disabled={disabled} onClick={onClick} aria-label={`${name} — ${description}${price ? ` — A partir de ${price}` : ""} — ${action}`}>
+      <span className="collection-photo" data-packs={format === "Pacotes com zíper" || undefined}>
         <img src={photo} srcSet={`${photo.replace(".webp", "-360.webp")} 360w, ${photo} ${photoWidth}w`} sizes="(min-width: 1152px) 374px, (min-width: 700px) 33vw, 36vw" alt="" decoding="async" width={640} height={480} onError={(event) => {
           const img = event.currentTarget;
           if (img.hasAttribute("srcset")) {
@@ -445,6 +450,7 @@ function CollectionChoice({ format, name, description, action, photo, photoWidth
         <span className="collection-format">{format}</span>
         <strong>{name}</strong>
         <span className="collection-description">{description}</span>
+        {price && <span className="collection-price">A partir de {price}</span>}
         <span className="collection-action">{action}{!disabled && <ChevronRight size={15} aria-hidden="true" />}</span>
       </span>
     </button>
@@ -1961,8 +1967,9 @@ export default function Home() {
             </div>
           ) : (
             <div className="collection-heading">
-              <p className="collection-kicker">Cardápio artesanal</p>
+              <p className="collection-kicker">Luciane Oliveira Doces · Cardápio artesanal</p>
               <h1>Escolha seu <em>doce.</em></h1>
+              <p className="collection-intro">Três maneiras de adoçar seu momento. Escolha a sua.</p>
             </div>
           )}
           {!hasResolvedAvailability ? (
@@ -1971,11 +1978,12 @@ export default function Home() {
             visibleCategories.length > 0 ? (
               <div className="collection-menu" role="group" aria-label="Escolha uma categoria">
                 {pipocasVisible && (
-                  <CollectionChoice format="Pacote com zíper" name="Pipocas Trufadas"
+                  <CollectionChoice format="Pacotes com zíper" name="Pipocas Trufadas"
                     photo="/images/pipocas-trufadas-ninho-20261101.webp" photoWidth={1086}
                     fallback="/images/pipocas-trufadas-pacoca-20261101.webp"
-                    description="Ninho, Paçoca ou Coco Queimado. Em P, M e G."
-                    action={!pipocasAvailable || cupPhase === "sold-out" ? "Esgotado" : cupCanBeAddedFromCheckout ? "Escolher meu pacote" : "Consultar sabores"}
+                    description="Ninho, Paçoca e Coco Queimado · P, M e G"
+                    price={currency.format(TRUFADA_STARTING_PRICE)}
+                    action={!pipocasAvailable || cupPhase === "sold-out" ? "Esgotado" : "Conhecer os sabores"}
                     disabled={!pipocasAvailable || cupPhase === "sold-out"} onClick={openLimitedCupEdition} />
                 )}
                 {visibleCategories.map((category) => {
@@ -1987,7 +1995,7 @@ export default function Home() {
                       name={category.name} photoWidth={isPot ? 1166 : 720}
                       photo={category.id === "fatias" ? "/images/categoria-fatias-editorial.webp" : "/images/categoria-pipocas-editorial-enquadrada-v107.webp"}
                       fallback={cover?.cardImage ?? cover?.image}
-                      description={isPot ? "Combine os recheios no pote do seu tamanho." : "Escolha sua fatia pelas camadas de massa e recheio."}
+                      description={isPot ? "Escolha seu tamanho e combine os sabores." : "Camadas de massa e recheios artesanais."}
                       action={!available ? "Esgotado" : !availability.ordersOpen || availability.source !== "supabase" ? "Consultar sabores" : isPot ? "Montar meu pote" : "Escolher minha fatia"}
                       disabled={!available} onClick={() => selectCategory(category.id)} />
                   );
