@@ -63,6 +63,7 @@ on:
       - scripts/qa-vitrine.mjs
       - scripts/qa-trufadas-imersiva.mjs
       - scripts/qa-admin-disponibilidade.mjs
+      - scripts/qa-gourmet-feriado-20261102.mjs
       - lib/trufadas-stock-calculation.mjs
       - app/menu-navigation.ts
       - app/storefront-collection.css
@@ -287,6 +288,27 @@ jobs:
           path: outputs/luciane-oliveira-doces-cloudflare-pages.zip
           if-no-files-found: error
           retention-days: 7
+      - name: Instalar Chromium e WebKit para conferir a oferta Gourmet
+        if: github.ref_name == 'work/feriado-gourmet-preco-unico-20261102'
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/qa-gourmet" playwright@1.56.1
+          "$RUNNER_TEMP/qa-gourmet/node_modules/.bin/playwright" install --with-deps chromium webkit
+      - name: Homologar campanha, sabores e retorno do preço em 03/11
+        if: github.ref_name == 'work/feriado-gourmet-preco-unico-20261102'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8181 --bind 127.0.0.1 --directory outputs/cloudflare-pages >/tmp/gourmet-qa.log 2>&1 &
+          export QA_PACKAGE="$RUNNER_TEMP/qa-gourmet/package.json" QA_OUTPUT="$RUNNER_TEMP/qa-gourmet-screens"
+          node scripts/qa-gourmet-feriado-20261102.mjs
+      - name: Guardar capturas reais do navegador e medidas da campanha
+        if: always() && github.ref_name == 'work/feriado-gourmet-preco-unico-20261102'
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-gourmet-feriado-20261102
+          path: ${{ runner.temp }}/qa-gourmet-screens
+          if-no-files-found: warn
       - name: Preparar QA visual administrativa em Chromium e WebKit
         if: github.ref_name == 'work/admin-disponibilidade-premium-20261102'
         shell: bash
