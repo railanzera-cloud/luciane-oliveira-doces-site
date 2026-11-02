@@ -3,7 +3,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 const page=readFileSync("app/page.tsx","utf8"),css=readFileSync("app/storefront-vitrine-editorial-experiment.css","utf8"),rel=readFileSync("app/limited-cup-release.ts","utf8");
 test("vitrine identifica formato, sabores e tamanhos; configurador exibe preço da variante",()=>{
-  assert.match(page,/Ninho, Paçoca ou Coco Queimado. Em P, M e G/);
+  assert.match(page,/Ninho, Paçoca e Coco Queimado · P, M e G/);
   assert.match(page,/currency.format\(cupVariant.price\)/);
   assert.match(page,/limited-cup-duo is-trio/);
 });
