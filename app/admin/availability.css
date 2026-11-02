@@ -161,3 +161,17 @@
 
 .admin-page .admin-category-guard {display:flex;align-items:flex-start;gap:8px;margin:0;padding:11px 13px;border-radius:12px;border:1px solid rgba(238,165,108,.44);background:rgba(130,62,35,.19);color:#ffe2c5;font-size:.75rem;line-height:1.45;}
 .admin-page .admin-category-guard svg {flex:0 0 auto;margin-top:1px;}
+
+/* Ajustes gerais sob demanda: a primeira dobra pertence ao trabalho do dia. */
+.admin-page details.admin-availability-scope {display:block;padding:0;overflow:hidden;}
+.admin-page .admin-availability-scope > summary {list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:61px;margin:0;padding:12px 15px;cursor:pointer;}
+.admin-page .admin-availability-scope > summary::-webkit-details-marker {display:none;}
+.admin-page .admin-availability-scope > summary span {display:grid;gap:3px;}
+.admin-page .admin-availability-scope > summary strong {color:#f9e2c5;font-size:.87rem;}
+.admin-page .admin-availability-scope > summary small {color:#bda28a;font-size:.69rem;line-height:1.3;}
+.admin-page .admin-availability-scope > summary > svg {flex:0 0 auto;color:#dbae78;transition:transform .18s;}
+.admin-page .admin-availability-scope[open] > summary > svg {transform:rotate(180deg);}
+.admin-page .admin-scope-body {display:grid;gap:12px;padding:0 15px 15px;}
+.admin-page .admin-scope-body > p {margin:0;color:#c9ae95;font-size:.73rem;line-height:1.45;}
+.admin-page .admin-availability-scope > summary:focus-visible {outline:3px solid #ffe2aa;outline-offset:-3px;border-radius:13px;}
+@media (prefers-reduced-motion:reduce) {.admin-page .admin-availability-scope > summary > svg {transition:none;}}
