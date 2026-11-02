@@ -57,6 +57,8 @@ test("Disponibilidade tem três áreas sem empilhar todas as categorias", () => 
   assert.match(admin, /availabilitySection === "fatias"/);
   assert.match(admin, /MENU_AVAILABILITY_ITEMS/);
   assert.match(admin, /AdminStrawberryPreorder/);
+  assert.match(admin, /normalizeAdminSearch\(item.name\)/);
+  assert.match(admin, /\.normalize\("NFD"\)/);
   assert.match(admin, /CATEGORY_ITEM_KEYS\.pipocas/);
   assert.match(admin, /Pipocas · Gourmet e Trufadas/);
   assert.match(admin, /\[item\.itemKey\]: previousStatus/);
