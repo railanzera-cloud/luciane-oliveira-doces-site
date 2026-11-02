@@ -84,7 +84,7 @@ test("both available: neutral entry, balanced choices, no default builder or emp
   assert.equal(navigation.resolveMenuCategory(snapshot(), null), null);
   const html = renderMenu(snapshot());
   assert.match(html, /Escolha seu <em>doce/);
-  for (const name of ["Pipocas Gourmet — Montar meu pote", "Fatias Artesanais — Escolher minha fatia"]) assert.match(html, new RegExp(`aria-label="${name}"`));
+  for (const name of ["Pipocas Gourmet — Montar pote", "Fatias Artesanais — Escolher fatia"]) assert.match(html, new RegExp(`aria-label="${name}"`));
   assert.doesNotMatch(html, /id="configurador"|id="carrinho"|mobile-sticky-bar/);
 });
 
@@ -1366,6 +1366,6 @@ test('neutral collection separates unknown inventory, verified stock and sold-ou
   assert.match(renderMenu(sold),/<button[^>]*disabled=""[^>]*aria-label="Pipocas Trufadas — Esgotado"/);
   const live = availability.mergeRemoteAvailability([{item_key:keys[0],status:'available'}],true,
     keys.map((item_key,i) => ({item_key,available:i === 0 ? 3 : 0})));
-  assert.match(renderMenu(live),/aria-label="Pipocas Trufadas — Escolher sabor"/);
+  assert.match(renderMenu(live),/aria-label="Pipocas Trufadas — Ver sabores"/);
   assert.match(renderMenu({...live,ordersOpen:false}),/aria-label="Pipocas Trufadas — Consultar sabores"/);
 });
