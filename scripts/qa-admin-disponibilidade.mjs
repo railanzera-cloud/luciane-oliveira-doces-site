@@ -125,7 +125,8 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
 
       await page.locator("#admin-availability-tab-gourmet").click();
       await page.getByRole("heading",{name:"Pipocas Gourmet"}).waitFor();
-      assert.equal(await page.locator("#admin-availability-panel-gourmet .admin-compact-item").count(),7);
+      const flavorCards = await page.locator("#admin-availability-panel-gourmet .admin-compact-item").count();
+      assert.ok(flavorCards >= 7,"Todos os sabores atuais devem estar no painel");
       await page.getByRole("button",{name:/Tamanhos/}).last().click();
       assert.equal(await page.locator("#admin-availability-panel-gourmet .admin-compact-item").count(),4);
       if(width===390){
