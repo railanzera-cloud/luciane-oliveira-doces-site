@@ -85,7 +85,7 @@
 .admin-page .admin-stock-math > div {display:grid;gap:5px;min-width:0;text-align:center;}
 .admin-page .admin-stock-math small {color:#c8ae91;font-size:clamp(.59rem,2.3vw,.72rem);line-height:1.22;}
 .admin-page .admin-stock-math strong {color:#ffe4bb;font-size:1.32rem;line-height:1;font-variant-numeric:tabular-nums;}
-.admin-page .admin-stock-math > svg {color:#d7ad80;}
+.admin-page .admin-stock-math-symbol {color:#d7ad80;font-size:1rem;font-weight:800;text-align:center;}
 .admin-page .admin-stock-free-label {display:grid;gap:5px;color:#fae5c8;font-size:.84rem;font-weight:770;}
 .admin-page .admin-stock-free-label small {color:#ceb79e;font-size:.72rem;font-weight:400;line-height:1.4;}
 .admin-page .admin-stock-free-input-row {display:flex;flex-wrap:wrap;align-items:center;gap:10px;}
@@ -142,3 +142,6 @@
   .admin-page .admin-stock-flavors > button,
   .admin-page .admin-stock-variants > button {transition:none!important;animation:none!important;}
 }
+.admin-page .admin-stock-unsaved {display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:7px;padding:9px 11px;border:1px solid rgba(235,184,110,.34);border-radius:10px;background:rgba(153,91,36,.15);font-size:.71rem;color:#f0d2a9;}
+.admin-page .admin-stock-unsaved button {min-height:35px;padding:5px 10px;border:1px solid rgba(239,195,140,.38);border-radius:8px;color:#ffe1b4;background:rgba(30,15,7,.4);cursor:pointer;font-weight:720;}
+.admin-page .admin-stock-unsaved button:focus-visible {outline:3px solid #ffe2aa;outline-offset:2px;}
