@@ -18,7 +18,7 @@ test("vitrine divulga oferta limitada sem contador numérico",()=>{
 
 test("painel separa reserva automática de venda externa manual",()=>{
   assert.match(admin,/AdminStrawberryPreorder/);
-  assert.match(admin,/preorderActive=\{item\.itemKey==="slice_chocolate_morango"/);
+  assert.match(admin,/preorderActive=\{item\.itemKey\s*===\s*"slice_chocolate_morango"/);
   assert.match(admin,/Encerre primeiro o lote de pré-reserva/);
   assert.match(component,/stock\.site_reserved/);
   assert.match(component,/stock\.external_reserved/);
