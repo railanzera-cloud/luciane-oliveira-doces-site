@@ -1102,7 +1102,7 @@ test('limited campaign opens in discovery, without altering saved cart', () => {
     trufadasFromUrl:navigation.trufadasFromUrl,categoryFromUrl:navigation.categoryFromUrl,
     setRequestedCategory:value=>category=value,setEditingId:()=>{},setSelectionMessage:()=>{},setAddedNotice:()=>{},
     setBuilderEngaged:value=>engaged=value,setCart:()=>assert.fail('Preview must preserve cart'),
-    window:{history:{state:null,replaceState(){},pushState(){}},location:{href:'https://example.test/?utm_source=instagram'}},
+    window:{history:{state:null,replaceState(){},pushState(){}},location:{href:'https://example.test/?utm_source=instagram'},setTimeout:()=>0},
     categoryUrl:navigation.categoryUrl,requestEditorialScroll:id=>scroll=id,
   });
   open();assert.equal(category,'pipocas');assert.equal(preview,true);assert.equal(engaged,false);assert.equal(scroll,'edicao-crocante');
