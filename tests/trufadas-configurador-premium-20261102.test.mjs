@@ -5,55 +5,75 @@ import { readFileSync } from "node:fs";
 const page = readFileSync("app/page.tsx", "utf8");
 const css = readFileSync("app/storefront-vitrine-editorial-experiment.css", "utf8");
 
-test("Trufadas: o cabeçalho comum permanece; interior não repete o título da categoria", () => {
+test("Trufadas: cabeçalho superior compartilhado; configurador sem repetição de número e título", () => {
   assert.match(page, /<div className="entry-heading">/);
   assert.match(page, /showLimitedCupView \? "Pipocas Trufadas" : "Pipocas Gourmet"/);
-  assert.match(page, /<div className="limited-cup-flow-progress" role="group"/);
-  assert.doesNotMatch(page, /<div className="limited-cup-story-heading">/);
-  assert.match(page, /data-state=\{cupFlavorPreview \? "complete" : "current"\}/);
-  assert.match(page, /data-state=\{cupSizeId \? "current" : "pending"\}/);
+  assert.match(page, /id="crocantes-sabores" aria-label="Pacotes P, M e G/);
+  assert.match(page, /<span>Escolha seu sabor<\/span>/);
+  assert.match(page, /<h2>Escolha o tamanho<\/h2>/);
+  assert.match(page, /<strong>Seu pacote<\/strong>/);
+  assert.doesNotMatch(page, /className="limited-cup-flow-progress"/);
+  assert.doesNotMatch(page, /className="limited-cup-story-heading"/);
+  assert.doesNotMatch(page, />0[123] · (?:ESCOLHA|QUANTIDADE)/);
 });
 
-test("Trufadas: percurso mantém sabor, tamanho, quantidade e fotos homologadas", () => {
-  const indices = ["01 · ESCOLHA SEU SABOR", "02 · ESCOLHA O TAMANHO", "03 · QUANTIDADE"].map(x => page.indexOf(x));
-  assert.ok(indices.every(index => index !== -1));
-  assert.ok(indices[0] < indices[1] && indices[1] < indices[2]);
+test("Trufadas: sabor, tamanho e preço são revelados progressivamente", () => {
+  const titles = ["Escolha seu sabor", "Escolha o tamanho", "Seu pacote"];
+  const indices = titles.map(label => page.indexOf(label, page.indexOf('id="edicao-crocante"')));
+  assert.ok(indices.every(n => n > 0) && indices[0] < indices[1] && indices[1] < indices[2]);
+  assert.match(page, /\{cupProduct && \(\s*<div className="limited-cup-size-section"/);
+  assert.match(page, /\{cupProduct && cupVariant && \(\s*<div className="limited-cup-buy"/);
   assert.match(page, /TRUFADA_PRODUCT_IDS\.map/);
   assert.match(page, /product\.image && <img src=\{product\.image\}/);
-  assert.match(page, /aria-pressed=\{selected\}/);
   assert.match(page, /TRUFADA_SIZES\.map/);
-  assert.match(page, /cupVariant \? "Subtotal" : "A partir de"/);
+  assert.match(page, /currency\.format\(variant\.price\)/);
+  assert.match(page, /currency\.format\(cupVariant\.price \* cupQuantity\)/);
+  assert.match(page, /setCupSizeId\(null\)/);
+  assert.match(page, /setCupQuantity\(1\)/);
   assert.doesNotMatch(page, /className="limited-cup-sale-compact"/);
+  assert.match(page, /\(cupVariant \|\| cupPhase !== "available"\) && \(/);
 });
 
-test("Trufadas: botão distingue pedidos pausados, estoque indisponível e seleção incompleta", () => {
-  assert.match(page, /const cupActionLabel = cupAdding \? "Conferindo estoque…"/);
+test("Trufadas: compra fiel ao estado de abertura, seleção e estoque remoto", () => {
   assert.match(page, /!availability\.ordersOpen \? "Pedidos pausados"/);
   assert.match(page, /cupPhase === "sold-out" \? "Pacotes esgotados"/);
   assert.match(page, /cupPhase === "unavailable" \? "Disponibilidade indisponível"/);
-  assert.match(page, /!cupFlavorPreview \? "Escolher sabor"/);
-  assert.match(page, /!cupSizeId \? "Escolher tamanho"/);
-  assert.match(page, /!cupCanOrder \? cupRemaining <= 0/);
-  assert.match(page, /\{cupActionLabel\}/);
-  assert.match(page, /\? cupActionLabel/);
-  assert.match(page, /cupPhase !== "available"/);
-  assert.match(page, /cupVariant && availability\.stockChecked && availability\.ordersOpen/);
-});
-
-test("Trufadas: estoque consultado e compra cruzada não anunciam venda aberta quando fechada", () => {
-  assert.match(page, /available \? "Em estoque" : "Esgotado"/);
-  assert.match(page, /Saldo consultado:/);
-  assert.match(page, /cart\.length > 0 \? "COMPLETE SEU PEDIDO" : "CONHEÇA TAMBÉM"/);
-  assert.match(page, /cart\.length > 0 \? "Que tal mais uma delícia\?" : "Explore outras delícias"/);
+  assert.match(page, /cupRemaining <= 3/);
   assert.match(page, /qty \+ alreadyInCart > confirmedStock/);
+  assert.match(page, /latest\.usedFallback/);
+  assert.match(page, /cupPhase !== "available"/);
+  assert.match(page, /aria-pressed=\{cupSizeId === size\}/);
+  assert.match(page, /setCart\(\(current\) => \[\.\.\.current/);
+  assert.match(page, /trackMetaEvent\("AddToCart"/);
   assert.match(page, /requestScroll\("recebimento"\)/);
 });
 
-test("Trufadas: feedback tátil isolado e respeito a movimento reduzido", () => {
-  assert.match(css, /#configurador\.is-cup-discovery \.limited-cup-flow-progress/);
-  assert.match(css, /\.limited-cup-flow-step\[data-state="current"\]/);
-  assert.match(css, /\.limited-cup-duo\.is-trio \.limited-cup-duo-item:active:not\(:disabled\)/);
-  assert.match(css, /\.limited-cup-size-option:active:not\(:disabled\)/);
-  assert.match(css, /@media \(hover: hover\) and \(pointer: fine\)/);
+test("Trufadas: entrada é suave como Gourmet; barra flutuante observa CTA que aparece depois", () => {
+  assert.match(page, /window\.scrollTo\(\{ top, behavior: reducedMotion \? "instant" : "smooth" \}\)/);
+  assert.match(page, /target\.querySelector<HTMLElement>\("\.limited-cup-selection-heading"\)/);
+  assert.match(page, /requestEditorialScroll\("edicao-crocante"\)/);
+  assert.match(page, /requestEditorialScroll\("tamanhos"\)/);
+  assert.match(page, /\[showLimitedCupView, cupSalesEnabled, cupFlavorPreview, cupSizeId\]/);
+  assert.match(page, /setCupInlineActionVisible\(false\)/);
+  assert.match(page, /&& !\(cupBuilderFlowActive && cupInlineActionVisible\)/);
+});
+
+test("Trufadas: tamanhos profundos, toque responsivo e reducao de movimento", () => {
+  assert.match(css, /#configurador\.is-cup-discovery \.limited-cup-size-section/);
+  assert.match(css, /#configurador\.is-cup-discovery \.limited-cup-size-intro/);
+  assert.match(css, /#configurador\.is-cup-discovery \.limited-cup-size-option\[aria-pressed="true"\]/);
+  assert.match(css, /#configurador\.is-cup-discovery \.limited-cup-size-check/);
+  assert.match(css, /animation: trufadas-size-select/);
+  assert.match(css, /animation: trufadas-stage-reveal/);
+  assert.match(css, /@media \(hover:hover\) and \(pointer:fine\)/);
+  assert.match(css, /@media \(max-width:359px\)/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+});
+
+test("Trufadas: outras categorias e fluxo financeiro não foram reescritos", () => {
+  assert.match(page, /function selectCategory\(category: CategoryId, shouldScroll = true\)/);
+  assert.match(page, /activeCategory === "pipocas" && pipocasVisible/);
+  assert.match(page, /activeCategory === "fatias"/);
+  assert.match(page, /function handleFinalAction\(/);
+  assert.match(page, /function addCrocantesCup\(/);
 });
