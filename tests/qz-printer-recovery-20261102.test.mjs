@@ -36,7 +36,7 @@ test("QZ: recuperação não dispara impressão no diagnóstico nem altera pagam
   assert.match(panel,/detectedPrinters/);
   assert.match(panel,/printerChoice/);
   assert.match(panel,/Usar esta impressora e verificar pendências/);
-  assert.match(panel,/Nenhuma comanda foi enviada|Confira se o QZ Tray está aberto/);
+  assert.match(panel,/QZ Tray aberto/);
   assert.match(panel,/if \(!printerReady \|\| !printerOnline\)/);
   assert.match(panel,/\.eq\("kind", "initial"\)\.eq\("status", "printed"\)/);
   assert.doesNotMatch(qz,/confirmOfflinePayment/);
