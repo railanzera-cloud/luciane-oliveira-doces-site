@@ -13,7 +13,8 @@ test("Admin: nove pacotes agrupados logicamente por sabor e tamanho",()=>{
   assert.match(admin,/p_version: row.version/);
   assert.match(admin,/p_item_key: row.item_key/);
   assert.match(admin,/p_enabled: draft.enabled/);
-  assert.match(admin,/total < row.reserved/);
+  assert.match(admin,/prepareTrufadasStockTotal\(draft.free, row.reserved\)/);
+  assert.match(admin,/stockSnapshotChanged\(row, current\)/);
   assert.doesNotMatch(admin,/Caramelo e Chocolate/);
 });
 test("DB: migração inicia estoque zero/desativado e preserva legado",()=>{
