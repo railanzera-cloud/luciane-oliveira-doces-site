@@ -1,0 +1,104 @@
+/* Entrada da loja. Os configuradores têm sua própria composição e navegação. */
+.storefront .menu-entry.is-neutral {
+  --paper: #f8efe3;
+  --ink: #3a231b;
+  --copper: #915839;
+  background: #211610;
+  padding: clamp(16px, 3vw, 38px) 0 30px;
+  color: var(--paper);
+}
+.storefront .menu-entry.is-neutral > .page-shell {
+  width: min(100% - 32px, 1120px);
+  margin-inline: auto;
+}
+.collection-heading { margin: 0 0 18px; text-align: left; }
+.collection-kicker, .collection-format {
+  font: 650 .68rem/1.25 system-ui, sans-serif;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+.collection-kicker { display: flex; gap: .7rem; align-items: center; color: #efc19c; margin: 0 0 6px; }
+.collection-kicker::before { content: ""; width: 30px; height: 1px; background: currentColor; }
+.collection-heading h1 {
+  font: 400 clamp(2.3rem, 5vw, 4.5rem)/1 Georgia, serif;
+  letter-spacing: -.055em;
+  margin: 0;
+  color: var(--paper);
+}
+.collection-heading h1 em { color: #e8bb94; font-weight: inherit; }
+.collection-menu {
+  display: grid;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 5px;
+}
+.collection-choice {
+  -webkit-appearance: none;
+  appearance: none;
+  display: grid;
+  grid-template-columns: minmax(0, 36%) minmax(0,1fr);
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.collection-choice + .collection-choice { border-top: 1px solid #cbb6a2; }
+.collection-photo { display: block; position: relative; min-height: 132px; background: #57392c; overflow: hidden; }
+.collection-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.collection-choice:first-child .collection-photo { border-top-left-radius: 5px; }
+.collection-choice:last-child .collection-photo { border-bottom-left-radius: 5px; }
+.collection-copy { display: flex; flex-direction: column; align-items: start; gap: 4px; padding: 13px clamp(12px,4vw,20px); }
+.collection-format { color: var(--copper); font-size: .61rem; }
+.collection-copy strong { font: 500 clamp(1.26rem,5.4vw,1.65rem)/1.08 Georgia, serif; letter-spacing: -.035em; }
+.collection-description { color: #5e473a; font: 400 .85rem/1.35 system-ui, sans-serif; }
+.collection-action {
+  display: inline-flex; align-items: center; justify-content: space-between; gap: .45rem;
+  margin-top: auto; padding: 5px 0 2px; border-bottom: 1px solid #ab7d5f;
+  color: #603920; font: 700 .8rem/1.3 system-ui, sans-serif;
+}
+.collection-choice:disabled { cursor: default; }
+.collection-choice:disabled .collection-action { border: none; color: #66574b; }
+.collection-choice:focus-visible { position: relative; z-index: 1; outline: 3px solid #904700; outline-offset: -4px; }
+.collection-choice:active:not(:disabled) { background: #eedbc6; }
+.collection-service {
+  display: flex; flex-wrap: wrap; align-items: start; gap: 9px 24px;
+  padding: 18px 0 0; color: #e5d2bf; font: 400 .8rem/1.4 system-ui, sans-serif;
+}
+.collection-service p { display: flex; align-items: start; gap: 8px; margin: 0; }
+.collection-service svg { flex: none; margin-top: 1px; color: #e9b58a; }
+.collection-service small { display: block; color: #d9c2ad; font-size: .75rem; }
+.collection-service > small { flex-basis: 100%; }
+.collection-loading { min-height: 415px; color: #e5d2bf; }
+@media (max-width: 359px) {
+  .storefront .menu-entry.is-neutral > .page-shell { width: calc(100% - 20px); }
+  .collection-copy { padding: 12px 10px; }
+}
+@media (min-width: 700px) {
+  .collection-menu { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .collection-choice { grid-template-columns: 1fr; grid-template-rows: auto 1fr; align-content: start; }
+  .collection-choice + .collection-choice { border-top: 0; border-left: 1px solid #cbb6a2; }
+  .collection-photo { aspect-ratio: 1.5; min-height: 0; }
+  .collection-photo[data-packs] img { width: 50%; }
+  .collection-photo[data-packs]::after {
+    content: ""; position: absolute; inset: 0 0 0 50%;
+    background: url("/images/pipocas-trufadas-pacoca-20261101-360.webp") center / cover;
+  }
+  .collection-choice:last-child .collection-photo { border-radius: 0 5px 0 0; }
+  .collection-copy { padding: clamp(16px,2.2vw,28px); gap: 9px; }
+  .collection-copy strong { font-size: clamp(1.5rem,2.55vw,2.25rem); }
+  .collection-action { padding-top: 12px; }
+  .collection-loading { min-height: 340px; }
+}
+@media (hover:hover) and (pointer:fine) {
+  .collection-choice:hover:not(:disabled) { background: #f1e2d2; }
+}
+@media (prefers-reduced-motion:no-preference) {
+  .collection-choice { transition: background-color 120ms ease-out; }
+}

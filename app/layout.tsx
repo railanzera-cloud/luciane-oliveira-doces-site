@@ -5,6 +5,7 @@ import "./storefront-boutique.css";
 import "./storefront-boutique-v3.css";
 import "./storefront-vitrine-editorial-experiment.css";
 import "./storefront-checkout-premium.css";
+import "./storefront-collection.css";
 
 export const metadata: Metadata = {
   title: STORE_CONFIG.enabledCategories.pipocas

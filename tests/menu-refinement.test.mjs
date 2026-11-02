@@ -83,7 +83,7 @@ const popcornItem = { id: "popcorn-1", productId: "pipoca-gourmet", variantId: "
 test("both available: neutral entry, balanced choices, no default builder or empty checkout", () => {
   assert.equal(navigation.resolveMenuCategory(snapshot(), null), null);
   const html = renderMenu(snapshot());
-  assert.match(html, /Escolha o que deseja pedir/);
+  assert.match(html, /Escolha seu <em>doce/);
   for (const name of ["Pipocas Gourmet — Montar meu pote", "Fatias Artesanais — Escolher minha fatia"]) assert.match(html, new RegExp(`aria-label="${name}"`));
   assert.doesNotMatch(html, /id="configurador"|id="carrinho"|mobile-sticky-bar/);
 });
@@ -91,7 +91,7 @@ test("both available: neutral entry, balanced choices, no default builder or emp
 test("the initial lookup does not flash a possibly hidden category", () => {
   const html = renderMenu(snapshot(), false);
   assert.match(html, /Carregando cardápio/);
-  assert.doesNotMatch(html, /class="category-option"|id="configurador"/);
+  assert.doesNotMatch(html, /class="collection-choice"|id="configurador"/);
 });
 
 for (const [hidden, remaining] of [["pipocas", "fatias"], ["fatias", "pipocas"]]) {
@@ -101,7 +101,7 @@ for (const [hidden, remaining] of [["pipocas", "fatias"], ["fatias", "pipocas"]]
     assert.equal(navigation.resolveMenuCategory(state, hidden), remaining);
     const html = renderMenu(state);
     assert.match(html, /id="configurador"/);
-    assert.doesNotMatch(html, /Trocar categoria|class="category-option"/);
+    assert.doesNotMatch(html, /Trocar categoria|class="collection-choice"/);
     assert.doesNotMatch(html, new RegExp(hidden === "pipocas" ? "Pipocas Gourmet|Tamanho da Pipoca" : "Fatias Artesanais|Sabor da fatia"));
   });
 }
@@ -118,7 +118,7 @@ test("both hidden: helpful empty state with existing support, no builder", () =>
   const html = renderMenu(snapshot({ category_pipocas: "hidden", category_fatias: "hidden" }));
   assert.match(html, /Cardápio temporariamente sem produtos disponíveis/);
   assert.match(html, /Falar com a Luciane/);
-  assert.doesNotMatch(html, /class="category-option"|id="configurador"|id="carrinho"/);
+  assert.doesNotMatch(html, /class="collection-choice"|id="configurador"|id="carrinho"/);
 });
 
 test("category links and returning to neutral preserve every campaign parameter and hash", () => {
@@ -1073,7 +1073,7 @@ test('direct category navigation isolates the cup campaign, rejects unavailable 
   for(const allowed of [false,true]) {
    const select=pageFunction('selectCategory',{
     categoryIsAvailable:()=>allowed,setRequestedCategory:value=>selected=value,setShowLimitedCupView:value=>isCupPreview=value,
-    categoryFromUrl:navigation.categoryFromUrl,
+    trufadasFromUrl:navigation.trufadasFromUrl,categoryFromUrl:navigation.categoryFromUrl,
     setEditingId:()=>{},setSelectionMessage:()=>{},setAddedNotice:()=>{},setBuilderEngaged:()=>{},
     setCart:()=>assert.fail('Category navigation must not change saved cart items'),
     window:{history:{state:null,replaceState(){},pushState(){}},location:{href:'https://example.test/?utm_source=instagram'}},
@@ -1099,7 +1099,7 @@ test('limited campaign opens in discovery, without altering saved cart', () => {
   let category=null,preview=false,engaged=true,scroll=null;
   const open=pageFunction('openLimitedCupEdition',{
     categoryIsAvailable:()=>true,setShowLimitedCupView:value=>preview=value,setCupFlavorPreview:()=>{},setCupSizeId:()=>{},setCupAddedNotice:()=>{},
-    categoryFromUrl:navigation.categoryFromUrl,
+    trufadasFromUrl:navigation.trufadasFromUrl,categoryFromUrl:navigation.categoryFromUrl,
     setRequestedCategory:value=>category=value,setEditingId:()=>{},setSelectionMessage:()=>{},setAddedNotice:()=>{},
     setBuilderEngaged:value=>engaged=value,setCart:()=>assert.fail('Preview must preserve cart'),
     window:{history:{state:null,replaceState(){},pushState(){}},location:{href:'https://example.test/?utm_source=instagram'}},
@@ -1345,4 +1345,27 @@ test('all three secondary contact paths keep their original messages using the s
   assert.equal(url.searchParams.get('text'),'Olá! Já fiz o pedido #1025 pelo site e preciso de ajuda.');
   assert.equal(url.origin,'https://tintim.link');
  }
+});
+
+test('campaign links distinguish bags from pots and retain historic back entries', () => {
+  const link = new URL(navigation.categoryUrl('https://local.test/?utm_source=ig&fbclid=click#inicio','trufadas'),'https://local.test');
+  assert.equal(navigation.categoryFromUrl(link.href),'pipocas');
+  assert.equal(navigation.trufadasFromUrl(link.href,null),true);
+  assert.equal(link.searchParams.get('utm_source'),'ig');
+  assert.equal(link.hash,'#inicio');
+  link.searchParams.set('categoria','pipocas');
+  assert.equal(navigation.trufadasFromUrl(link.href,null),false);
+  assert.equal(navigation.trufadasFromUrl(link.href,{lucianeCrocante:true}),true);
+});
+
+test('neutral collection separates unknown inventory, verified stock and sold-out bags', () => {
+  const unknown = renderMenu(snapshot());
+  assert.match(unknown,/aria-label="Pipocas Trufadas — Consultar sabores"/);
+  const keys = availability.TRUFADA_STOCK_ITEM_KEYS;
+  const sold = availability.mergeRemoteAvailability([],true,keys.map(item_key => ({item_key,available:0})));
+  assert.match(renderMenu(sold),/<button[^>]*disabled=""[^>]*aria-label="Pipocas Trufadas — Esgotado"/);
+  const live = availability.mergeRemoteAvailability([{item_key:keys[0],status:'available'}],true,
+    keys.map((item_key,i) => ({item_key,available:i === 0 ? 3 : 0})));
+  assert.match(renderMenu(live),/aria-label="Pipocas Trufadas — Escolher meu pacote"/);
+  assert.match(renderMenu({...live,ordersOpen:false}),/aria-label="Pipocas Trufadas — Consultar sabores"/);
 });

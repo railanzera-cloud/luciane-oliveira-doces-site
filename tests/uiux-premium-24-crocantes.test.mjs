@@ -2,10 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
 const page=readFileSync("app/page.tsx","utf8"),css=readFileSync("app/storefront-vitrine-editorial-experiment.css","utf8"),rel=readFileSync("app/limited-cup-release.ts","utf8");
-test("vitrine apresenta três Trufadas e pacote a partir de R$ 14,90",()=>{
-  assert.match(page,/3 sabores · P, M e G/);
-  assert.match(page,/A partir de R\$ 14,90/);
-  assert.match(page,/limited-cup-teaser-price/);
+test("vitrine identifica formato, sabores e tamanhos; configurador exibe preço da variante",()=>{
+  assert.match(page,/Ninho, Paçoca ou Coco Queimado. Em P, M e G/);
+  assert.match(page,/currency.format\(cupVariant.price\)/);
   assert.match(page,/limited-cup-duo is-trio/);
 });
 test("detalhes e tamanho permanecem acessíveis com foco e estados",()=>{

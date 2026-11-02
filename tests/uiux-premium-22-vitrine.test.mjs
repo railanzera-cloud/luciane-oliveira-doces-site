@@ -9,11 +9,12 @@ test("A vitrine usa CTA unificado para pote e fatias sem duplicar botoes", () =>
   assert.ok(page.includes('"Montar meu pote" : "Escolher minha fatia"'));
   assert.ok(page.includes('onClick={() => selectCategory(category.id)}'));
   assert.ok(page.includes('disabled={!available}'));
-  assert.ok(page.includes('aria-label={`${category.name}${available ?'));
-  const block = page.slice(page.indexOf('<span className="category-option-copy">'), page.indexOf('</button>',page.indexOf('<span className="category-option-copy">')));
-  assert.ok(block.includes('className="category-option-action"'));
-  assert.ok(block.includes('<ChevronRight className="category-option-arrow" size={16}'));
-  assert.ok(!block.includes('size={20} aria-hidden="true" />'));
+  assert.ok(page.includes('aria-label={`${name} — ${action}`}'));
+  const block = page.slice(page.indexOf('function CollectionChoice('), page.indexOf('export default function Home()'));
+  assert.equal(block.match(/<button/g)?.length, 1);
+  assert.ok(block.includes('className="collection-action"'));
+  assert.ok(block.includes('ChevronRight size={15} aria-hidden="true"'));
+
 });
 
 test("O acabamento Premium 2.2 fica escopado na vitrine e adapta telas pequenas", () => {

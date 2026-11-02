@@ -18,9 +18,9 @@ test("vitrine experimental é uma camada posterior e restrita à tela inicial",(
   assert.ok(!legacyEditorialCss.includes(".builder-"));
 });
 test("fotografias e legendas são elementos independentes e a ação é explícita",()=>{
-  assert.ok(page.includes('className="category-option-media"'));
-  assert.ok(page.includes('className="category-option-copy"'));
-  assert.ok(page.includes('className="category-option-action"'));
+  assert.ok(page.includes('className="collection-photo"'));
+  assert.ok(page.includes('className="collection-copy"'));
+  assert.ok(page.includes('className="collection-action"'));
   assert.ok(page.includes('"Montar meu pote" : "Escolher minha fatia"'));
   assert.ok(page.includes("onClick={() => selectCategory(category.id)}"));
   assert.ok(page.includes('disabled={!available}'));
@@ -33,7 +33,7 @@ test("informações e regras operacionais continuam acessíveis",()=>{
   assert.ok(page.includes("Entrega a partir de R$8 ou retirada em Paragominas"));
   assert.ok(page.includes("visibleCategories.map((category)"));
   assert.ok(page.includes("categoryIsAvailable(category.id)"));
-  assert.ok(page.includes("cover.cardImage ?? cover.image"));
+  assert.ok(page.includes("cover?.cardImage ?? cover?.image"));
   assert.ok(page.includes("Esgotado"));
 });
 test("acessibilidade, mobile estreito e movimento reduzido cobertos",()=>{
@@ -85,12 +85,12 @@ test("v5 remove halo da junção e preserva ações de navegação",()=>{
   assert.ok(last.includes("linear-gradient(143deg, #51362a 0%, #442d23 57%, #322017 100%)"));
   assert.ok(last.includes("color: #f4e7d7;"));
   assert.ok(last.includes("color: #e7b87f;"));
-  assert.ok(page.includes('className="category-option-action"'));
+  assert.ok(page.includes('className="collection-action"'));
   assert.ok(page.includes('onClick={() => selectCategory(category.id)}'));
 });
 test("nova imagem da fatia só afeta a vitrine e tem fallback do catálogo",()=>{
   assert.ok(page.includes('category.id === "fatias" ? "/images/categoria-fatias-editorial.webp"'));
-  assert.ok(page.includes('event.currentTarget.src = cover.cardImage ?? cover.image'));
+  assert.ok(page.includes('img.src = fallback'));
   assert.ok(page.includes('alt=""'));
   assert.ok(page.includes('disabled={!available}'));
 });
@@ -102,19 +102,19 @@ test("imagem real otimizada está incluída no próprio repositório e no build 
   assert.equal(photo.toString("ascii",0,4),"RIFF");
   assert.equal(photo.toString("ascii",8,12),"WEBP");
   assert.ok(page.includes('category.id === "fatias" ? "/images/categoria-fatias-editorial.webp"'));
-  assert.ok(page.includes("event.currentTarget.src = cover.cardImage ?? cover.image"));
+  assert.ok(page.includes("img.src = fallback"));
 });
 
 test("v6 mantém os dois arquivos escolhidos com fallback seguro e foto da pipoca inteira",()=>{
   assert.ok(page.includes('"/images/categoria-pipocas-editorial.webp"'));
   assert.ok(page.includes('"/images/categoria-fatias-editorial.webp"'));
-  assert.ok(page.includes('categoria-${category.id}-editorial.webp'));
+  assert.ok(page.includes('img.getAttribute("src") !== fallback'));
   const v6 = css.slice(css.indexOf("Editorial v6"));
   assert.ok(v6.includes("object-fit: contain;"));
   assert.ok(v6.includes("object-fit: cover;"));
   assert.ok(v6.includes("filter: none;"));
   assert.ok(v6.includes("transform: none;"));
-  assert.ok(page.includes("event.currentTarget.src = cover.cardImage ?? cover.image"));
+  assert.ok(page.includes("img.src = fallback"));
 });
 
 
@@ -131,7 +131,7 @@ test("v7 aproxima a referência aprovada: cartões compactos, fundo chocolate e 
     "filter: none;"
   ]) assert.ok(v7.includes(value), "regra v7 ausente: " + value);
   assert.ok(page.includes("onClick={() => selectCategory(category.id)}"));
-  assert.ok(page.includes("event.currentTarget.src = cover.cardImage ?? cover.image"));
+  assert.ok(page.includes("img.src = fallback"));
 });
 
 test("v8 apresenta relógio e refina a hierarquia da entrada sem mudar pedidos", () => {
@@ -146,7 +146,7 @@ test("v8 apresenta relógio e refina a hierarquia da entrada sem mudar pedidos",
     "color: #f3bb83;",
     "font-size: clamp(1.11rem, 4.95vw, 1.34rem);"
   ]) assert.ok(v8.includes(detail), detail);
-  assert.ok(page.includes('!activeCategory && <Clock3 className="delivery-time-clock"'));
+  assert.ok(page.includes('availability.ordersOpen && <p><Clock3'));
   assert.ok(page.includes("{DELIVERY_TIME_ESTIMATE} O prazo começa após a confirmação da loja."));
   assert.ok(page.includes("onClick={() => selectCategory(category.id)}"));
   assert.ok(page.includes('disabled={!available}'));
@@ -166,12 +166,12 @@ test("v9 preserva o título, coloca o complemento do prazo abaixo e mantém foto
     "linear-gradient(145deg, #53372a 0%, #402920 56%, #291913 100%)",
     "font-size: clamp(1.12rem, 4.9vw, 1.34rem)"
   ]) assert.ok(v9.includes(rule), rule);
-  assert.ok(page.includes("Escolha o que deseja pedir"));
+  assert.ok(page.includes("Escolha seu <em>doce"));
   assert.ok(page.includes('className="delivery-time-main">{DELIVERY_TIME_ESTIMATE}</span>'));
   assert.ok(page.includes('className="delivery-time-detail">O prazo começa após a confirmação da loja.</span>'));
-  assert.ok(page.includes('!activeCategory && <Clock3 className="delivery-time-clock"'));
+  assert.ok(page.includes('availability.ordersOpen && <p><Clock3'));
   assert.ok(page.includes("onClick={() => selectCategory(category.id)}"));
-  assert.ok(page.includes("event.currentTarget.src = cover.cardImage ?? cover.image"));
+  assert.ok(page.includes("img.src = fallback"));
   assert.ok(!v9.includes(".checkout-"));
   assert.ok(!v9.includes(".menu-entry.has-category"));
 });
@@ -206,11 +206,11 @@ test("v8 remove foco azul programático apenas dos títulos e acomoda viewport c
   assert.ok(css.includes('border-color: rgba(208, 149, 94, .30)'));
   assert.ok(page.includes('onClick={returnToCategories}'));
   assert.ok(page.includes('onClick={openLimitedCupEdition}>Conhecer Trufadas'));
-  assert.ok(page.includes('A partir de R$ 14,90'));
+  assert.ok(page.includes('currency.format(cupVariant.price)'));
 });
 
 test("v7 nomeia lançamento Pipocas Trufadas e dá saída clara em todos os caminhos", () => {
-  assert.ok(page.includes('<strong>Pipocas <em>Trufadas</em></strong>'));
+  assert.ok(page.includes('name="Pipocas Trufadas"'));
   assert.ok(page.includes('<h2>Pipocas <em>Trufadas</em></h2>'));
   assert.ok(page.includes('showLimitedCupView ? "Pipocas Trufadas"'));
   assert.ok(!page.includes("O lado crocante da Luciane"));
@@ -221,7 +221,7 @@ test("v7 nomeia lançamento Pipocas Trufadas e dá saída clara em todos os cami
   assert.ok(page.includes('aria-label="Navegação das pipocas"'));
   assert.ok(page.includes('aria-label="Navegação das fatias"'));
   assert.ok(page.includes('window.history.pushState'));
-  assert.ok(page.includes('window.history.state?.lucianeCrocante === true'));
+  assert.ok(page.includes('trufadasFromUrl(window.location.href, window.history.state)'));
   assert.ok(page.includes('window.scrollTo({ top: 0, behavior: "instant" })'));
   assert.ok(css.includes('.limited-cup-story-heading h2[data-editorial-navigation-focus="pointer"]:focus'));
   assert.ok(css.includes('.v7-navigation button:focus-visible'));
@@ -245,19 +245,19 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes('onClick={() => selectCategory("pipocas")}')); 
   assert.ok(page.includes('<span>Pipocas Gourmet</span>'));
   assert.ok(page.includes('Selecione um dos três sabores para ver os tamanhos e os preços.'));
-  assert.ok(page.includes("Conhecer os sabores"));
+  assert.ok(page.includes("Escolher meu pacote"));
   assert.ok(!page.includes('className="limited-cup-story-primary"'));
   assert.ok(page.includes('aria-pressed={selected}'));
   assert.ok(page.includes('aria-pressed={cupSizeId === size}'));
-  assert.ok(page.includes('className="limited-cup-teaser-cta"'));
+  assert.ok(page.includes('className="collection-action"'));
   assert.ok(page.includes('(!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen && Boolean(cupFlavorPreview && cupSizeId) && cupCanOrder))'));
   assert.ok(page.includes('setShowLimitedCupView(false);\n    setBuilderEngaged(true);'));
   assert.ok(page.includes('window.scrollTo({ top, behavior: "instant" })'));
   assert.ok(page.includes('setShowLimitedCupView(isEdition)'));
   assert.ok(page.includes('setRequestedCategory(category);'));
-  assert.ok(page.includes('setShowLimitedCupView(requestedCategory === "pipocas" && window.history.state?.lucianeCrocante === true)'));
+  assert.ok(page.includes('setShowLimitedCupView(trufadasFromUrl(window.location.href, window.history.state))'));
   assert.ok(!page.includes('href="#potes-recheados"'));
-  assert.ok(page.includes("A partir de R$ 14,90"));
+  assert.ok(page.includes("currency.format(cupVariant.price)"));
   assert.ok(page.includes("Pacotes P, M e G"));
   assert.ok(!page.includes("190 g"));
   assert.ok(page.includes("/images/pipocas-trufadas-ninho-20261101.webp"));
@@ -283,7 +283,7 @@ test("foto clara das Pipocas Gourmet fica restrita à vitrine inicial", async ()
   assert.ok(photo.length > 20000 && photo.length < 250000, "WebP leve para iPhone");
   assert.equal(photo.toString("ascii", 0, 4), "RIFF");
   assert.equal(photo.toString("ascii", 8, 12), "WEBP");
-  assert.ok(page.includes('category.id === "pipocas" ? "/images/categoria-pipocas-editorial-enquadrada-v107.webp"'));
+  assert.ok(page.includes('"/images/categoria-pipocas-editorial-enquadrada-v107.webp"'));
   assert.ok(page.includes('<img src="/images/categoria-pipocas-editorial.webp" onError='));
   assert.ok(page.includes('category.id === "fatias" ? "/images/categoria-fatias-editorial.webp"'));
   assert.ok(css.includes('background: #d4a988;'));
@@ -301,7 +301,7 @@ test("pipocas usam rolagem suave com respeito ao movimento reduzido; crocantes m
   assert.ok(page.includes('if (id === "tamanhos" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches)'));
   assert.ok(page.includes('window.scrollTo({ top, behavior: "smooth" })'));
   assert.ok(page.includes('window.scrollTo({ top, behavior: "instant" })'));
-  assert.ok(page.includes('className="limited-cup-teaser-shot is-ninho"'));
+  assert.ok(page.includes('photo="/images/pipocas-trufadas-ninho-20261101.webp"'));
 });
 
 test("fotografias comerciais aprovadas sempre acompanham o codigo e o ZIP do Cloudflare", async () => {

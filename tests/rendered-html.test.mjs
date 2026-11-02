@@ -34,7 +34,7 @@ test("renders production metadata without a development preview marker", async (
   assert.match(html, /<title>Luciane Oliveira Doces \| Pipocas e Fatias Artesanais<\/title>/);
   assert.doesNotMatch(html, /refrigerantes/i);
   assert.doesNotMatch(html, /coca-cola-220/i);
-  assert.match(html, /Escolha o que deseja pedir/);
+  assert.match(html, /Escolha seu <em>doce/);
   assert.match(html, /Carregando cardápio/);
   assert.doesNotMatch(html, /id="configurador"/);
 });

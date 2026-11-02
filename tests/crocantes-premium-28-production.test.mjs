@@ -50,7 +50,7 @@ test("nova experiência Trufadas usa tamanho e preço corretos sem data de estre
   assert.ok(page.includes('id="crocantes-tamanhos"'));
   assert.ok(page.includes('LOJA FECHADA'));
   assert.ok(!page.includes('ESTREIA · QUINTA, 15/10, ÀS 12H'));
-  assert.ok(page.includes('A partir de R$ 14,90'));
+  assert.ok(page.includes('currency.format(cupVariant.price)'));
   assert.ok(css.includes('.limited-cup-sale-compact'));
 });
 test("compras adicionais identificam outro copo e mantêm o fluxo original",()=>{

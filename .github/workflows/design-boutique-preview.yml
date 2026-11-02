@@ -50,8 +50,12 @@ on:
       - work/followup-assistido-integrado-20261031
       - work/trufadas-variantes-pmg-20261101
       - work/trufadas-ux-safari-20261101
+      - work/vitrine-editorial-20261102
       - feature/pre-reserva-chocolate-morango-31102026
     paths:
+      - scripts/qa-vitrine.mjs
+      - app/menu-navigation.ts
+      - app/storefront-collection.css
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
       - app/storefront-vitrine-editorial-experiment.css
@@ -261,3 +265,28 @@ jobs:
           path: outputs/luciane-oliveira-doces-cloudflare-pages.zip
           if-no-files-found: error
           retention-days: 7
+      - name: Recuperar base de comparação da vitrine
+        if: github.ref_name == 'work/vitrine-editorial-20261102'
+        uses: actions/checkout@v4
+        with:
+          ref: 8caeb691b8da0cb50282106fe098548798528418
+          path: visual-baseline
+      - name: Comparar os pacotes em Chromium e WebKit
+        if: github.ref_name == 'work/vitrine-editorial-20261102'
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd visual-baseline && npm ci --no-audit --no-fund && npm run build && node scripts/package-cloudflare.mjs --require-supabase)
+          npm install --prefix "$RUNNER_TEMP/visual-tools" playwright@1.56.1
+          "$RUNNER_TEMP/visual-tools/node_modules/.bin/playwright" install --with-deps chromium webkit
+          python3 -m http.server 8180 --bind 127.0.0.1 --directory visual-baseline/outputs/cloudflare-pages >/tmp/vitrine-antes.log 2>&1 &
+          python3 -m http.server 8181 --bind 127.0.0.1 --directory outputs/cloudflare-pages >/tmp/vitrine-depois.log 2>&1 &
+          export QA_PACKAGE="$RUNNER_TEMP/visual-tools/package.json" QA_OUTPUT="$RUNNER_TEMP/evidencia-vitrine"
+          node scripts/qa-vitrine.mjs
+      - name: Guardar capturas e medidas
+        if: always() && github.ref_name == 'work/vitrine-editorial-20261102'
+        uses: actions/upload-artifact@v4
+        with:
+          name: comparacao-vitrine
+          path: ${{ runner.temp }}/evidencia-vitrine
+          if-no-files-found: warn

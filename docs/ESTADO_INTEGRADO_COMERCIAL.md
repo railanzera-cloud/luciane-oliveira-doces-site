@@ -168,3 +168,7 @@ Nao afirmar Safari, QZ fisico nem WhatsApp real como homologados.
 - A Cloud API ainda depende de acesso a WABA, Phone Number ID, App Secret, token de verificacao, Coexistence e homologacao dos eventos reais.
 - Sem deploy no Cloudflare, sem alteracoes em main ou em outros projetos.
 - A CI nao substitui teste real no Safari nem prova de que os webhooks oficiais estao disponiveis.
+
+### Candidata à homologação · vitrine de entrada em 02/11/2026
+
+Branch isolada `work/vitrine-editorial-20261102`, derivada de `8caeb691b8da0cb50282106fe098548798528418`. Escopo, decisões e homologação em [Vitrine de coleções](VITRINE-COLECOES-20261102.md). A publicação desta candidata depende de autorização.

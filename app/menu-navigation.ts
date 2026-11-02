@@ -13,7 +13,14 @@ export function publicCategories(snapshot: AvailabilitySnapshot) {
 
 export function categoryFromUrl(href: string): CategoryId | null {
   const category = new URL(href).searchParams.get("categoria");
+  if (category === "trufadas") return "pipocas";
   return category === "pipocas" || category === "fatias" ? category : null;
+}
+
+// Aceita links compartilháveis e entradas de histórico das versões anteriores.
+export function trufadasFromUrl(href: string, state: { lucianeCrocante?: boolean } | null) {
+  const category = new URL(href).searchParams.get("categoria");
+  return category === "trufadas" || (category === "pipocas" && state?.lucianeCrocante === true);
 }
 
 export function resolveMenuCategory(snapshot: AvailabilitySnapshot, requested: CategoryId | null): CategoryId | null {
@@ -26,7 +33,7 @@ export function resolveMenuCategory(snapshot: AvailabilitySnapshot, requested: C
   return null;
 }
 
-export function categoryUrl(href: string, category: CategoryId | null) {
+export function categoryUrl(href: string, category: CategoryId | "trufadas" | null) {
   const url = new URL(href);
   if (category) url.searchParams.set("categoria", category);
   else url.searchParams.delete("categoria");

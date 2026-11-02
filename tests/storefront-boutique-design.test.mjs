@@ -26,8 +26,7 @@ test("camada boutique é isolada do painel e não define regras globais", () => 
 
 test("entrada e escolhas correspondem a componentes existentes", () => {
   const selectors = [
-    ".category-options", ".category-option-media", ".category-option-copy",
-    ".category-option-arrow", ".builder-card", ".step-heading",
+    ".builder-card", ".step-heading",
     ".size-card", ".flavor-card", ".slice-card", ".slice-media",
     ".quantity-control", ".primary-cta", ".checkout-section",
     ".order-card", ".summary-card", ".payment-option", ".mobile-sticky-bar",

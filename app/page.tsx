@@ -70,7 +70,7 @@ import {
   statusFor,
   type AvailabilitySnapshot,
 } from "@/app/menu-availability";
-import { categoryFromUrl, categoryUrl, publicCategories, resolveMenuCategory } from "@/app/menu-navigation";
+import { categoryFromUrl, trufadasFromUrl, categoryUrl, publicCategories, resolveMenuCategory } from "@/app/menu-navigation";
 import { useMenuAvailability } from "@/hooks/use-menu-availability";
 import { isLastSlicesWindow, LAST_SLICES_PRODUCT_IDS } from "@/app/last-slices-campaign";
 import { usePopcornPromotion } from "@/hooks/use-popcorn-promotion";
@@ -426,6 +426,31 @@ function sanitizeSavedCart(value: unknown): CartItem[] {
   });
 }
 
+function CollectionChoice({ format, name, description, action, photo, photoWidth, fallback, disabled, onClick }: {
+  format: string; name: string; description: string; action: string; photo: string; photoWidth: number;
+  fallback?: string; disabled: boolean; onClick: () => void;
+}) {
+  return (
+    <button className="collection-choice" type="button" disabled={disabled} onClick={onClick} aria-label={`${name} — ${action}`}>
+      <span className="collection-photo" data-packs={format === "Pacote com zíper" || undefined}>
+        <img src={photo} srcSet={`${photo.replace(".webp", "-360.webp")} 360w, ${photo} ${photoWidth}w`} sizes="(min-width: 1152px) 374px, (min-width: 700px) 33vw, 36vw" alt="" decoding="async" width={640} height={480} onError={(event) => {
+          const img = event.currentTarget;
+          if (img.hasAttribute("srcset")) {
+            img.removeAttribute("srcset");
+            img.src = photo;
+          } else if (fallback && img.getAttribute("src") !== fallback) img.src = fallback;
+        }} />
+      </span>
+      <span className="collection-copy">
+        <span className="collection-format">{format}</span>
+        <strong>{name}</strong>
+        <span className="collection-description">{description}</span>
+        <span className="collection-action">{action}{!disabled && <ChevronRight size={15} aria-hidden="true" />}</span>
+      </span>
+    </button>
+  );
+}
+
 export default function Home() {
   const { promotionTime, refreshPromotionTime } = usePopcornPromotion();
   const popcornPromotionActive = isPopcornPromotionActive(promotionTime);
@@ -773,13 +798,13 @@ export default function Home() {
         setRestoredOrderNotice(savedCart.length > 0);
       }
       setRequestedCategory(requestedCategory);
-      setShowLimitedCupView(requestedCategory === "pipocas" && window.history.state?.lucianeCrocante === true);
+      setShowLimitedCupView(trufadasFromUrl(window.location.href, window.history.state));
       setStorageReady(true);
     }, 0);
 
     const followHistory = () => {
       const category = categoryFromUrl(window.location.href);
-      const isEdition = category === "pipocas" && window.history.state?.lucianeCrocante === true;
+      const isEdition = trufadasFromUrl(window.location.href, window.history.state);
       setShowLimitedCupView(isEdition);
       setRequestedCategory(category);
       if (!category) {
@@ -1120,7 +1145,7 @@ export default function Home() {
     setAddedNotice(null);
     setBuilderEngaged(true);
     const historyState = window.history.state ?? {};
-    if (categoryFromUrl(window.location.href) !== category || historyState.lucianeCrocante === true) {
+    if (categoryFromUrl(window.location.href) !== category || trufadasFromUrl(window.location.href, historyState)) {
       window.history.pushState({ ...historyState, lucianeCrocante: false }, "", categoryUrl(window.location.href, category));
     }
     if (shouldScroll) {
@@ -1142,7 +1167,7 @@ export default function Home() {
     setBuilderEngaged(false);
     const historyState = window.history.state ?? {};
     if (categoryFromUrl(window.location.href) !== "pipocas" || historyState.lucianeCrocante !== true) {
-      window.history.pushState({ ...historyState, lucianeCrocante: true }, "", categoryUrl(window.location.href, "pipocas"));
+      window.history.pushState({ ...historyState, lucianeCrocante: true }, "", categoryUrl(window.location.href, "trufadas"));
     }
     requestEditorialScroll("edicao-crocante");
   }
@@ -1918,80 +1943,53 @@ export default function Home() {
               <span>Você ainda pode consultar o cardápio.</span>
             </div>
           )}
-          <div className="entry-heading">
-            <p className="eyebrow">Luciane Oliveira Doces</p>
-            <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : activeCategory === "fatias" ? "Fatias Artesanais" : "Escolha o que deseja pedir"}</h1>
-            <p className="entry-copy">{activeCategory === "pipocas"
-              ? showLimitedCupView ? "Três sabores artesanais em pacotes P, M e G." : "Escolha o tamanho e combine seus sabores."
-              : activeCategory === "fatias"
-                ? "Sabores disponíveis"
-                : COMMERCE_CONFIG.siteOrderingEnabled
-                  ? "Monte seu pedido e escolha se prefere concluir no site ou pelo WhatsApp."
-                  : "Monte seu pedido pelo site e envie pelo WhatsApp."}</p>
-            {hasResolvedAvailability && availability.ordersOpen && visibleCategories.length > 0 && (
-              <p className="delivery-time-estimate">
-                {!activeCategory && <Clock3 className="delivery-time-clock" size={18} strokeWidth={1.8} aria-hidden="true" />}
-                <span className="delivery-time-copy">
-                  <span className="delivery-time-main">{DELIVERY_TIME_ESTIMATE}</span>{" "}
-                  <span className="delivery-time-detail">O prazo começa após a confirmação da loja.</span>
-                </span>
-              </p>
-            )}
-          </div>
-          {!activeCategory && <p className="delivery-note"><Truck size={16} aria-hidden="true" /> Entrega a partir de R$8 ou retirada em Paragominas</p>}
-          {!activeCategory && hasResolvedAvailability && (
-            <button className="limited-cup-teaser" type="button" onClick={openLimitedCupEdition} disabled={!categoryIsAvailable("pipocas")} aria-label="Conhecer Pipocas Trufadas nos sabores Ninho, Paçoca e Coco Queimado, a partir de R$ 14,90">
-              <span className="limited-cup-teaser-content">
-                <span className="limited-cup-teaser-mark"><span aria-hidden="true">✦</span> {cupLaunchCopy.eyebrow}</span>
-                <strong>Pipocas <em>Trufadas</em></strong>
-                <span className="limited-cup-teaser-price"><span>3 sabores · P, M e G</span><b>A partir de R$ 14,90</b></span>
-                <span className="limited-cup-teaser-cta">Conhecer os sabores <ChevronRight size={16} aria-hidden="true" /></span>
-              </span>
-              <span className="limited-cup-teaser-visual" aria-hidden="true">
-                <span className="limited-cup-teaser-shot is-ninho"><img src="/images/pipocas-trufadas-ninho-20261101.webp" alt="" width="840" height="1050" loading="eager" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} /></span>
-                <span className="limited-cup-teaser-shot is-chocolate"><img src="/images/pipocas-trufadas-pacoca-20261101.webp" alt="" width="840" height="1050" loading="eager" decoding="async" onError={(event) => { event.currentTarget.hidden = true; }} /></span>
-              </span>
-            </button>
+          {activeCategory ? (
+            <div className="entry-heading">
+              <p className="eyebrow">Luciane Oliveira Doces</p>
+              <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : "Fatias Artesanais"}</h1>
+              <p className="entry-copy">{activeCategory === "pipocas"
+                ? showLimitedCupView ? "Três sabores artesanais em pacotes P, M e G." : "Escolha o tamanho e combine seus sabores."
+                : "Sabores disponíveis"}</p>
+              {availability.ordersOpen && visibleCategories.length > 0 && (
+                <p className="delivery-time-estimate">
+                  <span className="delivery-time-copy">
+                    <span className="delivery-time-main">{DELIVERY_TIME_ESTIMATE}</span>{" "}
+                    <span className="delivery-time-detail">O prazo começa após a confirmação da loja.</span>
+                  </span>
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="collection-heading">
+              <p className="collection-kicker">Cardápio artesanal</p>
+              <h1>Escolha seu <em>doce.</em></h1>
+            </div>
           )}
           {!hasResolvedAvailability ? (
-            <div className="entry-loading" role="status">Carregando cardápio…</div>
+            <div className="collection-loading" role="status">Carregando cardápio…</div>
           ) : !activeCategory && (
             visibleCategories.length > 0 ? (
-              <div className="category-options" aria-label="Escolha uma categoria">
+              <div className="collection-menu" role="group" aria-label="Escolha uma categoria">
+                {pipocasVisible && (
+                  <CollectionChoice format="Pacote com zíper" name="Pipocas Trufadas"
+                    photo="/images/pipocas-trufadas-ninho-20261101.webp" photoWidth={1086}
+                    fallback="/images/pipocas-trufadas-pacoca-20261101.webp"
+                    description="Ninho, Paçoca ou Coco Queimado. Em P, M e G."
+                    action={!pipocasAvailable || cupPhase === "sold-out" ? "Esgotado" : cupCanBeAddedFromCheckout ? "Escolher meu pacote" : "Consultar sabores"}
+                    disabled={!pipocasAvailable || cupPhase === "sold-out"} onClick={openLimitedCupEdition} />
+                )}
                 {visibleCategories.map((category) => {
                   const available = categoryIsAvailable(category.id);
-                  const cover = category.id === "pipocas" ? POPCORN : SLICES.find((slice) => sliceIsVisible(slice.id));
+                  const isPot = category.id === "pipocas";
+                  const cover = isPot ? POPCORN : SLICES.find((slice) => sliceIsVisible(slice.id));
                   return (
-                    <button type="button" className="category-option" disabled={!available} key={category.id} onClick={() => selectCategory(category.id)} aria-label={`${category.name}${available ? (category.id === "pipocas" ? " — Montar meu pote" : " — Escolher minha fatia") : " — Esgotado"}`}>
-                      <span className="category-option-media">
-                        {cover?.image && <img
-                          src={category.id === "fatias" ? "/images/categoria-fatias-editorial.webp" : category.id === "pipocas" ? "/images/categoria-pipocas-editorial-enquadrada-v107.webp" : cover.cardImage ?? cover.image}
-                          alt=""
-                          width="640"
-                          height="480"
-                          loading="eager"
-                          decoding="async"
-                          fetchPriority={category.id === "pipocas" ? "high" : "auto"}
-                          onError={(event) => {
-                            // A imagem original do catálogo permanece como fallback seguro.
-                            if ((category.id === "fatias" || category.id === "pipocas") && event.currentTarget.getAttribute("src")?.includes(category.id === "pipocas" ? "categoria-pipocas-editorial-enquadrada-v107.webp" : `categoria-${category.id}-editorial.webp`)) {
-                              event.currentTarget.src = cover.cardImage ?? cover.image ?? event.currentTarget.src;
-                            }
-                          }}
-                        />}
-                      </span>
-                      <span className="category-option-copy">
-                        <strong>{category.name}</strong>
-                        <span>{category.description}</span>
-                        {available && (
-                          <span className="category-option-action" aria-hidden="true">
-                            {category.id === "pipocas" ? "Montar meu pote" : "Escolher minha fatia"}
-                            <ChevronRight className="category-option-arrow" size={16} aria-hidden="true" />
-                          </span>
-                        )}
-                        {!available && <em>Esgotado</em>}
-                      </span>
-                    </button>
+                    <CollectionChoice key={category.id} format={isPot ? "Pote recheado" : "Bolo em fatias"}
+                      name={category.name} photoWidth={isPot ? 1166 : 720}
+                      photo={category.id === "fatias" ? "/images/categoria-fatias-editorial.webp" : "/images/categoria-pipocas-editorial-enquadrada-v107.webp"}
+                      fallback={cover?.cardImage ?? cover?.image}
+                      description={isPot ? "Combine os recheios no pote do seu tamanho." : "Escolha sua fatia pelas camadas de massa e recheio."}
+                      action={!available ? "Esgotado" : !availability.ordersOpen || availability.source !== "supabase" ? "Consultar sabores" : isPot ? "Montar meu pote" : "Escolher minha fatia"}
+                      disabled={!available} onClick={() => selectCategory(category.id)} />
                   );
                 })}
               </div>
@@ -2002,6 +2000,13 @@ export default function Home() {
                 <TintimContactLink className="category-text-link"><MessageCircle size={17} aria-hidden="true" /> Falar com a Luciane</TintimContactLink>
               </div>
             )
+          )}
+          {!activeCategory && hasResolvedAvailability && visibleCategories.length > 0 && (
+            <div className="collection-service">
+              <p><Truck size={16} aria-hidden="true" /><span>Entrega a partir de R$8 ou retirada em Paragominas</span></p>
+              {availability.ordersOpen && <p><Clock3 size={16} aria-hidden="true" /><span>{DELIVERY_TIME_ESTIMATE}<small>O prazo começa após a confirmação da loja.</small></span></p>}
+              <small>{COMMERCE_CONFIG.siteOrderingEnabled ? "Finalize seu pedido no site ou pelo WhatsApp." : "Monte seu pedido aqui e finalize pelo WhatsApp."}</small>
+            </div>
           )}
           {activeCategory && <p className="delivery-note"><Truck size={16} aria-hidden="true" /> Entrega a partir de R$8 ou retirada em Paragominas</p>}
         </div>
