@@ -55,6 +55,10 @@ const STATUS_LABELS: Record<AvailabilityStatus, string> = {
   hidden: "Oculto",
 };
 
+function normalizeAdminSearch(value: string) {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR").trim();
+}
+
 function friendlyError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   if (/invalid login credentials/i.test(message)) return "E-mail ou senha inválidos.";
@@ -131,8 +135,8 @@ export default function AdminPage() {
   const popcornFlavors = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "popcorn_flavor");
   const slices = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "slice");
   const gourmetItems = [...popcornSizes, ...popcornFlavors];
-  const visibleSlices = slices.filter(item => item.name.toLocaleLowerCase("pt-BR")
-    .includes(sliceSearch.trim().toLocaleLowerCase("pt-BR")));
+  const visibleSlices = slices.filter(item => normalizeAdminSearch(item.name)
+    .includes(normalizeAdminSearch(sliceSearch)));
   const countReady = (items: MenuAvailabilityItem[]) => items.filter(item => availability.statuses[item.itemKey] === "available").length;
   const controlsUnavailable = loadingMenu || availability.source !== "supabase" || Boolean(loadError);
   function selectAvailabilitySection(next: "trufadas" | "gourmet" | "fatias") {
