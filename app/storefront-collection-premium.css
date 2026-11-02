@@ -306,10 +306,25 @@
     font-size: clamp(1.46rem, 6vw, 1.91rem);
   }
   .storefront .menu-entry.is-neutral .collection-choice:first-child .collection-photo img {
-    width: 72%; left: -14%; height: 83%; bottom: 4%;
+    width: 91%; left: -17%; height: 103%; bottom: -2%;
+    object-fit: cover;
+    object-position: center 40%;
   }
   .storefront .menu-entry.is-neutral .collection-choice:first-child .collection-photo[data-packs]::after {
-    inset: auto -6% 9% 37%; height: 77%;
+    inset: auto -11% -3% 35%;
+    height: 107%;
+    background-size: cover;
+    background-position: center 44%;
+  }
+  .storefront .menu-entry.is-neutral .collection-choice:first-child .collection-price {
+    font-size: .80rem;
+    white-space: nowrap;
+    letter-spacing: -.025em;
+  }
+  .storefront .menu-entry.is-neutral .collection-choice:first-child .collection-action {
+    font-size: .76rem;
+    white-space: nowrap;
+    padding-inline: 9px;
   }
   .storefront .menu-entry.is-neutral .collection-choice:first-child .collection-action {
     width: 100%;
