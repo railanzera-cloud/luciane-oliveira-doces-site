@@ -593,7 +593,7 @@ test("case G: real toggle handler recomputes from remaining flavors and enforces
   const variant = catalog.POPCORN.variants.find((item) => item.id === "1l");
   const deps = { categoryIsAvailable: () => true, popcornVariant: variant, popcornMaxOptions: 3,
     popcornOptionIds: [], popcornFlavorIsAvailable: () => true, setBuilderEngaged: () => {}, setSelectionMessage: () => {},
-    scrollToSection: () => {}, window: { setTimeout: () => {} },
+    scrollToSection: () => {}, requestScroll: () => {}, window: { setTimeout: () => {} },
     setPopcornOptionIds: (update) => { deps.popcornOptionIds = update(deps.popcornOptionIds); } };
   const toggle = (id) => pageFunction("togglePopcornOption", deps)(catalog.POPCORN.options.find((item) => item.id === id));
   for (const [id, expected] of [["leitinho", 49], ["kinder-bueno", 55], ["nutella", 58], ["nutella", 55], ["kinder-bueno", 49]]) {
