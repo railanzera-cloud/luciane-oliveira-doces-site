@@ -57,6 +57,7 @@ on:
       - work/trufadas-experiencia-imersiva-20261102
       - work/admin-disponibilidade-premium-20261102
       - fix/cozinha-qz-pedido1544-diagnostico-20261102
+      - work/feriado-gourmet-preco-unico-20261102
       - feature/pre-reserva-chocolate-morango-31102026
     paths:
       - scripts/qa-vitrine.mjs
@@ -70,6 +71,7 @@ on:
       - app/storefront-boutique-v3.css
       - app/storefront-vitrine-editorial-experiment.css
       - app/storefront-checkout-premium.css
+      - app/gourmet-feriado-20261102.css
       - app/catalog.ts
       - app/menu-availability.ts
       - supabase/migrations/20261024153000_fatia_coco_cremoso_morango.sql
@@ -145,6 +147,10 @@ on:
       - 'supabase/migrations/20261101160000_trufadas_pmg_nove_skus_20261101.sql'
       - supabase/functions/create-whatsapp-order/index.ts
       - supabase/functions/_shared/commerce-catalog.mjs
+      - supabase/functions/_shared/popcorn-promotion.mjs
+      - supabase/functions/_shared/popcorn-quote-campaign.mjs
+      - supabase/functions/create-order/index.ts
+      - docs/PROMO-GOURMET-FINADOS-20261102.md
       - supabase/migrations/20261014190000_crocantes_lancamento.sql
       - supabase/migrations/20261018164000_kitchen_trufadas_reserved_print.sql
       - supabase/migrations/20261018185000_trufadas_stocktake_reservation_reconcile.sql
