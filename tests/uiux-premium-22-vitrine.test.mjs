@@ -6,7 +6,7 @@ const page = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
 const styles = readFileSync(new URL("../app/storefront-vitrine-editorial-experiment.css", import.meta.url), "utf8");
 
 test("A vitrine usa CTA unificado para pote e fatias sem duplicar botoes", () => {
-  assert.ok(page.includes('"Montar meu pote" : "Escolher minha fatia"'));
+  assert.ok(page.includes('"Montar pote" : "Escolher fatia"'));
   assert.ok(page.includes('onClick={() => selectCategory(category.id)}'));
   assert.ok(page.includes('disabled={!available}'));
   assert.ok(page.includes('aria-label={`${name} — ${action}`}'));
