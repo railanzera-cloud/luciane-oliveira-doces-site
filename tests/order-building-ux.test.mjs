@@ -6,7 +6,7 @@ const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8")
 
 test("makes popcorn flavor selection explicit", () => {
   assert.match(page, /Escolha os sabores da sua pipoca/);
-  assert.match(page, /Escolher meus sabores/);
+  assert.match(page, /Ir aos sabores/);
   assert.match(page, /Escolha pelo menos 1 sabor para adicionar ao pedido/);
 });
 
