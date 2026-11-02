@@ -60,6 +60,7 @@ on:
       - work/feriado-gourmet-preco-unico-20261102
       - fix/cozinha-worker-id-undefined-20261102
       - work/gourmet-refinamento-conversao-20261102
+      - fix/gourmet-clareza-final-20261102
       - feature/pre-reserva-chocolate-morango-31102026
     paths:
       - scripts/qa-vitrine.mjs
@@ -300,13 +301,13 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Instalar Chromium e WebKit para conferir a oferta Gourmet
-        if: (github.ref_name == 'work/feriado-gourmet-preco-unico-20261102' || github.ref_name == 'work/gourmet-refinamento-conversao-20261102')
+        if: (github.ref_name == 'work/feriado-gourmet-preco-unico-20261102' || (github.ref_name == 'work/gourmet-refinamento-conversao-20261102' || github.ref_name == 'fix/gourmet-clareza-final-20261102'))
         shell: bash
         run: |
           npm install --prefix "$RUNNER_TEMP/qa-gourmet" playwright@1.56.1
           "$RUNNER_TEMP/qa-gourmet/node_modules/.bin/playwright" install --with-deps chromium webkit
       - name: Homologar conversão Gourmet, scroll do CTA e retorno dos preços em 03/11
-        if: (github.ref_name == 'work/feriado-gourmet-preco-unico-20261102' || github.ref_name == 'work/gourmet-refinamento-conversao-20261102')
+        if: (github.ref_name == 'work/feriado-gourmet-preco-unico-20261102' || (github.ref_name == 'work/gourmet-refinamento-conversao-20261102' || github.ref_name == 'fix/gourmet-clareza-final-20261102'))
         shell: bash
         run: |
           set -euo pipefail
@@ -318,7 +319,7 @@ jobs:
             node scripts/qa-gourmet-feriado-20261102.mjs
           fi
       - name: Guardar capturas reais do navegador e medidas da campanha
-        if: always() && (github.ref_name == 'work/feriado-gourmet-preco-unico-20261102' || github.ref_name == 'work/gourmet-refinamento-conversao-20261102')
+        if: always() && (github.ref_name == 'work/feriado-gourmet-preco-unico-20261102' || (github.ref_name == 'work/gourmet-refinamento-conversao-20261102' || github.ref_name == 'fix/gourmet-clareza-final-20261102'))
         uses: actions/upload-artifact@v4
         with:
           name: qa-gourmet-feriado-20261102
