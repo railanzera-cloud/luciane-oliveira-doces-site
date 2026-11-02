@@ -10,7 +10,7 @@ test("Home premium: tema escuro com contraste alto, fotos protagonistas e CTA de
   assert.match(layout,/import "\.\/storefront-collection\.css";\s*import "\.\/storefront-collection-premium\.css";/);
   assert.match(css,/\.menu-entry\.is-neutral/);
   assert.match(css,/background:[\s\S]*linear-gradient\(145deg, #22130e/);
-  assert.match(css,/\.collection-choice:first-child/);
+  assert.match(css,/\.collection-choice\[data-featured\]/);
   assert.match(css,/grid-column: 1 \/ -1/);
   assert.match(css,/\.collection-photo img/);
   assert.match(css,/\.collection-action/);
