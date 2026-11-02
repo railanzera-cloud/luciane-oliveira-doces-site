@@ -55,6 +55,7 @@ on:
       - work/vitrine-premium-refino-equilibrio-20261102
       - work/trufadas-configurador-premium-20261102
       - work/trufadas-experiencia-imersiva-20261102
+      - work/admin-disponibilidade-premium-20261102
       - feature/pre-reserva-chocolate-morango-31102026
     paths:
       - scripts/qa-vitrine.mjs
@@ -73,6 +74,9 @@ on:
       - app/page.tsx
       - app/order-checkout.ts
       - app/admin/page.tsx
+      - app/admin/availability.css
+      - components/admin-trufadas-stock.tsx
+      - tests/admin-disponibilidade-premium-20261102.test.mjs
       - components/admin-crm-panel.tsx
       - components/admin-crm-panel.css
       - lib/crm-follow-up.ts
