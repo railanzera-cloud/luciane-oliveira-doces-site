@@ -235,9 +235,9 @@ function jumpToEditorialSection(id: "tamanhos" | "edicao-crocante") {
   const target = document.getElementById(id);
   if (!target) return;
   const top = Math.max(0, window.scrollY + target.getBoundingClientRect().top - 16);
-  // Todas as categorias seguem a mesma rolagem fluida; respeita redução de movimento.
+  // Safari/WebKit pode interromper a rolagem quando o foco é movido depois.
+  // Primeiro posicionamos o foco acessível; depois iniciamos a rolagem.
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  window.scrollTo({ top, behavior: reducedMotion ? "instant" : "smooth" });
   const heading = id === "tamanhos"
     ? document.getElementById("step-size")
     : target.querySelector<HTMLElement>(".limited-cup-selection-heading");
@@ -251,6 +251,12 @@ function jumpToEditorialSection(id: "tamanhos" | "edicao-crocante") {
       else heading.setAttribute("tabindex", previousTabIndex);
     }, { once: true });
     heading.focus({ preventScroll: true });
+  }
+  if (id === "edicao-crocante") {
+    // O mesmo scrollIntoView suave já usado em Fatias: comportamento confiável no WebKit.
+    target.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+  } else {
+    window.scrollTo({ top, behavior: reducedMotion ? "instant" : "smooth" });
   }
 }
 
