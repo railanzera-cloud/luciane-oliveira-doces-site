@@ -52,6 +52,7 @@ on:
       - work/trufadas-ux-safari-20261101
       - work/vitrine-editorial-20261102
       - work/vitrine-premium-reconstrucao-20261102
+      - work/vitrine-premium-refino-equilibrio-20261102
       - feature/pre-reserva-chocolate-morango-31102026
     paths:
       - scripts/qa-vitrine.mjs
@@ -268,13 +269,13 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Recuperar base de comparação da vitrine
-        if: github.ref_name == 'work/vitrine-premium-reconstrucao-20261102'
+        if: github.ref_name == 'work/vitrine-premium-refino-equilibrio-20261102'
         uses: actions/checkout@v4
         with:
-          ref: e7fb01fa506af4e3567a4d6e460693cc89b7f4bb
+          ref: ba36a520e930313d9193ad62e0ba0ca369d91f83
           path: visual-baseline
       - name: Comparar os pacotes em Chromium e WebKit
-        if: github.ref_name == 'work/vitrine-premium-reconstrucao-20261102'
+        if: github.ref_name == 'work/vitrine-premium-refino-equilibrio-20261102'
         shell: bash
         run: |
           set -euo pipefail
@@ -286,7 +287,7 @@ jobs:
           export QA_PACKAGE="$RUNNER_TEMP/visual-tools/package.json" QA_OUTPUT="$RUNNER_TEMP/evidencia-vitrine"
           node scripts/qa-vitrine.mjs
       - name: Guardar capturas e medidas
-        if: always() && github.ref_name == 'work/vitrine-premium-reconstrucao-20261102'
+        if: always() && github.ref_name == 'work/vitrine-premium-refino-equilibrio-20261102'
         uses: actions/upload-artifact@v4
         with:
           name: comparacao-vitrine
