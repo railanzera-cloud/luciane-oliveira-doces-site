@@ -1989,7 +1989,7 @@ export default function Home() {
                     fallback="/images/pipocas-trufadas-pacoca-20261101.webp"
                     description="Ninho, Paçoca e Coco Queimado · P, M e G"
                     price={currency.format(TRUFADA_STARTING_PRICE)}
-                    action={!pipocasAvailable || cupPhase === "sold-out" ? "Esgotado" : cupCanBeAddedFromCheckout ? "Escolher sabor" : "Consultar sabores"}
+                    action={!pipocasAvailable || cupPhase === "sold-out" ? "Esgotado" : cupCanBeAddedFromCheckout ? "Ver sabores" : "Consultar sabores"}
                     disabled={!pipocasAvailable || cupPhase === "sold-out"} onClick={openLimitedCupEdition} />
                 )}
                 {visibleCategories.map((category) => {
@@ -2002,7 +2002,7 @@ export default function Home() {
                       photo={category.id === "fatias" ? "/images/categoria-fatias-editorial.webp" : "/images/categoria-pipocas-editorial-enquadrada-v107.webp"}
                       fallback={cover?.cardImage ?? cover?.image}
                       description={isPot ? "Escolha seu tamanho e combine os sabores." : "Camadas de massa e recheios artesanais."}
-                      action={!available ? "Esgotado" : !availability.ordersOpen || availability.source !== "supabase" ? "Consultar sabores" : isPot ? "Montar meu pote" : "Escolher minha fatia"}
+                      action={!available ? "Esgotado" : !availability.ordersOpen || availability.source !== "supabase" ? "Consultar sabores" : isPot ? "Montar pote" : "Escolher fatia"}
                       disabled={!available} onClick={() => selectCategory(category.id)} />
                   );
                 })}
