@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AlertCircle, Check, ChevronRight, CircleHelp, LoaderCircle, RefreshCw, ShoppingBag, Sparkles } from "lucide-react";
+import { AlertCircle, Check, CircleHelp, LoaderCircle, RefreshCw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getSupabaseClient } from "@/lib/supabase";
 import { TRUFADA_STOCK_ITEM_KEYS, type AvailabilityStatus } from "@/app/menu-availability";
@@ -161,9 +161,30 @@ export function AdminTrufadasStock({
   const selectedRow = rows.find(row => row.item_key === selectedVariant.itemKey);
   const draft = drafts[selectedVariant.itemKey];
   const isEditing = Boolean(selectedRow && draft && (draft.free !== String(freePackages(selectedRow)) || draft.enabled !== selectedRow.enabled));
-  const allFree = rows.filter(row => TRUFADA_STOCK_ITEM_KEYS.includes(row.item_key)).reduce((total, row) => total + freePackages(row), 0);
-  const allHeld = rows.filter(row => TRUFADA_STOCK_ITEM_KEYS.includes(row.item_key)).reduce((total, row) => total + row.reserved, 0);
-  const liveCount = rows.filter(row => TRUFADA_STOCK_ITEM_KEYS.includes(row.item_key) && row.enabled && row.available > 0).length;
+  const chooseVariant = (nextFlavor: string, nextSize: string) => {
+    if (pendingKey || loading) return;
+    if (isEditing && (nextFlavor !== flavorId || nextSize !== sizeId)) {
+      setError("Você fez alterações ainda não salvas. Salve ou descarte antes de mudar de pacote.");
+      return;
+    }
+    setFlavorId(nextFlavor);
+    setSizeId(nextSize);
+    setError("");
+    setNotice("");
+  };
+  const discard = () => {
+    if (!selectedRow) return;
+    setDrafts(current => ({
+      ...current, [selectedRow.item_key]: {
+        free: String(freePackages(selectedRow)), enabled: selectedRow.enabled,
+      },
+    }));
+    setError("");
+  };
+  const activeRows = rows.filter(row => TRUFADA_STOCK_ITEM_KEYS.includes(row.item_key));
+  const allFree = activeRows.reduce((total, row) => total + freePackages(row), 0);
+  const allHeld = activeRows.reduce((total, row) => total + row.reserved, 0);
+  const liveCount = activeRows.filter(row => row.enabled && row.available > 0).length;
 
   return (
     <section className="admin-trufadas-studio" aria-labelledby="admin-trufadas-stock-title">
@@ -183,7 +204,7 @@ export function AdminTrufadasStock({
         <div className="admin-stock-overview" aria-label="Resumo dos pacotes">
           <div><small>Prontos sem pedido</small><strong>{allFree}</strong></div>
           <div><small>Em pedidos</small><strong>{allHeld}</strong></div>
-          <div><small>Combinações com saldo</small><strong>{liveCount} <span>/ 9</span></strong></div>
+          <div><small>Tamanhos liberados</small><strong>{liveCount} <span>/ 9</span></strong></div>
         </div>
       )}
       {!ordersOpen && <p className="admin-stock-global-note"><AlertCircle size={15} aria-hidden="true" /> Pedidos gerais fechados. Você pode preparar o estoque sem liberar compras agora.</p>}
@@ -194,11 +215,14 @@ export function AdminTrufadasStock({
       <div className="admin-stock-flavors" role="tablist" aria-label="Sabores de Pipocas Trufadas">
         {FLAVOR_GROUPS.map(group => {
           const active = group.id === flavorId;
-          const free = group.sizes.reduce((sum, item) => sum + freePackages(rows.find(row => row.item_key === item.itemKey) ?? { total: 0, reserved: 0 } as InventoryRow), 0);
+          const free = group.sizes.reduce((sum, item) => {
+            const row = rows.find(candidate => candidate.item_key === item.itemKey);
+            return sum + (row ? freePackages(row) : 0);
+          }, 0);
           return <button type="button" key={group.id} role="tab" id={`admin-stock-tab-${group.id}`}
             aria-selected={active} aria-controls={`admin-stock-panel-${group.id}`}
             className={active ? "is-current" : ""} disabled={Boolean(pendingKey)}
-            onClick={() => { setFlavorId(group.id); setSizeId("p"); setError(""); setNotice(""); }}>
+            onClick={() => chooseVariant(group.id, "p")}>
             <strong>{group.name}</strong><small>{loading ? "Consultando…" : `${free} livres`}</small>
           </button>;
         })}
@@ -215,7 +239,7 @@ export function AdminTrufadasStock({
             const isReady = row?.enabled && row.available > 0;
             return <button type="button" key={itemKey} className={selected ? "is-current" : ""}
               aria-pressed={selected} disabled={loading || Boolean(pendingKey) || !row}
-              onClick={() => { setSizeId(size); setError(""); setNotice(""); }}>
+              onClick={() => chooseVariant(flavorId, size)}>
               <span className="admin-stock-variant-letter">{size.toUpperCase()}</span>
               <strong>{row ? free : "—"} <small>{free === 1 ? "livre" : "livres"}</small></strong>
               <span className={`admin-stock-variant-state ${isReady ? "is-ready" : row?.enabled ? "is-empty" : "is-paused"}`}>
@@ -234,9 +258,9 @@ export function AdminTrufadasStock({
             </div>
             <div className="admin-stock-math" aria-label="Resumo da contagem">
               <div><small>Em pedidos</small><strong>{selectedRow.reserved}</strong></div>
-              <ChevronRight size={16} aria-hidden="true" />
+              <span className="admin-stock-math-symbol" aria-hidden="true">+</span>
               <div><small>Livres agora</small><strong>{freePackages(selectedRow)}</strong></div>
-              <ChevronRight size={16} aria-hidden="true" />
+              <span className="admin-stock-math-symbol" aria-hidden="true">=</span>
               <div><small>Total registrado</small><strong>{selectedRow.total}</strong></div>
             </div>
             <label className="admin-stock-free-label" htmlFor={`stock-free-${selectedRow.item_key}`}>
@@ -254,6 +278,10 @@ export function AdminTrufadasStock({
                 ? `${draft.free} livres + ${selectedRow.reserved} em pedidos = ${Number(draft.free) + selectedRow.reserved} no estoque`
                 : "Informe um número inteiro"}</span>
             </div>
+            {isEditing && <div className="admin-stock-unsaved" role="status">
+              <span>Alteração ainda não salva</span>
+              <button type="button" disabled={Boolean(pendingKey)} onClick={discard}>Descartar</button>
+            </div>}
             <div className="admin-stock-editor-footer">
               <div className="admin-stock-state-switch" role="group" aria-label="Oferecer esta combinação no site">
                 <button type="button" className={draft.enabled ? "is-current is-enabled" : ""}
