@@ -4488,3 +4488,61 @@ footer {
     padding-top: 14px;
   }
 }
+
+/* Recuperação de conexão QZ no próprio notebook Windows.
+   Isolado do painel de disponibilidade e da vitrine comercial. */
+.admin-kitchen-connection-state .admin-kitchen-error {
+  display: grid;
+  gap: 8px;
+  font-size: .79rem;
+  line-height: 1.5;
+}
+.admin-kitchen-connection-state .admin-kitchen-error p {
+  display: block;
+  margin: 0;
+  color: #e9c6b2;
+  font-size: .74rem;
+  line-height: 1.5;
+}
+.admin-kitchen-printer-recovery {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 13px;
+  border: 1px solid rgba(228, 175, 113, .36);
+  border-radius: 13px;
+  background: rgba(99, 57, 35, .2);
+}
+.admin-kitchen-printer-recovery label {
+  color: #ffe6c4;
+  font-size: .8rem;
+  font-weight: 750;
+}
+.admin-kitchen-printer-recovery select {
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 12px;
+  border: 1px solid rgba(237, 187, 126, .5);
+  border-radius: 10px;
+  color: #fff3e2;
+  background: #21150f;
+  font-size: .81rem;
+}
+.admin-kitchen-printer-recovery select:focus-visible,
+.admin-kitchen-printer-recovery button:focus-visible {
+  outline: 3px solid #ffe2aa;
+  outline-offset: 3px;
+}
+.admin-kitchen-printer-recovery button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  color: #f8dbb5;
+  border-color: rgba(235, 182, 122, .49);
+}
+.admin-kitchen-printer-recovery small {
+  color: #c4a994;
+  font-size: .72rem;
+  line-height: 1.5;
+}
