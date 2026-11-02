@@ -445,6 +445,13 @@ function CollectionChoice({ format, name, description, action, price, photo, pho
             img.src = photo;
           } else if (fallback && img.getAttribute("src") !== fallback) img.src = fallback;
         }} />
+        {format === "Pacotes com zíper" && (
+          <img className="collection-pack-secondary"
+            src="/images/pipocas-trufadas-pacoca-20261101.webp"
+            srcSet="/images/pipocas-trufadas-pacoca-20261101-360.webp 360w, /images/pipocas-trufadas-pacoca-20261101.webp 1086w"
+            sizes="(min-width: 760px) 25vw, 24vw"
+            alt="" aria-hidden="true" width={1086} height={1448} decoding="async" />
+        )}
       </span>
       <span className="collection-copy">
         <span className="collection-format">{format}</span>
@@ -1967,9 +1974,8 @@ export default function Home() {
             </div>
           ) : (
             <div className="collection-heading">
-              <p className="collection-kicker">Luciane Oliveira Doces · Cardápio artesanal</p>
+              <p className="collection-kicker">Cardápio artesanal</p>
               <h1>Escolha seu <em>doce.</em></h1>
-              <p className="collection-intro">Três maneiras de adoçar seu momento. Escolha a sua.</p>
             </div>
           )}
           {!hasResolvedAvailability ? (
