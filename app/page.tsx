@@ -2103,7 +2103,9 @@ export default function Home() {
                         ) : (
                           <span className="limited-cup-size-status is-blank" aria-hidden="true">&nbsp;</span>
                         )}
-                        <span className="limited-cup-size-check" aria-hidden="true"><Check size={15} strokeWidth={3} /></span>
+                        {cupSizeId === size && (
+                          <span className="limited-cup-size-check" aria-hidden="true"><Check size={15} strokeWidth={3} /></span>
+                        )}
                       </button>
                     );
                   })}
