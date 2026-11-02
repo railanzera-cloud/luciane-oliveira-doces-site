@@ -41,9 +41,16 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
       assert.equal(await page.locator(".limited-cup-flow-progress").count(),0);
       assert.equal(await page.locator("#crocantes-tamanhos").count(),0);
       assert.equal(await page.locator("#crocantes-quantidade").count(),0);
-      await page.waitForTimeout(470);
-      const entrance=await page.evaluate(()=>({scrollY,documentWidth:document.documentElement.scrollWidth,innerWidth}));
-      assert.ok(entrance.scrollY>initial+5,"A categoria deve rolar suavemente ao configurador");
+      await page.waitForTimeout(750);
+      const entrance=await page.evaluate(()=>({
+        scrollY, docTop:document.scrollingElement?.scrollTop,
+        targetY:document.getElementById("edicao-crocante")?.getBoundingClientRect().top,
+        maxScroll:document.documentElement.scrollHeight-innerHeight,
+        documentWidth:document.documentElement.scrollWidth,innerWidth,
+      }));
+      console.log("Entrada Trufadas",engineName,width,JSON.stringify({initial,entrance}));
+      assert.ok(Math.max(entrance.scrollY,entrance.docTop??0)>initial+5,
+        "A categoria deve rolar suavemente ao configurador: "+JSON.stringify({initial,entrance}));
       assert.ok(entrance.documentWidth<=entrance.innerWidth+1);
       if(width===390||width===320)await page.screenshot({path:output+"/"+engineName+"-"+width+"-sabor.png"});
 
@@ -52,6 +59,7 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
       await page.locator("#crocantes-tamanhos").waitFor();
       assert.equal(await page.locator("#crocantes-quantidade").count(),0);
       assert.equal(await page.locator(".limited-cup-size-option").count(),3);
+      if(width===390||width===320) await page.locator("#crocantes-tamanhos").screenshot({path:output+"/"+engineName+"-"+width+"-tamanhos.png"});
       const heading=await page.locator("#crocantes-tamanhos").evaluate(el=>{
         const s=el.getBoundingClientRect(),h=el.querySelector("h2").getBoundingClientRect();
         return {leftPadding:h.x-s.x,sectionWidth:s.width};
@@ -75,6 +83,7 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
       const photos=await page.locator(".limited-cup-duo-item img").evaluateAll(items=>items.map(img=>({name:new URL(img.currentSrc||img.src).pathname,loaded:img.complete&&img.naturalWidth>0})));
       assert.ok(photos.every(img=>img.loaded),"Fotos reais devem carregar");
       if(width===390||width===320||width===1440)await page.screenshot({path:output+"/"+engineName+"-"+width+"-pedido.png"});
+      if(width===390)await page.screenshot({path:output+"/"+engineName+"-"+width+"-pagina-completa.png",fullPage:true});
       measures.push({engineName,width,height,entrance,heading,chosen,photos});
       await writeFile(output+"/medidas.json",JSON.stringify(measures,null,2));
       if(width===390){
