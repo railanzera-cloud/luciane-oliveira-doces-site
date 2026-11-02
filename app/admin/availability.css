@@ -145,3 +145,16 @@
 .admin-page .admin-stock-unsaved {display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:7px;padding:9px 11px;border:1px solid rgba(235,184,110,.34);border-radius:10px;background:rgba(153,91,36,.15);font-size:.71rem;color:#f0d2a9;}
 .admin-page .admin-stock-unsaved button {min-height:35px;padding:5px 10px;border:1px solid rgba(239,195,140,.38);border-radius:8px;color:#ffe1b4;background:rgba(30,15,7,.4);cursor:pointer;font-weight:720;}
 .admin-page .admin-stock-unsaved button:focus-visible {outline:3px solid #ffe2aa;outline-offset:2px;}
+
+/* Navegação sempre acessível durante a edição, sem ocupar espaço da vitrine. */
+.admin-page .admin-availability-nav {position:sticky;top:70px;z-index:11;backdrop-filter:blur(14px);}
+.admin-page .admin-subview-nav {display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:2px;padding:5px;border:1px solid rgba(236,188,131,.28);border-radius:13px;background:rgba(10,6,4,.3);}
+.admin-page .admin-subview-nav > button {display:flex;justify-content:center;align-items:center;gap:8px;min-height:46px;padding:9px;border:1px solid transparent;border-radius:10px;background:transparent;color:#c4ad94;cursor:pointer;font-weight:750;font-size:.79rem;}
+.admin-page .admin-subview-nav > button.is-active {border-color:rgba(241,193,135,.53);background:linear-gradient(145deg,rgba(169,102,55,.36),rgba(92,51,28,.45));color:#ffe0b4;}
+.admin-page .admin-subview-nav button small {color:inherit;font-size:.68rem;opacity:.8;}
+.admin-page .admin-availability-search {display:grid;gap:7px;color:#e7cfb2;font-size:.77rem;font-weight:740;}
+.admin-page .admin-availability-search input {width:100%;min-height:47px;padding:10px 13px;border:1px solid rgba(222,172,112,.45);border-radius:12px;background:#1c110c;color:#fff4e3;font-size:.85rem;outline-offset:2px;}
+.admin-page .admin-availability-search input::placeholder {color:#a68b75;}
+.admin-page .admin-availability-search input:focus-visible,
+.admin-page .admin-subview-nav button:focus-visible {outline:3px solid #ffe2aa;outline-offset:2px;}
+@media (max-width:440px) {.admin-page .admin-availability-nav {top:68px;}}
