@@ -253,8 +253,19 @@ function jumpToEditorialSection(id: "tamanhos" | "edicao-crocante") {
     heading.focus({ preventScroll: true });
   }
   if (id === "edicao-crocante") {
-    // O mesmo scrollIntoView suave já usado em Fatias: comportamento confiável no WebKit.
+    // Safari pode ignorar um scroll disparado no mesmo frame da troca de categoria.
+    const originY = window.scrollY;
     target.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+    if (!reducedMotion && Math.abs(top - originY) > 40) {
+      window.setTimeout(() => {
+        if (!target.isConnected) return;
+        // Só recupera o scroll realmente ignorado; nunca interrompe quem já rolou.
+        const distance = target.getBoundingClientRect().top - 16;
+        if (Math.abs(window.scrollY - originY) < 12 && distance > 60) {
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 460);
+    }
   } else {
     window.scrollTo({ top, behavior: reducedMotion ? "instant" : "smooth" });
   }
