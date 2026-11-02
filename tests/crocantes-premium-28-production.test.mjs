@@ -44,14 +44,14 @@ test("mensagem de pedido real mantém Pix, chave e instruções como antes",()=>
   assert.doesNotMatch(message,/TESTE DE HOMOLOGAÇÃO|NÃO EFETUAR PAGAMENTO/);
 });
 test("nova experiência Trufadas usa tamanho e preço corretos sem data de estreia",()=>{
-  assert.ok(page.includes('className="limited-cup-flow-progress"'));
+  assert.ok(page.includes('className="limited-cup-size-intro"'));
   assert.ok(page.includes('className="limited-cup-stock-note"'));
   assert.ok(page.includes("TRUFADA_SIZES.map"));
   assert.ok(page.includes('id="crocantes-tamanhos"'));
   assert.ok(page.includes('LOJA FECHADA'));
   assert.ok(!page.includes('ESTREIA · QUINTA, 15/10, ÀS 12H'));
   assert.ok(page.includes('currency.format(variant.price)'));
-  assert.ok(css.includes('.limited-cup-flow-step[data-state="current"]'));
+  assert.ok(css.includes('.limited-cup-size-option[aria-pressed="true"]'));
 });
 test("compras adicionais identificam outro copo e mantêm o fluxo original",()=>{
   assert.equal((page.match(/cartContainsCrocantes \? "Adicionar outro pacote" : "Adicionar pacote Trufado"/g)||[]).length,2);
