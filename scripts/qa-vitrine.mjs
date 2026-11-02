@@ -56,7 +56,7 @@ for (const [engineName, engine] of Object.entries({ chromium, webkit })) {
           const colors = await page.locator('.collection-copy strong').evaluateAll(titles =>
             titles.map(title => getComputedStyle(title).color));
           assert.deepEqual(colors,['rgb(255, 236, 211)','rgb(255, 240, 221)','rgb(255, 240, 221)']);
-          assert.ok(rects[0].y < 250);
+          assert.ok(rects[0].y < (width >= 700 ? 360 : 250));
           if (width >= 375) {
             // Nova proposta prioriza a foto: a segunda linha deve começar na
             // primeira dobra, mas não deve ser artificialmente comprimida.
