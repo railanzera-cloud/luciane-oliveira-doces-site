@@ -436,7 +436,7 @@ function CollectionChoice({ format, name, description, action, price, photo, pho
   fallback?: string; price?: string; disabled: boolean; onClick: () => void;
 }) {
   return (
-    <button className="collection-choice" type="button" disabled={disabled} onClick={onClick} aria-label={`${name} — ${description}${price ? ` — A partir de ${price}` : ""} — ${action}`}>
+    <button className="collection-choice" type="button" disabled={disabled} onClick={onClick} aria-label={`${name} — ${action}`}>
       <span className="collection-photo" data-packs={format === "Pacotes com zíper" || undefined}>
         <img src={photo} srcSet={`${photo.replace(".webp", "-360.webp")} 360w, ${photo} ${photoWidth}w`} sizes="(min-width: 1152px) 374px, (min-width: 700px) 33vw, 36vw" alt="" decoding="async" width={640} height={480} onError={(event) => {
           const img = event.currentTarget;
@@ -1983,7 +1983,7 @@ export default function Home() {
                     fallback="/images/pipocas-trufadas-pacoca-20261101.webp"
                     description="Ninho, Paçoca e Coco Queimado · P, M e G"
                     price={currency.format(TRUFADA_STARTING_PRICE)}
-                    action={!pipocasAvailable || cupPhase === "sold-out" ? "Esgotado" : "Conhecer os sabores"}
+                    action={!pipocasAvailable || cupPhase === "sold-out" ? "Esgotado" : cupCanBeAddedFromCheckout ? "Conhecer os sabores" : "Consultar sabores"}
                     disabled={!pipocasAvailable || cupPhase === "sold-out"} onClick={openLimitedCupEdition} />
                 )}
                 {visibleCategories.map((category) => {
