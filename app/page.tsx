@@ -23,7 +23,6 @@ import {
   Plus,
   QrCode,
   ShoppingBag,
-  Sparkles,
   Store,
   Trash2,
   Truck,
@@ -78,6 +77,8 @@ import { isLastSlicesWindow, LAST_SLICES_PRODUCT_IDS } from "@/app/last-slices-c
 import { usePopcornPromotion } from "@/hooks/use-popcorn-promotion";
 import { getLimitedCupPhase, type LimitedCupPhase } from "@/app/limited-cup-release";
 import { isPopcornPromotionActive } from "@/supabase/functions/_shared/popcorn-promotion.mjs";
+import { GOURMET_HOLIDAY_CREATIVE } from "@/lib/storefront-campaign-creative";
+import { StorefrontCampaignEditorial } from "@/components/storefront-campaign-editorial";
 import {
   buildRegisteredOrderMessage, captureOrderAttribution, cleanWhatsAppField, formatOrderMoney, newOrderContext,
   parseCashCents, paymentDescription, restoreOrderContext,
@@ -230,6 +231,31 @@ function scrollToSection(id: string) {
   }, { once: true });
   heading.focus({ preventScroll: true });
   target.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+}
+
+/**
+ * Navegação Gourmet orientada à ação real: nunca aponta para o aviso da
+ * promoção ou para a foto informativa do pote. O alvo é o primeiro controle
+ * disponível, com espaço para a barra inferior e o topo do iPhone.
+ */
+function scrollToGourmetControl(step: "size" | "flavor" | "quantity") {
+  const target = step === "size"
+    ? document.querySelector<HTMLElement>("#tamanhos .size-card:not(.is-unavailable)")
+    : step === "flavor"
+      ? document.querySelector<HTMLElement>("#sabores .flavor-card:not(.is-disabled)")
+      : document.querySelector<HTMLElement>("#quantidade-pipocas .quantity-row");
+  if (!target) return;
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const offset = Math.max(80, Math.min(124, Math.round(window.innerHeight * 0.15)));
+  const desired = Math.max(0, window.scrollY + target.getBoundingClientRect().top - offset);
+  // Não mover o foco no toque: Safari com VoiceOver/teclado e rolagem suave
+  // têm comportamentos diferentes. Para teclado, focar o controle alcançado.
+  if (navigationByKeyboard) {
+    const control = target.querySelector<HTMLElement>('button[role="radio"], button[role="checkbox"], button:not([disabled])');
+    control?.focus({ preventScroll: true });
+  }
+  window.scrollTo({ top: desired, behavior: reducedMotion ? "instant" : "smooth" });
 }
 
 // Navegação previsível entre a edição e o pedido tradicional no Safari.
@@ -497,7 +523,10 @@ export default function Home() {
   useEffect(() => {
     if (!scrollRequest) return;
     const frame = window.requestAnimationFrame(() => {
-      if (scrollRequest.editorial && (scrollRequest.id === "tamanhos" || scrollRequest.id === "edicao-crocante")) {
+      if (scrollRequest.id === "gourmet-size-action") scrollToGourmetControl("size");
+      else if (scrollRequest.id === "gourmet-flavor-action") scrollToGourmetControl("flavor");
+      else if (scrollRequest.id === "gourmet-quantity-action") scrollToGourmetControl("quantity");
+      else if (scrollRequest.editorial && (scrollRequest.id === "tamanhos" || scrollRequest.id === "edicao-crocante")) {
         jumpToEditorialSection(scrollRequest.id);
       } else {
         scrollToSection(scrollRequest.id);
@@ -1104,7 +1133,7 @@ export default function Home() {
           : `Adicionar ${sliceQuantity} ${sliceQuantity === 1 ? "fatia" : "fatias"}`
       : builderFlowActive
         ? activeCategory === "pipocas"
-          ? popcornVariant ? "Escolher meus sabores" : "Escolher tamanho"
+          ? popcornVariant ? "Ir aos sabores" : "Escolher tamanho"
           : "Escolher minha fatia"
           : checkoutReady ? finalButtonLabel : checkoutNextActionLabel;
 
@@ -1247,7 +1276,7 @@ export default function Home() {
     setBuilderEngaged(true);
     setSelectionMessage("");
     setPopcornVariantId(nextId);
-    window.setTimeout(() => scrollToSection("sabores"), 30);
+    requestScroll("gourmet-flavor-action");
     setPopcornOptionIds((current) => {
       const max = nextVariant.maxOptions ?? 0;
       if (current.length <= max) return current;
@@ -1262,7 +1291,7 @@ export default function Home() {
     if ((!option.available || !popcornFlavorIsAvailable(option.id)) && !alreadySelected) return;
     setBuilderEngaged(true);
     if (!alreadySelected && popcornOptionIds.length + 1 === popcornMaxOptions) {
-      window.setTimeout(() => scrollToSection("quantidade-pipocas"), 30);
+      requestScroll("gourmet-quantity-action");
     }
     setPopcornOptionIds((current) => {
       if (current.includes(option.id)) {
@@ -1474,13 +1503,13 @@ export default function Home() {
     if (!popcornVariant || !popcornVariantUsable) {
       setBuilderEngaged(true);
       setSelectionMessage("Escolha o tamanho da sua pipoca para continuar.");
-      scrollToSection("tamanhos");
+      requestScroll("gourmet-size-action");
       return;
     }
     if (!popcornReady) {
       setBuilderEngaged(true);
       setSelectionMessage("Escolha pelo menos 1 sabor para continuar.");
-      scrollToSection("sabores");
+      requestScroll("gourmet-flavor-action");
       return;
     }
     const nextItem: Omit<CartItem, "id"> = {
@@ -1856,8 +1885,11 @@ export default function Home() {
   }
 
   function stickyBuilderAction() {
-    if (activeCategory === "pipocas" && categoryIsVisible("pipocas")) addOrUpdatePopcorn();
-    else if (activeCategory === "fatias") addOrUpdateSlice();
+    if (activeCategory === "pipocas" && categoryIsVisible("pipocas")) {
+      if (!popcornVariantUsable) requestScroll("gourmet-size-action");
+      else if (!popcornReady) requestScroll("gourmet-flavor-action");
+      else addOrUpdatePopcorn();
+    } else if (activeCategory === "fatias") addOrUpdateSlice();
   }
 
   function handleCupPurchaseAction() {
@@ -2257,33 +2289,10 @@ export default function Home() {
                   <button type="button" onClick={returnToCategories}><ArrowLeft size={15} aria-hidden="true" /> Categorias</button>
                   <button type="button" onClick={openLimitedCupEdition}>Conhecer Trufadas <ChevronRight size={15} aria-hidden="true" /></button>
                 </nav>
-                <div className="step-heading"><StepMarker number={1} state={popcornSizeStepState} /><div><h3 id="step-size">Escolha o tamanho</h3><p>{popcornPromotionActive ? "Hoje, todos os recheios disponíveis ficam pelo preço base de cada tamanho." : "O preço e o limite de sabores mudam conforme o pote."}</p></div></div>
                 {popcornPromotionActive && pipocasAvailable && POPCORN.variants.some(variant => popcornSizeIsAvailable(variant.id)) && (
-                  <aside className="gourmet-feriado-edition" aria-label="Edição especial de hoje das Pipocas Gourmet">
-                    <div className="gourmet-feriado-edition-top">
-                      <span className="gourmet-feriado-kicker"><Sparkles size={15} aria-hidden="true" /> Edição especial · 02/11</span>
-                      <span className="gourmet-feriado-deadline"><Clock3 size={13} aria-hidden="true" /> Só até 23h59</span>
-                    </div>
-                    <h4>Hoje, o recheio especial não custa a mais.</h4>
-                    <p className="gourmet-feriado-description">
-                      Nutella, Kinder Bueno e os outros sabores disponíveis pelo <strong>preço base do pote</strong>.
-                      Combine seus favoritos sem aumento de preço.
-                    </p>
-                    <div className="gourmet-feriado-price-list" aria-label="Preços únicos dos potes hoje">
-                      {POPCORN.variants.filter(variant => !variant.retired && popcornSizeIsVisible(variant.id)).map(variant => (
-                        <div key={variant.id} className={popcornVariantId === variant.id ? "is-chosen" : ""}>
-                          <span>{variant.label}</span>
-                          <strong>{currency.format(popcornPrice(variant.id, [], promotionTime))}</strong>
-                          <small>{popcornSizeIsAvailable(variant.id) ? "Todos os recheios disponíveis" : "Indisponível"}</small>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="gourmet-feriado-bottom">
-                      <span><Check size={14} aria-hidden="true" /> O valor depende apenas do tamanho</span>
-                      <small>Somente hoje, 02/11, horário de Paragominas · sujeito à disponibilidade dos sabores.</small>
-                    </div>
-                  </aside>
+                  <StorefrontCampaignEditorial campaign={GOURMET_HOLIDAY_CREATIVE} />
                 )}
+                <div className="step-heading"><StepMarker number={1} state={popcornSizeStepState} /><div><h3 id="step-size">Escolha o tamanho</h3><p>{popcornPromotionActive ? "Toque no tamanho desejado e depois escolha seus recheios." : "O preço e o limite de sabores mudam conforme o pote."}</p></div></div>
                 {!POPCORN.variants.some((variant) => popcornSizeIsVisible(variant.id)) && <p className="selection-helper" role="status">Nenhum tamanho disponível no momento.</p>}
                 <RadioGroup className="size-grid" value={popcornVariantId} onValueChange={choosePopcornVariant} aria-label="Tamanho da Pipoca Gourmet">
                   {POPCORN.variants.filter((variant) => popcornSizeIsVisible(variant.id)).map((variant) => {
@@ -2291,7 +2300,7 @@ export default function Home() {
                     return (
                       <label className={`size-card ${variant.id === popcornVariantId ? "is-selected" : ""} ${!available ? "is-unavailable" : ""}`} htmlFor={`size-${variant.id}`} key={variant.id}>
                         <RadioGroupItem id={`size-${variant.id}`} value={variant.id} disabled={!available} />
-                        <span className="size-copy"><strong>{variant.label}</strong><b>{currency.format(itemUnitPrice(POPCORN, variant, popcornOptionIds, promotionTime))}</b><small>{popcornPromotionActive ? "Preço único hoje" : `Até ${variant.maxOptions} sabores`}</small></span>
+                        <span className="size-copy"><strong>{variant.label}</strong><b>{currency.format(itemUnitPrice(POPCORN, variant, popcornOptionIds, promotionTime))}</b><small>`Até ${variant.maxOptions} sabores`</small></span>
                         {variant.id === popcornVariantId && available && <span className="selected-check" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>}
                         {!available && <span className="unavailable-label">Esgotado hoje</span>}
                       </label>
@@ -2328,7 +2337,7 @@ export default function Home() {
                           <strong>{currency.format(popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime))}</strong>
                         </div>
                         <p>{popcornPromotionActive
-                          ? "Edição de hoje: qualquer combinação disponível mantém o preço base do tamanho."
+                          ? "Recheios especiais incluídos no preço de hoje."
                           : "O preço varia por sabor. Ao combinar, vale o sabor de maior valor."}</p>
                       </div>
                     </div>
@@ -2351,6 +2360,12 @@ export default function Home() {
                       ? popcornPrice(popcornVariant.id, [option.id], promotionTime) : null;
                     const priceDifference = currentPotPrice !== null && potPriceWithOption !== null
                       ? Math.max(0, potPriceWithOption - currentPotPrice) : 0;
+                    const regularSpecialPrice = popcornVariantUsable && popcornVariant && option.pricingGroup && option.pricingGroup > 1
+                      ? POPCORN_PRICING_GROUPS[option.pricingGroup][popcornVariant.id as "500ml" | "750ml" | "1l"]
+                      : null;
+                    const savedToday = regularSpecialPrice !== null && popcornVariant
+                      ? Math.max(0, regularSpecialPrice - popcornPrice(popcornVariant.id, [option.id], promotionTime))
+                      : 0;
                     return (
                       <label className={`flavor-card ${selected ? "is-selected" : ""} ${disabled ? "is-disabled" : ""}`} htmlFor={`flavor-${option.id}`} key={option.id}>
                         <Checkbox id={`flavor-${option.id}`} checked={selected} disabled={disabled} onCheckedChange={() => togglePopcornOption(option)} aria-label={selected ? `Remover sabor ${option.name}` : `Selecionar sabor ${option.name}`} />
@@ -2362,24 +2377,29 @@ export default function Home() {
                           </span>
                         </span>
                         <span className="boutique-flavor-value">
-                          {potPriceWithOption !== null && (
+                          {potPriceWithOption !== null && (!popcornPromotionActive || (savedToday > 0 && available)) && (
                             <span className="boutique-flavor-cost">
-                              {popcornPromotionActive && popcornVariant && option.pricingGroup && option.pricingGroup > 1 && (
-                                <del className="gourmet-feriado-regular-price" aria-label="Preço habitual deste sabor">
-                                  {currency.format(POPCORN_PRICING_GROUPS[option.pricingGroup][popcornVariant.id as "500ml" | "750ml" | "1l"])}
+                              {popcornPromotionActive && regularSpecialPrice !== null && savedToday > 0 && (
+                                <del className="gourmet-feriado-regular-price" aria-label="Preço habitual deste pote com o recheio">
+                                  {currency.format(regularSpecialPrice)}
                                 </del>
                               )}
                               <strong>{currency.format(flavorPotPrice ?? potPriceWithOption)}</strong>
                               <small className="sr-only">Preço do pote com este sabor</small>
+                              {popcornPromotionActive && savedToday > 0 && available && (
+                                <span className="gourmet-feriado-saving" aria-label={`Economia de ${currency.format(savedToday)} hoje`}>
+                                  Economize {currency.format(savedToday)}
+                                </span>
+                              )}
                             </span>
                           )}
-                          {!selected && !disabled && potPriceWithOption !== null && (
+                          {!popcornPromotionActive && !selected && !disabled && potPriceWithOption !== null && (
                             <span
                               className={`boutique-flavor-impact ${priceDifference > 0 ? "has-increase" : "is-same"}`}
                               aria-label={`Com ${option.name}, o pote fica por ${currency.format(potPriceWithOption)}`}
                             >
                               {!popcornOptionIds.length && priceDifference === 0
-                                ? popcornPromotionActive ? "Sem adicional hoje" : "Preço base"
+                                ? "Preço base"
                                 : `Pote fica por ${currency.format(potPriceWithOption)}`}
                             </span>
                           )}
@@ -2412,11 +2432,11 @@ export default function Home() {
                       ? "Limite preenchido. Desmarque um sabor para trocar."
                       : `Você pode escolher mais ${popcornMaxOptions - popcornOptionIds.length} ${popcornMaxOptions - popcornOptionIds.length === 1 ? "sabor" : "sabores"}, se quiser.`)}
                 </div>
-                <p className="selection-helper" role="status">
-                  {popcornPromotionActive
-                    ? "Só hoje: combine os sabores disponíveis sem acréscimo. Amanhã, os valores habituais voltam automaticamente."
-                    : "Ao combinar sabores, vale o preço do conjunto mais caro escolhido."}
-                </p>
+                {!popcornPromotionActive && (
+                  <p className="selection-helper" role="status">
+                    Ao combinar sabores, vale o preço do conjunto mais caro escolhido.
+                  </p>
+                )}
                 {popcornReady && popcornOptionIds.length < popcornMaxOptions && (
                   <Button type="button" variant="outline" className="flavor-continue"
                     onClick={() => requestScroll("quantidade-pipocas")}>
