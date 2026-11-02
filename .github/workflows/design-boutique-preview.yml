@@ -195,6 +195,8 @@ jobs:
         run: npm run build
       - name: Verificar tipos TypeScript
         run: npx tsc --noEmit --project tsconfig.boutique.json
+      - name: Verificar TypeScript no modulo QZ
+        run: npx tsc --noEmit --project tsconfig.kitchen.json
       - name: Suíte completa
         run: node --test tests/*.test.mjs
       - name: Gerar ZIP Cloudflare Pages
