@@ -23,6 +23,10 @@ function render(order) {
   '@/app/catalog':{DELIVERY_TIME_ESTIMATE:'Preparo e entrega: em média, 15 a 20 minutos.'},
   '@/app/order-checkout':{formatOrderMoney:value=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(value)},
   '@/lib/site-order':{sitePaymentLabel:method=>method==='manual_pix'?'Pix manual':'Dinheiro',loadPublicOrderStatus:()=>{},rememberOrder:()=>{},lastOrderToken:()=>token},
+  '@/lib/whatsapp-finalization':{
+    getWhatsAppFinalizationCopy:()=>({label:'Pix',instruction:'Ao abrir o WhatsApp, toque em Enviar.'}),
+    readStoredWhatsAppHandoff:()=>null,
+  },
  };
  const exports={};
  new Function('require','exports',outputText)(name=>{assert.ok(name in dependencies,name);return dependencies[name];},exports);
