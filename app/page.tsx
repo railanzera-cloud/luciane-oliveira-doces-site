@@ -23,6 +23,7 @@ import {
   Plus,
   QrCode,
   ShoppingBag,
+  Sparkles,
   Store,
   Trash2,
   Truck,
@@ -48,6 +49,7 @@ import {
   DRINKS,
   POPCORN,
   popcornPrice,
+  POPCORN_PRICING_GROUPS,
   PRODUCTS,
   SLICES,
   SLICE_WEIGHT_GRAMS,
@@ -1656,6 +1658,11 @@ export default function Home() {
       scrollToSection("inicio");
       return;
     }
+    if (popcornPromotionActive !== isPopcornPromotionActive()) {
+      refreshPromotionTime();
+      setCheckoutAvailabilityMessage("A condição especial terminou ou foi atualizada. Revise o valor do seu pedido antes de pagar.");
+      throw new Error("Os preços mudaram. Confira o total atualizado antes de finalizar.");
+    }
     if (!checkoutFormReady) {
       if (!cart.length) {
         setBuilderEngaged(true);
@@ -2250,18 +2257,31 @@ export default function Home() {
                   <button type="button" onClick={returnToCategories}><ArrowLeft size={15} aria-hidden="true" /> Categorias</button>
                   <button type="button" onClick={openLimitedCupEdition}>Conhecer Trufadas <ChevronRight size={15} aria-hidden="true" /></button>
                 </nav>
-                <div className="step-heading"><StepMarker number={1} state={popcornSizeStepState} /><div><h3 id="step-size">Escolha o tamanho</h3><p>O preço e o limite de sabores mudam conforme o pote.</p></div></div>
+                <div className="step-heading"><StepMarker number={1} state={popcornSizeStepState} /><div><h3 id="step-size">Escolha o tamanho</h3><p>{popcornPromotionActive ? "Hoje, todos os recheios disponíveis ficam pelo preço base de cada tamanho." : "O preço e o limite de sabores mudam conforme o pote."}</p></div></div>
                 {popcornPromotionActive && pipocasAvailable && POPCORN.variants.some(variant => popcornSizeIsAvailable(variant.id)) && (
-                  <aside className="popcorn-weekend-offer" aria-label="Promoção de fim de semana">
-                    <span>🍿 Fim de semana especial</span>
-                    <div className="popcorn-offer-prices">
-                      <span>500 ml<strong>R$ 25</strong></span>
-                      <span>750 ml<strong>R$ 39</strong></span>
-                      <span>1 litro<strong>R$ 49</strong></span>
+                  <aside className="gourmet-feriado-edition" aria-label="Edição especial de hoje das Pipocas Gourmet">
+                    <div className="gourmet-feriado-edition-top">
+                      <span className="gourmet-feriado-kicker"><Sparkles size={15} aria-hidden="true" /> Edição especial · 02/11</span>
+                      <span className="gourmet-feriado-deadline"><Clock3 size={13} aria-hidden="true" /> Só até 23h59</span>
                     </div>
-                    <p>Preço fixo por tamanho, com qualquer combinação de sabores disponíveis!</p>
-                    <small>Até 2 sabores em 500 e 750 ml; até 3 sabores em 1 litro.</small>
-                    <small>Só sábado e domingo, 10 e 11/10. Na segunda-feira, os preços normais de cada sabor voltam.</small>
+                    <h4>Hoje, o recheio especial não custa a mais.</h4>
+                    <p className="gourmet-feriado-description">
+                      Nutella, Kinder Bueno e os outros sabores disponíveis pelo <strong>preço base do pote</strong>.
+                      Combine seus favoritos sem aumento de preço.
+                    </p>
+                    <div className="gourmet-feriado-price-list" aria-label="Preços únicos dos potes hoje">
+                      {POPCORN.variants.filter(variant => !variant.retired && popcornSizeIsVisible(variant.id)).map(variant => (
+                        <div key={variant.id} className={popcornVariantId === variant.id ? "is-chosen" : ""}>
+                          <span>{variant.label}</span>
+                          <strong>{currency.format(popcornPrice(variant.id, [], promotionTime))}</strong>
+                          <small>{popcornSizeIsAvailable(variant.id) ? "Todos os recheios disponíveis" : "Indisponível"}</small>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="gourmet-feriado-bottom">
+                      <span><Check size={14} aria-hidden="true" /> O valor depende apenas do tamanho</span>
+                      <small>Somente hoje, 02/11, horário de Paragominas · sujeito à disponibilidade dos sabores.</small>
+                    </div>
                   </aside>
                 )}
                 {!POPCORN.variants.some((variant) => popcornSizeIsVisible(variant.id)) && <p className="selection-helper" role="status">Nenhum tamanho disponível no momento.</p>}
@@ -2271,7 +2291,7 @@ export default function Home() {
                     return (
                       <label className={`size-card ${variant.id === popcornVariantId ? "is-selected" : ""} ${!available ? "is-unavailable" : ""}`} htmlFor={`size-${variant.id}`} key={variant.id}>
                         <RadioGroupItem id={`size-${variant.id}`} value={variant.id} disabled={!available} />
-                        <span className="size-copy"><strong>{variant.label}</strong><b>{currency.format(itemUnitPrice(POPCORN, variant, popcornOptionIds, promotionTime))}</b><small>Até {variant.maxOptions} sabores</small></span>
+                        <span className="size-copy"><strong>{variant.label}</strong><b>{currency.format(itemUnitPrice(POPCORN, variant, popcornOptionIds, promotionTime))}</b><small>{popcornPromotionActive ? "Preço único hoje" : `Até ${variant.maxOptions} sabores`}</small></span>
                         {variant.id === popcornVariantId && available && <span className="selected-check" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>}
                         {!available && <span className="unavailable-label">Esgotado hoje</span>}
                       </label>
@@ -2308,7 +2328,7 @@ export default function Home() {
                           <strong>{currency.format(popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime))}</strong>
                         </div>
                         <p>{popcornPromotionActive
-                          ? "Na promoção, a combinação mantém o mesmo preço."
+                          ? "Edição de hoje: qualquer combinação disponível mantém o preço base do tamanho."
                           : "O preço varia por sabor. Ao combinar, vale o sabor de maior valor."}</p>
                       </div>
                     </div>
@@ -2344,6 +2364,11 @@ export default function Home() {
                         <span className="boutique-flavor-value">
                           {potPriceWithOption !== null && (
                             <span className="boutique-flavor-cost">
+                              {popcornPromotionActive && popcornVariant && option.pricingGroup && option.pricingGroup > 1 && (
+                                <del className="gourmet-feriado-regular-price" aria-label="Preço habitual deste sabor">
+                                  {currency.format(POPCORN_PRICING_GROUPS[option.pricingGroup][popcornVariant.id as "500ml" | "750ml" | "1l"])}
+                                </del>
+                              )}
                               <strong>{currency.format(flavorPotPrice ?? potPriceWithOption)}</strong>
                               <small className="sr-only">Preço do pote com este sabor</small>
                             </span>
@@ -2354,7 +2379,7 @@ export default function Home() {
                               aria-label={`Com ${option.name}, o pote fica por ${currency.format(potPriceWithOption)}`}
                             >
                               {!popcornOptionIds.length && priceDifference === 0
-                                ? popcornPromotionActive ? "Mesmo preço na promoção" : "Preço base"
+                                ? popcornPromotionActive ? "Sem adicional hoje" : "Preço base"
                                 : `Pote fica por ${currency.format(potPriceWithOption)}`}
                             </span>
                           )}
@@ -2389,7 +2414,7 @@ export default function Home() {
                 </div>
                 <p className="selection-helper" role="status">
                   {popcornPromotionActive
-                    ? "Neste fim de semana, o preço do tamanho escolhido é o mesmo para qualquer combinação de sabores disponíveis."
+                    ? "Só hoje: combine os sabores disponíveis sem acréscimo. Amanhã, os valores habituais voltam automaticamente."
                     : "Ao combinar sabores, vale o preço do conjunto mais caro escolhido."}
                 </p>
                 {popcornReady && popcornOptionIds.length < popcornMaxOptions && (
