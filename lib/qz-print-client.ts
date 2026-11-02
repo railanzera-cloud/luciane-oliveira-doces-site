@@ -8,6 +8,7 @@ import {
 } from "@/lib/admin-orders-client";
 import { getSupabasePublicConfiguration } from "@/lib/supabase-config";
 import { installKitchenQzSecurity } from "@/lib/qz-security";
+import { chooseKitchenPrinter } from "@/lib/qz-printer-selection.mjs";
 
 let selectedPrinter = "";
 let currentAccessToken = "";
@@ -18,33 +19,6 @@ let discoveredPrinters: string[] = [];
 export function getDiscoveredKitchenPrinters(): string[] {
   return [...discoveredPrinters];
 }
-
-function normalizedPrinterName(name: string) {
-  return name.trim().replace(/\s+/g, " ").toLocaleLowerCase("pt-BR");
-}
-
-/** Se a preferência sumiu, só recupera automaticamente uma POS-58 inequívoca. */
-export function chooseKitchenPrinter(
-  names: readonly string[], saved: string, explicit: string | undefined, fallback: string | null,
-): string {
-  const unique = [...new Set(names.filter(name => typeof name === "string" && name.trim()))];
-  const exact = (name: string) => unique.find(candidate => normalizedPrinterName(candidate) === normalizedPrinterName(name));
-  if (explicit) {
-    const selected = exact(explicit);
-    if (!selected) throw new Error("A impressora escolhida não aparece mais no Windows. Consulte a lista e tente novamente.");
-    return selected;
-  }
-  const original = saved ? exact(saved) : null;
-  if (original) return original;
-  const thermal = unique.filter(name => /(?:pos[ -]?58|58[ -]?mm|xp[ -]?58|thermal[ -]?58)/i.test(name));
-  if (thermal.length === 1) return thermal[0];
-  if (!saved && fallback && exact(fallback)) return exact(fallback)!;
-  if (unique.length === 1 && !saved) return unique[0];
-  if (saved) throw new Error(`A impressora salva "${saved}" não foi encontrada. Selecione uma das impressoras detectadas abaixo. Nenhuma comanda foi enviada.`);
-  throw new Error("O QZ Tray conectou, mas há mais de uma impressora possível ou nenhuma foi identificada. Escolha a POS-58 na lista abaixo.");
-}
-
-const workerId = `lod-kitchen-${crypto.randomUUID()}`;
 
 export type KitchenPrinterConnectionStage = "loading" | "websocket" | "printers";
 export type KitchenPrinterProgress = (stage: KitchenPrinterConnectionStage) => void;
@@ -134,6 +108,7 @@ async function connectKitchenPrinterOnce(
   preferredPrinter?: string,
 ): Promise<string> {
   currentAccessToken = accessToken;
+  discoveredPrinters = [];
   onProgress?.("loading");
   const qz = await kitchenConnectionDeadline(
     qzModule(), 12000, "O módulo da impressora não carregou. Atualize o painel e tente novamente.",
