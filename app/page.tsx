@@ -436,7 +436,7 @@ function CollectionChoice({ format, name, description, action, price, photo, pho
   fallback?: string; price?: string; disabled: boolean; onClick: () => void;
 }) {
   return (
-    <button className="collection-choice" type="button" disabled={disabled} onClick={onClick} aria-label={`${name} — ${action}`}>
+    <button className="collection-choice" data-featured={format === "Pacotes com zíper" || undefined} type="button" disabled={disabled} onClick={onClick} aria-label={`${name} — ${action}`}>
       <span className="collection-photo" data-packs={format === "Pacotes com zíper" || undefined}>
         <img src={photo} srcSet={`${photo.replace(".webp", "-360.webp")} 360w, ${photo} ${photoWidth}w`} sizes="(min-width: 1152px) 374px, (min-width: 700px) 33vw, 36vw" alt="" decoding="async" width={640} height={480} onError={(event) => {
           const img = event.currentTarget;
