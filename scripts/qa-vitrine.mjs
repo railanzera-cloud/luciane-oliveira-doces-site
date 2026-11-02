@@ -42,7 +42,7 @@ for (const [engineName, engine] of Object.entries({ chromium, webkit })) {
       const campaign = '?utm_source=instagram&fbclid=teste';
       for (const [version,port] of [['antes',8180],['depois',8181]]) {
         await page.goto('http://127.0.0.1:'+port+'/'+campaign);
-        const choices = page.locator(version === 'antes' ? '.limited-cup-teaser,.category-option' : '.collection-choice');
+        const choices = page.locator('.collection-choice');
         await choices.nth(2).waitFor();
         assert.equal(await choices.count(),3);
         await page.evaluate(async () => { await document.fonts.ready; await Promise.all(Array.from(document.querySelectorAll('button img'),img=>img.decode())); });
@@ -55,9 +55,14 @@ for (const [engineName, engine] of Object.entries({ chromium, webkit })) {
           assert.equal(overflows,false);
           const colors = await page.locator('.collection-copy strong').evaluateAll(titles =>
             titles.map(title => getComputedStyle(title).color));
-          assert.deepEqual(colors,Array(3).fill('rgb(58, 35, 27)'));
+          assert.deepEqual(colors,Array(3).fill('rgb(255, 240, 221)'));
           assert.ok(rects[0].y < 250);
-          if (width >= 375) assert.ok(rects[2].bottom <= height);
+          if (width >= 375) {
+            // Nova proposta prioriza a foto: a segunda linha deve começar na
+            // primeira dobra, mas não deve ser artificialmente comprimida.
+            assert.ok(rects[2].y < height);
+            assert.ok(rects[0].height > rects[1].height * .7);
+          }
         }
         const photos = await choices.evaluateAll(nodes => nodes.flatMap(node =>
           Array.from(node.querySelectorAll('img'),img => new URL(img.currentSrc).pathname)));
@@ -99,7 +104,7 @@ for (const [engineName, engine] of Object.entries({ chromium, webkit })) {
           if (state === 'empty') await page.getByText('Cardápio temporariamente sem produtos disponíveis.').waitFor();
           if (state === 'closed') await page.locator('.store-status-banner').waitFor();
           if (state === 'sold') {
-            const pack = page.getByRole('button',{name:'Pipocas Trufadas — Esgotado'});
+            const pack = page.getByRole('button',{name:/^Pipocas Trufadas — .* — Esgotado$/});
             await pack.waitFor(); assert.equal(await pack.isDisabled(),true);
           }
         }
