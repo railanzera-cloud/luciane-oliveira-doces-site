@@ -176,7 +176,12 @@
   gap: 6px;
   margin-top: auto;
   min-height: 44px;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 9px 10px;
+  overflow-wrap: anywhere;
   border: 1px solid rgba(255, 231, 187, .47);
   border-radius: 12px;
   color: #25130d;
@@ -356,6 +361,11 @@
     height:100%;min-height:169px;
   }
   .storefront .menu-entry.is-neutral .collection-choice:not([data-featured]) .collection-copy {padding:12px;}
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-featured]) .collection-action {
+    font-size: .69rem;
+    letter-spacing: -.012em;
+    padding-inline: 6px;
+  }
   .storefront .menu-entry.is-neutral .collection-service {gap: 6px;}
 }
 @media (min-width: 760px) {
