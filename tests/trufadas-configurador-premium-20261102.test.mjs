@@ -50,6 +50,8 @@ test("Trufadas: compra fiel ao estado de abertura, seleção e estoque remoto", 
 
 test("Trufadas: entrada é suave como Gourmet; barra flutuante observa CTA que aparece depois", () => {
   assert.match(page, /target\.scrollIntoView\(\{ behavior: reducedMotion \? "auto" : "smooth", block: "start" \}\)/);
+  assert.match(page, /if \(!target\.isConnected\) return/);
+  assert.match(page, /Math\.abs\(window\.scrollY - originY\) < 12/);
   assert.match(page, /window\.scrollTo\(\{ top, behavior: reducedMotion \? "instant" : "smooth" \}\)/);
   assert.match(page, /target\.querySelector<HTMLElement>\("\.limited-cup-selection-heading"\)/);
   assert.match(page, /requestEditorialScroll\("edicao-crocante"\)/);
