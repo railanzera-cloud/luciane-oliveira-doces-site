@@ -108,7 +108,7 @@ test("frontend comunica prazo verdadeiro, conservação de estoque e preços com
   assert.match(campaign, /Só até 23h59/);
   assert.match(campaign, /Sujeito à disponibilidade dos sabores/);
   assert.match(page, /gourmet-feriado-regular-price/);
-  assert.match(page, /POPCORN_PRICING_GROUPS\\[option\\.pricingGroup\\]/);
+  assert.match(page, /POPCORN_PRICING_GROUPS\[option\.pricingGroup\]/);
   assert.doesNotMatch(page, /Só sábado e domingo, 10 e 11\/10/);
   assert.match(page, /popcornPromotionActive !== isPopcornPromotionActive\(\)/);
   assert.match(siteBackend, /applyPopcornPromotionToQuote\(quoteCartItems\(input\.items/);
