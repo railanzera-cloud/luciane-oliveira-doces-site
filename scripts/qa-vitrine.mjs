@@ -63,12 +63,28 @@ for (const [engineName, engine] of Object.entries({ chromium, webkit })) {
             assert.ok(rects[2].y < height);
             assert.ok(rects[0].width > rects[1].width * 1.8);
           }
+          const pack = await page.locator('.collection-choice[data-featured] .collection-photo').evaluate(photo => {
+            const frame = photo.getBoundingClientRect();
+            const imgs = Array.from(photo.querySelectorAll('img'));
+            return { frame: {x: frame.x, right: frame.right, width:frame.width},
+              images: imgs.map(img => {const box=img.getBoundingClientRect(); return {
+                x:box.x, right:box.right, width:box.width, loaded:img.complete && img.naturalWidth>0,
+              };}) };
+          });
+          assert.equal(pack.images.length,2,'Ninho e Paçoca precisam ser duas fotos independentes');
+          assert.ok(pack.images.every(image => image.loaded),'ambos os pacotes precisam carregar');
+          assert.ok(pack.images.every(image =>
+            image.x >= pack.frame.x - 2 && image.right <= pack.frame.right + 2
+            && image.width >= pack.frame.width * .46),'as duas embalagens devem caber na moldura sem corte lateral de elemento');
+          const buttons = await page.locator('.collection-choice .collection-action').evaluateAll(nodes =>
+            nodes.map(node => ({width:node.clientWidth,scrollWidth:node.scrollWidth})));
+          assert.ok(buttons.every(b => b.scrollWidth <= b.width + 2),'CTA não pode ter overflow');
         }
         const photos = await choices.evaluateAll(nodes => nodes.flatMap(node =>
           Array.from(node.querySelectorAll('img'),img => new URL(img.currentSrc).pathname)));
         results.push({engineName,width,height,version,rects,overflows,photos});
         await writeFile(output+'/medidas.json',JSON.stringify(results,null,2));
-        if ((width === 375 || width === 1440) && engineName === 'chromium') {
+        if ((width === 320 || width === 375 || width === 390 || width === 1440) && engineName === 'chromium') {
           await page.screenshot({path:output+'/'+version+'-'+width+'.png'});
         }
       }
