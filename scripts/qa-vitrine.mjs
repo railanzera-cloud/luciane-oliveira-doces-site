@@ -77,9 +77,19 @@ for (const [engineName, engine] of Object.entries({ chromium, webkit })) {
             image.x >= pack.frame.x - 2 && image.right <= pack.frame.right + 2
             && image.width >= pack.frame.width * .46),'as duas embalagens devem caber na moldura sem corte lateral de elemento');
           const buttons = await page.locator('.collection-choice .collection-action').evaluateAll(nodes =>
+            nodes.map(node => {
+              const text = Array.from(node.childNodes).find(child => child.nodeType === Node.TEXT_NODE);
+              const range = document.createRange();
+              if (text) range.selectNodeContents(text);
+              return {label:node.textContent?.trim(),width:node.clientWidth,scrollWidth:node.scrollWidth,
+                lines:text ? range.getClientRects().length : 0};
+            }));
+          assert.ok(buttons.every(b => b.scrollWidth <= b.width + 2 && b.lines <= 1),
+            'CTA precisa ficar em linha única, sem overflow: '+JSON.stringify({width,buttons}));
+          const prices = await page.locator('.collection-choice[data-featured] .collection-price').evaluateAll(nodes =>
             nodes.map(node => ({label:node.textContent?.trim(),width:node.clientWidth,scrollWidth:node.scrollWidth})));
-          assert.ok(buttons.every(b => b.scrollWidth <= b.width + 2),
-            'CTA não pode ter overflow: '+JSON.stringify({width,buttons}));
+          assert.ok(prices.every(p => p.scrollWidth <= p.width + 2),
+            'Preço não pode ser cortado: '+JSON.stringify({width,prices}));
         }
         const photos = await choices.evaluateAll(nodes => nodes.flatMap(node =>
           Array.from(node.querySelectorAll('img'),img => new URL(img.currentSrc).pathname)));
