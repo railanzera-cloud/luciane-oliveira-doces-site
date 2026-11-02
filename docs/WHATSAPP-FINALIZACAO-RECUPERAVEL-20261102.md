@@ -24,3 +24,15 @@ A comprovação de build, TypeScript, testes globais e pacote Cloudflare depende
 - Garantir que abrir WhatsApp não marca pagamento, envia sozinho ou duplica comanda; conferir após publicação em Preview.
 - Validar origem e parâmetros Tintim após a navegação real, sem afirmar entrega da mensagem.
 - Não publicar Cloudflare, não mesclar main e não alterar Supabase sem autorização.
+
+
+## Refinamento de apresentação aprovado — 02/11/2026
+
+O usuário avaliou a tela após pedido real e aprovou uma versão mais objetiva e compacta.
+A composição conserva a identidade artesanal chocolate/creme, ícone, título com número do pedido, resumo total/pagamento e um botão principal.
+Texto central único: **“Agora, envie a mensagem com seu pedido para a Luciane pelo WhatsApp.”**; botão **“Enviar pedido pelo WhatsApp”**.
+A instrução por modalidade continua sendo fornecida por `getWhatsAppFinalizationCopy` e sempre orienta tocar em Enviar após abrir o aplicativo. A mensagem Pix contém chave e valor; cartão e dinheiro indicam pagamento no recebimento.
+Foram retirados os parágrafos redundantes sobre etapa final, confirmação automática e retorno dos detalhes. A consulta segue acessível como link secundário, com recuperação do envio intacta na página de acompanhamento.
+Estilos responsivos são escopados ao cartão `.whatsapp-final-card`; nenhuma API, pedido, banco, Pix, estado, cozinha ou contrato de CRM foi alterado.
+Branch: `work/finalizacao-whatsapp-compacta-20261102`, derivada da revisão validada `b6d7547dd2303f243ee95f38b3c10ec14c966191`.
+**Validação e publicação:** conferir CI e checksum do pacote correspondente ao SHA final; Safari/iPhone real e navegador interno Instagram requerem homologação separada. Não publicar automaticamente.

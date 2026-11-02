@@ -1,3 +1,12 @@
+# Refinamento compacto da finalização pelo WhatsApp — 02/11/2026
+
+Base: `b6d7547dd2303f243ee95f38b3c10ec14c966191` na branch `work/finalizacao-whatsapp-recuperavel-20261102`.
+Candidata: `work/finalizacao-whatsapp-compacta-20261102`. Apenas apresentação da confirmação do pedido WhatsApp: título e orientação curta, resumo fiel de total e pagamento, ação principal “Enviar pedido pelo WhatsApp” e link secundário discreto. As quatro mensagens condicionais (Pix, crédito, débito e dinheiro) e a recuperação na tela de detalhes continuam intactas. Nenhum pedido ou pagamento registrado, migração SQL, alteração no Supabase, merge ou deploy Cloudflare.
+Validar CI e artefato do commit final antes de publicar em Preview. Verificar Safari/iPhone e Instagram; resultado de abertura não comprova envio da mensagem.
+Documentação detalhada: [WHATSAPP-FINALIZACAO-RECUPERAVEL-20261102.md](WHATSAPP-FINALIZACAO-RECUPERAVEL-20261102.md).
+
+---
+
 # Candidata de UX Trufadas — 02/11/2026
 
 A intervenção de apresentação `work/trufadas-configurador-premium-20261102` parte de `9db42e65fa189353de83cc8df9bc7c7fa576976d` e altera somente o configurador de Trufadas. Mantém cabeçalho superior, vitrine inicial, Gourmet/Fatias, catálogo, SKU, estoque, checkout, integrações e Edge Function `create-whatsapp-order` v25, sem mudanças de produção. Substitui a duplicação de título por indicador de etapas, compacta mensagens e botões, corrige "Tamanho esgotado" quando a loja está fechada e adiciona microinterações acessíveis. Critérios e riscos: [TRUFADAS-CONFIGURADOR-PREMIUM-20261102.md](TRUFADAS-CONFIGURADOR-PREMIUM-20261102.md). Obter SHA final e confirmar CI/artefato diretamente no GitHub; deployment Cloudflare continua sem confirmação nesta intervenção.

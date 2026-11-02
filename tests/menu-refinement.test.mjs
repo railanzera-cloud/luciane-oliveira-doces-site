@@ -634,8 +634,11 @@ test('final screen keeps WhatsApp predominant and tracking secondary for each ma
  ]) {
   const html=renderToStaticMarkup(React.createElement(WhatsAppOrderResultView,{order:{customerName:'Maria Oliveira',result:{order:{order_number:1004,total:48,card_mode},payment:{method}},trackingUrl:'/pedido?token=abc',whatsappUrl:'https://tintim.link/fixture'}}));
   assert.match(html,/Pedido #1004 registrado/);assert.ok(html.includes(label));assert.ok(html.includes(phrase));
-  assert.match(html,/whatsapp-final-primary/);assert.match(html,/Ao abrir o WhatsApp, toque em Enviar/);
+  assert.match(html,/whatsapp-final-primary/);assert.match(html,/Enviar pedido pelo WhatsApp/);
+  assert.match(html,/Agora, envie a mensagem com seu pedido/);
+  assert.match(html,/Ao abrir o WhatsApp, toque em Enviar/);
   assert.match(html,/Consultar detalhes do pedido/);assert.equal((html.match(/<a /g)||[]).length,2);
+  assert.doesNotMatch(html,/Falta só uma etapa|Se entrar nos detalhes|não confirma o pagamento/);
   assert.doesNotMatch(html,/Copiar chave|Fazer novo pedido|03611974200/);
  }
 });

@@ -50,10 +50,24 @@ test("reabre somente a mensagem original do mesmo pedido e por link Tintim váli
 
 test("finalização não gera outro pedido nem promete envio ou pagamento automático", () => {
   assert.match(successPage, /getWhatsAppFinalizationCopy\(order.result.payment.method, order.result.order.card_mode\)/);
-  assert.match(successPage, /Abrir WhatsApp e enviar pedido/);
+  assert.match(successPage, /Enviar pedido pelo WhatsApp/);
+  assert.match(successPage, /Agora, envie a mensagem com seu pedido para a Luciane pelo WhatsApp/);
   assert.match(successPage, /Consultar detalhes do pedido/);
-  assert.match(successPage, /abrir o WhatsApp não envia a mensagem nem confirma o pagamento/);
+  assert.doesNotMatch(successPage, /whatsapp-final-intro|whatsapp-final-status-hint|whatsapp-final-eyebrow/);
+  assert.equal((successPage.match(/<a /g) || []).length, 2);
+  assert.match(successPage, /href=\{order.whatsappUrl\}/);
+  assert.match(successPage, /\{payment.instruction\}/);
   assert.doesNotMatch(successPage, /createWhatsAppOrder|paid_at|trackMetaEvent/);
+});
+
+test("refinamento mantém hierarquia enxuta e consulta secundária", () => {
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /\.whatsapp-final-card h1 \{/);
+  assert.match(css, /\.whatsapp-final-card \.whatsapp-final-summary/);
+  assert.match(css, /\.whatsapp-final-card \.whatsapp-final-secondary a/);
+  assert.match(css, /@media \(max-width: 360px\)/);
+  assert.match(successPage, /<h1 id="whatsapp-final-title">Pedido #/);
+  assert.doesNotMatch(successPage, /Se entrar nos detalhes/);
 });
 
 test("acompanhamento recupera a sessão ou oferece assistência e preserva a opção de voltar", () => {
