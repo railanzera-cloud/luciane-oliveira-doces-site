@@ -56,7 +56,10 @@ for (const [engineName, engine] of Object.entries({ chromium, webkit })) {
           assert.ok(rects[0].y < 250);
           if (width >= 375) assert.ok(rects[2].bottom <= height);
         }
-        results.push({engineName,width,height,version,rects,overflows});
+        const photos = await choices.evaluateAll(nodes => nodes.flatMap(node =>
+          Array.from(node.querySelectorAll('img'),img => new URL(img.currentSrc).pathname)));
+        results.push({engineName,width,height,version,rects,overflows,photos});
+        await writeFile(output+'/medidas.json',JSON.stringify(results,null,2));
         if ((width === 375 || width === 1440) && engineName === 'chromium') {
           await page.screenshot({path:output+'/'+version+'-'+width+'.png'});
         }
@@ -70,12 +73,15 @@ for (const [engineName, engine] of Object.entries({ chromium, webkit })) {
         await page.goBack();
         await choice.waitFor();
         assert.equal(new URL(page.url()).searchParams.get('utm_source'),'instagram');
-        await page.goto('http://127.0.0.1:8181/?categoria='+routes[i]+'&utm_source=instagram');
+        const direct = new URL(campaign,'http://127.0.0.1:8181/');
+        direct.searchParams.set('categoria',routes[i]);
+        await page.goto(direct.href);
         await page.getByRole('heading',{name,exact:true,level:1}).waitFor();
         if (i === 0) {
           await page.locator('.limited-cup-duo-item').first().click();
           await page.getByRole('button',{name:/Ninho, pacote P,.*15,90/}).waitFor();
         }
+        assert.equal(new URL(page.url()).searchParams.get('fbclid'),'teste');
         await page.getByRole('link',{name:'Voltar às categorias'}).click();
         await choice.waitFor();
       }
@@ -95,4 +101,3 @@ for (const [engineName, engine] of Object.entries({ chromium, webkit })) {
     }
   } finally { await browser.close(); }
 }
-await writeFile(output+'/medidas.json',JSON.stringify(results,null,2));
