@@ -122,6 +122,8 @@ export default function AdminPage() {
   const [availabilitySection, setAvailabilitySection] = useState<"trufadas" | "gourmet" | "fatias">("trufadas");
   const [gourmetView, setGourmetView] = useState<"sizes" | "flavors">("flavors");
   const [sliceSearch, setSliceSearch] = useState("");
+  const [trufadasDirty, setTrufadasDirty] = useState(false);
+  const [availabilityWarning, setAvailabilityWarning] = useState("");
 
   const categoryItems = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "category");
   const popcornSizes = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "popcorn_size");
@@ -132,6 +134,14 @@ export default function AdminPage() {
     .includes(sliceSearch.trim().toLocaleLowerCase("pt-BR")));
   const countReady = (items: MenuAvailabilityItem[]) => items.filter(item => availability.statuses[item.itemKey] === "available").length;
   const controlsUnavailable = loadingMenu || availability.source !== "supabase" || Boolean(loadError);
+  function selectAvailabilitySection(next: "trufadas" | "gourmet" | "fatias") {
+    if (next !== availabilitySection && availabilitySection === "trufadas" && trufadasDirty) {
+      setAvailabilityWarning("Há alterações não salvas nas Trufadas. Salve ou descarte no editor antes de mudar de categoria.");
+      return;
+    }
+    setAvailabilityWarning("");
+    setAvailabilitySection(next);
+  }
 
   useEffect(() => {
     if (!supabase) return;
@@ -368,22 +378,23 @@ export default function AdminPage() {
           <button type="button" role="tab" id="admin-availability-tab-trufadas"
             aria-selected={availabilitySection === "trufadas"} aria-controls="admin-availability-panel-trufadas"
             className={availabilitySection === "trufadas" ? "is-active" : ""}
-            onClick={() => setAvailabilitySection("trufadas")}>
+            onClick={() => selectAvailabilitySection("trufadas")}>
             <strong>Trufadas</strong><small>3 sabores · P/M/G</small>
           </button>
           <button type="button" role="tab" id="admin-availability-tab-gourmet"
             aria-selected={availabilitySection === "gourmet"} aria-controls="admin-availability-panel-gourmet"
             className={availabilitySection === "gourmet" ? "is-active" : ""}
-            onClick={() => setAvailabilitySection("gourmet")}>
+            onClick={() => selectAvailabilitySection("gourmet")}>
             <strong>Gourmet</strong><small>{countReady(gourmetItems)}/{gourmetItems.length} liberados</small>
           </button>
           <button type="button" role="tab" id="admin-availability-tab-fatias"
             aria-selected={availabilitySection === "fatias"} aria-controls="admin-availability-panel-fatias"
             className={availabilitySection === "fatias" ? "is-active" : ""}
-            onClick={() => setAvailabilitySection("fatias")}>
+            onClick={() => selectAvailabilitySection("fatias")}>
             <strong>Fatias</strong><small>{countReady(slices)}/{slices.length} liberadas</small>
           </button>
         </div>
+        {availabilityWarning && <p className="admin-category-guard" role="alert"><AlertCircle size={16} />{availabilityWarning}</p>}
 
         {availabilitySection === "trufadas" && (
           <div role="tabpanel" id="admin-availability-panel-trufadas" aria-labelledby="admin-availability-tab-trufadas">
@@ -391,6 +402,7 @@ export default function AdminPage() {
               onChanged={reloadMenu}
               ordersOpen={availability.ordersOpen}
               pipocasStatus={categoryStatus(CATEGORY_ITEM_KEYS.pipocas)}
+              onDirtyChange={setTrufadasDirty}
             />
           </div>
         )}
