@@ -53,6 +53,7 @@ on:
       - work/vitrine-editorial-20261102
       - work/vitrine-premium-reconstrucao-20261102
       - work/vitrine-premium-refino-equilibrio-20261102
+      - work/trufadas-configurador-premium-20261102
       - feature/pre-reserva-chocolate-morango-31102026
     paths:
       - scripts/qa-vitrine.mjs
