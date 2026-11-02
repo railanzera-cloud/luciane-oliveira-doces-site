@@ -2318,7 +2318,7 @@ export default function Home() {
                     return (
                       <label className={`size-card ${variant.id === popcornVariantId ? "is-selected" : ""} ${!available ? "is-unavailable" : ""}`} htmlFor={`size-${variant.id}`} key={variant.id}>
                         <RadioGroupItem id={`size-${variant.id}`} value={variant.id} disabled={!available} />
-                        <span className="size-copy"><strong>{variant.label}</strong><b>{currency.format(itemUnitPrice(POPCORN, variant, popcornOptionIds, promotionTime))}</b><small>`Até ${variant.maxOptions} sabores`</small></span>
+                        <span className="size-copy"><strong>{variant.label}</strong><b>{currency.format(itemUnitPrice(POPCORN, variant, popcornOptionIds, promotionTime))}</b><small>Até {variant.maxOptions} sabores</small></span>
                         {variant.id === popcornVariantId && available && <span className="selected-check" aria-hidden="true"><Check size={14} strokeWidth={3} /></span>}
                         {!available && <span className="unavailable-label">Esgotado hoje</span>}
                       </label>
@@ -2395,7 +2395,7 @@ export default function Home() {
                           </span>
                         </span>
                         <span className="boutique-flavor-value">
-                          {potPriceWithOption !== null && (!popcornPromotionActive || (savedToday > 0 && available)) && (
+                          {potPriceWithOption !== null && (!popcornPromotionActive || available) && (
                             <span className="boutique-flavor-cost">
                               {popcornPromotionActive && regularSpecialPrice !== null && savedToday > 0 && (
                                 <del className="gourmet-feriado-regular-price" aria-label="Preço habitual deste pote com o recheio">
