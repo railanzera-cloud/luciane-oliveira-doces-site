@@ -116,6 +116,15 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
       await page.locator(".admin-stock-flavors > button").nth(1).click();
       await page.locator(".admin-stock-variants > button").nth(1).click();
       assert.match(await page.locator(".admin-stock-editor-heading").innerText(),/Paçoca.*M/s);
+      // Um pedido pode entrar sem mudar a versão do estoque; editor deve detectar a reserva nova.
+      const paçocaM = rows.find(row => row.item_key === TRUFADAS_ACTIVE_ITEM_KEYS[4]);
+      assert.ok(paçocaM);
+      paçocaM.reserved = 1;
+      paçocaM.available = 3;
+      await page.getByRole("button",{name:"Pausar",exact:true}).click();
+      await page.getByRole("button",{name:"Salvar alteração"}).click();
+      await page.getByText(/Entrou ou mudou um pedido/).waitFor();
+      assert.equal(writes.length,1,"Conferência de reservas impede gravação baseada em saldo velho");
       await page.getByRole("button",{name:"Pausar",exact:true}).click();
       await page.getByRole("button",{name:"Salvar alteração"}).click();
       await page.getByText(/Pacote M atualizado/).waitFor();
