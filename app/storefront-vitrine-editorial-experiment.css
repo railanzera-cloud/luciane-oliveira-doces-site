@@ -2979,6 +2979,7 @@
   100% { transform: scale(1); }
 }
 .storefront #configurador.is-cup-discovery .limited-cup-story {
+  scroll-margin-top: 16px;
   animation: trufadas-enter 420ms cubic-bezier(.2,.76,.24,1) both;
   border-color: rgba(229,183,127,.6);
   background: #24140f;
