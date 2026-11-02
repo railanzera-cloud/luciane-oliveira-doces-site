@@ -87,6 +87,18 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
       if(width===390)await page.screenshot({path:output+"/"+engineName+"-"+width+"-pagina-completa.png",fullPage:true});
       measures.push({engineName,width,height,entrance,heading,chosen,photos});
       await writeFile(output+"/medidas.json",JSON.stringify(measures,null,2));
+      // Repetir entrada no WebKit: o problema anterior era intermitente.
+      if(engineName==="webkit"&&width===320){
+        for(let attempt=0;attempt<3;attempt++){
+          await page.goto(url+"?utm_source=instagram&fbclid=qa_repeat");
+          await page.locator(".collection-choice").nth(2).waitFor();
+          await page.getByRole("button",{name:/Pipocas Trufadas — (Ver sabores|Consultar sabores)/}).click();
+          await page.locator(".limited-cup-selection-heading").waitFor();
+          await page.waitForTimeout(820);
+          const actual=await page.evaluate(()=>({y:scrollY,top:document.getElementById("edicao-crocante")?.getBoundingClientRect().top}));
+          assert.ok(actual.y>5,"WebKit ignorou navegação suave na repetição "+attempt+": "+JSON.stringify(actual));
+        }
+      }
       if(width===390){
         fixtureState="closed";
         await page.goto(url+"?categoria=trufadas");
