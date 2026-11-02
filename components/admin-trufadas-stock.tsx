@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { getSupabaseClient } from "@/lib/supabase";
 import { TRUFADA_STOCK_ITEM_KEYS, type AvailabilityStatus } from "@/app/menu-availability";
 import { TRUFADAS_VARIANTS, TRUFADAS_SIZES } from "../supabase/functions/_shared/trufadas-variants.mjs";
+import { freePackages, prepareTrufadasStockTotal, stockSnapshotChanged } from "@/lib/trufadas-stock-calculation.mjs";
 
 type InventoryRow = {
   item_key: string;
@@ -26,10 +27,6 @@ const FLAVOR_GROUPS = Object.values(TRUFADAS_VARIANTS).map(product => ({
     itemKey: product.sizes[size as keyof typeof product.sizes].itemKey,
   })),
 }));
-
-function freePackages(row: InventoryRow): number {
-  return Math.max(0, row.total - row.reserved);
-}
 
 function validatedRows(data: unknown): InventoryRow[] {
   if (!Array.isArray(data)) throw new Error("A resposta de estoque não é válida.");
@@ -106,16 +103,12 @@ export function AdminTrufadasStock({
 
     // O campo é "pacotes LIVRES"; a API continua exigindo a contagem física total.
     // O total inclui os pacotes retidos, cuja situação financeira é independente.
-    const free = /^[0-9]+$/.test(draft.free.trim()) ? Number(draft.free.trim()) : NaN;
-    const total = free + row.reserved;
-    if (!Number.isSafeInteger(free) || free < 0 || !Number.isSafeInteger(total) || total > 100000) {
-      setError("Informe quantos pacotes estão livres (0 a 100.000, descontados os que já estão em pedidos).");
+    const prepared = prepareTrufadasStockTotal(draft.free, row.reserved);
+    if (!prepared) {
+      setError("Informe quantos pacotes estão livres, sem somar os que já estão em pedidos. Limite total: 100.000.");
       return;
     }
-    if (total < row.reserved) {
-      setError("Os pacotes em pedidos não podem ser retirados da contagem.");
-      return;
-    }
+    const { free, total } = prepared;
 
     const client = getSupabaseClient();
     if (!client) { setError("Supabase indisponível."); return; }
@@ -128,8 +121,7 @@ export function AdminTrufadasStock({
       const latest = await client.rpc("admin_get_trufadas_pmg_inventory");
       if (latest.error) throw latest.error;
       const current = validatedRows(latest.data).find(item => item.item_key === row.item_key);
-      if (!current || current.version !== row.version || current.reserved !== row.reserved
-        || current.total !== row.total || current.enabled !== row.enabled) {
+      if (stockSnapshotChanged(row, current)) {
         applyRows(validatedRows(latest.data));
         setError("Entrou ou mudou um pedido enquanto você editava. Atualizei os números; confira e salve novamente.");
         return;
@@ -274,9 +266,9 @@ export function AdminTrufadasStock({
                 onChange={event => setDrafts(current => ({
                   ...current, [selectedRow.item_key]: { ...current[selectedRow.item_key], free: event.target.value },
                 }))} />
-              <span>{/^\d+$/.test(draft.free) && Number.isSafeInteger(Number(draft.free))
-                ? `${draft.free} livres + ${selectedRow.reserved} em pedidos = ${Number(draft.free) + selectedRow.reserved} no estoque`
-                : "Informe um número inteiro"}</span>
+              <span>{prepareTrufadasStockTotal(draft.free, selectedRow.reserved)
+                ? `${draft.free} livres + ${selectedRow.reserved} em pedidos = ${prepareTrufadasStockTotal(draft.free, selectedRow.reserved)!.total} no estoque`
+                : "Confira a quantidade: somente inteiros até 100.000 no total."}</span>
             </div>
             {isEditing && <div className="admin-stock-unsaved" role="status">
               <span>Alteração ainda não salva</span>
