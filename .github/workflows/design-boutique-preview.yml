@@ -54,9 +54,11 @@ on:
       - work/vitrine-premium-reconstrucao-20261102
       - work/vitrine-premium-refino-equilibrio-20261102
       - work/trufadas-configurador-premium-20261102
+      - work/trufadas-experiencia-imersiva-20261102
       - feature/pre-reserva-chocolate-morango-31102026
     paths:
       - scripts/qa-vitrine.mjs
+      - scripts/qa-trufadas-imersiva.mjs
       - app/menu-navigation.ts
       - app/storefront-collection.css
       - app/storefront-collection-premium.css
@@ -269,6 +271,27 @@ jobs:
           path: outputs/luciane-oliveira-doces-cloudflare-pages.zip
           if-no-files-found: error
           retention-days: 7
+      - name: Preparar navegadores Chromium e WebKit para Trufadas
+        if: github.ref_name == 'work/trufadas-experiencia-imersiva-20261102'
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/visual-trufadas" playwright@1.56.1
+          "$RUNNER_TEMP/visual-trufadas/node_modules/.bin/playwright" install --with-deps chromium webkit
+      - name: Inspecionar jornada Trufadas em Chromium e WebKit
+        if: github.ref_name == 'work/trufadas-experiencia-imersiva-20261102'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8181 --bind 127.0.0.1 --directory outputs/cloudflare-pages >/tmp/trufadas-visual.log 2>&1 &
+          export QA_PACKAGE="$RUNNER_TEMP/visual-trufadas/package.json" QA_OUTPUT="$RUNNER_TEMP/evidencia-trufadas"
+          node scripts/qa-trufadas-imersiva.mjs
+      - name: Guardar capturas da jornada Trufadas
+        if: always() && github.ref_name == 'work/trufadas-experiencia-imersiva-20261102'
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-trufadas-imersiva
+          path: ${{ runner.temp }}/evidencia-trufadas
+          if-no-files-found: warn
       - name: Recuperar base de comparação da vitrine
         if: github.ref_name == 'work/vitrine-premium-refino-equilibrio-20261102'
         uses: actions/checkout@v4
