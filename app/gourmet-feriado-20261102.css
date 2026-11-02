@@ -168,12 +168,20 @@
   #configurador .gourmet-feriado-price-list {
     grid-column: 2;
     grid-row: 2 / 5;
+    grid-template-columns: minmax(0, 1fr);
     align-self: center;
     gap: 7px;
   }
   #configurador .gourmet-feriado-price-list > div {
-    padding: 13px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 10px;
+    min-height: 67px;
+    padding: 12px 13px;
   }
+  #configurador .gourmet-feriado-price-list > div > small { flex: 1 1 100%; }
 }
 @media (max-width: 375px) {
   #configurador .gourmet-feriado-edition { padding: 15px 12px; gap: 11px; }
