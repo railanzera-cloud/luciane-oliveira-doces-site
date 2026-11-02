@@ -1983,7 +1983,7 @@ export default function Home() {
                     fallback="/images/pipocas-trufadas-pacoca-20261101.webp"
                     description="Ninho, Paçoca e Coco Queimado · P, M e G"
                     price={currency.format(TRUFADA_STARTING_PRICE)}
-                    action={!pipocasAvailable || cupPhase === "sold-out" ? "Esgotado" : cupCanBeAddedFromCheckout ? "Conhecer os sabores" : "Consultar sabores"}
+                    action={!pipocasAvailable || cupPhase === "sold-out" ? "Esgotado" : cupCanBeAddedFromCheckout ? "Escolher sabor" : "Consultar sabores"}
                     disabled={!pipocasAvailable || cupPhase === "sold-out"} onClick={openLimitedCupEdition} />
                 )}
                 {visibleCategories.map((category) => {
