@@ -195,6 +195,27 @@
 
 /* A barra nunca deve cobrir a última ação nem forçar rolagem de sobra no checkout. */
 @media (max-width: 599px) {
+  /* Anula apenas para Gourmet a antiga regra editorial que expandia o 1 litro
+     para ocupar duas colunas, mesmo numa grade de três opções. */
+  .storefront #configurador #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child {
+    grid-column: auto;
+    min-height: 114px;
+  }
+  .storefront #configurador #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child .size-copy {
+    display: flex;
+    flex-direction: column;
+    width: auto;
+    min-width: 0;
+    padding: 13px 9px 12px;
+    gap: 0;
+  }
+  .storefront #configurador #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child .size-copy > strong,
+  .storefront #configurador #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child .size-copy > small,
+  .storefront #configurador #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child .size-copy > b {
+    grid-column: auto;
+    grid-row: auto;
+    align-self: auto;
+  }
   .storefront .mobile-sticky-bar.is-gourmet-step {
     min-height: 62px;
     gap: 9px;
