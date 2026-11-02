@@ -24,7 +24,7 @@ test("Safari: não anuncia esgotado antes de saber o sabor, nem habilita tamanho
 
 test("Safari: subtotal e resumo usam preço exato do produto selecionado", () => {
   assert.match(page, /const cupStartingPrice = cupProduct\?\.variants\.find\(variant => variant\.id === "p"\)\?\.price \?\? 14\.9/);
-  assert.match(page, /cupVariant \? currency\.format\(cupVariant\.price\)/);
+  assert.match(page, /currency\.format\(variant\.price\)/);
   assert.match(page, /currency\.format\(\(cupVariant\?\.price \?\? cupStartingPrice\)/);
   assert.match(page, /description: `\$\{product\.name\} · \$\{variant\.label\} · \$\{qty\}/);
   const q = quoteCartItems([
