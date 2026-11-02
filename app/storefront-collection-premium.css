@@ -352,10 +352,16 @@
 @media (max-width: 350px) {
   .storefront .menu-entry.is-neutral .collection-menu {grid-template-columns: 1fr;}
   .storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-action {
-    font-size: .73rem;
-    padding-inline: 4px;
-    gap: 2px;
+    font-size: .76rem;
+    padding-inline: 6px;
+    gap: 4px;
     white-space: normal;
+  }
+  .storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-price {
+    font-size: .78rem;
+    white-space: normal;
+    line-height: 1.2;
+    overflow-wrap: normal;
   }
   .storefront .menu-entry.is-neutral .collection-choice[data-featured] {grid-column:1;min-height:225px;}
   .storefront .menu-entry.is-neutral .collection-choice:not([data-featured]) {
