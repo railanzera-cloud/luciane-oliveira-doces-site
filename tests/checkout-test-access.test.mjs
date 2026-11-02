@@ -5,9 +5,12 @@ import vm from "node:vm";
 import ts from "typescript";
 import { webcrypto } from "node:crypto";
 import { quoteCartItems, quoteFulfillment } from "../supabase/functions/_shared/commerce-catalog.mjs";
+import { applyPopcornPromotionToQuote } from "../supabase/functions/_shared/popcorn-quote-campaign.mjs";
 
 const source = await readFile(new URL("../supabase/functions/create-order/index.ts", import.meta.url), "utf8");
-const code = ts.transpileModule(source.replace(/import\s*\{[\s\S]*?\}\s*from\s*"\.\.\/_shared\/commerce-catalog\.mjs";/, ""), {
+const code = ts.transpileModule(source
+  .replace(/import\s*\{[\s\S]*?\}\s*from\s*"\.\.\/_shared\/commerce-catalog\.mjs";/, "")
+  .replace(/import\s*\{\s*applyPopcornPromotionToQuote\s*\}\s*from\s*"\.\.\/_shared\/popcorn-quote-campaign\.mjs";/, ""), {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
 }).outputText;
 
@@ -17,7 +20,7 @@ function fixture(environment = "test", liveMode = false) {
   const env = { SUPABASE_URL: "https://fixture.invalid", SUPABASE_SECRET_KEYS: '{"default":"fixture-secret"}',
     SUPABASE_PUBLISHABLE_KEYS: '{"default":"fixture-public"}', SITE_ORDERING_ENABLED: "false",
     PAYMENTS_ENVIRONMENT: environment, MP_ACCESS_TOKEN_TEST: "fixture-mp-token" };
-  vm.runInNewContext(code, { quoteCartItems, quoteFulfillment, crypto: webcrypto,
+  vm.runInNewContext(code, { quoteCartItems, quoteFulfillment, applyPopcornPromotionToQuote, crypto: webcrypto,
     Request, Response, Headers, AbortController, AbortSignal, DOMException, TextEncoder,
     setTimeout, clearTimeout, console: { error() {} },
     Deno: { env: { get: (key) => env[key] }, serve: (fn) => { handler = fn; } },
