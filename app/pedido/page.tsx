@@ -10,6 +10,7 @@ import { formatOrderMoney } from "@/app/order-checkout";
 import { lastOrderToken, rememberOrder, loadPublicOrderStatus, sitePaymentLabel, type PublicOrderStatus } from "@/lib/site-order";
 
 import { TintimContactLink } from "@/components/tintim-contact-link";
+import { getWhatsAppFinalizationCopy, readStoredWhatsAppHandoff } from "@/lib/whatsapp-finalization";
 
 const ORDER_LABELS: Record<PublicOrderStatus["order_status"], string> = {
   payment_pending: "Aguardando pagamento",
@@ -80,8 +81,20 @@ export default function OrderTrackingPage() {
     return () => { window.clearInterval(timer); window.removeEventListener("focus", focus); document.removeEventListener("visibilitychange", visibility); };
   }, [order, refresh, token]);
 
+  const [savedHandoffUrl, setSavedHandoffUrl] = useState<string | null>(null);
+  useEffect(() => {
+    setSavedHandoffUrl(order ? readStoredWhatsAppHandoff(token, order.order_number) : null);
+  }, [order?.order_number, token]);
+
+  const needsHandoff = Boolean(order &&
+    ["manual_pix", "cash", "card_on_delivery"].includes(order.payment_method) &&
+    order.payment_status === "pending" &&
+    !["completed", "cancelled"].includes(order.order_status));
+  const paymentCopy = order ? getWhatsAppFinalizationCopy(order.payment_method, order.card_mode) : null;
   const supportMessage = order
-    ? `Olá! Já fiz o pedido #${order.order_number} pelo site e preciso de ajuda.`
+    ? needsHandoff
+      ? `Olá! Registrei o pedido #${order.order_number} pelo site, mas não consegui enviar a mensagem de finalização. Podem me ajudar a concluir o pedido e orientar sobre o pagamento?`
+      : `Olá! Já fiz o pedido #${order.order_number} pelo site e preciso de ajuda.`
     : undefined;
 
   return (
@@ -91,7 +104,15 @@ export default function OrderTrackingPage() {
         <p className="eyebrow">Detalhes do pedido</p>
         {loading && !order ? <><LoaderCircle className="admin-spinner" size={24} /><h1>Consultando pedido…</h1></> : error && !order ? <><h1>Não foi possível abrir</h1><p role="alert">{error}</p></> : order && <>
           <h1>Pedido #{order.order_number}</h1>
-          <div className="tracking-current-status"><Clock3 size={19} aria-hidden="true" /><span><small>Último status informado pela loja</small><strong>{ORDER_LABELS[order.order_status]}</strong></span></div>
+          <div className="tracking-current-status"><Clock3 size={19} aria-hidden="true" /><span><small>Último status informado pela loja</small><strong>{needsHandoff && order.order_status === "confirmed" ? "Recebido pela loja" : ORDER_LABELS[order.order_status]}</strong></span></div>
+          {needsHandoff && <div className="tracking-handoff" aria-label="Como concluir o pedido">
+            <strong>Seu pedido está registrado. Falta enviar a mensagem.</strong>
+            <p>{savedHandoffUrl ? "Envie a mensagem original pelo WhatsApp para continuar." : "Não encontramos a mensagem original nesta sessão. Fale com a loja usando o número do pedido."}</p>
+            {savedHandoffUrl
+              ? <a className="whatsapp-final-primary" href={savedHandoffUrl}><MessageCircle size={19} aria-hidden="true" /> Abrir WhatsApp e enviar pedido</a>
+              : <TintimContactLink className="whatsapp-final-primary" message={supportMessage}><MessageCircle size={19} aria-hidden="true" /> Falar com a loja para concluir</TintimContactLink>}
+            <small>{savedHandoffUrl ? paymentCopy?.instruction : "A loja poderá localizar seu pedido e orientar o próximo passo."} Se já enviou, não precisa repetir.</small>
+          </div>}
           <div className="tracking-details">
             <p><span>Pagamento informado</span><strong>{order.payment_status === "paid" ? "Pago" : order.payment_status === "pending" ? `Pendente — ${(order.card_mode ? order.card_mode === "credit_single" ? "Crédito à vista (1x)" : "Débito" : sitePaymentLabel(order.payment_method, order.fulfillment_type === "pickup" ? "retirada" : "entrega"))}` : order.payment_status === "refunded" ? "Devolvido" : "Não aprovado"}</strong></p>
             <p><span>Recebimento</span><strong>{order.fulfillment_type === "pickup" ? "Retirada" : "Entrega"}</strong></p>
@@ -112,15 +133,16 @@ export default function OrderTrackingPage() {
             try { await navigator.clipboard.writeText(`${window.location.origin}/pedido?token=${token}`); setCopyNotice("Link copiado."); }
             catch { setCopyNotice("Selecione o link abaixo para copiar."); }
           }}>Copiar link do pedido</Button><input className="tracking-copy-field" aria-label="Link individual do pedido" readOnly value={typeof window === "undefined" ? "" : `${window.location.origin}/pedido?token=${token}`} onFocus={e => e.target.select()} />{copyNotice && <p role="status">{copyNotice}</p>}</>}
-          <Button variant="outline" asChild><TintimContactLink message={supportMessage}><MessageCircle size={17} /> Falar com a loja</TintimContactLink></Button>
+          {!needsHandoff && <Button variant="outline" asChild><TintimContactLink message={supportMessage}><MessageCircle size={17} /> Falar com a loja</TintimContactLink></Button>}
+          {needsHandoff && savedHandoffUrl && <Button variant="outline" asChild><Link href="/">Voltar à finalização</Link></Button>}
           <Button variant="ghost" asChild><Link href="/" onClick={() => {
-            // A completed registration must not trap the customer on the handoff screen.
+            // Só uma decisão explícita de começar outro pedido descarta a sessão atual.
             try {
               const key = "luciane-order-session-v2";
               const saved = JSON.parse(window.sessionStorage.getItem(key) || "null");
               if (saved?.whatsappResult?.result?.order?.tracking_token === token) window.sessionStorage.removeItem(key);
-            } catch { /* Navigation and the last tracking token remain available. */ }
-          }}>Voltar ao cardápio</Link></Button>
+            } catch { /* O link e o token do pedido permanecem disponíveis. */ }
+          }}>{needsHandoff ? "Fazer outro pedido" : "Voltar ao cardápio"}</Link></Button>
         </div>
       </section>
     </main>
