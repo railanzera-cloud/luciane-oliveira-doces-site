@@ -104,7 +104,7 @@ for (const [engineName, engine] of Object.entries({ chromium, webkit })) {
           if (state === 'empty') await page.getByText('Cardápio temporariamente sem produtos disponíveis.').waitFor();
           if (state === 'closed') await page.locator('.store-status-banner').waitFor();
           if (state === 'sold') {
-            const pack = page.getByRole('button',{name:/^Pipocas Trufadas — .* — Esgotado$/});
+            const pack = page.getByRole('button',{name:'Pipocas Trufadas — Esgotado'});
             await pack.waitFor(); assert.equal(await pack.isDisabled(),true);
           }
         }
