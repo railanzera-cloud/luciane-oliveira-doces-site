@@ -61,7 +61,7 @@ for (const [engineName, engine] of Object.entries({ chromium, webkit })) {
             // Nova proposta prioriza a foto: a segunda linha deve começar na
             // primeira dobra, mas não deve ser artificialmente comprimida.
             assert.ok(rects[2].y < height);
-            assert.ok(rects[0].height > rects[1].height * .7);
+            assert.ok(rects[0].width > rects[1].width * 1.8);
           }
         }
         const photos = await choices.evaluateAll(nodes => nodes.flatMap(node =>
