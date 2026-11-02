@@ -58,6 +58,7 @@ on:
       - work/admin-disponibilidade-premium-20261102
       - fix/cozinha-qz-pedido1544-diagnostico-20261102
       - work/feriado-gourmet-preco-unico-20261102
+      - fix/cozinha-worker-id-undefined-20261102
       - feature/pre-reserva-chocolate-morango-31102026
     paths:
       - scripts/qa-vitrine.mjs
@@ -127,6 +128,7 @@ on:
       - lib/qz-print-client.ts
       - lib/qz-printer-selection.mjs
       - tests/qz-printer-recovery-20261102.test.mjs
+      - tests/cozinha-worker-id-20261102.test.mjs
       - docs/COZINHA-QZ-INCIDENTE-1544-20261102.md
       - lib/qz-security.ts
       - docs/COZINHA-ASSINATURA-QZ-RETOMADA-20261017.md
