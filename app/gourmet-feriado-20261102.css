@@ -241,7 +241,9 @@
   .storefront #configurador .gourmet-feriado-deadline { font-size: .61rem; }
   .storefront #configurador #tamanhos .size-grid { gap: 5px; }
   .storefront #configurador #tamanhos .size-card { min-height: 108px; border-radius: 12px; }
+  .storefront #configurador #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child { min-height: 108px; }
   .storefront #configurador #tamanhos .size-copy { padding: 10px 6px; }
+  .storefront #configurador #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child .size-copy { padding: 10px 6px; }
   .storefront #configurador #tamanhos .size-copy b { font-size: .77rem; letter-spacing: -.02em; }
 }
 @media (min-width: 600px) {
