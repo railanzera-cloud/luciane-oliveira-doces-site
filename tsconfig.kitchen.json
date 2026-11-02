@@ -5,6 +5,7 @@
   },
   "include": [
     "next-env.d.ts",
+    "types/qz-tray.d.ts",
     "lib/qz-print-client.ts",
     "lib/qz-security.ts",
     "lib/admin-orders-client.ts",
