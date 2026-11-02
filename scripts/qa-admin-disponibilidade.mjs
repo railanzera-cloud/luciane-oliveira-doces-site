@@ -147,7 +147,7 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
       await page.locator("#admin-availability-tab-fatias").click();
       await page.getByRole("heading",{name:"Fatias Artesanais"}).waitFor();
       const search=page.getByRole("searchbox",{name:"Buscar sabor"});
-      await search.fill("Prestígio");
+      await search.fill("prestigio");
       assert.equal(await page.locator("#admin-availability-panel-fatias .admin-compact-item").count(),1);
       assert.equal(await page.locator(".admin-availability-nav").count(),1);
       if(width===390)await page.screenshot({path:output+"/"+engineName+"-fatias-390.png"});
