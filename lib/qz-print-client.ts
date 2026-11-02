@@ -12,6 +12,38 @@ import { installKitchenQzSecurity } from "@/lib/qz-security";
 let selectedPrinter = "";
 let currentAccessToken = "";
 let connectionInProgress: Promise<string> | null = null;
+let discoveredPrinters: string[] = [];
+
+/** Impressoras enumeradas pelo QZ Tray local na última tentativa; não consulta o Supabase. */
+export function getDiscoveredKitchenPrinters(): string[] {
+  return [...discoveredPrinters];
+}
+
+function normalizedPrinterName(name: string) {
+  return name.trim().replace(/\s+/g, " ").toLocaleLowerCase("pt-BR");
+}
+
+/** Se a preferência sumiu, só recupera automaticamente uma POS-58 inequívoca. */
+export function chooseKitchenPrinter(
+  names: readonly string[], saved: string, explicit: string | undefined, fallback: string | null,
+): string {
+  const unique = [...new Set(names.filter(name => typeof name === "string" && name.trim()))];
+  const exact = (name: string) => unique.find(candidate => normalizedPrinterName(candidate) === normalizedPrinterName(name));
+  if (explicit) {
+    const selected = exact(explicit);
+    if (!selected) throw new Error("A impressora escolhida não aparece mais no Windows. Consulte a lista e tente novamente.");
+    return selected;
+  }
+  const original = saved ? exact(saved) : null;
+  if (original) return original;
+  const thermal = unique.filter(name => /(?:pos[ -]?58|58[ -]?mm|xp[ -]?58|thermal[ -]?58)/i.test(name));
+  if (thermal.length === 1) return thermal[0];
+  if (!saved && fallback && exact(fallback)) return exact(fallback)!;
+  if (unique.length === 1 && !saved) return unique[0];
+  if (saved) throw new Error(`A impressora salva "${saved}" não foi encontrada. Selecione uma das impressoras detectadas abaixo. Nenhuma comanda foi enviada.`);
+  throw new Error("O QZ Tray conectou, mas há mais de uma impressora possível ou nenhuma foi identificada. Escolha a POS-58 na lista abaixo.");
+}
+
 const workerId = `lod-kitchen-${crypto.randomUUID()}`;
 
 export type KitchenPrinterConnectionStage = "loading" | "websocket" | "printers";
@@ -84,12 +116,13 @@ async function qzModule() {
 export async function connectKitchenPrinter(
   accessToken: string,
   onProgress?: KitchenPrinterProgress,
+  preferredPrinter?: string,
 ): Promise<string> {
   currentAccessToken = accessToken;
   // QZ suporta apenas uma sessão WebSocket. Evita tentativas concorrentes entre
   // clique manual, retorno de suspensão e consultas periódicas.
   if (connectionInProgress) return connectionInProgress;
-  const attempt = connectKitchenPrinterOnce(accessToken, onProgress);
+  const attempt = connectKitchenPrinterOnce(accessToken, onProgress, preferredPrinter);
   connectionInProgress = attempt;
   try { return await attempt; }
   finally { if (connectionInProgress === attempt) connectionInProgress = null; }
@@ -98,6 +131,7 @@ export async function connectKitchenPrinter(
 async function connectKitchenPrinterOnce(
   accessToken: string,
   onProgress?: KitchenPrinterProgress,
+  preferredPrinter?: string,
 ): Promise<string> {
   currentAccessToken = accessToken;
   onProgress?.("loading");
@@ -133,15 +167,29 @@ async function connectKitchenPrinterOnce(
   let saved = "";
   try { saved = window.localStorage.getItem("lod-qz-printer")?.trim() ?? ""; }
   catch { /* Preferência local opcional. */ }
-  const found = await kitchenConnectionDeadline(
-    saved ? qz.printers.find(saved) : qz.printers.getDefault(),
+  // O nome antigo pode sumir após atualização do Windows/driver/USB.
+  // Enumerar primeiro impede insistir num nome que não existe mais.
+  discoveredPrinters = [];
+  const list = await kitchenConnectionDeadline(
+    qz.printers.find(),
     15000,
-    "QZ Tray abriu, mas não respondeu à consulta de impressoras em 15 segundos. Confira se há uma janela de autorização do QZ Tray atrás do Chrome.",
+    "QZ Tray abriu, mas não respondeu à lista de impressoras. Confira autorização QZ e fila do Windows.",
   );
-  const printer = Array.isArray(found) ? found[0] : found;
-  if (typeof printer !== "string" || !printer.trim()) {
-    throw new Error("QZ Tray conectado, mas não encontrou uma impressora. Confira a impressora padrão no Windows.");
+  discoveredPrinters = (Array.isArray(list) ? list : [list])
+    .filter((name): name is string => typeof name === "string" && Boolean(name.trim()));
+  if (!discoveredPrinters.length) {
+    throw new Error("QZ Tray está conectado, mas o Windows não informou nenhuma impressora. Confira USB, driver e spooler.");
   }
+  let defaultPrinter: string | null = null;
+  if (!saved && !preferredPrinter) {
+    try {
+      const fallback = await kitchenConnectionDeadline(
+        qz.printers.getDefault(), 7000, "Impressora padrão não respondeu.",
+      );
+      defaultPrinter = typeof fallback === "string" ? fallback : null;
+    } catch { /* A lista explícita continua disponível. */ }
+  }
+  const printer = chooseKitchenPrinter(discoveredPrinters, saved, preferredPrinter, defaultPrinter);
   selectedPrinter = printer;
   try { window.localStorage.setItem("lod-qz-printer", printer); }
   catch { /* A sessão de impressão permanece válida. */ }
