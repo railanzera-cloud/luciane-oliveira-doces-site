@@ -33,7 +33,7 @@
 }
 .storefront .menu-entry.is-neutral .collection-heading {
   text-align: left;
-  margin: 0 0 clamp(20px, 2.6vw, 30px);
+  margin: 0 0 clamp(14px, 2.4vw, 24px);
 }
 .storefront .menu-entry.is-neutral .collection-kicker {
   color: #ddb083;
@@ -192,18 +192,18 @@
   border-color: #a58d75;
   box-shadow: none;
 }
-.storefront .menu-entry.is-neutral .collection-choice:first-child {
+.storefront .menu-entry.is-neutral .collection-choice[data-featured] {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: minmax(0, 51%) minmax(0, 49%);
-  min-height: clamp(235px, 35vw, 330px);
+  grid-template-columns: minmax(0, 48%) minmax(0, 52%);
+  min-height: clamp(212px, 28vw, 292px);
   background:
     radial-gradient(ellipse 85% 95% at 77% 64%, rgba(154, 87, 45, .42), transparent 75%),
     linear-gradient(123deg, #4b2819 0%, #301910 49%, #1c100b 100%);
   border-color: #d09b66;
   box-shadow: 0 16px 36px rgba(5, 2, 1, .27), inset 0 1px 0 rgba(255, 225, 180, .2);
 }
-.storefront .menu-entry.is-neutral .collection-choice:first-child .collection-photo {
+.storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-photo {
   grid-column: 2;
   grid-row: 1;
   width: 100%;
@@ -213,30 +213,30 @@
   border-radius: 0;
   background: linear-gradient(145deg, #946348, #462718 78%);
 }
-.storefront .menu-entry.is-neutral .collection-choice:first-child .collection-photo img {
-  inset: auto auto 5% 2%;
-  width: 55%;
-  height: 90%;
-  object-fit: contain;
-  object-position: center bottom;
-  filter: drop-shadow(4px 12px 9px rgba(24,9,3,.3));
+.storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-photo[data-packs] img {
+  inset: 5% auto auto 0;
   z-index: 2;
+  width: 50%;
+  height: 90%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  border-radius: 0;
 }
-.storefront .menu-entry.is-neutral .collection-choice:first-child .collection-photo[data-packs]::after {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  inset: auto 0 8% 42%;
-  height: 84%;
-  background: url("/images/pipocas-trufadas-pacoca-20261101.webp") center bottom / contain no-repeat;
-  filter: drop-shadow(3px 8px 8px rgba(20,9,3,.27));
-  pointer-events: none;
+.storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-photo[data-packs] img.collection-pack-secondary {
+  inset: 5% 0 auto auto;
+  left: 50%;
+  right: auto;
 }
-.storefront .menu-entry.is-neutral .collection-choice:first-child .collection-photo::before {
+/* Ambos os pacotes são imagens reais, cada um com metade da moldura.
+   Não repetir o pseudo-elemento antigo que cortava Paçoca à direita. */
+.storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-photo[data-packs]::after {
+  content: none;
+}
+.storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-photo::before {
   background: linear-gradient(90deg, rgba(54,27,15,.28), transparent 40%),
     radial-gradient(circle at 55% 80%, rgba(221, 156, 104, .22), transparent 60%);
 }
-.storefront .menu-entry.is-neutral .collection-choice:first-child .collection-copy {
+.storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-copy {
   grid-column: 1;
   grid-row: 1;
   justify-content: center;
@@ -244,21 +244,21 @@
   gap: clamp(6px, 1.6vw, 13px);
   background: linear-gradient(90deg, rgba(54,27,18,.25), transparent);
 }
-.storefront .menu-entry.is-neutral .collection-choice:first-child .collection-copy strong {
+.storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-copy strong {
   font: 400 clamp(1.62rem, 5.2vw, 3.5rem)/1.02 Georgia, serif;
   letter-spacing: -.04em;
   color: #ffecd3;
   max-width: 12ch;
 }
-.storefront .menu-entry.is-neutral .collection-choice:first-child .collection-description {
+.storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-description {
   color: #f2d7bf;
   font-size: clamp(.75rem, 2.2vw, 1rem);
 }
-.storefront .menu-entry.is-neutral .collection-choice:first-child .collection-price {
+.storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-price {
   margin: 0 0 2px;
   font-size: clamp(.9rem, 2.75vw, 1.35rem);
 }
-.storefront .menu-entry.is-neutral .collection-choice:first-child .collection-action {
+.storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-action {
   align-self: stretch;
   width: fit-content;
   min-width: min(100%, 220px);
@@ -267,21 +267,23 @@
   border-radius: 13px;
 }
 .storefront .menu-entry.is-neutral .collection-service {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: center;
-  margin-top: clamp(14px, 2.8vw, 22px);
-  padding: clamp(12px, 2vw, 20px);
-  gap: 9px 16px;
-  color: #efddc9;
-  font: 400 .78rem/1.34 system-ui, sans-serif;
-  background: linear-gradient(115deg, rgba(107,60,35,.39), rgba(51,29,21,.74));
-  border: 1px solid rgba(211,152,99,.38);
-  border-radius: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  margin-top: clamp(13px, 2.5vw, 20px);
+  padding: 12px 3px 0;
+  gap: 8px 22px;
+  color: #e6cdb7;
+  font: 400 .78rem/1.4 system-ui, sans-serif;
+  background: none;
+  border: 0;
+  border-top: 1px solid rgba(211,152,99,.29);
+  border-radius: 0;
 }
 .storefront .menu-entry.is-neutral .collection-service p {
+  flex: 1 1 220px;
   align-items: flex-start;
-  gap: 9px;
+  gap: 8px;
 }
 .storefront .menu-entry.is-neutral .collection-service svg {
   color: #ffc486;
@@ -289,83 +291,86 @@
   height: 19px;
 }
 .storefront .menu-entry.is-neutral .collection-service > small {
-  grid-column: 1 / -1;
-  font-size: .73rem;
-  padding-top: 3px;
-  border-top: 1px solid rgba(224, 174, 129, .16);
+  flex-basis: 100%;
+  font-size: .72rem;
+  padding: 0;
+  border: 0;
+  opacity: .88;
 }
 @media (max-width: 440px) {
   .storefront .menu-entry.is-neutral > .page-shell {width:calc(100% - 28px);}
   .storefront .menu-entry.is-neutral .collection-menu { gap: 10px; }
-  .storefront .menu-entry.is-neutral .collection-choice:first-child {
-    min-height: 226px;
-    grid-template-columns: minmax(0, 53%) minmax(0, 47%);
+  .storefront .menu-entry.is-neutral .collection-choice[data-featured] {
+    min-height: 207px;
+    grid-template-columns: minmax(0, 50%) minmax(0, 50%);
   }
-  .storefront .menu-entry.is-neutral .collection-choice:first-child .collection-copy {padding: 14px 10px 14px 13px;}
-  .storefront .menu-entry.is-neutral .collection-choice:first-child .collection-copy strong {
-    font-size: clamp(1.46rem, 6vw, 1.91rem);
+  .storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-copy {padding: 13px 10px 13px 13px;gap: 5px;}
+  .storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-copy strong {
+    font-size: clamp(1.43rem, 5.8vw, 1.87rem);
   }
-  .storefront .menu-entry.is-neutral .collection-choice:first-child .collection-photo img {
-    width: 74%; left: -7%; height: 95%; bottom: 1%;
+  .storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-photo[data-packs] img {
+    top: 5%;
+    bottom: auto;
+    width: 50%;
+    height: 90%;
     object-fit: cover;
-    object-position: center 43%;
+    object-position: center;
   }
-  .storefront .menu-entry.is-neutral .collection-choice:first-child .collection-photo[data-packs]::after {
-    inset: auto -5% 1% 39%;
-    height: 95%;
-    background-size: cover;
-    background-position: center 45%;
+  .storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-photo[data-packs] img.collection-pack-secondary {
+    top: 5%;
+    left: 50%;
   }
-  .storefront .menu-entry.is-neutral .collection-choice:first-child .collection-price {
+  .storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-price {
     font-size: .80rem;
     white-space: nowrap;
     letter-spacing: -.025em;
   }
-  .storefront .menu-entry.is-neutral .collection-choice:first-child .collection-action {
-    font-size: .76rem;
+  .storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-action {
     white-space: nowrap;
     padding-inline: 9px;
   }
-  .storefront .menu-entry.is-neutral .collection-choice:first-child .collection-action {
+  .storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-action {
     width: 100%;
     min-width: 0;
     font-size: .79rem;
     padding-inline: 9px;
   }
-  .storefront .menu-entry.is-neutral .collection-photo {height: clamp(130px, 39vw, 169px);}
-  .storefront .menu-entry.is-neutral .collection-copy {gap: 6px; padding: 12px 10px 11px;}
+  .storefront .menu-entry.is-neutral .collection-photo {height: clamp(134px, 39vw, 169px);}
+  .storefront .menu-entry.is-neutral .collection-copy {gap: 6px; padding: 12px 11px 12px;}
   .storefront .menu-entry.is-neutral .collection-description {font-size: .74rem;}
-  .storefront .menu-entry.is-neutral .collection-action {font-size: .72rem;padding: 9px 8px;}
-  .storefront .menu-entry.is-neutral .collection-copy strong {font-size: clamp(1.12rem, 4.4vw, 1.39rem);}
+  .storefront .menu-entry.is-neutral .collection-action {font-size: .75rem;padding: 10px 9px;}
+  .storefront .menu-entry.is-neutral .collection-copy strong {font-size: clamp(1.15rem, 4.35vw, 1.42rem);}
   .storefront .menu-entry.is-neutral .collection-format {font-size: .61rem;}
-  .storefront .menu-entry.is-neutral .collection-service {padding: 11px;gap: 8px 11px;}
-  .storefront .menu-entry.is-neutral .collection-service p {font-size:.72rem;}
+  .storefront .menu-entry.is-neutral .collection-service {padding: 11px 2px 0;gap: 5px;}
+  .storefront .menu-entry.is-neutral .collection-service p {font-size:.74rem;flex: 1 1 100%;}
 }
 @media (max-width: 350px) {
   .storefront .menu-entry.is-neutral .collection-menu {grid-template-columns: 1fr;}
-  .storefront .menu-entry.is-neutral .collection-choice:first-child {grid-column:1;min-height:225px;}
-  .storefront .menu-entry.is-neutral .collection-choice:not(:first-child) {
+  .storefront .menu-entry.is-neutral .collection-choice[data-featured] {grid-column:1;min-height:225px;}
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-featured]) {
     display:grid;
     grid-template-columns: 38% minmax(0,1fr);
     min-height: 169px;
   }
-  .storefront .menu-entry.is-neutral .collection-choice:not(:first-child) .collection-photo {
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-featured]) .collection-photo {
     height:100%;min-height:169px;
   }
-  .storefront .menu-entry.is-neutral .collection-choice:not(:first-child) .collection-copy {padding:12px;}
-  .storefront .menu-entry.is-neutral .collection-service {grid-template-columns:1fr;}
-  .storefront .menu-entry.is-neutral .collection-service > small {grid-column:1;}
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-featured]) .collection-copy {padding:12px;}
+  .storefront .menu-entry.is-neutral .collection-service {gap: 6px;}
 }
 @media (min-width: 760px) {
-  .storefront .menu-entry.is-neutral .collection-choice:first-child {
-    min-height: 320px;
-    grid-template-columns: 45% 55%;
+  .storefront .menu-entry.is-neutral .collection-choice[data-featured] {
+    min-height: 282px;
+    grid-template-columns: 48% 52%;
   }
   .storefront .menu-entry.is-neutral .collection-photo {height: clamp(205px, 24vw, 280px);}
-  .storefront .menu-entry.is-neutral .collection-choice:not(:first-child) .collection-copy {min-height: 177px;}
-  .storefront .menu-entry.is-neutral .collection-choice:first-child .collection-photo img {
-    width: 51%; height: 89%; left: 8%; bottom: 5%;
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-featured]) .collection-copy {min-height: 177px;}
+  .storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-photo[data-packs] img {
+    width: 50%; height: 96%; top: 2%; bottom: auto;
+    object-fit: contain;
   }
+  .storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-photo[data-packs] img.collection-pack-secondary {left: 50%;}
+
 }
 @media (hover:hover) and (pointer:fine) {
   .storefront .menu-entry.is-neutral .collection-choice:hover:not(:disabled) {
