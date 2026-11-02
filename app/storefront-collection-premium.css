@@ -306,15 +306,15 @@
     font-size: clamp(1.46rem, 6vw, 1.91rem);
   }
   .storefront .menu-entry.is-neutral .collection-choice:first-child .collection-photo img {
-    width: 91%; left: -17%; height: 103%; bottom: -2%;
+    width: 74%; left: -7%; height: 95%; bottom: 1%;
     object-fit: cover;
-    object-position: center 40%;
+    object-position: center 43%;
   }
   .storefront .menu-entry.is-neutral .collection-choice:first-child .collection-photo[data-packs]::after {
-    inset: auto -11% -3% 35%;
-    height: 107%;
+    inset: auto -5% 1% 39%;
+    height: 95%;
     background-size: cover;
-    background-position: center 44%;
+    background-position: center 45%;
   }
   .storefront .menu-entry.is-neutral .collection-choice:first-child .collection-price {
     font-size: .80rem;
