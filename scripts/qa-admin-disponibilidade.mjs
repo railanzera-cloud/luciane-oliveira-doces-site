@@ -99,7 +99,11 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
       assert.match(await page.locator(".admin-stock-math").innerText(),/Em pedidos/);
       assert.match(await page.locator(".admin-stock-math").innerText(),/Total registrado/);
       assert.equal(await page.locator(".admin-stock-variants > button").first().getAttribute("aria-pressed"),"true");
-      if(width===390)await page.screenshot({path:output+"/"+engineName+"-trufadas-390.png"});
+      if(width===390){
+        await page.locator(".admin-stock-editor").scrollIntoViewIfNeeded();
+        await page.screenshot({path:output+"/"+engineName+"-trufadas-390.png"});
+        await page.screenshot({path:output+"/"+engineName+"-trufadas-full-390.png",fullPage:true});
+      }
       const field=page.locator(".admin-stock-free-input");
       await field.fill("2");
       assert.match(await page.locator(".admin-stock-free-input-row").innerText(),/2 livres \+ 1 em pedidos = 3 no estoque/);
@@ -114,6 +118,7 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
       assert.match(await page.locator(".admin-stock-editor-heading").innerText(),/Paçoca.*M/s);
       await page.getByRole("button",{name:"Pausar",exact:true}).click();
       await page.getByRole("button",{name:"Salvar alteração"}).click();
+      await page.getByText(/Pacote M atualizado/).waitFor();
       assert.equal(writes.length,2);
       assert.equal(writes[1].p_enabled,false);
       if(width===390)await page.screenshot({path:output+"/"+engineName+"-trufadas-editado-390.png"});
@@ -123,7 +128,10 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
       assert.equal(await page.locator("#admin-availability-panel-gourmet .admin-compact-item").count(),7);
       await page.getByRole("button",{name:/Tamanhos/}).last().click();
       assert.equal(await page.locator("#admin-availability-panel-gourmet .admin-compact-item").count(),4);
-      if(width===390)await page.screenshot({path:output+"/"+engineName+"-gourmet-390.png"});
+      if(width===390){
+        await page.locator("#admin-availability-panel-gourmet").scrollIntoViewIfNeeded();
+        await page.screenshot({path:output+"/"+engineName+"-gourmet-390.png"});
+      }
 
       await page.locator("#admin-availability-tab-fatias").click();
       await page.getByRole("heading",{name:"Fatias Artesanais"}).waitFor();
