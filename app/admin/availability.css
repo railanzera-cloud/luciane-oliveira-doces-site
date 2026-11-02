@@ -158,3 +158,6 @@
 .admin-page .admin-availability-search input:focus-visible,
 .admin-page .admin-subview-nav button:focus-visible {outline:3px solid #ffe2aa;outline-offset:2px;}
 @media (max-width:440px) {.admin-page .admin-availability-nav {top:68px;}}
+
+.admin-page .admin-category-guard {display:flex;align-items:flex-start;gap:8px;margin:0;padding:11px 13px;border-radius:12px;border:1px solid rgba(238,165,108,.44);background:rgba(130,62,35,.19);color:#ffe2c5;font-size:.75rem;line-height:1.45;}
+.admin-page .admin-category-guard svg {flex:0 0 auto;margin-top:1px;}
