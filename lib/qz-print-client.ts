@@ -13,6 +13,19 @@ import { chooseKitchenPrinter } from "@/lib/qz-printer-selection.mjs";
 let selectedPrinter = "";
 let currentAccessToken = "";
 let connectionInProgress: Promise<string> | null = null;
+
+// Identidade exclusiva desta aba: claim_print_job exige p_worker_id (8 a 120 chars).
+// Não usar localStorage: abas diferentes devem identificar workers diferentes.
+// O claim_token gerado pelo servidor continua sendo a autorização de conclusão.
+let kitchenWorkerId = "";
+function getKitchenWorkerId(): string {
+  if (!kitchenWorkerId) {
+    const random = globalThis.crypto?.randomUUID?.();
+    if (!random) throw new Error("Este navegador não conseguiu identificar a estação de impressão de forma segura.");
+    kitchenWorkerId = `lod-kitchen-${random}`;
+  }
+  return kitchenWorkerId;
+}
 let discoveredPrinters: string[] = [];
 
 /** Impressoras enumeradas pelo QZ Tray local na última tentativa; não consulta o Supabase. */
@@ -319,7 +332,7 @@ async function printClaim(claim: PrintClaim): Promise<void> {
 export async function drainPrintQueue(client: SupabaseClient, maxJobs = 10): Promise<number> {
   let printed = 0;
   for (let index = 0; index < maxJobs; index += 1) {
-    const claim = await claimPrintJob(client, workerId);
+    const claim = await claimPrintJob(client, getKitchenWorkerId());
     if (!claim) break;
     try {
       await printClaim(claim);
