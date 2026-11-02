@@ -68,6 +68,7 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
       await page.getByRole("button",{name:/Ninho, pacote M,.*18,90/}).click();
       await page.locator("#crocantes-quantidade").waitFor();
       await page.waitForTimeout(470);
+      if(width===390||width===320) await page.locator("#crocantes-tamanhos").screenshot({path:output+"/"+engineName+"-"+width+"-selecionado.png"});
       assert.equal(await page.locator('.limited-cup-size-option[aria-pressed="true"]').count(),1);
       assert.match(await page.locator(".limited-cup-buy-estimate").innerText(),/18,90/);
       assert.match(await page.locator(".limited-cup-buy-cta").innerText(),/Adicionar 1 pacote ao pedido/);
