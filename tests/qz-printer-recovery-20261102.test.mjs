@@ -35,6 +35,9 @@ test("QZ: recuperação não dispara impressão no diagnóstico nem altera pagam
   assert.match(qz,/discoveredPrinters = \[\]/);
   assert.match(qz,/chooseKitchenPrinter\(discoveredPrinters, saved, preferredPrinter, defaultPrinter\)/);
   assert.match(qz,/getDiscoveredKitchenPrinters/);
+  assert.match(qz,/if \(!qz\.websocket\.isActive\(\)\) return false/);
+  assert.match(qz,/const installed = await kitchenConnectionDeadline\(qz\.printers\.find\(\), 7000/);
+  assert.match(qz,/names\.some\(name => name\.trim\(\)/);
   assert.match(panel,/detectedPrinters/);
   assert.match(panel,/printerChoice/);
   assert.match(panel,/Usar esta impressora e verificar pendências/);
