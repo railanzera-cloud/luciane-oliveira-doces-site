@@ -2042,7 +2042,7 @@ export default function Home() {
               <nav className="v7-navigation v7-navigation-edition" aria-label="Navegação das Pipocas Trufadas">
                 <button type="button" onClick={returnToCategories}><ArrowLeft size={15} aria-hidden="true" /> Voltar às categorias</button>
               </nav>
-              <div className="limited-cup-flow-progress" role="group" aria-label="Etapas para montar seu pacote">
+              <div className="limited-cup-flow-progress" role="group" aria-label="Pacotes P, M e G — etapas para montar seu pedido">
                 <span className="limited-cup-flow-step" data-state={cupFlavorPreview ? "complete" : "current"} aria-current={!cupFlavorPreview ? "step" : undefined}><b>01</b> Sabor</span>
                 <span className="limited-cup-flow-step" data-state={!cupFlavorPreview ? "pending" : cupSizeId ? "complete" : "current"} aria-current={cupFlavorPreview && !cupSizeId ? "step" : undefined}><b>02</b> Tamanho</span>
                 <span className="limited-cup-flow-step" data-state={cupSizeId ? "current" : "pending"} aria-current={cupSizeId ? "step" : undefined}><b>03</b> Quantidade</span>
