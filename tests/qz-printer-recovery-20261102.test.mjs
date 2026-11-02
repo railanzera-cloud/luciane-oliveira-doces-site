@@ -27,6 +27,8 @@ test("QZ: primeira conexão conserva padrão do Windows e não imprime sem escol
   assert.equal(chooseKitchenPrinter(["POS-58 USB","PDF"],"",undefined,"POS-58 USB"),"POS-58 USB");
   assert.equal(chooseKitchenPrinter(["Impressora térmica padrão"],"",undefined,"Impressora térmica padrão"),"Impressora térmica padrão");
   assert.throws(()=>chooseKitchenPrinter(["PDF","Impressora fiscal"],"",undefined,null),/Escolha a POS-58/);
+  assert.throws(()=>chooseKitchenPrinter(["Microsoft Print to PDF"],"",undefined,"Microsoft Print to PDF"),/Escolha a POS-58/);
+  assert.throws(()=>chooseKitchenPrinter(["Microsoft XPS Document Writer"],"",undefined,null),/Escolha a POS-58/);
 });
 test("QZ: recuperação não dispara impressão no diagnóstico nem altera pagamento", () => {
   assert.match(qz,/qz\.printers\.find\(\)/);
