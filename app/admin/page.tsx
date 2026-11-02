@@ -30,6 +30,7 @@ import { AdminOrdersPanel } from "@/components/admin-orders-panel";
 import { AdminResultsPanel } from "@/components/admin-results-panel";
 import { AdminCrmPanel } from "@/components/admin-crm-panel";
 import { AdminTrufadasStock } from "@/components/admin-trufadas-stock";
+import "./availability.css";
 import { AdminStrawberryPreorder } from "@/components/admin-strawberry-preorder";
 import {
   loadRemoteAvailability,
@@ -75,13 +76,13 @@ function AvailabilityControl({
   preorderActive?: boolean;
 }) {
   return (
-    <article className={`admin-item status-${status}`} aria-busy={pending}>
+    <article className={`admin-item admin-compact-item status-${status}`} aria-busy={pending}>
       <div className="admin-item-heading">
         <div>
           <strong>{item.name}</strong>
           <span>{preorderActive ? "Esgotado para pronta-entrega · pré-reserva ativa" : STATUS_LABELS[status]}</span>
         </div>
-        {pending ? <LoaderCircle className="admin-spinner" size={18} aria-label="Salvando" /> : status === "available" ? <Check size={18} aria-hidden="true" /> : null}
+        {pending ? <LoaderCircle className="admin-spinner" size={18} aria-label="Salvando" /> : status === "available" ? <Check size={16} aria-hidden="true" /> : null}
       </div>
       <div className="admin-status-options" aria-label={`Disponibilidade de ${item.name}`}>
         {STATUS_OPTIONS.map((option) => (
@@ -116,11 +117,15 @@ export default function AdminPage() {
   const [loadError, setLoadError] = useState("");
   const [pendingKeys, setPendingKeys] = useState<string[]>([]);
   const [notice, setNotice] = useState("");
+  const [availabilitySection, setAvailabilitySection] = useState<"trufadas" | "gourmet" | "fatias">("trufadas");
 
   const categoryItems = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "category");
   const popcornSizes = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "popcorn_size");
   const popcornFlavors = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "popcorn_flavor");
   const slices = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "slice");
+  const gourmetItems = [...popcornSizes, ...popcornFlavors];
+  const countReady = (items: MenuAvailabilityItem[]) => items.filter(item => availability.statuses[item.itemKey] === "available").length;
+  const controlsUnavailable = loadingMenu || availability.source !== "supabase" || Boolean(loadError);
 
   useEffect(() => {
     if (!supabase) return;
@@ -317,7 +322,12 @@ export default function AdminPage() {
           </div>
         )}
 
-        <section className="admin-store-card" aria-labelledby="orders-status-title">
+        <div className="admin-availability-welcome">
+          <p>CONTROLE DO CARDÁPIO</p>
+          <h1>Disponibilidade, sem complicação.</h1>
+          <span>Gerencie o que pode ser pedido. Estoque comprometido e pagamentos continuam separados.</span>
+        </div>
+        <section className="admin-store-card admin-orders-compact" aria-labelledby="orders-status-title">
           <div className="admin-section-heading">
             <span className="admin-section-icon"><Store size={20} /></span>
             <div><small>PEDIDOS</small><h1 id="orders-status-title">{availability.ordersOpen ? "Disponíveis" : "Fechados"}</h1></div>
@@ -330,34 +340,98 @@ export default function AdminPage() {
           <p>{availability.ordersOpen ? "O cardápio aceita novas finalizações." : "O cardápio continua visível, mas não finaliza novos pedidos."}</p>
         </section>
 
-        <section className="admin-category-section" aria-labelledby="admin-popcorn-title">
-          <div className="admin-category-heading"><div><p className="eyebrow">Categoria</p><h2 id="admin-popcorn-title">Pipocas Gourmet</h2></div></div>
-          {categoryItems.filter((item) => item.itemKey === CATEGORY_ITEM_KEYS.pipocas).map((item) => (
-            <AvailabilityControl item={item} status={categoryStatus(item.itemKey)} pending={pendingKeys.includes(item.itemKey)} onChange={(status) => changeItemStatus(item, status)} key={item.itemKey} />
-          ))}
-          <h3 className="admin-subheading">Tamanhos</h3>
-          <div className="admin-item-list">
-            {popcornSizes.map((item) => <AvailabilityControl item={item} status={categoryStatus(item.itemKey)} pending={pendingKeys.includes(item.itemKey)} onChange={(status) => changeItemStatus(item, status)} key={item.itemKey} />)}
+        <section className="admin-availability-scope" aria-label="Controle geral das categorias">
+          <div className="admin-scope-heading">
+            <h2>Categorias no cardápio</h2>
+            <p>A seção Pipocas é compartilhada por Gourmet e Trufadas. Pausá-la afeta as duas.</p>
           </div>
-          <h3 className="admin-subheading">Sabores</h3>
-          <div className="admin-item-list">
-            {popcornFlavors.map((item) => <AvailabilityControl item={item} status={categoryStatus(item.itemKey)} pending={pendingKeys.includes(item.itemKey)} onChange={(status) => changeItemStatus(item, status)} key={item.itemKey} />)}
+          <div className="admin-compact-grid admin-scope-grid">
+            {categoryItems.map(item => (
+              <AvailabilityControl
+                key={item.itemKey}
+                item={item.itemKey === CATEGORY_ITEM_KEYS.pipocas ? { ...item, name: "Pipocas · Gourmet e Trufadas" } : item}
+                status={categoryStatus(item.itemKey)}
+                pending={pendingKeys.includes(item.itemKey) || controlsUnavailable}
+                onChange={status => changeItemStatus(item, status)}
+              />
+            ))}
           </div>
         </section>
 
-        <AdminTrufadasStock onChanged={reloadMenu} />
+        <div className="admin-availability-nav" role="tablist" aria-label="Escolha a categoria para configurar">
+          <button type="button" role="tab" id="admin-availability-tab-trufadas"
+            aria-selected={availabilitySection === "trufadas"} aria-controls="admin-availability-panel-trufadas"
+            className={availabilitySection === "trufadas" ? "is-active" : ""}
+            onClick={() => setAvailabilitySection("trufadas")}>
+            <strong>Trufadas</strong><small>3 sabores · P/M/G</small>
+          </button>
+          <button type="button" role="tab" id="admin-availability-tab-gourmet"
+            aria-selected={availabilitySection === "gourmet"} aria-controls="admin-availability-panel-gourmet"
+            className={availabilitySection === "gourmet" ? "is-active" : ""}
+            onClick={() => setAvailabilitySection("gourmet")}>
+            <strong>Gourmet</strong><small>{countReady(gourmetItems)}/{gourmetItems.length} liberados</small>
+          </button>
+          <button type="button" role="tab" id="admin-availability-tab-fatias"
+            aria-selected={availabilitySection === "fatias"} aria-controls="admin-availability-panel-fatias"
+            className={availabilitySection === "fatias" ? "is-active" : ""}
+            onClick={() => setAvailabilitySection("fatias")}>
+            <strong>Fatias</strong><small>{countReady(slices)}/{slices.length} liberadas</small>
+          </button>
+        </div>
 
-        <section className="admin-category-section" aria-labelledby="admin-slices-title">
-          <div className="admin-category-heading"><div><p className="eyebrow">Categoria</p><h2 id="admin-slices-title">Fatias Artesanais</h2></div></div>
-          {categoryItems.filter((item) => item.itemKey === CATEGORY_ITEM_KEYS.fatias).map((item) => (
-            <AvailabilityControl item={item} status={categoryStatus(item.itemKey)} pending={pendingKeys.includes(item.itemKey)} onChange={(status) => changeItemStatus(item, status)} key={item.itemKey} />
-          ))}
-          <h3 className="admin-subheading">Fatias</h3>
-          {supabase && <AdminStrawberryPreorder client={supabase} onChanged={reloadMenu} />}
-          <div className="admin-item-list">
-            {slices.map((item) => <AvailabilityControl item={item} status={categoryStatus(item.itemKey)} preorderActive={item.itemKey==="slice_chocolate_morango" && Boolean(availability.slicePreorder?.active)} pending={pendingKeys.includes(item.itemKey)} onChange={(status) => changeItemStatus(item, status)} key={item.itemKey} />)}
+        {availabilitySection === "trufadas" && (
+          <div role="tabpanel" id="admin-availability-panel-trufadas" aria-labelledby="admin-availability-tab-trufadas">
+            <AdminTrufadasStock
+              onChanged={reloadMenu}
+              ordersOpen={availability.ordersOpen}
+              pipocasStatus={categoryStatus(CATEGORY_ITEM_KEYS.pipocas)}
+            />
           </div>
-        </section>
+        )}
+
+        {availabilitySection === "gourmet" && (
+          <section className="admin-category-section admin-category-compact" role="tabpanel" id="admin-availability-panel-gourmet"
+            aria-labelledby="admin-availability-tab-gourmet">
+            <div className="admin-category-heading">
+              <div><p className="eyebrow">Pote recheado</p><h2 id="admin-popcorn-title">Pipocas Gourmet</h2></div>
+            </div>
+            <p className="admin-category-explanation">Ative ou pause cada tamanho e sabor. As alterações são salvas ao tocar numa opção.</p>
+            <div className="admin-group-title"><h3>Tamanhos</h3><span>{countReady(popcornSizes)}/{popcornSizes.length} liberados</span></div>
+            <div className="admin-compact-grid">
+              {popcornSizes.map(item => (
+                <AvailabilityControl item={item} status={categoryStatus(item.itemKey)}
+                  pending={pendingKeys.includes(item.itemKey) || controlsUnavailable}
+                  onChange={status => changeItemStatus(item, status)} key={item.itemKey} />
+              ))}
+            </div>
+            <div className="admin-group-title"><h3>Sabores</h3><span>{countReady(popcornFlavors)}/{popcornFlavors.length} liberados</span></div>
+            <div className="admin-compact-grid">
+              {popcornFlavors.map(item => (
+                <AvailabilityControl item={item} status={categoryStatus(item.itemKey)}
+                  pending={pendingKeys.includes(item.itemKey) || controlsUnavailable}
+                  onChange={status => changeItemStatus(item, status)} key={item.itemKey} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {availabilitySection === "fatias" && (
+          <section className="admin-category-section admin-category-compact" role="tabpanel" id="admin-availability-panel-fatias"
+            aria-labelledby="admin-availability-tab-fatias">
+            <div className="admin-category-heading"><div><p className="eyebrow">Sabores individuais</p><h2 id="admin-slices-title">Fatias Artesanais</h2></div></div>
+            <p className="admin-category-explanation">Escolha o que está disponível hoje. A pré-reserva de Chocolate com Morango continua separada da pronta-entrega.</p>
+            {supabase && <AdminStrawberryPreorder client={supabase} onChanged={reloadMenu} />}
+            <div className="admin-group-title"><h3>Fatias de pronta-entrega</h3><span>{countReady(slices)}/{slices.length} liberadas</span></div>
+            <div className="admin-compact-grid">
+              {slices.map(item => (
+                <AvailabilityControl item={item} status={categoryStatus(item.itemKey)}
+                  preorderActive={item.itemKey === "slice_chocolate_morango" && Boolean(availability.slicePreorder?.active)}
+                  pending={pendingKeys.includes(item.itemKey) || controlsUnavailable}
+                  onChange={status => changeItemStatus(item, status)} key={item.itemKey} />
+              ))}
+            </div>
+          </section>
+        )}
         </TabsContent>
       </Tabs>
     </main>
