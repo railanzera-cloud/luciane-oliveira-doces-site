@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 const p=readFileSync("app/page.tsx","utf8");
 const css=readFileSync("app/storefront-vitrine-editorial-experiment.css","utf8");
 test("Jornada Trufadas segue sabor, tamanho, quantidade e pedido",()=>{
-  const i=["01 · ESCOLHA SEU SABOR","02 · ESCOLHA O TAMANHO","03 · QUANTOS PACOTES?"].map(x=>p.indexOf(x));
+  const i=["01 · ESCOLHA SEU SABOR","02 · ESCOLHA O TAMANHO","03 · QUANTIDADE"].map(x=>p.indexOf(x));
   assert.ok(i.every(x=>x>0));assert.ok(i[0]<i[1]&&i[1]<i[2]);
   assert.match(p,/id="crocantes-sabores"/);
   assert.match(p,/id="crocantes-tamanhos"/);
