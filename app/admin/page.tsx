@@ -66,12 +66,14 @@ function AvailabilityControl({
   item,
   status,
   pending,
+  disabled = false,
   onChange,
   preorderActive = false,
 }: {
   item: MenuAvailabilityItem;
   status: AvailabilityStatus;
   pending: boolean;
+  disabled?: boolean;
   onChange: (status: AvailabilityStatus) => void;
   preorderActive?: boolean;
 }) {
@@ -90,7 +92,7 @@ function AvailabilityControl({
             type="button"
             className={status === option.value ? "is-selected" : ""}
             aria-pressed={status === option.value}
-            disabled={pending || (preorderActive && option.value==="available")}
+            disabled={pending || disabled || (preorderActive && option.value==="available")}
             title={preorderActive && option.value==="available" ? "Encerre primeiro o lote de pré-reserva; ainda não é estoque pronto." : undefined}
             onClick={() => onChange(option.value)}
             key={option.value}
@@ -204,7 +206,7 @@ export default function AdminPage() {
   }
 
   async function changeOrdersOpen(nextValue: boolean) {
-    if (!session || pendingKeys.includes("orders_open") || availability.ordersOpen === nextValue) return;
+    if (!session || controlsUnavailable || pendingKeys.includes("orders_open") || availability.ordersOpen === nextValue) return;
     const previousValue = availability.ordersOpen;
     setPendingKeys((current) => [...current, "orders_open"]);
     setLoadError("");
@@ -221,7 +223,7 @@ export default function AdminPage() {
   }
 
   async function changeItemStatus(item: MenuAvailabilityItem, nextStatus: AvailabilityStatus) {
-    if (!session || pendingKeys.includes(item.itemKey)) return;
+    if (!session || controlsUnavailable || pendingKeys.includes(item.itemKey)) return;
     const previousStatus = availability.statuses[item.itemKey] ?? "available";
     if (previousStatus === nextStatus) return;
 
@@ -334,8 +336,8 @@ export default function AdminPage() {
             {loadingMenu && <LoaderCircle className="admin-spinner" size={19} aria-label="Atualizando" />}
           </div>
           <div className="admin-store-options" aria-label="Estado geral dos pedidos">
-            <button type="button" className={availability.ordersOpen ? "is-selected is-open" : ""} aria-pressed={availability.ordersOpen} disabled={pendingKeys.includes("orders_open")} onClick={() => changeOrdersOpen(true)}>Disponíveis</button>
-            <button type="button" className={!availability.ordersOpen ? "is-selected is-closed" : ""} aria-pressed={!availability.ordersOpen} disabled={pendingKeys.includes("orders_open")} onClick={() => changeOrdersOpen(false)}>Fechados</button>
+            <button type="button" className={availability.ordersOpen ? "is-selected is-open" : ""} aria-pressed={availability.ordersOpen} disabled={controlsUnavailable || pendingKeys.includes("orders_open")} onClick={() => changeOrdersOpen(true)}>Disponíveis</button>
+            <button type="button" className={!availability.ordersOpen ? "is-selected is-closed" : ""} aria-pressed={!availability.ordersOpen} disabled={controlsUnavailable || pendingKeys.includes("orders_open")} onClick={() => changeOrdersOpen(false)}>Fechados</button>
           </div>
           <p>{availability.ordersOpen ? "O cardápio aceita novas finalizações." : "O cardápio continua visível, mas não finaliza novos pedidos."}</p>
         </section>
@@ -351,7 +353,7 @@ export default function AdminPage() {
                 key={item.itemKey}
                 item={item.itemKey === CATEGORY_ITEM_KEYS.pipocas ? { ...item, name: "Pipocas · Gourmet e Trufadas" } : item}
                 status={categoryStatus(item.itemKey)}
-                pending={pendingKeys.includes(item.itemKey) || controlsUnavailable}
+                pending={pendingKeys.includes(item.itemKey)} disabled={controlsUnavailable}
                 onChange={status => changeItemStatus(item, status)}
               />
             ))}
@@ -400,7 +402,7 @@ export default function AdminPage() {
             <div className="admin-compact-grid">
               {popcornSizes.map(item => (
                 <AvailabilityControl item={item} status={categoryStatus(item.itemKey)}
-                  pending={pendingKeys.includes(item.itemKey) || controlsUnavailable}
+                  pending={pendingKeys.includes(item.itemKey)} disabled={controlsUnavailable}
                   onChange={status => changeItemStatus(item, status)} key={item.itemKey} />
               ))}
             </div>
@@ -408,7 +410,7 @@ export default function AdminPage() {
             <div className="admin-compact-grid">
               {popcornFlavors.map(item => (
                 <AvailabilityControl item={item} status={categoryStatus(item.itemKey)}
-                  pending={pendingKeys.includes(item.itemKey) || controlsUnavailable}
+                  pending={pendingKeys.includes(item.itemKey)} disabled={controlsUnavailable}
                   onChange={status => changeItemStatus(item, status)} key={item.itemKey} />
               ))}
             </div>
@@ -426,7 +428,7 @@ export default function AdminPage() {
               {slices.map(item => (
                 <AvailabilityControl item={item} status={categoryStatus(item.itemKey)}
                   preorderActive={item.itemKey === "slice_chocolate_morango" && Boolean(availability.slicePreorder?.active)}
-                  pending={pendingKeys.includes(item.itemKey) || controlsUnavailable}
+                  pending={pendingKeys.includes(item.itemKey)} disabled={controlsUnavailable}
                   onChange={status => changeItemStatus(item, status)} key={item.itemKey} />
               ))}
             </div>
