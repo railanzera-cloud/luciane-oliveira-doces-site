@@ -182,6 +182,8 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const [printerName, setPrinterName] = useState("");
   const [printerConnectStage, setPrinterConnectStage] = useState("");
   const [printerConnectError, setPrinterConnectError] = useState("");
+  const [detectedPrinters, setDetectedPrinters] = useState<string[]>([]);
+  const [printerChoice, setPrinterChoice] = useState("");
   const [printing, setPrinting] = useState(false);
   const [connectingPrinter, setConnectingPrinter] = useState(false);
   const [printerOnline, setPrinterOnline] = useState(false);
@@ -534,7 +536,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     return () => window.clearInterval(interval);
   }, [refreshPrintHealth]);
 
-  async function enablePrinter(background = false) {
+  async function enablePrinter(background = false, preferredPrinter?: string) {
     if (connectingRef.current) return;
     // A fila e a sessão QZ são processos independentes: a conexão não fica
     // visualmente "girando" enquanto consulta ou imprime outros trabalhos.
@@ -548,12 +550,14 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       setPrinterReconnectInfo("Reconectando QZ Tray em segundo plano…");
     }
     try {
-      const { connectKitchenPrinter } = await import("@/lib/qz-print-client");
+      const { connectKitchenPrinter, getDiscoveredKitchenPrinters } = await import("@/lib/qz-print-client");
       const printer = await connectKitchenPrinter(session.access_token, background ? undefined : (stage) => {
         setPrinterConnectStage(stage === "loading" ? "Carregando módulo da impressora…"
           : stage === "websocket" ? "Conectando ao QZ Tray no notebook (até 20 segundos)…"
           : "Consultando a impressora do Windows (até 15 segundos)…");
-      });
+      }, preferredPrinter);
+      setDetectedPrinters(getDiscoveredKitchenPrinters());
+      setPrinterChoice(printer);
       setPrinterName(printer);
       setPrinterReady(true);
       setPrinterOnline(true);
@@ -565,6 +569,13 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     } catch (cause) {
       const explanation = cause instanceof Error ? cause.message : "Não foi possível conectar ao QZ Tray.";
       setPrinterOnline(false);
+      setPrinterReady(false);
+      try {
+        const { getDiscoveredKitchenPrinters } = await import("@/lib/qz-print-client");
+        const found = getDiscoveredKitchenPrinters();
+        setDetectedPrinters(found);
+        setPrinterChoice(previous => found.includes(previous) ? previous : found.find(name => /(?:pos[ -]?58|58[ -]?mm|thermal|xp[ -]?58)/i.test(name)) ?? "");
+      } catch { /* Se QZ nem carregou, nenhum dispositivo foi listado. */ }
       if (background) {
         setPrinterReconnectInfo("Impressora desconectada; o painel tentará novamente em até 1 minuto.");
       } else {
@@ -744,10 +755,26 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       {(printerConnectStage || printerConnectError) && (
         <div className="admin-kitchen-connection-state" role="status" aria-live="polite">
           {printerConnectStage && <p><LoaderCircle className="admin-spinner" size={16} /> {printerConnectStage}</p>}
-          {printerConnectError && <p className="admin-kitchen-error">
+          {printerConnectError && <div className="admin-kitchen-error">
             <strong>A conexão não foi concluída.</strong> {printerConnectError}
-            <span>Confira se o QZ Tray está aberto perto do relógio do Windows. Não é necessário desconectar a impressora USB nem confirmar pagamentos.</span>
-          </p>}
+            <p>Use o Chrome no notebook Windows, com o QZ Tray aberto. Confira se o Chrome solicitou permissão para conectar a aplicativos locais; permita somente se reconhecer este site.</p>
+            <p>Se o Windows não listar a POS-58, confira primeiro o cabo, a fila de impressão e uma página de teste do próprio Windows. Não confirme pagamentos nem altere pedidos por causa desta falha.</p>
+          </div>}
+          {printerConnectError && detectedPrinters.length > 0 && (
+            <div className="admin-kitchen-printer-recovery">
+              <label htmlFor="kitchen-printer-choice">Impressoras encontradas neste notebook</label>
+              <select id="kitchen-printer-choice" value={printerChoice} disabled={connectingPrinter}
+                onChange={event => setPrinterChoice(event.target.value)}>
+                <option value="">Escolher impressora</option>
+                {detectedPrinters.map(name => <option value={name} key={name}>{name}</option>)}
+              </select>
+              <Button type="button" variant="outline" disabled={!printerChoice || connectingPrinter}
+                onClick={() => void enablePrinter(false, printerChoice)}>
+                <Printer size={16} /> Usar esta impressora e verificar pendências
+              </Button>
+              <small>A escolha fica salva neste notebook. Se houver comandas pendentes elegíveis, a conexão poderá enviá-las automaticamente uma vez; confira o papel antes de tentar reimprimir.</small>
+            </div>
+          )}
         </div>
       )}
       <div className="admin-kitchen-settings">
@@ -769,6 +796,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
           <span><span className={kitchenMode?.enabled ? "admin-status-dot is-online" : "admin-status-dot"} />
             Automático: <strong>{kitchenMode?.enabled ? "Ligado" : "Desligado"}</strong></span>
           <span><Printer size={15} /> Impressora neste dispositivo: <strong>{printerOnline ? printerName : printerReady ? "Desconectada — tentando recuperar" : "Não conectada"}</strong></span>
+          <span>Última tentativa neste aparelho: <strong>{connectingPrinter ? "Conectando QZ…" : printerConnectError ? "Falhou — conferir diagnóstico acima" : printerOnline ? "Conexão ativa" : "Aguardando conexão"}</strong></span>
           <span><Check size={15} /> Fila: <strong>{printing ? "Processando em segundo plano" : "Aguardando novos pedidos"}</strong></span>
           <span><BellRing size={15} /> Aviso normal: <strong>2 toques e silêncio</strong></span>
           {lastPrintInfo && <span><Check size={15} /> {lastPrintInfo}</span>}
