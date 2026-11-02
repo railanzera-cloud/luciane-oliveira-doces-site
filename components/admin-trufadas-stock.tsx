@@ -57,10 +57,12 @@ export function AdminTrufadasStock({
   onChanged,
   ordersOpen = false,
   pipocasStatus = "available",
+  onDirtyChange,
 }: {
   onChanged?: () => Promise<void>;
   ordersOpen?: boolean;
   pipocasStatus?: AvailabilityStatus;
+  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const [rows, setRows] = useState<InventoryRow[]>([]);
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
@@ -153,6 +155,7 @@ export function AdminTrufadasStock({
   const selectedRow = rows.find(row => row.item_key === selectedVariant.itemKey);
   const draft = drafts[selectedVariant.itemKey];
   const isEditing = Boolean(selectedRow && draft && (draft.free !== String(freePackages(selectedRow)) || draft.enabled !== selectedRow.enabled));
+  useEffect(() => { onDirtyChange?.(isEditing); }, [isEditing, onDirtyChange]);
   const chooseVariant = (nextFlavor: string, nextSize: string) => {
     if (pendingKey || loading) return;
     if (isEditing && (nextFlavor !== flavorId || nextSize !== sizeId)) {
@@ -186,7 +189,13 @@ export function AdminTrufadasStock({
           <h2 id="admin-trufadas-stock-title">Pipocas Trufadas</h2>
           <p>Escolha o sabor, o tamanho e informe só os pacotes que ainda não estão em pedidos.</p>
         </div>
-        <Button type="button" variant="outline" size="sm" onClick={() => void refresh()} disabled={loading || Boolean(pendingKey)}>
+        <Button type="button" variant="outline" size="sm" onClick={() => {
+          if (isEditing) {
+            setError("Salve ou descarte a alteração deste pacote antes de atualizar.");
+            return;
+          }
+          void refresh();
+        }} disabled={loading || Boolean(pendingKey)}>
           {loading ? <LoaderCircle className="admin-spinner" size={15} /> : <RefreshCw size={15} />}
           Atualizar
         </Button>
