@@ -626,11 +626,16 @@ test('slice choices reach the authoritative quote without fees and reject retire
 
 test('final screen keeps WhatsApp predominant and tracking secondary for each manual payment', async()=>{
  const {WhatsAppOrderResultView}=await vite.ssrLoadModule('/components/whatsapp-order-result.tsx');
- for(const [method,label] of [['manual_pix','Pix manual'],['cash','Dinheiro no recebimento'],['card_on_delivery','Cartão no recebimento']]) {
-  const html=renderToStaticMarkup(React.createElement(WhatsAppOrderResultView,{order:{customerName:'Maria Oliveira',result:{order:{order_number:1004,total:48},payment:{method}},trackingUrl:'/pedido?token=abc',whatsappUrl:'https://tintim.link/fixture'}}));
-  assert.match(html,/Olá, Maria/);assert.match(html,/1004/);assert.ok(html.includes(label));
-  assert.match(html,/whatsapp-final-primary/);assert.match(html,/Ao abrir o WhatsApp, toque em enviar/);
-  assert.match(html,/Ver pedido/);assert.equal((html.match(/<a /g)||[]).length,2);
+ for(const [method,card_mode,label,phrase] of [
+  ['manual_pix',null,'Pix','chave Pix e o valor'],
+  ['cash',null,'Dinheiro','em dinheiro, no recebimento'],
+  ['card_on_delivery','credit_single','Crédito à vista','cartão de crédito, no recebimento'],
+  ['card_on_delivery','debit','Débito','cartão de débito, no recebimento'],
+ ]) {
+  const html=renderToStaticMarkup(React.createElement(WhatsAppOrderResultView,{order:{customerName:'Maria Oliveira',result:{order:{order_number:1004,total:48,card_mode},payment:{method}},trackingUrl:'/pedido?token=abc',whatsappUrl:'https://tintim.link/fixture'}}));
+  assert.match(html,/Pedido #1004 registrado/);assert.ok(html.includes(label));assert.ok(html.includes(phrase));
+  assert.match(html,/whatsapp-final-primary/);assert.match(html,/Ao abrir o WhatsApp, toque em Enviar/);
+  assert.match(html,/Consultar detalhes do pedido/);assert.equal((html.match(/<a /g)||[]).length,2);
   assert.doesNotMatch(html,/Copiar chave|Fazer novo pedido|03611974200/);
  }
 });
@@ -738,7 +743,7 @@ test('checkout copy hides technical identity and shortens credit without changin
 
 test('registered checkout screen keeps real order number and simplified credit label', async () => {
  const {WhatsAppOrderResultView}=await vite.ssrLoadModule('/components/whatsapp-order-result.tsx');
- for(const [card_mode,label] of [['credit_single','Crédito à vista, no recebimento'],['debit','Débito no recebimento']]) {
+ for(const [card_mode,label] of [['credit_single','Crédito à vista'],['debit','Débito']]) {
   const html=renderToStaticMarkup(React.createElement(WhatsAppOrderResultView,{order:{customerName:'Maria',result:{order:{order_number:1047,total:34.04,card_mode},payment:{method:'card_on_delivery'}},trackingUrl:'/pedido?token=abc',whatsappUrl:'https://tintim.link/fixture'}}));
   assert.ok(html.includes(label)); assert.match(html,/#1047/); assert.match(html,/34,04/); assert.doesNotMatch(html,/\(1x\)/);
  }
@@ -1341,7 +1346,7 @@ test('all three secondary contact paths keep their original messages using the s
   }
   find(tree);assert.ok(messageExpression);
   const expression=messageExpression.getText(tree);
-  const message=new Function('order','status',`return (${expression})`)({order_number:1025},{order_number:1025});
+  const message=new Function('order','status','needsHandoff',`return (${expression})`)({order_number:1025},{order_number:1025},false);
   const html=renderToStaticMarkup(React.createElement(contact.TintimContactLink,{message},'Falar com a loja'));
   const url=new URL(html.match(/href="([^"]+)"/)[1].replaceAll('&amp;','&'));
   assert.equal(url.searchParams.get('text'),'Olá! Já fiz o pedido #1025 pelo site e preciso de ajuda.');
