@@ -6,6 +6,7 @@ import {
   AlertCircle,
   BarChart3,
   Check,
+  ChevronDown,
   LoaderCircle,
   LockKeyhole,
   LogOut,
@@ -356,24 +357,6 @@ export default function AdminPage() {
           <p>{availability.ordersOpen ? "O cardápio aceita novas finalizações." : "O cardápio continua visível, mas não finaliza novos pedidos."}</p>
         </section>
 
-        <section className="admin-availability-scope" aria-label="Controle geral das categorias">
-          <div className="admin-scope-heading">
-            <h2>Categorias no cardápio</h2>
-            <p>A seção Pipocas é compartilhada por Gourmet e Trufadas. Pausá-la afeta as duas.</p>
-          </div>
-          <div className="admin-compact-grid admin-scope-grid">
-            {categoryItems.map(item => (
-              <AvailabilityControl
-                key={item.itemKey}
-                item={item.itemKey === CATEGORY_ITEM_KEYS.pipocas ? { ...item, name: "Pipocas · Gourmet e Trufadas" } : item}
-                status={categoryStatus(item.itemKey)}
-                pending={pendingKeys.includes(item.itemKey)} disabled={controlsUnavailable}
-                onChange={status => changeItemStatus(item, status)}
-              />
-            ))}
-          </div>
-        </section>
-
         <div className="admin-availability-nav" role="tablist" aria-label="Escolha a categoria para configurar">
           <button type="button" role="tab" id="admin-availability-tab-trufadas"
             aria-selected={availabilitySection === "trufadas"} aria-controls="admin-availability-panel-trufadas"
@@ -394,6 +377,28 @@ export default function AdminPage() {
             <strong>Fatias</strong><small>{countReady(slices)}/{slices.length} liberadas</small>
           </button>
         </div>
+
+        <details className="admin-availability-scope">
+          <summary className="admin-scope-heading">
+            <span><strong>Configurações gerais</strong><small>Pausar categorias completas</small></span>
+            <ChevronDown size={19} aria-hidden="true" />
+          </summary>
+          <div className="admin-scope-body">
+            <p>A seção Pipocas é compartilhada por Gourmet e Trufadas. Pausá-la afeta as duas.</p>
+            <div className="admin-compact-grid admin-scope-grid">
+              {categoryItems.map(item => (
+                <AvailabilityControl
+                  key={item.itemKey}
+                  item={item.itemKey === CATEGORY_ITEM_KEYS.pipocas ? { ...item, name: "Pipocas · Gourmet e Trufadas" } : item}
+                  status={categoryStatus(item.itemKey)}
+                  pending={pendingKeys.includes(item.itemKey)} disabled={controlsUnavailable}
+                  onChange={status => changeItemStatus(item, status)}
+                />
+              ))}
+            </div>
+          </div>
+        </details>
+
         {availabilityWarning && <p className="admin-category-guard" role="alert"><AlertCircle size={16} />{availabilityWarning}</p>}
 
         {availabilitySection === "trufadas" && (
