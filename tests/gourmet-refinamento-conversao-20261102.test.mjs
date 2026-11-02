@@ -30,6 +30,9 @@ test("o botão flutuante vai à opção real de tamanho, sabor ou ao carrinho",(
   assert.match(page, /window\.scrollTo\(\{ top: desired, behavior: reducedMotion \? "instant" : "smooth" \}\)/);
   assert.doesNotMatch(page, /window\.setTimeout\(\(\) => scrollToSection\("sabores"\), 30\)/);
   assert.match(page, /is-gourmet-step/);
+  assert.match(page, /const \[gourmetFlavorsInView, setGourmetFlavorsInView\]/);
+  assert.match(page, /IntersectionObserver/);
+  assert.match(page, /builderFlowActive && activeCategory === "pipocas" && gourmetFlavorsInView/);
   assert.match(css, /mobile-sticky-bar\.is-gourmet-step/);
 });
 
