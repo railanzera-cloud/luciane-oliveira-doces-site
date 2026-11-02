@@ -2150,13 +2150,14 @@ export default function Home() {
                 )}
                 {cupAddedNotice && <p className="limited-cup-buy-feedback" role="status">{cupAddedNotice}</p>}
                 {cupPhase === "available" ? (
-                  <p className="limited-cup-stock-note"><span aria-hidden="true">✦</span> Produção artesanal · sujeito à disponibilidade de cada tamanho.</p>
+                  cupVariant && <p className="limited-cup-stock-note"><span aria-hidden="true">✦</span> Feito artesanalmente para você.</p>
                 ) : (
                   <div className={`limited-cup-story-availability is-current ${cupPhase === "closed" ? "is-closed" : ""}`}>
                     <span className="limited-cup-story-availability-kicker">{cupPhase === "closed" ? "LOJA FECHADA" : cupPhase === "sold-out" ? "ESGOTADO NO MOMENTO" : "INDISPONÍVEL NO MOMENTO"}</span>
                     <p>{cupLaunchCopy.description}</p>
                   </div>
                 )}
+                {(cupVariant || cupPhase !== "available") && (
                 <div className="limited-cup-story-footer">
                   <div className="limited-cup-more-intro">
                     <span>{cart.length > 0 ? "COMPLETE SEU PEDIDO" : "CONHEÇA TAMBÉM"}</span>
@@ -2175,6 +2176,7 @@ export default function Home() {
                     </button>
                   )}
                 </div>
+                )}
               </div>
             </section>
           )}
