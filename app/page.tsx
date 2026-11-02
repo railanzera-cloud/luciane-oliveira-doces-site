@@ -1208,6 +1208,21 @@ export default function Home() {
       window.history.pushState({ ...historyState, lucianeCrocante: true }, "", categoryUrl(window.location.href, "trufadas"));
     }
     requestEditorialScroll("edicao-crocante");
+    // Redundância somente para o clique na vitrine: em alguns WebKit o primeiro
+    // frame de montagem ignora a rolagem, mesmo com a categoria já renderizada.
+    const originalY = window.scrollY;
+    const recoverEntrance = () => {
+      if (!trufadasFromUrl(window.location.href, window.history.state)) return;
+      const destination = document.getElementById("edicao-crocante");
+      if (!destination || Math.abs(window.scrollY - originalY) > 18) return;
+      if (destination.getBoundingClientRect().top <= 70) return;
+      destination.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block: "start",
+      });
+    };
+    window.setTimeout(recoverEntrance, 190);
+    window.setTimeout(recoverEntrance, 540);
   }
 
   function returnToCategories() {
