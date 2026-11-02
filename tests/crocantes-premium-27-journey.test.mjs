@@ -4,7 +4,10 @@ import { readFileSync } from "node:fs";
 const page=readFileSync("app/page.tsx","utf8");
 const css=readFileSync("app/storefront-vitrine-editorial-experiment.css","utf8");
 test("CTA sticky do iPhone orienta sabor, tamanho e quantidade",()=>{
-  assert.match(page,/!cupFlavorPreview \? "Escolher meu sabor" : !cupSizeId \? "Escolher tamanho"/);
+  assert.match(page,/const cupActionLabel = cupAdding/);
+  assert.match(page,/!cupFlavorPreview \? "Escolher sabor"/);
+  assert.match(page,/!cupSizeId \? "Escolher tamanho"/);
+  assert.match(page,/\? cupActionLabel/);
   assert.match(page,/cupInlineActionVisible/);
   assert.match(page,/handleCupPurchaseAction/);
   assert.match(page,/requestScroll\("crocantes-sabores"\)/);
