@@ -4,6 +4,7 @@ import {
   quoteCartItems,
   quoteFulfillment,
 } from "../_shared/commerce-catalog.mjs";
+import { applyPopcornPromotionToQuote } from "../_shared/popcorn-quote-campaign.mjs";
 
 const MP_ORDERS_URL = "https://api.mercadopago.com/v1/orders";
 const ORDER_ID_PATTERN = /^LOD-(?:[0-9A-HJKMNP-TV-Z]{4}-){2}[0-9A-HJKMNP-TV-Z]{4}$/;
@@ -306,7 +307,10 @@ Deno.serve(async (request: Request) => {
     let quote: ReturnType<typeof quoteCartItems>;
     let fulfillment: ReturnType<typeof quoteFulfillment>;
     try {
-      quote = quoteCartItems(input.items);
+      // O carrinho é cotado pelo servidor. A campanha vale somente pela data real
+      // America/Belem; ao terminar, o mesmo pedido volta aos preços normais.
+      const quoteTime = Date.now();
+      quote = applyPopcornPromotionToQuote(quoteCartItems(input.items, quoteTime), quoteTime);
       fulfillment = quoteFulfillment(input.fulfillment);
     } catch (quoteError) {
       throw new HttpError(400, "invalid_order", quoteError instanceof Error ? quoteError.message : "Pedido inválido.");
