@@ -245,7 +245,7 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes('onClick={() => selectCategory("pipocas")}')); 
   assert.ok(page.includes('<span>Pipocas Gourmet</span>'));
   assert.ok(page.includes('Selecione um dos três sabores para ver os tamanhos e os preços.'));
-  assert.ok(page.includes("Conhecer os sabores"));
+  assert.ok(page.includes("Escolher sabor"));
   assert.ok(!page.includes('className="limited-cup-story-primary"'));
   assert.ok(page.includes('aria-pressed={selected}'));
   assert.ok(page.includes('aria-pressed={cupSizeId === size}'));
