@@ -313,7 +313,7 @@ jobs:
           set -euo pipefail
           python3 -m http.server 8181 --bind 127.0.0.1 --directory outputs/cloudflare-pages >/tmp/gourmet-qa.log 2>&1 &
           export QA_PACKAGE="$RUNNER_TEMP/qa-gourmet/package.json" QA_OUTPUT="$RUNNER_TEMP/qa-gourmet-screens"
-          if [[ "$GITHUB_REF_NAME" == "work/gourmet-refinamento-conversao-20261102" ]]; then
+          if [[ "$GITHUB_REF_NAME" == "work/gourmet-refinamento-conversao-20261102" || "$GITHUB_REF_NAME" == "fix/gourmet-clareza-final-20261102" ]]; then
             node scripts/qa-gourmet-refinamento-20261102.mjs
           else
             node scripts/qa-gourmet-feriado-20261102.mjs
