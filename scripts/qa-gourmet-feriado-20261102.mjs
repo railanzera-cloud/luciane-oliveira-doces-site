@@ -59,7 +59,7 @@ for (const [engineName, engine] of Object.entries({chromium,webkit})) {
       await page.locator(".boutique-price-guide").waitFor();
       assert.match(await page.locator(".boutique-price-guide").innerText(),/R\$ 25,00/);
       assert.match(await page.locator('label[for="flavor-nutella"]').innerText(),/R\$ 33,00/);
-      assert.equal(await page.locator('label[for="flavor-ovomaltine"] input').isDisabled(),true);
+      assert.equal(await page.locator('label[for="flavor-ovomaltine"] [role="checkbox"]').isDisabled(),true);
       if(width===390) await page.locator("#sabores").screenshot({path:output+"/"+engineName+"-390-sabores.png"});
       if(width===390) await page.screenshot({path:output+"/"+engineName+"-390-vitrine-completa.png",fullPage:true});
       // Reabrir a loja 1 minuto depois do encerramento. Nada deve sobreviver à meia-noite.
