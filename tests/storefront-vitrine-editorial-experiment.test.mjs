@@ -206,12 +206,12 @@ test("v8 remove foco azul programático apenas dos títulos e acomoda viewport c
   assert.ok(css.includes('border-color: rgba(208, 149, 94, .30)'));
   assert.ok(page.includes('onClick={returnToCategories}'));
   assert.ok(page.includes('onClick={openLimitedCupEdition}>Conhecer Trufadas'));
-  assert.ok(page.includes('currency.format(cupVariant.price)'));
+  assert.ok(page.includes('currency.format(variant.price)'));
 });
 
 test("v7 nomeia lançamento Pipocas Trufadas e dá saída clara em todos os caminhos", () => {
   assert.ok(page.includes('name="Pipocas Trufadas"'));
-  assert.ok(page.includes('<h2>Pipocas <em>Trufadas</em></h2>'));
+  assert.ok(page.includes('className="limited-cup-flow-progress"'));
   assert.ok(page.includes('showLimitedCupView ? "Pipocas Trufadas"'));
   assert.ok(!page.includes("O lado crocante da Luciane"));
   assert.ok(page.includes('function returnToCategories()'));
@@ -244,7 +244,7 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes('id="tamanhos"'));
   assert.ok(page.includes('onClick={() => selectCategory("pipocas")}')); 
   assert.ok(page.includes('<span>Pipocas Gourmet</span>'));
-  assert.ok(page.includes('Selecione um dos três sabores para ver os tamanhos e os preços.'));
+  assert.ok(page.includes('01 · ESCOLHA SEU SABOR'));
   assert.ok(page.includes("Ver sabores"));
   assert.ok(!page.includes('className="limited-cup-story-primary"'));
   assert.ok(page.includes('aria-pressed={selected}'));
@@ -257,7 +257,7 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes('setRequestedCategory(category);'));
   assert.ok(page.includes('setShowLimitedCupView(trufadasFromUrl(window.location.href, window.history.state))'));
   assert.ok(!page.includes('href="#potes-recheados"'));
-  assert.ok(page.includes("currency.format(cupVariant.price)"));
+  assert.ok(page.includes("currency.format(variant.price)"));
   assert.ok(page.includes("Pacotes P, M e G"));
   assert.ok(!page.includes("190 g"));
   assert.ok(page.includes("/images/pipocas-trufadas-ninho-20261101.webp"));
