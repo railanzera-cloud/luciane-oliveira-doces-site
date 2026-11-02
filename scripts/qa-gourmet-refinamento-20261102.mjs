@@ -72,11 +72,16 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
         const flavorFirst=await page.locator('label[for="flavor-leitinho"]').boundingBox();
         assert.ok(flavorFirst && flavorFirst.y>=20 && flavorFirst.y<h/2,
           "seleção tamanho levou à primeira opção de sabor, não à foto: "+JSON.stringify(flavorFirst));
+        // Ao chegar aos checkboxes, a barra some e não encobre os sabores.
         const sticky=page.locator(".mobile-sticky-bar button");
+        await sticky.waitFor({state:"hidden"});
+        await page.locator(".gourmet-feriado-edition").scrollIntoViewIfNeeded();
+        await sticky.waitFor({state:"visible"});
         assert.match(await sticky.innerText(),/Ir aos sabores/i);
         await sticky.click();
         await page.waitForTimeout(80);
         const after=await page.locator('label[for="flavor-leitinho"]').boundingBox();
+        await sticky.waitFor({state:"hidden"});
         assert.ok(after && after.y>=20 && after.y<h/2,
           "CTA sabores não colocou a opção clicável em vista: "+JSON.stringify(after));
       }
