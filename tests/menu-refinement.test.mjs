@@ -69,7 +69,9 @@ const isTrufadaOrLegacy = id => ["crocante-ninho","trufada-pacoca","trufada-coco
 const productLabel = pageFunction("productLabel", { isTrufadaOrLegacy });
 const isCategoryEnabled = pageFunction("isCategoryEnabled", catalog);
 const isProductEnabled = pageFunction("isProductEnabled", { ...catalog, isCategoryEnabled });
-const itemUnitPrice = pageFunction("itemUnitPrice", { popcornPrice: catalog.popcornPrice, isTrufadaOrLegacy });
+// Casos permanentes não dependem de Date.now() nem de campanhas de 24h.
+const permanentPrice = (size, options) => catalog.popcornPrice(size, options, Date.parse("2026-11-03T03:00:00Z"));
+const itemUnitPrice = pageFunction("itemUnitPrice", { popcornPrice: permanentPrice, isTrufadaOrLegacy });
 const unavailableReason = pageFunction("unavailableReason", availability);
 const cartAvailabilityIssues = pageFunction("cartAvailabilityIssues", {
   ...catalog, ...availability, isProductEnabled, productLabel, unavailableReason, isTrufadaOrLegacy,
