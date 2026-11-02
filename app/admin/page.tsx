@@ -120,12 +120,16 @@ export default function AdminPage() {
   const [pendingKeys, setPendingKeys] = useState<string[]>([]);
   const [notice, setNotice] = useState("");
   const [availabilitySection, setAvailabilitySection] = useState<"trufadas" | "gourmet" | "fatias">("trufadas");
+  const [gourmetView, setGourmetView] = useState<"sizes" | "flavors">("flavors");
+  const [sliceSearch, setSliceSearch] = useState("");
 
   const categoryItems = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "category");
   const popcornSizes = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "popcorn_size");
   const popcornFlavors = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "popcorn_flavor");
   const slices = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "slice");
   const gourmetItems = [...popcornSizes, ...popcornFlavors];
+  const visibleSlices = slices.filter(item => item.name.toLocaleLowerCase("pt-BR")
+    .includes(sliceSearch.trim().toLocaleLowerCase("pt-BR")));
   const countReady = (items: MenuAvailabilityItem[]) => items.filter(item => availability.statuses[item.itemKey] === "available").length;
   const controlsUnavailable = loadingMenu || availability.source !== "supabase" || Boolean(loadError);
 
@@ -398,17 +402,20 @@ export default function AdminPage() {
               <div><p className="eyebrow">Pote recheado</p><h2 id="admin-popcorn-title">Pipocas Gourmet</h2></div>
             </div>
             <p className="admin-category-explanation">Ative ou pause cada tamanho e sabor. As alterações são salvas ao tocar numa opção.</p>
-            <div className="admin-group-title"><h3>Tamanhos</h3><span>{countReady(popcornSizes)}/{popcornSizes.length} liberados</span></div>
-            <div className="admin-compact-grid">
-              {popcornSizes.map(item => (
-                <AvailabilityControl item={item} status={categoryStatus(item.itemKey)}
-                  pending={pendingKeys.includes(item.itemKey)} disabled={controlsUnavailable}
-                  onChange={status => changeItemStatus(item, status)} key={item.itemKey} />
-              ))}
+            <div className="admin-subview-nav" role="group" aria-label="Ajustar tamanhos ou sabores de Pipocas Gourmet">
+              <button type="button" aria-pressed={gourmetView === "flavors"} className={gourmetView === "flavors" ? "is-active" : ""} onClick={() => setGourmetView("flavors")}>
+                Sabores <small>{countReady(popcornFlavors)}/{popcornFlavors.length}</small>
+              </button>
+              <button type="button" aria-pressed={gourmetView === "sizes"} className={gourmetView === "sizes" ? "is-active" : ""} onClick={() => setGourmetView("sizes")}>
+                Tamanhos <small>{countReady(popcornSizes)}/{popcornSizes.length}</small>
+              </button>
             </div>
-            <div className="admin-group-title"><h3>Sabores</h3><span>{countReady(popcornFlavors)}/{popcornFlavors.length} liberados</span></div>
+            <div className="admin-group-title">
+              <h3>{gourmetView === "flavors" ? "Sabores do pote" : "Tamanhos dos potes"}</h3>
+              <span>{gourmetView === "flavors" ? countReady(popcornFlavors) : countReady(popcornSizes)} liberados</span>
+            </div>
             <div className="admin-compact-grid">
-              {popcornFlavors.map(item => (
+              {(gourmetView === "flavors" ? popcornFlavors : popcornSizes).map(item => (
                 <AvailabilityControl item={item} status={categoryStatus(item.itemKey)}
                   pending={pendingKeys.includes(item.itemKey)} disabled={controlsUnavailable}
                   onChange={status => changeItemStatus(item, status)} key={item.itemKey} />
@@ -424,14 +431,21 @@ export default function AdminPage() {
             <p className="admin-category-explanation">Escolha o que está disponível hoje. A pré-reserva de Chocolate com Morango continua separada da pronta-entrega.</p>
             {supabase && <AdminStrawberryPreorder client={supabase} onChanged={reloadMenu} />}
             <div className="admin-group-title"><h3>Fatias de pronta-entrega</h3><span>{countReady(slices)}/{slices.length} liberadas</span></div>
+            <label className="admin-availability-search" htmlFor="admin-availability-slice-search">
+              Buscar sabor
+              <input id="admin-availability-slice-search" type="search" value={sliceSearch}
+                onChange={event => setSliceSearch(event.target.value)}
+                placeholder="Ex.: Prestígio, Ninho, Morango…" autoComplete="off" />
+            </label>
             <div className="admin-compact-grid">
-              {slices.map(item => (
+              {visibleSlices.map(item => (
                 <AvailabilityControl item={item} status={categoryStatus(item.itemKey)}
                   preorderActive={item.itemKey === "slice_chocolate_morango" && Boolean(availability.slicePreorder?.active)}
                   pending={pendingKeys.includes(item.itemKey)} disabled={controlsUnavailable}
                   onChange={status => changeItemStatus(item, status)} key={item.itemKey} />
               ))}
             </div>
+            {visibleSlices.length === 0 && <p className="admin-category-explanation">Nenhuma fatia encontrada. Tente outro sabor.</p>}
           </section>
         )}
         </TabsContent>
