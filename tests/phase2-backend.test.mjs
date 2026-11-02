@@ -143,7 +143,8 @@ test("migration is additive, reproducible, protected by RLS and has an explicit 
 });
 
 test("create-order performs authoritative pricing, availability checks and idempotent Orders API calls", () => {
-  assert.match(createOrder, /quoteCartItems\(input\.items\)/);
+  assert.match(createOrder, /quoteCartItems\(input\.items, quoteTime\)/);
+  assert.match(createOrder, /applyPopcornPromotionToQuote\(quoteCartItems/);
   assert.match(createOrder, /quoteFulfillment\(input\.fulfillment\)/);
   assert.match(createOrder, /store_settings\?select=value&key=eq\.orders_open/);
   assert.match(createOrder, /menu_availability\?select=item_key,status/);
