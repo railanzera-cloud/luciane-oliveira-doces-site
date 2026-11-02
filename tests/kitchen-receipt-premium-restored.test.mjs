@@ -99,6 +99,6 @@ test("altera apenas renderização da comanda; segurança QZ e cozinha preservad
   assert.match(source,/installKitchenQzSecurity/);
   assert.match(source,/encoding: "ISO-8859-1"/);
   assert.match(source,/onProgress\?\.\("printers"\)/);
-  assert.match(source,/claimPrintJob\(client, workerId\)/);
+  assert.match(source,/claimPrintJob\(client, getKitchenWorkerId\(\)\)/);
   assert.match(security,/setCertificatePromise\(\(resolve, reject\)/);
 });
