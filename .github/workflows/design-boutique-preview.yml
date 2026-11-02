@@ -56,6 +56,7 @@ on:
       - work/trufadas-configurador-premium-20261102
       - work/trufadas-experiencia-imersiva-20261102
       - work/admin-disponibilidade-premium-20261102
+      - fix/cozinha-qz-pedido1544-diagnostico-20261102
       - feature/pre-reserva-chocolate-morango-31102026
     paths:
       - scripts/qa-vitrine.mjs
@@ -121,6 +122,8 @@ on:
       - docs/COZINHA-RECONEXAO-WINDOWS-20261017.md
       - lib/kitchen-auto-client.ts
       - lib/qz-print-client.ts
+      - lib/qz-printer-selection.mjs
+      - tests/qz-printer-recovery-20261102.test.mjs
       - lib/qz-security.ts
       - docs/COZINHA-ASSINATURA-QZ-RETOMADA-20261017.md
       - docs/ETIQUETA-PREMIUM-RESTAURADA-20261017.md
