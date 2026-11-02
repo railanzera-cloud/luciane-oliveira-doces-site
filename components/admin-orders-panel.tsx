@@ -797,7 +797,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
             Automático: <strong>{kitchenMode?.enabled ? "Ligado" : "Desligado"}</strong></span>
           <span><Printer size={15} /> Impressora neste dispositivo: <strong>{printerOnline ? printerName : printerReady ? "Desconectada — tentando recuperar" : "Não conectada"}</strong></span>
           <span>Última tentativa neste aparelho: <strong>{connectingPrinter ? "Conectando QZ…" : printerConnectError ? "Falhou — conferir diagnóstico acima" : printerOnline ? "Conexão ativa" : "Aguardando conexão"}</strong></span>
-          <span><Check size={15} /> Fila: <strong>{printing ? "Processando em segundo plano" : "Aguardando novos pedidos"}</strong></span>
+          <span><Check size={15} /> Fila: <strong>{printing ? "Processando em segundo plano" : printIssue ? "Comanda pendente ou com falha — confira o aviso" : "Sem envio ativo — monitorando pedidos"}</strong></span>
           <span><BellRing size={15} /> Aviso normal: <strong>2 toques e silêncio</strong></span>
           {lastPrintInfo && <span><Check size={15} /> {lastPrintInfo}</span>}
         </div>
