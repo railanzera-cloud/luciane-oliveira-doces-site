@@ -1,3 +1,9 @@
+# Candidata de UX Trufadas — 02/11/2026
+
+A intervenção de apresentação `work/trufadas-configurador-premium-20261102` parte de `9db42e65fa189353de83cc8df9bc7c7fa576976d` e altera somente o configurador de Trufadas. Mantém cabeçalho superior, vitrine inicial, Gourmet/Fatias, catálogo, SKU, estoque, checkout, integrações e Edge Function `create-whatsapp-order` v25, sem mudanças de produção. Substitui a duplicação de título por indicador de etapas, compacta mensagens e botões, corrige "Tamanho esgotado" quando a loja está fechada e adiciona microinterações acessíveis. Critérios e riscos: [TRUFADAS-CONFIGURADOR-PREMIUM-20261102.md](TRUFADAS-CONFIGURADOR-PREMIUM-20261102.md). Obter SHA final e confirmar CI/artefato diretamente no GitHub; deployment Cloudflare continua sem confirmação nesta intervenção.
+
+---
+
 # CHECKPOINT HOMOLOGADO PARA PUBLICAÇÃO — TRUFADAS P/M/G — 01/11/2026
 
 **Estado atual:** frontend, backend, estoque por SKU, painel, integração de branches
