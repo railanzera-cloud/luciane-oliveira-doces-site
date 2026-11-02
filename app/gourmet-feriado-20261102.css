@@ -1,196 +1,240 @@
-/* Luciane Oliveira Doces — Edição Gourmet 02/11/2026.
-   Somente a vitrine de potes Gourmet (não modifica Trufadas, Fatias ou /admin).
-   O componente desaparece automaticamente fora da janela em America/Belem. */
-#configurador .gourmet-feriado-edition {
+/* Edição Gourmet 02/11 — componente editorial genérico, somente a loja pública.
+   Valores são calculados pelo catálogo/Edge; estes estilos nunca criam preços. */
+.storefront #configurador .gourmet-feriado-edition {
   position: relative;
   isolation: isolate;
   display: grid;
-  gap: 13px;
+  gap: 9px;
   overflow: hidden;
-  margin: 2px 0 20px;
-  padding: clamp(17px, 4.5vw, 24px);
-  border: 1px solid rgba(224, 170, 107, .62);
-  border-radius: 21px;
+  margin: 2px 0 18px;
+  padding: clamp(14px, 3.8vw, 20px);
+  border: 1px solid rgba(231, 178, 112, .57);
+  border-radius: 18px;
+  color: #ffecd2;
   background:
-    radial-gradient(ellipse at 95% -18%, rgba(242, 177, 91, .23), transparent 45%),
-    radial-gradient(ellipse at 4% 110%, rgba(179, 105, 53, .23), transparent 57%),
-    linear-gradient(142deg, #3d251a 2%, #2b1a15 56%, #1d120f 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 239, 210, .21),
-    0 16px 33px rgba(12, 5, 2, .22);
-  color: #fcebd2;
+    radial-gradient(ellipse at 98% -24%, rgba(239, 174, 93, .21), transparent 56%),
+    linear-gradient(138deg, #3f281d 0%, #281913 77%, #1f1410 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 241, 215, .17), 0 12px 28px rgba(12, 5, 2, .2);
 }
-#configurador .gourmet-feriado-edition::before {
+.storefront #configurador .gourmet-feriado-edition::before {
   content: "";
   position: absolute;
-  z-index: -1;
-  inset: 8px;
+  inset: 6px;
+  border: 1px solid rgba(251, 218, 173, .08);
+  border-radius: 13px;
   pointer-events: none;
-  border: 1px solid rgba(249, 209, 151, .12);
-  border-radius: 15px;
+  z-index: -1;
 }
-#configurador .gourmet-feriado-edition-top {
+.storefront #configurador .gourmet-feriado-edition-top {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
-  gap: 8px 11px;
+  gap: 7px 10px;
 }
-#configurador .gourmet-feriado-kicker,
-#configurador .gourmet-feriado-deadline {
+.storefront #configurador .gourmet-feriado-kicker,
+.storefront #configurador .gourmet-feriado-deadline {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  font-size: .67rem;
+  gap: 6px;
+  font-size: .68rem;
   font-weight: 780;
-  letter-spacing: .055em;
-  line-height: 1.2;
+  line-height: 1.25;
 }
-#configurador .gourmet-feriado-kicker {
-  color: #f2bc77;
-  letter-spacing: .105em;
+.storefront #configurador .gourmet-feriado-kicker {
+  color: #f4bd7e;
+  letter-spacing: .095em;
   text-transform: uppercase;
 }
-#configurador .gourmet-feriado-deadline {
-  padding: 6px 8px;
-  border: 1px solid rgba(244, 194, 130, .36);
+.storefront #configurador .gourmet-feriado-deadline {
+  padding: 5px 8px;
   border-radius: 999px;
-  background: rgba(30, 13, 8, .38);
-  color: #f7d8a9;
+  border: 1px solid rgba(242, 191, 133, .29);
+  background: rgba(24, 11, 7, .3);
+  color: #f8ddba;
   font-variant-numeric: tabular-nums;
 }
-#configurador .gourmet-feriado-edition h4 {
-  max-width: 26ch;
-  margin: 0;
-  color: #ffefd8;
+.storefront #configurador .gourmet-feriado-edition h4 {
+  margin: 1px 0 0;
+  max-width: 34ch;
+  color: #fff0d8;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(1.32rem, 4.3vw, 1.85rem);
+  font-size: clamp(1.24rem, 4.1vw, 1.73rem);
   font-weight: 500;
-  letter-spacing: -.028em;
+  letter-spacing: -.027em;
   line-height: 1.16;
   text-wrap: balance;
 }
-#configurador .gourmet-feriado-description {
-  margin: -5px 0 0;
-  color: #e0c9b0;
-  font-size: clamp(.75rem, 2.45vw, .83rem);
-  line-height: 1.52;
+.storefront #configurador .gourmet-feriado-description {
+  margin: 0;
+  color: #e4cdb5;
+  font-size: clamp(.77rem, 2.3vw, .85rem);
+  line-height: 1.48;
 }
-#configurador .gourmet-feriado-description strong {
-  color: #ffe0a6;
-  font-weight: 790;
+.storefront #configurador .gourmet-feriado-bottom {
+  display: grid;
+  gap: 4px;
+  margin-top: 2px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(238, 193, 136, .2);
 }
-#configurador .gourmet-feriado-price-list {
+.storefront #configurador .gourmet-feriado-bottom > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #f7d5a7;
+  font-size: .74rem;
+  line-height: 1.4;
+  font-weight: 680;
+}
+.storefront #configurador .gourmet-feriado-bottom > small {
+  color: #c5a994;
+  font-size: .67rem;
+  line-height: 1.4;
+}
+
+/* Os preços estão somente nos três cartões interativos: nenhum duplo seletor. */
+.storefront #configurador #tamanhos .step-heading {
+  margin-top: 1px;
+  margin-bottom: 12px;
+}
+.storefront #configurador #tamanhos .size-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
-#configurador .gourmet-feriado-price-list > div {
-  display: grid;
-  align-content: start;
-  justify-items: start;
-  gap: 5px;
+.storefront #configurador #tamanhos .size-card {
   min-width: 0;
-  min-height: 98px;
-  padding: 11px 9px;
-  border: 1px solid rgba(232, 187, 129, .27);
-  border-radius: 12px;
-  background: rgba(14, 6, 3, .22);
-  transition: background .18s, border-color .18s, box-shadow .18s;
+  min-height: 114px;
+  padding: 0;
+  border-color: rgba(236, 189, 128, .29);
+  border-radius: 15px;
+  background: linear-gradient(155deg, #38251b, #281a14);
+  transition: transform .18s, box-shadow .18s, border-color .18s, background .18s;
 }
-#configurador .gourmet-feriado-price-list > div.is-chosen {
-  border-color: #f6d2a0;
-  background: rgba(140, 85, 46, .25);
-  box-shadow: inset 0 0 0 1px rgba(246, 210, 160, .28);
+.storefront #configurador #tamanhos .size-card.is-selected {
+  border-color: #f4c88d;
+  background: linear-gradient(135deg, #69452b, #342218);
+  box-shadow: inset 0 0 0 1px rgba(255, 221, 173, .35), 0 9px 20px rgba(12, 6, 3, .24);
 }
-#configurador .gourmet-feriado-price-list > div > span {
-  color: #d6bd9f;
-  font-size: .74rem;
-  font-weight: 730;
+.storefront #configurador #tamanhos .size-card:active:not(.is-unavailable) {
+  transform: scale(.985);
+}
+.storefront #configurador #tamanhos .size-copy {
+  min-width: 0;
+  padding: 13px 9px 12px;
+  justify-content: center;
+}
+.storefront #configurador #tamanhos .size-copy strong {
+  max-width: calc(100% - 14px);
+  font-size: clamp(.83rem, 2.8vw, 1.13rem);
   line-height: 1.2;
 }
-#configurador .gourmet-feriado-price-list strong {
-  color: #ffedca;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(1.1rem, 3.6vw, 1.48rem);
-  font-weight: 500;
-  line-height: 1.1;
-  letter-spacing: -.025em;
+.storefront #configurador #tamanhos .size-copy b {
+  margin-top: 8px;
+  color: #f8d09a;
+  font-size: clamp(.84rem, 2.65vw, 1.17rem);
+  line-height: 1.2;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-#configurador .gourmet-feriado-price-list small {
-  color: #c3a88a;
-  font-size: .61rem;
+.storefront #configurador #tamanhos .size-copy small {
+  margin-top: 7px;
+  color: #cfb9a2;
+  font-size: clamp(.59rem, 1.7vw, .68rem);
   line-height: 1.25;
-  text-wrap: pretty;
 }
-#configurador .gourmet-feriado-bottom {
-  display: grid;
-  gap: 5px;
-  padding-top: 11px;
-  border-top: 1px solid rgba(234, 187, 131, .2);
+.storefront #configurador #tamanhos .size-card button[role="radio"] {
+  top: 8px;
+  right: 7px;
+  width: 15px;
+  height: 15px;
 }
-#configurador .gourmet-feriado-bottom > span {
-  display: inline-flex;
+.storefront #configurador #tamanhos .size-card .selected-check {
+  right: 8px;
+  bottom: 9px;
+  width: 19px;
+  height: 19px;
+}
+
+/* Somente recheios que realmente custavam mais recebem comparação de preço. */
+.storefront #configurador .boutique-flavor-cost {
+  flex-direction: row;
   align-items: center;
-  gap: 7px;
-  color: #f5d1a1;
-  font-size: .75rem;
-  font-weight: 690;
-  line-height: 1.35;
+  flex-wrap: wrap;
+  gap: 4px 8px;
 }
-#configurador .gourmet-feriado-bottom > small {
-  color: #baa18a;
-  font-size: .67rem;
-  line-height: 1.4;
-}
-/* Comparação honesta do preço habitual, somente nos sabores realmente mais caros. */
-#configurador .boutique-flavor-cost .gourmet-feriado-regular-price {
-  display: block;
-  margin-bottom: 3px;
-  color: #baa28d;
+.storefront #configurador .boutique-flavor-cost .gourmet-feriado-regular-price {
+  color: #c2a890;
   font-size: .7rem;
-  font-weight: 520;
+  line-height: 1.2;
   text-decoration-thickness: 1px;
-  text-decoration-color: rgba(211, 151, 118, .95);
+  text-decoration-color: #cda17a;
   font-variant-numeric: tabular-nums;
 }
-@media (min-width: 630px) {
-  #configurador .gourmet-feriado-edition {
-    grid-template-columns: minmax(0, 1fr) minmax(210px, .7fr);
-    column-gap: 20px;
-  }
-  #configurador .gourmet-feriado-edition-top,
-  #configurador .gourmet-feriado-edition h4,
-  #configurador .gourmet-feriado-description,
-  #configurador .gourmet-feriado-bottom { grid-column: 1; }
-  #configurador .gourmet-feriado-price-list {
-    grid-column: 2;
-    grid-row: 2 / 5;
-    grid-template-columns: minmax(0, 1fr);
-    align-self: center;
-    gap: 7px;
-  }
-  #configurador .gourmet-feriado-price-list > div {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 4px 10px;
-    min-height: 67px;
-    padding: 12px 13px;
-  }
-  #configurador .gourmet-feriado-price-list > div > small { flex: 1 1 100%; }
+.storefront #configurador .boutique-flavor-cost > strong {
+  color: #ffe2b8;
+  font-size: 1.03rem;
+  font-variant-numeric: tabular-nums;
 }
-@media (max-width: 375px) {
-  #configurador .gourmet-feriado-edition { padding: 15px 12px; gap: 11px; }
-  #configurador .gourmet-feriado-price-list { gap: 5px; }
-  #configurador .gourmet-feriado-price-list > div { padding: 10px 6px; }
-  #configurador .gourmet-feriado-price-list strong { font-size: 1.04rem; }
-  #configurador .gourmet-feriado-kicker,
-  #configurador .gourmet-feriado-deadline { font-size: .63rem; }
+.storefront #configurador .gourmet-feriado-saving {
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 4px 8px;
+  border: 1px solid rgba(234, 179, 114, .35);
+  border-radius: 100px;
+  background: rgba(142, 87, 41, .18);
+  color: #f5d5a7;
+  font-size: .68rem;
+  font-weight: 770;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.storefront #configurador .flavor-card.is-disabled .gourmet-feriado-saving { display: none; }
+
+/* A barra nunca deve cobrir a última ação nem forçar rolagem de sobra no checkout. */
+@media (max-width: 599px) {
+  .storefront .mobile-sticky-bar.is-gourmet-step {
+    min-height: 62px;
+    gap: 9px;
+    padding: 7px 8px 7px 12px;
+    border-radius: 16px;
+    bottom: max(8px, env(safe-area-inset-bottom));
+  }
+  .storefront .mobile-sticky-bar.is-gourmet-step > div { min-width: 86px; }
+  .storefront .mobile-sticky-bar.is-gourmet-step button {
+    min-height: 47px;
+    font-size: .81rem;
+    padding: 8px 9px;
+    border-radius: 11px;
+  }
+  .storefront #configurador #quantidade-pipocas {
+    padding-bottom: max(96px, calc(env(safe-area-inset-bottom) + 88px));
+  }
+}
+@media (max-width: 359px) {
+  .storefront #configurador .gourmet-feriado-edition { padding: 13px 11px; gap: 8px; }
+  .storefront #configurador .gourmet-feriado-edition-top { gap: 5px; }
+  .storefront #configurador .gourmet-feriado-kicker,
+  .storefront #configurador .gourmet-feriado-deadline { font-size: .61rem; }
+  .storefront #configurador #tamanhos .size-grid { gap: 5px; }
+  .storefront #configurador #tamanhos .size-card { min-height: 108px; border-radius: 12px; }
+  .storefront #configurador #tamanhos .size-copy { padding: 10px 6px; }
+  .storefront #configurador #tamanhos .size-copy b { font-size: .77rem; letter-spacing: -.02em; }
+}
+@media (min-width: 600px) {
+  .storefront #configurador .gourmet-feriado-edition {
+    grid-template-columns: minmax(0, 1fr) minmax(0, .75fr);
+    column-gap: 22px;
+    align-items: center;
+  }
+  .storefront #configurador .gourmet-feriado-edition-top,
+  .storefront #configurador .gourmet-feriado-bottom { grid-column: 1 / -1; }
+  .storefront #configurador .gourmet-feriado-description { grid-column: 2; grid-row: 2; }
+  .storefront #configurador #tamanhos .size-grid { gap: 13px; }
+  .storefront #configurador #tamanhos .size-card { min-height: 123px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  #configurador .gourmet-feriado-price-list > div { transition: none; }
+  .storefront #configurador #tamanhos .size-card { transition: none; transform: none; }
 }
