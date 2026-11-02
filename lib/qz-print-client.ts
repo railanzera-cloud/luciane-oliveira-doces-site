@@ -176,7 +176,12 @@ export async function isKitchenPrinterOnline(): Promise<boolean> {
   if (!selectedPrinter) return false;
   try {
     const qz = await kitchenConnectionDeadline(qzModule(), 12000, "QZ indisponível.");
-    return qz.websocket.isActive();
+    if (!qz.websocket.isActive()) return false;
+    // WebSocket ativo não comprova que a POS-58 ainda exista no Windows.
+    const installed = await kitchenConnectionDeadline(qz.printers.find(), 7000, "Consulta local sem resposta.");
+    const names = (Array.isArray(installed) ? installed : [installed])
+      .filter((name): name is string => typeof name === "string");
+    return names.some(name => name.trim().toLocaleLowerCase("pt-BR") === selectedPrinter.trim().toLocaleLowerCase("pt-BR"));
   } catch { return false; }
 }
 
