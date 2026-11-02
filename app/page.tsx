@@ -896,7 +896,7 @@ export default function Home() {
       return;
     }
     if (typeof IntersectionObserver === "undefined") return;
-    const section = document.getElementById("sabores");
+    const section = document.querySelector<HTMLElement>("#sabores .flavor-grid");
     if (!section) return;
     const observer = new IntersectionObserver(
       ([entry]) => setGourmetFlavorsInView(Boolean(entry?.isIntersecting)),
