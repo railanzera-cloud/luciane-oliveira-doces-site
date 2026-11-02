@@ -11,7 +11,7 @@ test("Trufadas: nomes e IDs históricos protegidos na linha expandida",()=>{
   assert.match(catalog,/name: "Paçoca"/);
   assert.match(catalog,/name: "Coco Queimado"/);
   assert.match(backend,/getTrufadaVariant/);
-  assert.match(page,/Pipocas <em>Trufadas<\/em>/);
+  assert.match(page,/showLimitedCupView \? "Pipocas Trufadas"/);
   assert.doesNotMatch(page,/Escolha entre Ninho e Chocolate/);
 });
 test("Vitrine premium mostra três sabores com imagens distintas",()=>{
