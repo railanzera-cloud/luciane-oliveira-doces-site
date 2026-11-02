@@ -51,11 +51,13 @@ on:
       - work/trufadas-variantes-pmg-20261101
       - work/trufadas-ux-safari-20261101
       - work/vitrine-editorial-20261102
+      - work/vitrine-premium-reconstrucao-20261102
       - feature/pre-reserva-chocolate-morango-31102026
     paths:
       - scripts/qa-vitrine.mjs
       - app/menu-navigation.ts
       - app/storefront-collection.css
+      - app/storefront-collection-premium.css
       - app/storefront-boutique.css
       - app/storefront-boutique-v3.css
       - app/storefront-vitrine-editorial-experiment.css
@@ -266,13 +268,13 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Recuperar base de comparação da vitrine
-        if: github.ref_name == 'work/vitrine-editorial-20261102'
+        if: github.ref_name == 'work/vitrine-premium-reconstrucao-20261102'
         uses: actions/checkout@v4
         with:
-          ref: 8caeb691b8da0cb50282106fe098548798528418
+          ref: e7fb01fa506af4e3567a4d6e460693cc89b7f4bb
           path: visual-baseline
       - name: Comparar os pacotes em Chromium e WebKit
-        if: github.ref_name == 'work/vitrine-editorial-20261102'
+        if: github.ref_name == 'work/vitrine-premium-reconstrucao-20261102'
         shell: bash
         run: |
           set -euo pipefail
@@ -284,7 +286,7 @@ jobs:
           export QA_PACKAGE="$RUNNER_TEMP/visual-tools/package.json" QA_OUTPUT="$RUNNER_TEMP/evidencia-vitrine"
           node scripts/qa-vitrine.mjs
       - name: Guardar capturas e medidas
-        if: always() && github.ref_name == 'work/vitrine-editorial-20261102'
+        if: always() && github.ref_name == 'work/vitrine-premium-reconstrucao-20261102'
         uses: actions/upload-artifact@v4
         with:
           name: comparacao-vitrine
