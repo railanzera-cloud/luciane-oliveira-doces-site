@@ -60,6 +60,8 @@ on:
     paths:
       - scripts/qa-vitrine.mjs
       - scripts/qa-trufadas-imersiva.mjs
+      - scripts/qa-admin-disponibilidade.mjs
+      - lib/trufadas-stock-calculation.mjs
       - app/menu-navigation.ts
       - app/storefront-collection.css
       - app/storefront-collection-premium.css
@@ -275,6 +277,27 @@ jobs:
           path: outputs/luciane-oliveira-doces-cloudflare-pages.zip
           if-no-files-found: error
           retention-days: 7
+      - name: Preparar QA visual administrativa em Chromium e WebKit
+        if: github.ref_name == 'work/admin-disponibilidade-premium-20261102'
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/visual-admin" playwright@1.56.1
+          "$RUNNER_TEMP/visual-admin/node_modules/.bin/playwright" install --with-deps chromium webkit
+      - name: Homologar disponibilidade administrativa sem tocar produção
+        if: github.ref_name == 'work/admin-disponibilidade-premium-20261102'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8181 --bind 127.0.0.1 --directory outputs/cloudflare-pages >/tmp/admin-availability-visual.log 2>&1 &
+          export QA_PACKAGE="$RUNNER_TEMP/visual-admin/package.json" QA_OUTPUT="$RUNNER_TEMP/qa-admin-availability"
+          node scripts/qa-admin-disponibilidade.mjs
+      - name: Guardar capturas e medidas da disponibilidade
+        if: always() && github.ref_name == 'work/admin-disponibilidade-premium-20261102'
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-admin-disponibilidade-premium
+          path: ${{ runner.temp }}/qa-admin-availability
+          if-no-files-found: warn
       - name: Preparar navegadores Chromium e WebKit para Trufadas
         if: github.ref_name == 'work/trufadas-experiencia-imersiva-20261102'
         shell: bash
