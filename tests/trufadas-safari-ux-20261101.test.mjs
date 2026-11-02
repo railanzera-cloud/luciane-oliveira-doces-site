@@ -16,7 +16,7 @@ test("Safari: três sabores ficam juntos no mobile, sem cartão isolado", () => 
 });
 
 test("Safari: não anuncia esgotado antes de saber o sabor, nem habilita tamanho sem saldo", () => {
-  assert.match(page, /!cupProduct \? "Escolha um sabor"/);
+  assert.match(page, /\{cupProduct && \(\s*<div className="limited-cup-size-section"/);
   assert.match(page, /disabled=\{!cupProduct \|\| cupAdding \|\| !available\}/);
   assert.match(page, /availability\.stockChecked && Boolean\(key && isItemAvailable\(availability, key\) && stock > 0\)/);
   assert.match(page, /aria-label=\{cupProduct && variant/);
