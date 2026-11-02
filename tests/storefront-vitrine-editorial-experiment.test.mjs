@@ -196,7 +196,7 @@ test("v8 remove foco azul programático apenas dos títulos e acomoda viewport c
   assert.ok(page.includes('heading.setAttribute("data-editorial-navigation-focus", navigationByKeyboard ? "keyboard" : "pointer")'));
   assert.ok(page.includes('heading.removeAttribute("data-editorial-navigation-focus")'));
   assert.ok(page.includes('heading.focus({ preventScroll: true })'));
-  assert.ok(page.includes('window.scrollTo({ top, behavior: "instant" })'));
+  assert.ok(page.includes('window.scrollTo({ top, behavior: reducedMotion ? "instant" : "smooth" })'));
   assert.ok(css.includes('#step-size[data-editorial-navigation-focus="pointer"]:focus'));
   assert.ok(css.includes('h2[data-editorial-navigation-focus="pointer"]:focus'));
   assert.ok(css.includes('.v7-navigation button:focus-visible'));
@@ -211,7 +211,7 @@ test("v8 remove foco azul programático apenas dos títulos e acomoda viewport c
 
 test("v7 nomeia lançamento Pipocas Trufadas e dá saída clara em todos os caminhos", () => {
   assert.ok(page.includes('name="Pipocas Trufadas"'));
-  assert.ok(page.includes('className="limited-cup-flow-progress"'));
+  assert.ok(page.includes('className="limited-cup-size-intro"'));
   assert.ok(page.includes('showLimitedCupView ? "Pipocas Trufadas"'));
   assert.ok(!page.includes("O lado crocante da Luciane"));
   assert.ok(page.includes('function returnToCategories()'));
@@ -252,7 +252,7 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes('className="collection-action"'));
   assert.ok(page.includes('(!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen && Boolean(cupFlavorPreview && cupSizeId) && cupCanOrder))'));
   assert.ok(page.includes('setShowLimitedCupView(false);\n    setBuilderEngaged(true);'));
-  assert.ok(page.includes('window.scrollTo({ top, behavior: "instant" })'));
+  assert.ok(page.includes('window.scrollTo({ top, behavior: reducedMotion ? "instant" : "smooth" })'));
   assert.ok(page.includes('setShowLimitedCupView(isEdition)'));
   assert.ok(page.includes('setRequestedCategory(category);'));
   assert.ok(page.includes('setShowLimitedCupView(trufadasFromUrl(window.location.href, window.history.state))'));
@@ -297,10 +297,10 @@ test("cartoes v10: pote enquadrado com respiro e painel chocolate profundo", () 
   assert.ok(!v10.includes(".menu-entry.has-category"));
 });
 
-test("pipocas usam rolagem suave com respeito ao movimento reduzido; crocantes mantem salto", () => {
-  assert.ok(page.includes('if (id === "tamanhos" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches)'));
-  assert.ok(page.includes('window.scrollTo({ top, behavior: "smooth" })'));
-  assert.ok(page.includes('window.scrollTo({ top, behavior: "instant" })'));
+test("pipocas e trufadas usam rolagem suave respeitando movimento reduzido", () => {
+  assert.ok(page.includes('const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;'));
+  assert.ok(page.includes('requestEditorialScroll("edicao-crocante")'));
+  assert.ok(page.includes('window.scrollTo({ top, behavior: reducedMotion ? "instant" : "smooth" })'));
   assert.ok(page.includes('photo="/images/pipocas-trufadas-ninho-20261101.webp"'));
 });
 
