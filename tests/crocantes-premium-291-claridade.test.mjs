@@ -9,9 +9,9 @@ test("seleção de novo sabor reinicia só o rascunho da edição",()=>{
   assert.match(page,/setCupQuantity\(1\)/);
 });
 test("três etapas são claras sem repetir caramelo como nome",()=>{
-  assert.match(page,/01 · ESCOLHA SEU SABOR/);
-  assert.match(page,/02 · ESCOLHA O TAMANHO/);
-  assert.match(page,/03 · QUANTIDADE/);
+  assert.match(page,/Escolha seu sabor/);
+  assert.match(page,/Escolha o tamanho/);
+  assert.match(page,/Seu pacote/);
   assert.match(page,/product\.name/);
   assert.doesNotMatch(page,/Caramelo e Chocolate/);
   assert.match(css,/\.limited-cup-duo-item\.is-selected/);
