@@ -887,6 +887,24 @@ export default function Home() {
 
   const popcornVariant = POPCORN.variants.find((variant) => variant.id === popcornVariantId);
   const popcornVariantUsable = Boolean(popcornVariant?.available && pipocasAvailable && popcornSizeIsAvailable(popcornVariant.id));
+  // No iPhone, a barra flutuante não deve cobrir os checkboxes enquanto
+  // o cliente percorre a lista real de recheios. Ela volta ao sair da lista.
+  const [gourmetFlavorsInView, setGourmetFlavorsInView] = useState(false);
+  useEffect(() => {
+    if (activeCategory !== "pipocas" || showLimitedCupView || !popcornVariantUsable) {
+      setGourmetFlavorsInView(false);
+      return;
+    }
+    if (typeof IntersectionObserver === "undefined") return;
+    const section = document.getElementById("sabores");
+    if (!section) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setGourmetFlavorsInView(Boolean(entry?.isIntersecting)),
+      { threshold: 0, rootMargin: "-8px 0px -100px 0px" },
+    );
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, [activeCategory, showLimitedCupView, popcornVariantUsable]);
   const popcornMaxOptions = popcornVariant?.maxOptions ?? 0;
   const popcornLimitReached = Boolean(popcornVariant) && popcornOptionIds.length >= popcornMaxOptions;
   const selectedSlice = SLICES.find((product) => product.id === sliceProductId);
@@ -3012,7 +3030,7 @@ export default function Home() {
 
       <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
-      {(activeCategory || cart.length > 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen && Boolean(cupFlavorPreview && cupSizeId) && cupCanOrder)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && (
+      {(activeCategory || cart.length > 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen && Boolean(cupFlavorPreview && cupSizeId) && cupCanOrder)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && !(builderFlowActive && activeCategory === "pipocas" && gourmetFlavorsInView) && (
       <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"} ${stickyIsCheckoutReady && checkoutChannel === "whatsapp" ? "is-whatsapp" : ""} ${cupBuilderFlowActive ? "is-crocantes-step" : ""} ${stickyUsesCheckoutAction ? "is-checkout-flow" : ""} ${builderFlowActive && activeCategory === "pipocas" ? "is-gourmet-step" : ""}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
         <div className="mobile-sticky-price" aria-live="polite" aria-atomic="true"><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></div>
         <Button type="button" onClick={handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || cupAdding || (cupBuilderFlowActive && Boolean(cupFlavorPreview && cupSizeId) && !cupCanOrder) || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
