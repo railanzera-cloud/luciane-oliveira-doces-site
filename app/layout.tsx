@@ -7,6 +7,7 @@ import "./storefront-vitrine-editorial-experiment.css";
 import "./storefront-checkout-premium.css";
 import "./storefront-collection.css";
 import "./storefront-collection-premium.css";
+import "./gourmet-feriado-20261102.css";
 
 export const metadata: Metadata = {
   title: STORE_CONFIG.enabledCategories.pipocas
