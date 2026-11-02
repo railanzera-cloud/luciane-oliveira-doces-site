@@ -48,6 +48,10 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
       assert.equal(await page.locator(".gourmet-feriado-price-list").count(),0);
       const cards=page.locator("#tamanhos .size-card");
       assert.equal(await cards.count(),3,"apenas tamanhos reais clicáveis");
+      const expectedCaps = ["Até 2 sabores", "Até 2 sabores", "Até 3 sabores"];
+      const labels = await cards.locator(".size-copy small").allInnerTexts();
+      assert.deepEqual(labels, expectedCaps, "Sem caracteres estranhos, aspas ou símbolos de dólar");
+      assert.ok(labels.every(label => !/[`$]/.test(label)), "Capacidade sem caracteres de interpolação");
       const geometry=await cards.evaluateAll(els=>els.map(el=>({top:el.getBoundingClientRect().top,
         width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height})));
       assert.ok(Math.max(...geometry.map(x=>x.top))-Math.min(...geometry.map(x=>x.top))<3,
@@ -85,6 +89,11 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
         assert.ok(after && after.y>=20 && after.y<h/2,
           "CTA sabores não colocou a opção clicável em vista: "+JSON.stringify(after));
       }
+      const baseFlavor = page.locator('label[for="flavor-leitinho"]');
+      assert.match(await baseFlavor.locator(".boutique-flavor-cost strong").innerText(), /R\$\s*25,00/,
+        "Leitinho disponível precisa mostrar o valor base de 500 ml");
+      assert.equal(await baseFlavor.locator("del.gourmet-feriado-regular-price").count(),0,
+        "Leitinho não pode ter preço anterior riscado");
       assert.equal(await page.locator('label[for="flavor-leitinho"] .gourmet-feriado-saving').count(),0,
         "Leitinho tem preço base e não pode mostrar falso desconto");
       assert.equal(await page.locator('label[for="flavor-leitinho"] .boutique-flavor-impact').count(),0,
@@ -111,6 +120,8 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
       await page.locator('label[for="flavor-nutella"]').click();
       assert.match(await page.locator(".boutique-price-guide").innerText(),/R\$\s*33,00/);
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+      assert.match(await page.locator('label[for="flavor-leitinho"] .boutique-flavor-cost strong').innerText(),
+        /R\$\s*25,00/, "Leitinho mantém o preço normal após a campanha");
       assert.deepEqual(runtimeErrors,[],"runtime errors in browser");
       status.push({engineName,width,promotion:"25",normal:"33",rowAligned:true,cta:"real control"});
       await context.close();
