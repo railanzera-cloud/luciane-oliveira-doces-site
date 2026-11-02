@@ -77,8 +77,9 @@ for (const [engineName, engine] of Object.entries({ chromium, webkit })) {
             image.x >= pack.frame.x - 2 && image.right <= pack.frame.right + 2
             && image.width >= pack.frame.width * .46),'as duas embalagens devem caber na moldura sem corte lateral de elemento');
           const buttons = await page.locator('.collection-choice .collection-action').evaluateAll(nodes =>
-            nodes.map(node => ({width:node.clientWidth,scrollWidth:node.scrollWidth})));
-          assert.ok(buttons.every(b => b.scrollWidth <= b.width + 2),'CTA não pode ter overflow');
+            nodes.map(node => ({label:node.textContent?.trim(),width:node.clientWidth,scrollWidth:node.scrollWidth})));
+          assert.ok(buttons.every(b => b.scrollWidth <= b.width + 2),
+            'CTA não pode ter overflow: '+JSON.stringify({width,buttons}));
         }
         const photos = await choices.evaluateAll(nodes => nodes.flatMap(node =>
           Array.from(node.querySelectorAll('img'),img => new URL(img.currentSrc).pathname)));
