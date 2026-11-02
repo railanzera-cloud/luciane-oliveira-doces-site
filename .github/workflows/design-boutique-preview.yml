@@ -59,12 +59,17 @@ on:
       - fix/cozinha-qz-pedido1544-diagnostico-20261102
       - work/feriado-gourmet-preco-unico-20261102
       - fix/cozinha-worker-id-undefined-20261102
+      - work/gourmet-refinamento-conversao-20261102
       - feature/pre-reserva-chocolate-morango-31102026
     paths:
       - scripts/qa-vitrine.mjs
       - scripts/qa-trufadas-imersiva.mjs
       - scripts/qa-admin-disponibilidade.mjs
       - scripts/qa-gourmet-feriado-20261102.mjs
+      - scripts/qa-gourmet-refinamento-20261102.mjs
+      - components/storefront-campaign-editorial.tsx
+      - lib/storefront-campaign-creative.ts
+      - tests/gourmet-refinamento-conversao-20261102.test.mjs
       - lib/trufadas-stock-calculation.mjs
       - app/menu-navigation.ts
       - app/storefront-collection.css
@@ -295,21 +300,25 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Instalar Chromium e WebKit para conferir a oferta Gourmet
-        if: github.ref_name == 'work/feriado-gourmet-preco-unico-20261102'
+        if: (github.ref_name == 'work/feriado-gourmet-preco-unico-20261102' || github.ref_name == 'work/gourmet-refinamento-conversao-20261102')
         shell: bash
         run: |
           npm install --prefix "$RUNNER_TEMP/qa-gourmet" playwright@1.56.1
           "$RUNNER_TEMP/qa-gourmet/node_modules/.bin/playwright" install --with-deps chromium webkit
-      - name: Homologar campanha, sabores e retorno do preço em 03/11
-        if: github.ref_name == 'work/feriado-gourmet-preco-unico-20261102'
+      - name: Homologar conversão Gourmet, scroll do CTA e retorno dos preços em 03/11
+        if: (github.ref_name == 'work/feriado-gourmet-preco-unico-20261102' || github.ref_name == 'work/gourmet-refinamento-conversao-20261102')
         shell: bash
         run: |
           set -euo pipefail
           python3 -m http.server 8181 --bind 127.0.0.1 --directory outputs/cloudflare-pages >/tmp/gourmet-qa.log 2>&1 &
           export QA_PACKAGE="$RUNNER_TEMP/qa-gourmet/package.json" QA_OUTPUT="$RUNNER_TEMP/qa-gourmet-screens"
-          node scripts/qa-gourmet-feriado-20261102.mjs
+          if [[ "$GITHUB_REF_NAME" == "work/gourmet-refinamento-conversao-20261102" ]]; then
+            node scripts/qa-gourmet-refinamento-20261102.mjs
+          else
+            node scripts/qa-gourmet-feriado-20261102.mjs
+          fi
       - name: Guardar capturas reais do navegador e medidas da campanha
-        if: always() && github.ref_name == 'work/feriado-gourmet-preco-unico-20261102'
+        if: always() && (github.ref_name == 'work/feriado-gourmet-preco-unico-20261102' || github.ref_name == 'work/gourmet-refinamento-conversao-20261102')
         uses: actions/upload-artifact@v4
         with:
           name: qa-gourmet-feriado-20261102
