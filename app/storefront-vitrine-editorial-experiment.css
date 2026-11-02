@@ -3184,9 +3184,9 @@
   background: linear-gradient(140deg,#ffe4b5,#d9a46d);
   color: #382115;
   box-shadow: 0 3px 10px rgba(17,5,2,.21), inset 0 1px rgba(255,255,235,.5);
-  opacity: 0;
-  transform: scale(.55);
-  transition: opacity 170ms ease, transform 170ms ease;
+  /* O selo só é montado na variante selecionada; não depende de repaint Safari. */
+  opacity: 1;
+  transform: scale(1);
 }
 .storefront #configurador.is-cup-discovery .limited-cup-size-option[aria-pressed="true"] {
   border-color: #ffdda6;
