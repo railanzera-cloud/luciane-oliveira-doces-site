@@ -75,6 +75,7 @@ import { categoryFromUrl, trufadasFromUrl, categoryUrl, publicCategories, resolv
 import { useMenuAvailability } from "@/hooks/use-menu-availability";
 import { isLastSlicesWindow, LAST_SLICES_PRODUCT_IDS } from "@/app/last-slices-campaign";
 import { usePopcornPromotion } from "@/hooks/use-popcorn-promotion";
+import { gourmetFlavorScrollTop } from "@/lib/gourmet-guided-scroll";
 import { getLimitedCupPhase, type LimitedCupPhase } from "@/app/limited-cup-release";
 import { isPopcornPromotionActive } from "@/supabase/functions/_shared/popcorn-promotion.mjs";
 import { GOURMET_HOLIDAY_CREATIVE } from "@/lib/storefront-campaign-creative";
@@ -248,7 +249,19 @@ function scrollToGourmetControl(step: "size" | "flavor" | "quantity") {
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const offset = Math.max(80, Math.min(124, Math.round(window.innerHeight * 0.15)));
-  const desired = Math.max(0, window.scrollY + target.getBoundingClientRect().top - offset);
+  // Na escolha dos recheios, preserva a foto, tamanho e preço do pote
+  // sem esconder a primeira opção disponível quando o viewport permitir.
+  const stage = step === "flavor"
+    ? document.querySelector<HTMLElement>("#sabores .boutique-flavor-stage")
+    : null;
+  const desired = stage
+    ? gourmetFlavorScrollTop({
+        scrollY: window.scrollY,
+        stageY: stage.getBoundingClientRect().top,
+        firstFlavorY: target.getBoundingClientRect().top,
+        viewportHeight: window.innerHeight,
+      })
+    : Math.max(0, window.scrollY + target.getBoundingClientRect().top - offset);
   // Não mover o foco no toque: Safari com VoiceOver/teclado e rolagem suave
   // têm comportamentos diferentes. Para teclado, focar o controle alcançado.
   if (navigationByKeyboard) {
@@ -2450,11 +2463,6 @@ export default function Home() {
                       ? "Limite preenchido. Desmarque um sabor para trocar."
                       : `Você pode escolher mais ${popcornMaxOptions - popcornOptionIds.length} ${popcornMaxOptions - popcornOptionIds.length === 1 ? "sabor" : "sabores"}, se quiser.`)}
                 </div>
-                {!popcornPromotionActive && (
-                  <p className="selection-helper" role="status">
-                    Ao combinar sabores, vale o preço do conjunto mais caro escolhido.
-                  </p>
-                )}
                 {popcornReady && popcornOptionIds.length < popcornMaxOptions && (
                   <Button type="button" variant="outline" className="flavor-continue"
                     onClick={() => requestScroll("quantidade-pipocas")}>
