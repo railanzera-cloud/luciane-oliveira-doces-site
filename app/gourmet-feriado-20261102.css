@@ -93,70 +93,6 @@
   line-height: 1.4;
 }
 
-/* Os preços estão somente nos três cartões interativos: nenhum duplo seletor. */
-.storefront #configurador #tamanhos .step-heading {
-  margin-top: 1px;
-  margin-bottom: 12px;
-}
-.storefront #configurador #tamanhos .size-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-.storefront #configurador #tamanhos .size-card {
-  min-width: 0;
-  min-height: 114px;
-  padding: 0;
-  border-color: rgba(236, 189, 128, .29);
-  border-radius: 15px;
-  background: linear-gradient(155deg, #38251b, #281a14);
-  transition: transform .18s, box-shadow .18s, border-color .18s, background .18s;
-}
-.storefront #configurador #tamanhos .size-card.is-selected {
-  border-color: #f4c88d;
-  background: linear-gradient(135deg, #69452b, #342218);
-  box-shadow: inset 0 0 0 1px rgba(255, 221, 173, .35), 0 9px 20px rgba(12, 6, 3, .24);
-}
-.storefront #configurador #tamanhos .size-card:active:not(.is-unavailable) {
-  transform: scale(.985);
-}
-.storefront #configurador #tamanhos .size-copy {
-  min-width: 0;
-  padding: 13px 9px 12px;
-  justify-content: center;
-}
-.storefront #configurador #tamanhos .size-copy strong {
-  max-width: calc(100% - 14px);
-  font-size: clamp(.83rem, 2.8vw, 1.13rem);
-  line-height: 1.2;
-}
-.storefront #configurador #tamanhos .size-copy b {
-  margin-top: 8px;
-  color: #f8d09a;
-  font-size: clamp(.84rem, 2.65vw, 1.17rem);
-  line-height: 1.2;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-.storefront #configurador #tamanhos .size-copy small {
-  margin-top: 7px;
-  color: #cfb9a2;
-  font-size: clamp(.59rem, 1.7vw, .68rem);
-  line-height: 1.25;
-}
-.storefront #configurador #tamanhos .size-card button[role="radio"] {
-  top: 8px;
-  right: 7px;
-  width: 15px;
-  height: 15px;
-}
-.storefront #configurador #tamanhos .size-card .selected-check {
-  right: 8px;
-  bottom: 9px;
-  width: 19px;
-  height: 19px;
-}
-
 /* Somente recheios que realmente custavam mais recebem comparação de preço. */
 .storefront #configurador .boutique-flavor-cost {
   flex-direction: row;
@@ -193,58 +129,11 @@
 }
 .storefront #configurador .flavor-card.is-disabled .gourmet-feriado-saving { display: none; }
 
-/* A barra nunca deve cobrir a última ação nem forçar rolagem de sobra no checkout. */
-@media (max-width: 599px) {
-  /* Anula apenas para Gourmet a antiga regra editorial que expandia o 1 litro
-     para ocupar duas colunas, mesmo numa grade de três opções. */
-  .storefront #configurador #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child {
-    grid-column: auto;
-    min-height: 114px;
-  }
-  .storefront #configurador #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child .size-copy {
-    display: flex;
-    flex-direction: column;
-    width: auto;
-    min-width: 0;
-    padding: 13px 9px 12px;
-    gap: 0;
-  }
-  .storefront #configurador #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child .size-copy > strong,
-  .storefront #configurador #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child .size-copy > small,
-  .storefront #configurador #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child .size-copy > b {
-    grid-column: auto;
-    grid-row: auto;
-    align-self: auto;
-  }
-  .storefront .mobile-sticky-bar.is-gourmet-step {
-    min-height: 62px;
-    gap: 9px;
-    padding: 7px 8px 7px 12px;
-    border-radius: 16px;
-    bottom: max(8px, env(safe-area-inset-bottom));
-  }
-  .storefront .mobile-sticky-bar.is-gourmet-step > div { min-width: 86px; }
-  .storefront .mobile-sticky-bar.is-gourmet-step button {
-    min-height: 47px;
-    font-size: .81rem;
-    padding: 8px 9px;
-    border-radius: 11px;
-  }
-  .storefront #configurador #quantidade-pipocas {
-    padding-bottom: max(96px, calc(env(safe-area-inset-bottom) + 88px));
-  }
-}
 @media (max-width: 359px) {
   .storefront #configurador .gourmet-feriado-edition { padding: 13px 11px; gap: 8px; }
   .storefront #configurador .gourmet-feriado-edition-top { gap: 5px; }
   .storefront #configurador .gourmet-feriado-kicker,
   .storefront #configurador .gourmet-feriado-deadline { font-size: .61rem; }
-  .storefront #configurador #tamanhos .size-grid { gap: 5px; }
-  .storefront #configurador #tamanhos .size-card { min-height: 108px; border-radius: 12px; }
-  .storefront #configurador #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child { min-height: 108px; }
-  .storefront #configurador #tamanhos .size-copy { padding: 10px 6px; }
-  .storefront #configurador #tamanhos .size-grid:has(> .size-card:nth-child(3):last-child) > .size-card:last-child .size-copy { padding: 10px 6px; }
-  .storefront #configurador #tamanhos .size-copy b { font-size: .77rem; letter-spacing: -.02em; }
 }
 @media (min-width: 600px) {
   .storefront #configurador .gourmet-feriado-edition {
@@ -255,9 +144,4 @@
   .storefront #configurador .gourmet-feriado-edition-top,
   .storefront #configurador .gourmet-feriado-bottom { grid-column: 1 / -1; }
   .storefront #configurador .gourmet-feriado-description { grid-column: 2; grid-row: 2; }
-  .storefront #configurador #tamanhos .size-grid { gap: 13px; }
-  .storefront #configurador #tamanhos .size-card { min-height: 123px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .storefront #configurador #tamanhos .size-card { transition: none; transform: none; }
 }
