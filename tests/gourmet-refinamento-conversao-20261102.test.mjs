@@ -6,6 +6,7 @@ import {quoteCartItems, POPCORN_PRICES_CENTS} from "../supabase/functions/_share
 
 const page=readFileSync("app/page.tsx","utf8");
 const css=readFileSync("app/gourmet-feriado-20261102.css","utf8");
+const permanentCss=readFileSync("app/gourmet-steps.css","utf8");
 const creative=readFileSync("lib/storefront-campaign-creative.ts","utf8");
 const component=readFileSync("components/storefront-campaign-editorial.tsx","utf8");
 
@@ -15,7 +16,7 @@ test("campanha editorial é informação e os únicos cartões de escolha são r
   assert.match(page, /<StorefrontCampaignEditorial campaign=\{GOURMET_HOLIDAY_CREATIVE\}/);
   assert.match(page, /<RadioGroup className="size-grid"/);
   assert.match(page, /<RadioGroupItem id=\{\x60size-\$\{variant.id\}\x60\}/);
-  assert.match(css, /#tamanhos \.size-grid[\s\S]*?grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(permanentCss, /#tamanhos \.size-grid[\s\S]*?grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
   assert.doesNotMatch(page, /className="gourmet-feriado-price-list"/);
 });
 
@@ -33,7 +34,7 @@ test("o botão flutuante vai à opção real de tamanho, sabor ou ao carrinho",(
   assert.match(page, /const \[gourmetFlavorsInView, setGourmetFlavorsInView\]/);
   assert.match(page, /IntersectionObserver/);
   assert.match(page, /builderFlowActive && activeCategory === "pipocas" && gourmetFlavorsInView/);
-  assert.match(css, /mobile-sticky-bar\.is-gourmet-step/);
+  assert.match(permanentCss, /mobile-sticky-bar\.is-gourmet-step/);
 });
 
 test("Leitinho não recebe selo de desconto e somente grupos especiais exibem economia",()=>{
