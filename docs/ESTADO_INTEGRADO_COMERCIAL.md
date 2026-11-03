@@ -1,3 +1,19 @@
+# Gourmet — Rolagem contextual e estilos permanentes — 03/11/2026
+
+Base verificada: `work/finalizacao-whatsapp-compacta-20261102` @ `7b3aeca70de9d4908fb893c748b4c2785d073f8f`.
+Candidata: `work/gourmet-rolagem-contexto-premium-20261103`.
+
+- Ao selecionar 500 ml, 750 ml ou 1 litro, o scroll agora usa o início do cartão de pote/tamanho/preço e a primeira escolha de recheio. Em viewport curto, prioriza o controle acionável.
+- Preview Gourmet ligeiramente compacto no mobile, mantendo fotografia real, tamanho e preço dinâmico.
+- Informação do maior grupo de recheio permanece no preview, com duplicação removida do rodapé da etapa.
+- CSS permanente dos três tamanhos, da barra guiada e do preview separado das regras promocionais de 02/11. Promoção continua sujeita ao mesmo relógio e à cotação de backend.
+- Testes específicos e QA Chromium/WebKit preparados para geometria, opções, valores, esgotados e ausência de overflow.
+- Sem modificação de contratos de produtos, estoque, IDs, checkout, WhatsApp, Pix, CRM/Tintim/Meta, cozinha/QZ ou Supabase.
+
+A revisão não comprova deploy Cloudflare e não altera produção. Confirmar CI do SHA final e homologar Safari físico/iPhone e navegador interno do Instagram após Preview.
+
+---
+
 # Refinamento compacto da finalização pelo WhatsApp — 02/11/2026
 
 Base: `b6d7547dd2303f243ee95f38b3c10ec14c966191` na branch `work/finalizacao-whatsapp-recuperavel-20261102`.
