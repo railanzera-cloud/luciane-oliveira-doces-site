@@ -63,6 +63,7 @@ on:
       - fix/gourmet-clareza-final-20261102
       - work/finalizacao-whatsapp-recuperavel-20261102
       - work/finalizacao-whatsapp-compacta-20261102
+      - work/gourmet-rolagem-contexto-premium-20261103
       - feature/pre-reserva-chocolate-morango-31102026
     paths:
       - scripts/qa-vitrine.mjs
