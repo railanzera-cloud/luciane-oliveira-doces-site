@@ -73,9 +73,12 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
       await page.locator('label[for="size-500ml"]').click();
       await page.waitForTimeout(100);
       if(mobile){
+        const stage=await page.locator("#sabores .boutique-flavor-stage").boundingBox();
         const flavorFirst=await page.locator('label[for="flavor-leitinho"]').boundingBox();
-        assert.ok(flavorFirst && flavorFirst.y>=20 && flavorFirst.y<h/2,
-          "seleção tamanho levou à primeira opção de sabor, não à foto: "+JSON.stringify(flavorFirst));
+        assert.ok(stage && stage.y>=25 && stage.y<h*.28,
+          "pote selecionado precisa aparecer junto aos recheios: "+JSON.stringify(stage));
+        assert.ok(flavorFirst && flavorFirst.y>=stage.y+100 && flavorFirst.y<h*.72,
+          "primeiro recheio deve continuar acessível na mesma tela: "+JSON.stringify(flavorFirst));
         // Ao chegar aos checkboxes, a barra some e não encobre os sabores.
         const sticky=page.locator(".mobile-sticky-bar button");
         await sticky.waitFor({state:"hidden"});
@@ -85,8 +88,11 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
         await sticky.click();
         await page.waitForTimeout(80);
         const after=await page.locator('label[for="flavor-leitinho"]').boundingBox();
+        const afterStage=await page.locator("#sabores .boutique-flavor-stage").boundingBox();
         await sticky.waitFor({state:"hidden"});
-        assert.ok(after && after.y>=20 && after.y<h/2,
+        assert.ok(afterStage && afterStage.y>=25 && afterStage.y<h*.28,
+          "CTA sabores precisa mostrar a fotografia e preço do pote: "+JSON.stringify(afterStage));
+        assert.ok(after && after.y>=20 && after.y<h*.72,
           "CTA sabores não colocou a opção clicável em vista: "+JSON.stringify(after));
       }
       const baseFlavor = page.locator('label[for="flavor-leitinho"]');
@@ -117,6 +123,13 @@ for(const [engineName,engine] of Object.entries({chromium,webkit})){
       await page.locator("#tamanhos").waitFor();
       assert.equal(await page.locator(".gourmet-feriado-edition").count(),0);
       await page.locator('label[for="size-500ml"]').click();
+      if (mobile) {
+        await page.waitForTimeout(110);
+        const normalStage=await page.locator("#sabores .boutique-flavor-stage").boundingBox();
+        const normalFirst=await page.locator('label[for="flavor-leitinho"]').boundingBox();
+        assert.ok(normalStage && normalStage.y>=25 && normalStage.y<h*.28, "preview sem promoção parcialmente oculto");
+        assert.ok(normalFirst && normalFirst.y>=20 && normalFirst.y<h*.72, "recheio sem promoção fora da área útil");
+      }
       await page.locator('label[for="flavor-nutella"]').click();
       assert.match(await page.locator(".boutique-price-guide").innerText(),/R\$\s*33,00/);
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
