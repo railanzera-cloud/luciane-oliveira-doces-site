@@ -99,6 +99,7 @@ test("nunca altera limite de sabores, variantes aposentadas ou disponibilidade",
 test("frontend comunica prazo verdadeiro, conservação de estoque e preços comparativos", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   const css = await readFile(new URL("../app/gourmet-feriado-20261102.css", import.meta.url), "utf8");
+  const permanentCss = await readFile(new URL("../app/gourmet-steps.css", import.meta.url), "utf8");
   const siteBackend = await readFile(new URL("../supabase/functions/create-order/index.ts", import.meta.url), "utf8");
   const whatsappBackend = await readFile(new URL("../supabase/functions/create-whatsapp-order/index.ts", import.meta.url), "utf8");
   const campaign = await readFile(new URL("../lib/storefront-campaign-creative.ts", import.meta.url), "utf8");
@@ -114,5 +115,5 @@ test("frontend comunica prazo verdadeiro, conservação de estoque e preços com
   assert.match(siteBackend, /applyPopcornPromotionToQuote\(quoteCartItems\(input\.items/);
   assert.match(whatsappBackend, /quoteCartItems\(input\.items, Date\.now\(\)\)/);
   assert.match(css, /@media \(max-width: 359px\)/);
-  assert.match(css, /prefers-reduced-motion: reduce/);
+  assert.match(permanentCss, /prefers-reduced-motion: reduce/);
 });
