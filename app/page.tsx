@@ -834,7 +834,7 @@ export default function Home() {
           ?? deliveryLegacyLocality(savedOrder.deliveryZoneId, savedOrder.neighborhood);
         if (savedLocality) {
           setDeliveryLocalityId(savedLocality.id);
-          setDeliveryZoneId(deliveryLocalityCanQuote(savedLocality) ? savedLocality.zoneId : "");
+          setDeliveryZoneId(deliveryLocalityCanQuote(savedLocality) ? (savedLocality.zoneId ?? "") : "");
         }
         if (typeof savedOrder.address === "string") {
           setAddress(savedOrder.address);
