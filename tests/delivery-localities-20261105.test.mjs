@@ -154,7 +154,7 @@ test("dropdown is full-width on desktop and adapts to visualViewport on mobile",
   assert.match(css, /delivery-fields > \.delivery-locality-picker,[\s\S]*grid-column:1 \/ -1/);
   assert.match(css, /delivery-locality-results\[data-placement="above"\]/);
   assert.match(picker, /results\.length === 0/);
-  assert.match(picker, /query\.trim\(\)\.length >= 2 && results\.length === 0/);
+  assert.match(picker, /query\.trim\(\)\.length >= 2 && \(results\.length === 0 \|\| approximateResults\)/);
 });
 
 
