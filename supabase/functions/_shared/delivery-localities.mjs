@@ -47,22 +47,65 @@ export function deliveryLocalityByExactName(name, zoneId = null) {
   return matches.length === 1 ? matches[0] : null;
 }
 
+// Busca aproximada serve apenas para SUGERIR nomes. Não altera a lógica
+// de cotação: o cliente precisa escolher uma localidade válida explicitamente.
+function editDistanceAtMost(left, right, max) {
+  if (Math.abs(left.length - right.length) > max) return max + 1;
+  let previous = Array.from({ length: right.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= left.length; i++) {
+    const current = [i];
+    let smallest = i;
+    for (let j = 1; j <= right.length; j++) {
+      const cost = left[i - 1] === right[j - 1] ? 0 : 1;
+      const value = Math.min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + cost);
+      current.push(value);
+      smallest = Math.min(smallest, value);
+    }
+    if (smallest > max) return max + 1;
+    previous = current;
+  }
+  return previous[right.length];
+}
+
+function deliverySearchTerms(locality) {
+  return [locality.label, ...locality.aliases].map(normalizeDeliverySearch);
+}
+
+export function deliveryLocalityTextMatches(query, locality) {
+  const normalized = normalizeDeliverySearch(query);
+  if (!normalized || !locality) return false;
+  return deliverySearchTerms(locality).some(term => term.includes(normalized));
+}
+
 export function searchDeliveryLocalities(query, limit = 8) {
   const normalized = normalizeDeliverySearch(query);
+  const size = Math.max(1, Math.min(Number.isFinite(limit) ? Math.floor(limit) : 8, 20));
   const defaults = ["promissao-i", "promissao-ii", "promissao-iii", "tiao-mineiro", "acaizal"];
-  if (!normalized) return DELIVERY_LOCALITIES.filter(locality => defaults.includes(locality.id))
-    .sort((left, right) => defaults.indexOf(left.id) - defaults.indexOf(right.id)).slice(0, limit);
-  return DELIVERY_LOCALITIES
-    .map(locality => {
-      const terms = [locality.label, ...locality.aliases].map(normalizeDeliverySearch);
-      const score = terms.some(term => term === normalized) ? 0
-        : terms.some(term => term.startsWith(normalized)) ? 1
-        : terms.some(term => term.includes(normalized)) ? 2 : 9;
-      return { locality, score };
-    })
-    .filter(match => match.score < 9)
+  if (!normalized) return defaults.map(id => BY_ID.get(id)).filter(Boolean).slice(0, size);
+  const scored = DELIVERY_LOCALITIES.map(locality => {
+    const terms = deliverySearchTerms(locality);
+    const score = terms.some(term => term === normalized) ? 0
+      : terms.some(term => term.startsWith(normalized)) ? 1
+      : terms.some(term => term.includes(normalized)) ? 2 : 9;
+    return { locality, score };
+  });
+  const direct = scored.filter(match => match.score < 9);
+  if (direct.length) return direct
     .sort((a, b) => a.score - b.score || a.locality.label.localeCompare(b.locality.label, "pt-BR"))
-    .slice(0, Math.max(1, Math.min(limit, 20)))
+    .slice(0, size).map(match => match.locality);
+
+  // Não sugerir nomes muito curtos, nem disparar trabalho excessivo com texto colado.
+  if (normalized.length < 5 || normalized.length > 50) return [];
+  const maxEdits = normalized.length >= 9 ? 2 : 1;
+  return scored
+    .map(({ locality }) => {
+      const terms = deliverySearchTerms(locality);
+      const distance = Math.min(...terms.map(term => editDistanceAtMost(normalized, term, maxEdits)));
+      return { locality, distance };
+    })
+    .filter(match => match.distance <= maxEdits)
+    .sort((a, b) => a.distance - b.distance || a.locality.label.localeCompare(b.locality.label, "pt-BR"))
+    .slice(0, size)
     .map(match => match.locality);
 }
 
