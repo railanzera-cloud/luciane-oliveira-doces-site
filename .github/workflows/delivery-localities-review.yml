@@ -57,3 +57,54 @@ jobs:
         run: npm run build
       - name: Conferir regressões comerciais (site compilado)
         run: node --test tests/*.test.mjs
+
+  preview-zip:
+    name: ZIP de inspeção visual (NÃO PUBLICAR)
+    needs: checkout-delivery
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Este pacote intencionalmente NÃO traz Supabase nem checkout de produção.
+    # Nunca usá-lo para substituir o Cloudflare Pages oficial.
+    env:
+      SITE_ORDERING_ENABLED: 'false'
+      SUPABASE_URL: ''
+      SUPABASE_PUBLISHABLE_KEY: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Compilar artefatos estáticos de revisão
+        run: npm run build
+      - name: Empacotar visualmente sem integrações produtivas
+        run: node scripts/package-cloudflare.mjs
+      - name: Verificar ZIP e registrar restrições
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from zipfile import ZipFile
+          from pathlib import Path
+          p=Path('outputs/luciane-oliveira-doces-cloudflare-pages.zip')
+          assert p.is_file() and p.stat().st_size > 100000
+          with ZipFile(p) as z:
+              assert z.testzip() is None
+              names=set(z.namelist())
+              assert {'index.html','admin/index.html','pedido/index.html','404.html','_worker.js','_routes.json'} <= names
+          Path('outputs/LEIA-ME-NAO-PUBLICAR.txt').write_text(
+              'APENAS INSPEÇÃO VISUAL - NÃO PUBLICAR NO CLOUDFLARE OFICIAL.\n'
+              'Este ZIP não contém Supabase, checkout ou pagamentos produtivos.\n'
+              'O backend publicado ainda usa contratos antigos de localidade.\n'
+              'Use somente em ambiente isolado para revisão de layout.\n',
+              encoding='utf-8')
+          PY
+      - name: Guardar artefato de homologação visual
+        uses: actions/upload-artifact@v4
+        with:
+          name: QA-ENTREGAS-SOMENTE-VISUAL-NAO-PUBLICAR
+          path: |
+            outputs/luciane-oliveira-doces-cloudflare-pages.zip
+            outputs/LEIA-ME-NAO-PUBLICAR.txt
+          if-no-files-found: error
+          retention-days: 7
