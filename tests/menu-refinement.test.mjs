@@ -1159,7 +1159,7 @@ test('real delivery JSX keeps required city neighborhood, hides it for specific 
  }
  const pending=renderDeliveryFields(deliveryState('cidade','Promissão IV'));
  assert.doesNotMatch(pending,/delivery-price-preview/);
- assert.match(pending,/Confirmar com a loja pelo WhatsApp/);
+ assert.match(pending,/data-locality-picker="promissao-iv"/);
 });
 
 test('a mismatched locality blocks registration and guides both checkout and sticky action back to delivery', async () => {
@@ -1339,7 +1339,7 @@ test('all three secondary contact paths keep their original messages using the s
  const mock=props=>{received.push(props);return React.createElement(contact.TintimContactLink,props);};
  const nodes=[];
  function visit(node){if(ts.isJsxElement(node)&&node.openingElement.tagName.getText(ast)==='TintimContactLink')nodes.push(node);ts.forEachChild(node,visit);}
- visit(ast);assert.equal(nodes.length,2);
+ visit(ast);assert.equal(nodes.length,1);
  const categoryNode=nodes.find(item=>item.getText(ast).includes('className="category-text-link"'));
  assert.ok(categoryNode);
  const {outputText}=ts.transpileModule(`const render=()=>(${categoryNode.getText(ast)});`,{compilerOptions:{jsx:ts.JsxEmit.React}});
@@ -1363,6 +1363,21 @@ test('all three secondary contact paths keep their original messages using the s
   assert.equal(url.searchParams.get('text'),'Olá! Já fiz o pedido #1025 pelo site e preciso de ajuda.');
   assert.equal(url.origin,'https://tintim.link');
  }
+});
+
+test('unpriced locality offers contextual WhatsApp help without invented delivery total', async () => {
+ const {DeliveryLocalityPicker}=await vite.ssrLoadModule('/components/delivery-locality-picker.tsx');
+ const pending=renderToStaticMarkup(React.createElement(DeliveryLocalityPicker,{
+  selectedId:'ouro-preto',onSelect:()=>{},onClear:()=>{},
+ }));
+ assert.match(pending,/Essa localidade precisa de confirmação da taxa/);
+ assert.match(pending,/Confirmar esse bairro com a loja pelo WhatsApp/);
+ assert.doesNotMatch(pending,/delivery-locality-ok|taxa calculada para o bairro selecionado/);
+ const href=pending.match(/href="([^"]+)"/)?.[1];
+ assert.ok(href,'contextual support link exists');
+ const text=new URL(href.replaceAll('&amp;','&')).searchParams.get('text');
+ assert.match(text,/Ouro Preto/);
+ assert.doesNotMatch(text,/R\$ 8/);
 });
 
 test('campaign links distinguish bags from pots and retain historic back entries', () => {
