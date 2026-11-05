@@ -79,7 +79,6 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
           }}
         />
         {selected?.zoneId && <Check className="delivery-locality-ok" size={18} aria-label="Bairro selecionado" />}
-      </div>
       {expanded && (
         <div className="delivery-locality-results" id={listId} role="listbox" aria-label="Sugestões de bairros">
           {results.length === 0 ? (
@@ -106,6 +105,7 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
           })}
         </div>
       )}
+      </div>
       {selected && (selected.zoneId ? (
         <p className="delivery-locality-confirmed" role="status">
           <Check size={15} aria-hidden="true" /> {selected.label} — taxa calculada para o bairro selecionado.
