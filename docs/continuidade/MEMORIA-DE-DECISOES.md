@@ -173,3 +173,11 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - **Decisão:** versionar a árvore exata dos arquivos retornados pelo Supabase comercial, com hashes e teste de integridade/imports, conservando 21 preços/zonas legados e a cotação WhatsApp de 40 combinações. Antes do deploy reconfirmar hash/versão; mudança produtiva = novo NO-GO até reconciliação.
 - **Rejeitado:** publicar ambas como simples atualização de frete, confiar em main ou ZIP como backup, reverter funções para versões antigas enquanto o frontend novo requer locality_id.
 - **Estado:** código de rollback e teste preparados na branch; deploy, homologação em Safari físico, pagamentos e restauração não executados. CI do novo SHA precisa ser consultada. Referências: `docs/EDGE-ROLLBACK-BUNDLE-20261105.md` e `docs/edge-release/rollback/20261105/manifest.json`.
+
+
+## D-C19 — Corte limitado ao canal WhatsApp, sem mexer no gateway Mercado Pago (05/11/2026)
+
+- **Motivo:** o pacote comercial anterior mais recente disponível para inspeção (03/11) tinha `siteOrderingEnabled=false` e `mercadoPagoPublicKey=''`, enquanto o backend `create-order` v14 possui diferenças de promoções e catálogo além das entregas.
+- **Decisão:** implantação autorizada e efetivada somente da função WhatsApp `create-whatsapp-order` v27, preservando as fontes v26 para rollback; manter `create-order` v14 intacta. O ZIP conectado replica o perfil **WhatsApp-only do pacote de referência** e é oferecido ao proprietário para Cloudflare manual, com identificação clara do SHA/CI e das restrições. A versão efetivamente publicada no Cloudflare **não foi verificada**.
+- **Não fazer:** presumir pagamentos online ativos e alterá-los, forçar `SITE_ORDERING_ENABLED=true` sem public key test validada, ativar flags estritas ou tentar rollback backend antes de retornar frontend antigo.
+- **Evidência:** CI 42107709877, Supabase v27 SHA256 `3a9f2b6d683e6f675bbbd81dc1bf38edaf7cce94229a4de2a9b35b3b5469c3e3`, ZIP SHA256 `c634e77541de945602f1451469772ea21db3751f17e642b64a4c3fd2a58b3669`.
