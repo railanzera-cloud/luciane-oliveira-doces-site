@@ -109,6 +109,73 @@ jobs:
           path: ${{ runner.temp }}/qa-delivery-evidence/
           if-no-files-found: warn
           retention-days: 7
+  connected-candidate:
+    name: ZIP conectado de pré-publicação (NÃO PUBLICAR AINDA)
+    needs: [checkout-delivery, webkit-delivery]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Perfil publicamente documentado: entrega pelo WhatsApp, canal site desativado.
+    # Este artefato NÃO é o ZIP de produção até confirmar o perfil Cloudflare atual
+    # e implantar as Edge Functions compatíveis com locality_id.
+    env:
+      SITE_ORDERING_ENABLED: 'false'
+      SUPABASE_URL: 'https://edqiwvccmboyayojvuea.supabase.co'
+      SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_69flK5d9m8Oe3HHVnmKWdA_omNIuIcl'
+      MP_PUBLIC_KEY_TEST: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Compilar perfil conectado sem alterar produção
+        run: npm run build
+      - name: Empacotar candidato comercial fiel ao commit
+        run: node scripts/package-cloudflare.mjs --require-supabase
+      - name: Verificar ZIP, URLs e restrições do candidato
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib, json, os
+          p=Path('outputs/luciane-oliveira-doces-cloudflare-pages.zip')
+          assert p.is_file() and p.stat().st_size > 100000
+          with ZipFile(p) as z:
+              assert z.testzip() is None
+              files=set(z.namelist())
+              required={'index.html','admin/index.html','pedido/index.html','404.html','_worker.js','_routes.json','_headers'}
+              assert required <= files
+              assert not any(n.startswith(('.env','supabase/','node_modules/')) for n in files)
+              js='\n'.join(z.read(n).decode('utf8','replace') for n in files if n.startswith('assets/') and n.endswith('.js'))
+              assert 'https://edqiwvccmboyayojvuea.supabase.co' in js
+              assert 'sb_publishable_' in js
+              assert 'locality_id' in js
+              assert 'create-whatsapp-order' in js
+              assert 'Promissão II' in js
+              assert 'Ouro Preto' in js
+              assert len([n for n in files if n.startswith('assets/') and n.endswith('.js')]) > 5
+          info={
+            'sha':os.getenv('GITHUB_SHA'),
+            'mode':'whatsapp-only: SITE_ORDERING_ENABLED=false',
+            'status':'NAO PUBLICAR ATE COMPATIBILIZAR BACKEND E CONFERIR AMBIENTE CLOUDFLARE',
+            'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),
+            'files':len(files),
+            'bytes':p.stat().st_size
+          }
+          Path('outputs/CANDIDATO-NAO-PUBLICAR.json').write_text(json.dumps(info,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
+          print('SHA256',info['sha256'],'FILES',info['files'],'BYTES',info['bytes'])
+          PY
+      - name: Guardar candidato para revisão, sem fazer deploy
+        uses: actions/upload-artifact@v4
+        with:
+          name: CANDIDATO-CLOUDFLARE-CONNECTED-NAO-PUBLICAR
+          path: |
+            outputs/luciane-oliveira-doces-cloudflare-pages.zip
+            outputs/CANDIDATO-NAO-PUBLICAR.json
+          if-no-files-found: error
+          retention-days: 7
   preview-zip:
     name: ZIP de inspeção visual (NÃO PUBLICAR)
     needs: checkout-delivery
