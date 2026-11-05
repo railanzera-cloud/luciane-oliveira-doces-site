@@ -993,14 +993,18 @@ function renderDeliveryFields(state) {
   ts.forEachChild(candidate,visit);
  }
  visit(ast);assert.ok(node);
- const container=({children})=>React.createElement('div',null,children);
+ const picker=props=>React.createElement('div',{'data-locality-picker':props.selectedId},
+   React.createElement('label',{htmlFor:'neighborhood'},'Seu bairro ou local de entrega'),
+   React.createElement('input',{id:'neighborhood',role:'combobox',readOnly:true,value:state.deliveryNeighborhood}));
  const values={React,...state,currency:new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}),legacyAddressNotice:false,
-  setDeliveryZoneId:()=>{},setNeighborhood:()=>{},setAddress:()=>{},setAddressNumber:()=>{},setLegacyAddressNotice:()=>{},
+  setDeliveryLocalityId:()=>{},setDeliveryZoneId:()=>{},setNeighborhood:()=>{},setAddress:()=>{},
+  setAddressNumber:()=>{},setLegacyAddressNotice:()=>{},setCheckoutAvailabilityMessage:()=>{},
   setComplement:()=>{},setReference:()=>{},complement:'',reference:'',DELIVERY_TIME_ESTIMATE:catalog.DELIVERY_TIME_ESTIMATE,
-  Select:container,SelectTrigger:container,SelectValue:()=>null,SelectContent:container,SelectGroup:container,SelectLabel:container,SelectItem:container,
+  DeliveryLocalityPicker:picker,TintimContactLink:({children})=>React.createElement('a',{href:'#'},children),
   Input:props=>React.createElement('input',props),...state};
- const {outputText}=ts.transpileModule(`const render=()=>(${node.getText(ast)});`,{compilerOptions:{jsx:ts.JsxEmit.React,target:ts.ScriptTarget.ES2022}});
- return renderToStaticMarkup(new Function(...Object.keys(values),`${outputText};return render();`)(...Object.values(values)));
+ const {outputText}=ts.transpileModule('const render=()=>('+node.getText(ast)+');',{compilerOptions:{jsx:ts.JsxEmit.React,target:ts.ScriptTarget.ES2022}});
+ return renderToStaticMarkup(new Function(...Object.keys(values),outputText+';return render();')(...Object.values(values)));
+
 }
 
 test('optional complement and reference stay visible and preserve saved values', () => {
