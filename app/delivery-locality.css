@@ -1,5 +1,5 @@
 /* Entrega: busca de bairros sem grade de tarifas e sem valor genérico editável. */
-.storefront #carrinho .delivery-locality-picker { position:relative; isolation:isolate; display:grid; gap:8px; }
+.storefront #carrinho .delivery-locality-picker { position:relative; z-index:12; display:grid; gap:8px; }
 .storefront #carrinho .delivery-locality-picker > label { font-weight:800; color:#493021; font-size:.88rem; }
 .storefront #carrinho .delivery-locality-input { position:relative; display:flex; align-items:center; }
 .storefront #carrinho .delivery-locality-input > svg:first-child {
@@ -17,7 +17,7 @@
   position:absolute; right:14px; color:#28764d; pointer-events:none;
 }
 .storefront #carrinho .delivery-locality-results {
-  position:absolute; top:calc(100% - 2px); left:0; right:0; z-index:55;
+  position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:55;
   max-height:min(320px,46vh); overflow-y:auto; overscroll-behavior:contain;
   border:1px solid #c8ad8f; border-radius:13px; background:#fffcf6;
   box-shadow:0 15px 40px rgba(51,28,13,.25); padding:5px;
