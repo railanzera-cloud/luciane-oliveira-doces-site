@@ -2841,15 +2841,6 @@ export default function Home() {
                       Taxa para {selectedDeliveryLocality?.label}: <strong>{currency.format(selectedDeliveryZone.price)}</strong>
                     </p>
                   )}
-                  {!deliveryLocalityCanQuote(selectedDeliveryLocality) && (
-                    <p className="delivery-locality-assistance">
-                      Bairro não localizado ou tarifa pendente?{" "}
-                      <TintimContactLink message="Olá! Quero confirmar a taxa de entrega para meu bairro em Paragominas.">
-                        Confirmar com a loja pelo WhatsApp
-                      </TintimContactLink>
-                      . Seu carrinho continua salvo.
-                    </p>
-                  )}
                   {legacyAddressNotice && <p className="field-note" role="status">Seu endereço anterior foi preservado. Confira a rua e informe o número; se não houver, use s/n.</p>}
                   <div className="field-group"><label htmlFor="address">Rua</label><Input id="address" value={address} onChange={(event) => setAddress(event.target.value)} placeholder="Ex.: Rua das Flores" autoComplete="address-line1" /></div>
                   <div className="field-group"><label htmlFor="address-number">Número</label><Input id="address-number" value={addressNumber} onChange={(event) => { setAddressNumber(event.target.value); setLegacyAddressNotice(false); }} placeholder="Ex.: 123 ou s/n" /></div>
