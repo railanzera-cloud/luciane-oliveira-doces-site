@@ -252,3 +252,18 @@ Não repetir tarefas aprovadas para mostrar movimento. Um check verde no antigo 
 **Limites e release:** ainda não houve teste físico com Safari/iPhone/Instagram e **as Edge Functions publicadas (create-order v14, create-whatsapp-order v26)** não recebem o contrato `locality_id`. Sem deploy, merge, atualização do banco, recomputação de histórico de pedidos, flag ou publicação Cloudflare. Respeitar `docs/ENTREGA-RELEASE-GATE-20261105.md`. O ZIP de QA anterior representa checkpoint antigo e não contém as 33 novas liberações.
 
 **Checkpoint de código:** usar o HEAD da PR #6 e seus resultados de CI específicos antes de afirmar que o incremento novo foi validado; commits históricos anteriores não são prova de CI para esta atualização.
+
+
+## 16. Guard de transição entre checkout legado e novo — 05/11/2026
+
+**Situação verificada antes deste incremento:** PR #6 aberta como draft sobre `docs/continuidade-comercial-20261105`; HEAD anterior `bd88a3d4d19d4a3e1aadb6fc600064dc73f550eb` com CI bem-sucedida; 114 nomes, **58 cotáveis**, **56 pendentes** e 26 zonas. Nenhum deploy comercial.
+
+**Incremento real de código:** `delivery-localities.mjs` implementou `deliveryLegacyReviewState(name)`, sem busca aproximada nem tarifa inferida, com estados `quoted`, `pending`, `ambiguous`, `unknown`. `commerce-catalog.mjs` implementou o flag opt-in **`DELIVERY_LEGACY_REVIEW_GUARD=true`**; quando ativado no backend, rejeita bairros conhecidos pendentes ou ambíguos enviados sem `locality_id`. Por padrão está desligado, preservando as abas antigas. Não rejeita nomes desconhecidos até que, em etapa posterior, o flag estrito `DELIVERY_REQUIRE_LOCALITY_ID=true` exija o identificador. Essa distinção é relevante para segurança e disponibilidade comercial.
+
+**Testes reais no código SHA `efe7f4533061d43110574bad79b61eafb30fcc4a`:** [GitHub Actions 42094262731](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42094262731) **SUCCESS**, auditoria de 114 localidades / 26 zonas, **18/18 testes específicos**, **732/732 comerciais**, `npm run build`, `deno check` dos dois handlers e guarda de novos erros TypeScript aprovados; quatro erros antigos fora da entrega permanecem documentados.
+
+**Ajuste do gate:** as **56 pendências não exigem atribuição de tarifa para um lançamento parcial** das 58 aprovadas, desde que a operação aceite oferecer atendimento manual e a experiência pendente seja validada. Isso não significa que a publicação já foi autorizada ou está pronta: Safari/iPhone real, equivalência entre Edge produtiva e candidato, rollback e pagamentos reais permanecem não homologados.
+
+**Passos de ativação, apenas depois dos gates e da autorização específica:** backend compatível (ambos flags desligados) → frontend e verificação dos pedidos → flag intermediário, opcional e reversível → somente depois flag estrito se não houver clientes legados dependentes do formato antigo. **Nenhum flag, Edge, banco, pedido ou Cloudflare produtivo foi alterado neste incremento.** O ZIP anterior ao SHA não é pacote produtivo.
+
+**Próximo ponto:** validar o fluxo em navegador móvel real e preparar comparação/rollback das funções publicadas `create-order` v14 e `create-whatsapp-order` v26; conferir artefato de QA do último HEAD em vez de reutilizar versões antigas.
