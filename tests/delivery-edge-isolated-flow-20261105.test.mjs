@@ -14,7 +14,7 @@ import * as receipt from "../supabase/functions/_shared/receipt-card.mjs";
 const ORIGIN = "https://lucianeoliveiradoces.pages.dev";
 const MOCK_SUPABASE = "https://mock-supabase.invalid";
 const MP_URL = "https://api.mercadopago.com/v1/orders";
-const ORDER_ID = "LOD-ABCD-EFGH-JKLM";
+const ORDER_ID = "LOD-ABCD-EFGH-JKMN";
 const PUBLISHABLE = "sb_publishable_local_fixture_only";
 const makeOrder = (method, fulfillment, expectedTotal) => ({
   client_order_id: ORDER_ID,
@@ -107,8 +107,22 @@ async function isolatedHandler(slug, options = {}) {
     violations.push(url);
     throw new Error("Outbound destination not allowed in isolated Edge test: " + url);
   };
+  // Shared ESM quotes execute in Node realm, while Deno.env is local to the VM.
+  // Forward only the flag lookup temporarily, preserving the real quote function.
+  const commerceForVm = {
+    ...commerce,
+    quoteFulfillment(raw) {
+      const previous = globalThis.Deno;
+      globalThis.Deno = { env: { get: key => env[key] } };
+      try { return commerce.quoteFulfillment(raw); }
+      finally {
+        if (previous === undefined) delete globalThis.Deno;
+        else globalThis.Deno = previous;
+      }
+    },
+  };
   const imports = {
-    "../_shared/commerce-catalog.mjs": commerce,
+    "../_shared/commerce-catalog.mjs": commerceForVm,
     "../_shared/popcorn-quote-campaign.mjs": promo,
     "../_shared/receipt-card.mjs": receipt,
   };
@@ -281,6 +295,7 @@ test("Both endpoints reject unknown localities before attempting to persist an o
       { ...city(), locality_id: "inventado", zone_id: "cidade" }, "28.00");
     const result = await edge.send(input);
     assert.equal(result.status, 400, slug);
+    assert.equal(result.json.error.code, "invalid_order", slug);
     assert.equal(edge.wroteOrder(), false, slug);
   }
 });
