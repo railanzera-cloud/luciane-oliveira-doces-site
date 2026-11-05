@@ -41,9 +41,9 @@ São exemplos expressamente citados como dentro da cidade; ainda vale conferir s
 | Promissão III | R$ 8,00 | ☐ |
 | Tião Mineiro | R$ 8,00 | ☐ |
 
-## 3. Localidades homologadas pelo proprietário em 05/11/2026 (35)
+## 3. Localidades homologadas pelo proprietário em 05/11/2026 (46)
 
-O proprietário confirmou expressamente 30 localidades a **R$ 8** (incluindo Módulo I/Centro e Trecho Seco) e cinco a **R$ 10**. São valores para pedidos novos **após a publicação coordenada**, não alterações retroativas nem confirmação automática de áreas adjacentes. As grafias “Laresos Cabeline” e “Cidiren Rosa” foram interpretadas pelos nomes exibidos na lista consultada: **Laércio Cabeline** e **Sidney Rosa**, respectivamente.
+O proprietário confirmou expressamente 38 localidades a **R$ 8** e oito a **R$ 10**, incluindo os grupos numerados de bairros. São valores para pedidos novos **após a publicação coordenada**, não alterações retroativas nem confirmação automática de áreas adjacentes. As grafias “Laresos Cabeline” e “Cidiren Rosa” foram interpretadas pelos nomes exibidos na lista consultada: **Laércio Cabeline** e **Sidney Rosa**, respectivamente.
 
 | ID | Localidade | Tarifa aprovada | Observação |
 |---|---|---:|---|
@@ -62,7 +62,7 @@ O proprietário confirmou expressamente 30 localidades a **R$ 8** (incluindo Mó
 | `jardim-atlantico` | Jardim Atlântico | R$ 8,00 | Confirmada em 05/11. |
 | `jardim-bela-vista` | Jardim Bela Vista | R$ 8,00 | Confirmada em 05/11. |
 | `juparana` | Juparanã | R$ 10,00 | Bairro; diferente de Juparanã Empresa (também R$ 10). |
-| `laercio-cabeline` | Laércio Cabeline | R$ 10,00 | Não inclui automaticamente Laércio Cabeline II. |
+| `laercio-cabeline` | Laércio Cabeline | R$ 10,00 | A regra confirmada agora inclui também Laércio Cabeline II. |
 | `morada-do-sol` | Morada do Sol | R$ 8,00 | Confirmada em 05/11. |
 | `morada-dos-ventos` | Morada dos Ventos | R$ 8,00 | Confirmada em 05/11. |
 | `morada-verde` | Morada Verde | R$ 8,00 | Confirmada em 05/11. |
@@ -83,7 +83,19 @@ O proprietário confirmou expressamente 30 localidades a **R$ 8** (incluindo Mó
 | `uraim` | Uraim | R$ 8,00 | Confirmada em 05/11. |
 | `uraim-i` | Uraim I | R$ 8,00 | Confirmada em 05/11. |
 
-## 4. Vínculos urbanos prováveis NÃO homologados (29)
+| `camboata-i` | Camboatã I | R$ 8,00 | Mesmo grupo do Camboatã. |
+| `camboata-iii` | Camboatã III | R$ 8,00 | Novo nome informado pelo proprietário; ID próprio. |
+| `jardim-camboata` | Jardim Camboatã | R$ 8,00 | Subdivisão do Camboatã no cadastro municipal. |
+| `jardim-camboata-ii` | Jardim Camboatã II | R$ 8,00 | Mesmo grupo do Jardim Camboatã. |
+| `modulo-ii` | Módulo II | R$ 8,00 | Mesmo valor do Módulo I/Centro. |
+| `parque-iv` | Parque IV | R$ 8,00 | Subdivisão da Promissão no cadastro municipal. |
+| `uraim-ii` | Uraim II | R$ 8,00 | Mesmo grupo do Uraim. |
+| `uraim-iii` | Uraim III | R$ 8,00 | Mesmo grupo do Uraim. |
+| `laercio-cabeline-ii` | Laércio Cabeline II | R$ 10,00 | Tarifa estendida à subdivisão numerada. |
+| `sidilandia-i` | Sidilândia I | R$ 10,00 | Nome próprio; usa grupo tarifário de R$ 10 do Açaizal, sem fundir localidades. |
+| `sidilandia-ii` | Sidilândia II | R$ 10,00 | Mesmo valor de Sidilândia I. |
+
+## 4. Vínculos urbanos prováveis NÃO homologados (22)
 
 **Regra atual do novo checkout:** aparecem na busca com *A confirmar*, sem cobrança online automática. `zoneId=cidade` é somente vínculo candidato para análise, não autorização tarifária.
 
@@ -91,19 +103,14 @@ O proprietário confirmou expressamente 30 localidades a **R$ 8** (incluindo Mó
 |---|---|---|---|
 | `alto-do-vale` | Alto do Vale | ☐ | — |
 | `andradina` | Andradina | ☐ | — |
-| `camboata-i` | Camboatã I | ☐ | — |
 | `cidade-jardim` | Cidade Jardim | ☐ | — |
 | `clube-do-cavalo` | Clube do Cavalo | ☐ | — |
 | `inocencio-oliveira` | Inocêncio Oliveira | ☐ | — |
-| `jardim-camboata` | Jardim Camboatã | ☐ | — |
-| `jardim-camboata-ii` | Jardim Camboatã II | ☐ | — |
 | `manoel-nahor-de-lima` | Manoel Nahor de Lima | ☐ | — |
 | `marisa-rocha` | Marisa Rocha | ☐ | — |
 | `mariza-rocha` | Mariza Rocha | ☐ | — |
-| `modulo-ii` | Módulo II | ☐ | — |
 | `ouro-verde` | Ouro Verde | ☐ | — |
 | `parque-das-americas` | Parque das Américas | ☐ | — |
-| `parque-iv` | Parque IV | ☐ | — |
 | `residencial-cidade-jardim` | Residencial Cidade Jardim | ☐ | — |
 | `residencial-helena-coutinho` | Residencial Helena Coutinho | ☐ | — |
 | `residencial-jardim-america` | Residencial Jardim América | ☐ | — |
@@ -115,11 +122,9 @@ O proprietário confirmou expressamente 30 localidades a **R$ 8** (incluindo Mó
 | `residencial-zeno-azeredo` | Residencial Zeno Azeredo | ☐ | — |
 | `santa-rosa` | Santa Rosa | ☐ | — |
 | `sol-nascente` | Sol Nascente | ☐ | — |
-| `uraim-ii` | Uraim II | ☐ | — |
-| `uraim-iii` | Uraim III | ☐ | — |
 | `vila-cabral` | Vila Cabral | ☐ | — |
 
-## 5. Denominações sem vínculo tarifário (25)
+## 5. Denominações sem vínculo tarifário (22)
 
 Estas podem representar bairros, loteamentos, empresas ou grafias divergentes. Confirmar primeiro a identidade e só depois definir tarifa.
 
@@ -139,13 +144,10 @@ Estas podem representar bairros, loteamentos, empresas ou grafias divergentes. C
 | `independencia` | Independência | — | — |
 | `jardim-amazonico` | Jardim Amazônico | — | — |
 | `jardim-elandia-grafia-a-confirmar` | Jardim Elândia (grafia a confirmar) | — | — |
-| `laercio-cabeline-ii` | Laércio Cabeline II | — | — |
 | `novo-camboata` | Novo Camboatã | — | — |
 | `paraiso` | Paraíso | — | — |
 | `parque-village-flamboyant` | Parque Village Flamboyant | — | — |
 | `residencial-pandolfi` | Residencial Pandolfi | — | — |
-| `sidilandia-i` | Sidilândia I | — | — |
-| `sidilandia-ii` | Sidilândia II | — | — |
 | `vale-do-uraim` | Vale do Uraim | — | — |
 | `vale-dos-lirios` | Vale dos Lírios | — | — |
 | `vila-caip` | Vila CAIP | — | — |
@@ -159,4 +161,11 @@ Estas podem representar bairros, loteamentos, empresas ou grafias divergentes. C
 4. Verificar paridade de `app/catalog.ts` e `commerce-catalog.mjs` (incluindo Edge realmente publicada), total, Pix, cartão, WhatsApp, administração, cozinha e recuperação de rascunho.
 5. Não publicar código nem aplicar `DELIVERY_REQUIRE_LOCALITY_ID` antes do corte controlado que preserve sessões antigas. Nenhuma linha marcada neste documento muda a produção sozinha.
 
-**Resumo após novas confirmações de 05/11/2026:** 114 nomes pesquisáveis / 20 especiais legados / 5 referências urbanas anteriores / 35 novas confirmações (30 a R$ 8 e 5 a R$ 10) / 29 candidatos urbanos pendentes / 25 nomes sem região. **60 localidades cotáveis; 54 continuam A confirmar.** Os bairros restantes serão ajustados somente após resposta do proprietário.
+**Resumo após confirmação dos grupos em 05/11/2026:** 115 IDs de localidades (inclui Camboatã III) / 20 especiais legados / 5 referências urbanas anteriores / 46 confirmações pelo proprietário (38 a R$ 8 e 8 a R$ 10) / 22 candidatos urbanos pendentes / 22 sem zona. **71 localidades cotáveis; 44 ainda pendentes no catálogo interno.** Quatro referências secundárias não aparecem como bairros na busca, mas mantêm os IDs históricos.
+
+
+## 7. Bairro, loteamento e condomínio — esclarecimento da busca
+
+O Plano Municipal pela Primeira Infância de Paragominas (anexos 2022–2032, páginas 12–13) relaciona Condomínio Alto do Lago e Residencial Tropical ao bairro Tropical; Sidilândia I e II à área do Açaizal; Uraim II e III ao Uraim; Jardim Camboatã e II ao Camboatã; e Parque IV à Promissão. O documento fornece contexto de nomes e localidades, **não tarifas**. Fonte municipal: https://camaraparagominas.pa.gov.br/wp-content/uploads/2023/02/PROJETO-DE-LEI-No-030-2023-PLANO-MUNICIPAL-PELA-PRIMEIRA-INFANCIA-ANEXOS.pdf.
+
+**Limpeza apenas de UI:** Alan Kardec, Condomínio Residencial Alto do Lago, Condomínio Residencial Tropical e Distrito Industrial Moveleiro deixam de aparecer como opções de bairro distintas no checkout; a pessoa deve selecionar o bairro e especificar condomínio/residencial no campo Complemento. Os IDs permanecem no catálogo interno, e essas referências continuam sem cotação automática. Não mapear Alto do Lago para Flamboyant por suposição. Nem todas as outras referências sem tarifa foram ocultadas ou receberam taxa por proximidade.

@@ -188,3 +188,11 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - O proprietário confirmou **Módulo I (Centro)** e **Trecho Seco** dentro da cidade, com frete **R$ 8,00** para ambos. `Centro` é alias do Módulo I; `Trecho Seco` sai da lista sem zona e é vinculado à zona urbana existente. Não cria zona nova nem modifica valor da zona `cidade`.
 - Política: o proprietário pode confirmar os bairros pendentes em lotes por frequência real de pedidos; **não** atribuir R$ 8 por pressuposição de urbanidade. Após estas duas confirmações, 60 nomes passam a ser cotáveis e 54 continuam pendentes.
 - Para reduzir deploys desnecessários, deixar alterações do novo lote preparadas na branch e aguardar as demais tarifas fornecidas na conversa antes de trocar novamente o bundle de Edge e o ZIP de Cloudflare. Não alterar pagamentos, estoque ou Luciane Gestão.
+
+
+## D-C21 — Tarifas dos grupos numerados e filtro de referências subordinadas (05/11/2026)
+
+- Confirmações comerciais do proprietário: R$ 8 para Promissão I–IV, Camboatã I–III, Jardim Camboatã/II, Uraim I–III, Módulos I/II e Parque IV; R$ 10 para Laércio Cabeline/II e Sidilândia I/II, além das exceções já aprovadas (Aragão, Açaizal, Sidney Rosa, etc.). A regra vale **somente para as localidades listadas**, sem usar proximidade de nomes como autorização genérica para criar tarifas. Camboatã III tem ID novo porque foi mencionado pelo proprietário.
+- **Identidade versus preço:** Sidilândia I e II mantêm ID/nome próprios e usam a zona comercial de R$ 10 do Açaizal; não se tornam Sidney Rosa. O documento municipal relaciona Sidilândia I e II a Açaizal e Jardim Camboatã a Camboatã, mas **não define os preços**.
+- **Checkout:** os IDs de Alan Kardec, Condomínio Residencial Alto do Lago, Condomínio Residencial Tropical e Distrito Industrial Moveleiro são preservados para histórico/recuperação de dados, porém os nomes deixam de aparecer como bairros autônomos no seletor. Ao buscá-los, o site orienta escolher o bairro e informar o local no Complemento. Os nomes restantes sem tarifa não se tornam R$ 8 automaticamente.
+- Após os ajustes, matriz interna esperada: 115 IDs; 71 cotáveis, 44 pendentes. **Ainda não há implantação destas mudanças** no Supabase WhatsApp v27 nem no Cloudflare. Agrupar publicação com as confirmações finais e validar backend + ZIP no mesmo corte.
