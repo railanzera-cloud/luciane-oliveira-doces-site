@@ -1,4 +1,7 @@
 # Evidências agregadas de frete — pedidos comerciais reais
+
+**ATUALIZAÇÃO 05/11/2026:** os 33 locais priorizados por este relatório foram posteriormente **confirmados pelo proprietário**: **28 com entrega R$ 8** e **cinco com R$ 10** (Ouro Preto, Juparanã bairro, Aragão, Laércio Cabeline, Sidney Rosa). As tabelas abaixo descrevem o **histórico anterior à homologação**, não pendências atuais. A [matriz comercial atual](ENTREGA-HOMOLOGACAO-LOCALIDADES-20261105.md) contém as 58 tarifas cotáveis e 56 localidades ainda sem validação. Não houve reescrita de pedidos ou alteração produtiva.
+
 **Leitura somente de metadados agregados de `public.orders`** · Projeto Supabase comercial `edqiwvccmboyayojvuea` · 05/11/2026.
 
 **Finalidade:** priorizar a homologação dos bairros antes de liberar o checkout novo. Nenhum pedido foi alterado. Não foram consultados nomes de clientes, telefone, rua, número, CPF ou forma de pagamento. Os resultados só revelam nomes de localidades já presentes no catálogo público e contagens agregadas de pedidos por tarifa; denominações não reconhecidas foram omitidas do relatório.
