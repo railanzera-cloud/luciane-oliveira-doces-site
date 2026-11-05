@@ -136,3 +136,20 @@ Não repetir tarefas aprovadas para mostrar movimento. Um check verde no antigo 
 - **Próximo gate:** validar correspondência dos bairros e tarifas com a proprietária, conferir Edge/SQL realmente instalados, revisar experiência em viewport móvel/Safari e decidir rollout faseado sob autorização específica. Atualizar documento visual após aprovação estética real; não implantar branch diretamente em produção sem essa conferência.
 
 **Observação de governança:** esta atualização documental cria um novo HEAD posterior ao SHA técnico acima. A CI deve ser consultada no novo SHA antes de atribuir resultados a ele.
+
+
+## 10. Incremento de segurança tarifária e contato assistido — 05/11/2026
+
+**Problema encontrado ao continuar:** o primeiro catálogo possuía 59 associações candidatas à zona urbana de R$ 8 marcadas como `quoted`, embora o próprio checkpoint exigisse homologação comercial. Isso poderia fazer a nova interface aceitar cobrança não comprovada para bairros aparentemente urbanos.
+
+**Correção efetivamente codificada:** o registro distingue *localidade pesquisável* de *localidade liberada para cotação*. Das 114 denominações: 20 destinos com tarifa especial pré-existente, cinco exemplos urbanos mencionados pelo proprietário (Promissão I/II/III, Tião Mineiro e Flamboyant) e **89 pendências** (54 vínculos urbanos candidatos + 35 sem associação). Os 89 permanecem visíveis na busca como **"A confirmar"**. O frontend não habilita checkout para eles; o backend `quoteFulfillment` também recusa `locality_id` não homologado. Esses bloqueios valem para o novo contrato; o modo legado temporário continua limitado até ativação segura do flag.
+
+**Contato assistido melhorado:** ao selecionar um bairro pendente ou digitar um nome não localizado, a busca pode abrir o canal Tintim/WhatsApp com mensagem que contém a localidade escolhida/digitada. Carrinho e campos seguem preservados; o ato de abrir o link **não** registra pagamento/pedido nem comprova envio da mensagem.
+
+**Matriz de conferência:** `docs/ENTREGA-HOMOLOGACAO-LOCALIDADES-20261105.md` apresenta os 20 valores especiais do código, cinco exemplos urbanos e as duas listas pendentes (54 e 35), com colunas para conferência da loja. É um instrumento de revisão, não cadastro validado nem alteração remota de taxas.
+
+**Evidência intermediária:** branch `work/entrega-busca-bairros-segura-20261105`, PR #6 draft, [CI da implementação do SHA `54b714be`](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42074228872) **SUCCESS** após ajuste das fixtures, com testes novos, build e regressão comercial. Esta atualização documental é posterior a esse SHA; consultar o workflow do HEAD antes de afirmar resultado final. A checagem de tipos ainda reporta quatro erros anteriores fora do módulo.
+
+**Não executado:** deploy Edge/Cloudflare, migração, atualização de estoque, alterações em preços produtivos, merge, Pix/cartão real, WhatsApp enviado ou QA Safari físico. Nenhuma dessas ações deve ser inferida de CI verde.
+
+**Próximo gate concreto:** revisar as 89 entradas pendentes com a loja (e confirmar as cinco referências urbanas e 20 preços especiais), depois homologar navegação e sessão em Safari/iPhone e planejar backend → frontend → flag sob autorização expressa de publicação.
