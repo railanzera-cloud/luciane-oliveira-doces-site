@@ -29,20 +29,23 @@ Leitura somente dos metadados e arquivos de Edge Functions, **sem alterar produ�
 
 ## 3. Critérios GO / NO-GO
 
-**NO-GO para publicar nesta fotografia:** restam 56 localidades sem confirmação; as taxas especiais históricas e limites de atendimento ainda precisam de conferência abrangente. Não houve teste de uso no Safari/iPhone real; o backend comercial publicado NÃO entende `locality_id`; as duas Edge Functions podem ter diferenças de negócio/versões próprias.
+**NO-GO para publicar nesta fotografia:** não houve teste de uso no Safari/iPhone real; o backend comercial publicado NÃO entende `locality_id`; e as duas Edge Functions podem ter diferenças relevantes de negócio/versões próprias. Os 56 nomes não homologados **não podem receber cotação automática**.
+
+**Possibilidade de lançamento parcial controlado:** concluir os 56 nomes **não é pré-requisito absoluto** para liberar os **58 destinos com tarifa validada**, desde que a loja aceite explicitamente que os outros 56 continuarão em **A confirmar**, que a ajuda no WhatsApp e a recuperação do carrinho tenham sido testadas, e que o frontend/backend/rollback passem nos gates desta página. Isso NÃO aprova cobertura nem tarifa de qualquer destino pendente.
 
 Para obter **GO**:
 1. **Luciane e responsável pelas entregas** validam, na [matriz de 114 localidades](ENTREGA-HOMOLOGACAO-LOCALIDADES-20261105.md): quais bairros são atendidos, tarifa efetiva, sinônimos, limites de divisa e data. Não inferir R$ 8 por ser bairro oficialmente urbano. Atualizar IDs/estado conforme validação e rodar a auditoria novamente.
 2. **Homologar o frontend com teclado aberto** em Safari real e navegador embutido do Instagram, nas larguras 320/375/390/430 px e desktop; validar tecla Enter, escolha por toque, alteração/restauração de bairro e ajuda ao cliente. Não confundir testes unitários de `visualViewport` com teste visual realizado.
 3. **Comparar e preservar as duas funções atualmente publicadas**, seus bundles/imports, chamadas de pagamento, promoções, estoque, idempotência, normalização e estado de pedidos. O candidato `create-order` usa `applyPopcornPromotionToQuote` mas a versão 14 publicada não; isso exige avaliação comercial de impacto antes de substituir.
 4. Confirmar capacidade de rollback: arquivos originais, versões e procedimento para voltar; conferir parâmetros de ambiente sem exibir segredos, URLs/origens autorizadas, dependências `_shared` e versões reais instaladas. Preparar teste em ambiente isolado com produtos, cartões e Pix **sem enviar pedidos ou transações de clientes de produção**.
-5. Depois de autorização específica: deploy **backend compatível primeiro**, com `DELIVERY_REQUIRE_LOCALITY_ID` ainda desativado (ou ausente); confirmar cotação e ausência de regressões nos dois canais antes de publicar o frontend. Deploy de função ativa passa a servir imediatamente.
+5. Depois de autorização específica: deploy **backend compatível primeiro**, com `DELIVERY_LEGACY_REVIEW_GUARD` e `DELIVERY_REQUIRE_LOCALITY_ID` **desativadas ou ausentes**. Confirmar cotação e ausência de regressões nos dois canais antes de publicar o frontend. Deploy de função ativa passa a servir imediatamente.
 6. Publicar frontend validado no Cloudflare **somente após** as duas funções reconhecerem `locality_id` e terem os contratos corretos. Testar sessão antiga recuperada, preço em centavos, resumo, pedido completo, Pix, cartão e WhatsApp sem atribuir status pago/enviado a cliques.
-7. Monitorar pedidos antigos e novos; só quando o corte estiver estável considerar ativar `DELIVERY_REQUIRE_LOCALITY_ID=true`, mediante autorização, sabendo que abas antigas sem o ID receberão instrução para atualizar a página. Disponibilizar recuperação e suporte nesses casos.
+7. Em uma janela posterior, com autorização operacional, pode-se ativar `DELIVERY_LEGACY_REVIEW_GUARD=true`: **apenas abas antigas** sem ID que digitarem uma localidade **conhecida e pendente/ambígua** recebem instrução para atualizar a página/confirmar a tarifa. Abas antigas com locais reconhecidos e aprovados continuam funcionando. **Nomes desconhecidos ainda são permitidos na compatibilidade legada**; não afirmar proteção total.
+8. Só após checar sessões antigas, estratégia de recuperação e estabilidade do corte, avaliar ativar `DELIVERY_REQUIRE_LOCALITY_ID=true`, mediante autorização. **Esse flag é estrito:** bloqueia todos os pedidos antigos de entrega sem ID, mesmo de bairros aprovados. Retirada permanece independente.
 
 ## 4. Rollback seguro
 
-Se o frontend apresentar problemas: **não apagar pedidos reais nem reverter automaticamente o banco**. Se o flag de obrigatoriedade foi ativado, desativá-lo primeiro; retornar o Cloudflare ao pacote anterior conhecido e validado; manter backend compatível enquanto existirem abas antigas; investigar os registros operacionais e só então avaliar revertê-lo separadamente. Ao falhar uma função, preservar original e confirmar rollback **sem substituir a função errada**.
+Se o frontend apresentar problemas: **não apagar pedidos reais nem reverter automaticamente o banco**. Se algum dos flags de rollout `DELIVERY_LEGACY_REVIEW_GUARD` ou `DELIVERY_REQUIRE_LOCALITY_ID` foi ativado, desativá-lo primeiro; retornar o Cloudflare ao pacote anterior conhecido e validado; manter backend compatível enquanto existirem abas antigas; investigar os registros operacionais e só então avaliar revertê-lo separadamente. Ao falhar uma função, preservar original e confirmar rollback **sem substituir a função errada**.
 
 ## 5. Definição de pronto
 
