@@ -15,6 +15,7 @@ on:
       - 'tests/delivery-localities-20261105.test.mjs'
       - 'scripts/audit-delivery-contract.mjs'
       - 'tests/delivery-edge-rollback-20261105.test.mjs'
+      - 'tests/delivery-edge-isolated-flow-20261105.test.mjs'
       - 'docs/edge-release/rollback/20261105/**'
       - 'docs/EDGE-ROLLBACK-BUNDLE-20261105.md'
 permissions:
@@ -40,6 +41,8 @@ jobs:
         run: node scripts/audit-delivery-contract.mjs
       - name: Conferir fontes exatas das Edge e paridade comercial sem produção
         run: node --test tests/delivery-edge-rollback-20261105.test.mjs
+      - name: Exercitar handlers reais em isolamento sem rede produtiva
+        run: node --test tests/delivery-edge-isolated-flow-20261105.test.mjs
       - name: Testar identidade do bairro, anti-bypass e fluxo
         run: node --test tests/delivery-localities-20261105.test.mjs
       - name: Conferir TypeScript (falhar em erros novos)
