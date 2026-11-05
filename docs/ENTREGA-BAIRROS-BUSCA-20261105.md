@@ -43,3 +43,16 @@ O arquivo `supabase/functions/_shared/delivery-localities.mjs` contém **114 nom
 ## Limites
 
 Sem geocodificação verificável, um cliente ainda pode escolher deliberadamente um **bairro diferente de seu endereço físico**. Buscar bairro e conferir identificador torna o erro mais difícil, mas não certifica uma localização declarada. Para áreas de divisa, o canal de confirmação manual permanece necessário. O link ao WhatsApp não comprova mensagem enviada.
+
+
+## Incremento de busca por grafia aproximada — 05/11/2026
+
+O método `searchDeliveryLocalities` foi refinado para **sugerir** um nome próximo quando não há correspondência direta nem por alias. Exemplos de consulta: `Promisao 2` → `Promissão II`; `Nagibaoo` → `Nagib Demachki (Nagibão)`. Para consultas curtas (menos de cinco caracteres) ou textos longos, não se tenta adivinhar. Busca exata e aliases têm prioridade sobre correção ortográfica.
+
+**Segurança:** a sugestão aproximada não altera `locality_id`, não autoriza tarifa, não faz inferência de endereço físico e não substitui a seleção explícita do cliente. Os 89 nomes ainda sem homologação comercial continuam não cotáveis no servidor, mesmo quando uma grafia parecida for encontrada. A interface sinaliza “Sugestões parecidas” e oferece contato assistido para quem não reconhece a localidade.
+
+**Interação móvel candidata:** o seletor retém a lista durante o início do toque em uma opção, reduzindo o risco de perder o clique devido ao `blur` do Safari/iOS. É uma mitigação de código, **não** prova de teste físico em Safari, Instagram ou teclado real.
+
+**Evidência de código:** SHA `ff611e15a2ef0dd9acfb22819980c125e41754c4`, [workflow de entrega 42079563944](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42079563944): 12 testes focalizados aprovados, 726 testes comerciais aprovados, build aprovado e nenhum erro novo de TypeScript. Quatro erros de tipos preexistentes fora da entrega continuam documentados.
+
+**Arquivos:** `supabase/functions/_shared/delivery-localities.mjs`, `components/delivery-locality-picker.tsx`, `app/delivery-locality.css` e `tests/delivery-localities-20261105.test.mjs`. Sem alteração de preços, cadastros produtivos ou deploy.
