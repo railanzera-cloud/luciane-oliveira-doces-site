@@ -13,7 +13,7 @@ O Supabase comercial edqiwvccmboyayojvuea foi lido sem alteração. Fonte preser
 
 ## Verificação sem produção
 
-1. Executar node --test tests/delivery-edge-rollback-20261105.test.mjs para validar hashes, imports, preservação das 21 tarifas anteriores, as cinco novas zonas e paridade de 40 cotações sintéticas do WhatsApp com o catálogo da v26 publicada.
+1. Executar node --test tests/delivery-edge-rollback-20261105.test.mjs para validar hashes, imports, preservação das 21 tarifas anteriores, as cinco novas zonas e paridade de 40 cotações sintéticas do WhatsApp com a v26 publicada, além de 30 cotações de SKUs que já existiam no checkout site/MP v14 (incluindo adaptador da promoção).
 2. Executar node scripts/audit-delivery-contract.mjs e node --test tests/delivery-localities-20261105.test.mjs para conferir as 114 localidades, 58 cotáveis e 56 pendentes.
 3. Executar deno check nas duas Edge Functions candidatas, compilar site e rodar regressões comerciais pela CI do SHA.
 4. Reconsultar versions/hashes produtivos antes da janela de deploy. Se mudarem, suspender e recapturar; CI local não consulta Supabase automaticamente.

@@ -96,3 +96,41 @@ test("both Edge candidate entrypoints use validated shared fulfillment, without 
   assert.doesNotMatch(oldSite, /locality_id/);
   assert.doesNotMatch(await readFile(at("docs/edge-release/rollback/20261105/create-whatsapp-order-v26/functions/_shared/commerce-catalog.mjs"), "utf8"), /locality_id/);
 });
+
+
+test("legacy Mercado Pago/site quote amounts and stock identities remain unchanged for 30 shared SKUs", async () => {
+  // The v14 site catalogue does not contain all later products; compare only the
+  // 6 older slices and 24 Gourmet size/flavour combinations. Never place an order.
+  const now = Date.parse("2026-11-05T12:00:00-03:00");
+  const cases = [
+    ...Object.keys(v14.SLICES).map(product_id =>
+      ({ product_id, variant_id: "fatia", option_ids: [], quantity: 2 })),
+    ...Object.keys(v14.POPCORN_SIZES).flatMap(variant_id =>
+      Object.keys(v14.POPCORN_FLAVORS).map(flavor =>
+        ({ product_id: "pipoca-gourmet", variant_id, option_ids: [flavor], quantity: 2 }))),
+  ];
+  assert.equal(cases.length, 30);
+  const { applyPopcornPromotionToQuote } = await import("../supabase/functions/_shared/popcorn-quote-campaign.mjs");
+  const normalise = quote => ({
+    subtotalCents: quote.subtotalCents,
+    availabilityKeys: quote.availabilityKeys,
+    items: quote.items.map(item => ({
+      item_key: item.item_key, product_id: item.product_id, category_key: item.category_key,
+      variant_id: item.variant_id, variant_item_key: item.variant_item_key,
+      option_ids: item.option_ids, option_item_keys: item.option_item_keys,
+      quantity: item.quantity, unit_price_cents: item.unit_price_cents,
+      line_total_cents: item.line_total_cents,
+    })),
+  });
+  for (const item of cases) {
+    const oldQuote = v14.quoteCartItems([item]);
+    const newQuote = candidate.quoteCartItems([item], now);
+    const siteHandlerQuote = applyPopcornPromotionToQuote(newQuote, now);
+    assert.deepEqual(normalise(siteHandlerQuote), normalise(oldQuote),
+      "Shared site checkout price/stock identity changed: " + item.product_id
+        + " " + item.variant_id + " " + item.option_ids.join(","));
+  }
+  assert.equal(Object.keys(v14.SLICES).length, 6);
+  assert.equal(Object.keys(candidate.SLICES).length, 7,
+    "One later slice is intentionally not available on the archived v14 site catalogue");
+});
