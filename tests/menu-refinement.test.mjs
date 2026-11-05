@@ -928,7 +928,7 @@ const deliveryRegistry = await import('../supabase/functions/_shared/delivery-lo
 const deliveryAddress = {type:'delivery', zone_id:'cidade', neighborhood:'Centro', street:'Rua X', number:'12', complement:'Casa 2', reference:'Portaria'};
 function deliveryState(zoneId, neighborhood, fulfillment='entrega') {
  const locality = zoneId === 'cidade'
-  ? deliveryRegistry.deliveryLocalityByExactName(neighborhood, 'cidade')
+  ? deliveryRegistry.deliveryLocalityByExactName(neighborhood)
   : deliveryRegistry.DELIVERY_LOCALITIES.find(item=>item.zoneId===zoneId) ?? null;
  const values={fulfillment,deliveryZoneId:zoneId,deliveryLocalityId:locality?.id ?? '',neighborhood,address:'Rua X',addressNumber:'12',
   DELIVERY_ZONES:catalog.DELIVERY_ZONES,deliveryLocalityById:deliveryRegistry.deliveryLocalityById,
