@@ -41,9 +41,9 @@ São exemplos expressamente citados como dentro da cidade; ainda vale conferir s
 | Promissão III | R$ 8,00 | ☐ |
 | Tião Mineiro | R$ 8,00 | ☐ |
 
-## 3. Localidades homologadas pelo proprietário em 05/11/2026 (33)
+## 3. Localidades homologadas pelo proprietário em 05/11/2026 (35)
 
-O proprietário confirmou expressamente 28 localidades a **R$ 8** e cinco a **R$ 10**. São valores para pedidos novos **após a publicação coordenada**, não alterações retroativas nem confirmação automática de áreas adjacentes. As grafias “Laresos Cabeline” e “Cidiren Rosa” foram interpretadas pelos nomes exibidos na lista consultada: **Laércio Cabeline** e **Sidney Rosa**, respectivamente.
+O proprietário confirmou expressamente 30 localidades a **R$ 8** (incluindo Módulo I/Centro e Trecho Seco) e cinco a **R$ 10**. São valores para pedidos novos **após a publicação coordenada**, não alterações retroativas nem confirmação automática de áreas adjacentes. As grafias “Laresos Cabeline” e “Cidiren Rosa” foram interpretadas pelos nomes exibidos na lista consultada: **Laércio Cabeline** e **Sidney Rosa**, respectivamente.
 
 | ID | Localidade | Tarifa aprovada | Observação |
 |---|---|---:|---|
@@ -66,6 +66,7 @@ O proprietário confirmou expressamente 28 localidades a **R$ 8** e cinco a **R$
 | `morada-do-sol` | Morada do Sol | R$ 8,00 | Confirmada em 05/11. |
 | `morada-dos-ventos` | Morada dos Ventos | R$ 8,00 | Confirmada em 05/11. |
 | `morada-verde` | Morada Verde | R$ 8,00 | Confirmada em 05/11. |
+| `modulo-i-centro` | Módulo I (Centro) | R$ 8,00 | Centro, dentro da cidade; confirmado pelo proprietário. |
 | `nova-conquista` | Nova Conquista | R$ 8,00 | Confirmada em 05/11. |
 | `nova-esperanca` | Nova Esperança | R$ 8,00 | Confirmada em 05/11. |
 | `novo-horizonte` | Novo Horizonte | R$ 8,00 | Confirmada em 05/11. |
@@ -77,11 +78,12 @@ O proprietário confirmou expressamente 28 localidades a **R$ 8** e cinco a **R$
 | `promissao-iv` | Promissão IV | R$ 8,00 | Confirmada em 05/11. |
 | `setor-industrial` | Setor Industrial | R$ 8,00 | Confirmada em 05/11. |
 | `sidney-rosa` | Sidney Rosa | R$ 10,00 | Confirmada em 05/11. |
+| `trecho-seco` | Trecho Seco | R$ 8,00 | Dentro da cidade; confirmado pelo proprietário. |
 | `tropical` | Tropical | R$ 8,00 | Confirmada em 05/11. |
 | `uraim` | Uraim | R$ 8,00 | Confirmada em 05/11. |
 | `uraim-i` | Uraim I | R$ 8,00 | Confirmada em 05/11. |
 
-## 4. Vínculos urbanos prováveis NÃO homologados (30)
+## 4. Vínculos urbanos prováveis NÃO homologados (29)
 
 **Regra atual do novo checkout:** aparecem na busca com *A confirmar*, sem cobrança online automática. `zoneId=cidade` é somente vínculo candidato para análise, não autorização tarifária.
 
@@ -98,7 +100,6 @@ O proprietário confirmou expressamente 28 localidades a **R$ 8** e cinco a **R$
 | `manoel-nahor-de-lima` | Manoel Nahor de Lima | ☐ | — |
 | `marisa-rocha` | Marisa Rocha | ☐ | — |
 | `mariza-rocha` | Mariza Rocha | ☐ | — |
-| `modulo-i-centro` | Módulo I (Centro) | ☐ | — |
 | `modulo-ii` | Módulo II | ☐ | — |
 | `ouro-verde` | Ouro Verde | ☐ | — |
 | `parque-das-americas` | Parque das Américas | ☐ | — |
@@ -118,7 +119,7 @@ O proprietário confirmou expressamente 28 localidades a **R$ 8** e cinco a **R$
 | `uraim-iii` | Uraim III | ☐ | — |
 | `vila-cabral` | Vila Cabral | ☐ | — |
 
-## 5. Denominações sem vínculo tarifário (26)
+## 5. Denominações sem vínculo tarifário (25)
 
 Estas podem representar bairros, loteamentos, empresas ou grafias divergentes. Confirmar primeiro a identidade e só depois definir tarifa.
 
@@ -145,7 +146,6 @@ Estas podem representar bairros, loteamentos, empresas ou grafias divergentes. C
 | `residencial-pandolfi` | Residencial Pandolfi | — | — |
 | `sidilandia-i` | Sidilândia I | — | — |
 | `sidilandia-ii` | Sidilândia II | — | — |
-| `trecho-seco` | Trecho Seco | — | — |
 | `vale-do-uraim` | Vale do Uraim | — | — |
 | `vale-dos-lirios` | Vale dos Lírios | — | — |
 | `vila-caip` | Vila CAIP | — | — |
@@ -159,4 +159,4 @@ Estas podem representar bairros, loteamentos, empresas ou grafias divergentes. C
 4. Verificar paridade de `app/catalog.ts` e `commerce-catalog.mjs` (incluindo Edge realmente publicada), total, Pix, cartão, WhatsApp, administração, cozinha e recuperação de rascunho.
 5. Não publicar código nem aplicar `DELIVERY_REQUIRE_LOCALITY_ID` antes do corte controlado que preserve sessões antigas. Nenhuma linha marcada neste documento muda a produção sozinha.
 
-**Resumo após confirmação de 05/11/2026:** 114 nomes pesquisáveis / 20 especiais legados / 5 referências urbanas anteriores / 33 novas confirmações (28 a R$ 8 e 5 a R$ 10) / 30 candidatos urbanos pendentes / 26 nomes sem região. **58 localidades cotáveis; 56 continuam A confirmar.**
+**Resumo após novas confirmações de 05/11/2026:** 114 nomes pesquisáveis / 20 especiais legados / 5 referências urbanas anteriores / 35 novas confirmações (30 a R$ 8 e 5 a R$ 10) / 29 candidatos urbanos pendentes / 25 nomes sem região. **60 localidades cotáveis; 54 continuam A confirmar.** Os bairros restantes serão ajustados somente após resposta do proprietário.

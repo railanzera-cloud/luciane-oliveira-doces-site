@@ -181,3 +181,10 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - **Decisão:** implantação autorizada e efetivada somente da função WhatsApp `create-whatsapp-order` v27, preservando as fontes v26 para rollback; manter `create-order` v14 intacta. O ZIP conectado replica o perfil **WhatsApp-only do pacote de referência** e é oferecido ao proprietário para Cloudflare manual, com identificação clara do SHA/CI e das restrições. A versão efetivamente publicada no Cloudflare **não foi verificada**.
 - **Não fazer:** presumir pagamentos online ativos e alterá-los, forçar `SITE_ORDERING_ENABLED=true` sem public key test validada, ativar flags estritas ou tentar rollback backend antes de retornar frontend antigo.
 - **Evidência:** CI 42107709877, Supabase v27 SHA256 `3a9f2b6d683e6f675bbbd81dc1bf38edaf7cce94229a4de2a9b35b3b5469c3e3`, ZIP SHA256 `c634e77541de945602f1451469772ea21db3751f17e642b64a4c3fd2a58b3669`.
+
+
+## D-C20 — Homologação progressiva dos bairros efetivamente demandados (05/11/2026)
+
+- O proprietário confirmou **Módulo I (Centro)** e **Trecho Seco** dentro da cidade, com frete **R$ 8,00** para ambos. `Centro` é alias do Módulo I; `Trecho Seco` sai da lista sem zona e é vinculado à zona urbana existente. Não cria zona nova nem modifica valor da zona `cidade`.
+- Política: o proprietário pode confirmar os bairros pendentes em lotes por frequência real de pedidos; **não** atribuir R$ 8 por pressuposição de urbanidade. Após estas duas confirmações, 60 nomes passam a ser cotáveis e 54 continuam pendentes.
+- Para reduzir deploys desnecessários, deixar alterações do novo lote preparadas na branch e aguardar as demais tarifas fornecidas na conversa antes de trocar novamente o bundle de Edge e o ZIP de Cloudflare. Não alterar pagamentos, estoque ou Luciane Gestão.

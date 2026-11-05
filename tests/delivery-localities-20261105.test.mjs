@@ -22,14 +22,14 @@ test("catalogue includes 114 distinct known locality candidates, without default
     else assert.equal(locality.status, "needs_review");
     assert.equal(deliveryLocalityCanQuote(locality), locality.status === "quoted");
   }
-  // 20 especiais herdadas, 5 exemplos urbanos prévios e 33 localidades
-  // agora homologadas pelo proprietário: 28 a R$ 8 + 5 a R$ 10.
-  assert.equal(DELIVERY_LOCALITIES.filter(locality => locality.status === "quoted").length, 58);
-  assert.equal(DELIVERY_LOCALITIES.filter(locality => locality.zoneId === "cidade" && !deliveryLocalityCanQuote(locality)).length, 30);
-  assert.equal(DELIVERY_LOCALITIES.filter(locality => !locality.zoneId).length, 26);
+  // 20 especiais herdadas, 5 exemplos urbanos prévios e 35 localidades
+  // agora homologadas pelo proprietário: 30 a R$ 8 + 5 a R$ 10.
+  assert.equal(DELIVERY_LOCALITIES.filter(locality => locality.status === "quoted").length, 60);
+  assert.equal(DELIVERY_LOCALITIES.filter(locality => locality.zoneId === "cidade" && !deliveryLocalityCanQuote(locality)).length, 29);
+  assert.equal(DELIVERY_LOCALITIES.filter(locality => !locality.zoneId).length, 25);
 });
 
-test("33 operator-confirmed localities have the exact approved delivery fees", () => {
+test("35 operator-confirmed localities have the exact approved delivery fees", () => {
   const ten = ["ouro-preto","juparana","aragao","laercio-cabeline","sidney-rosa"];
   const eight = [
     "tropical","camboata","jardim-atlantico","cidade-nova","celio-miranda",
@@ -37,9 +37,9 @@ test("33 operator-confirmed localities have the exact approved delivery fees", (
     "nova-conquista","morada-do-sol","parica","presidente-juscelino","promissao",
     "jardelandia","novo-horizonte","camboata-ii","guanabara","nova-esperanca",
     "olga-moreira","uraim-i","jardim-bela-vista","bela-vista","guilherme-gabriel",
-    "industrial","promissao-iv","setor-industrial",
+    "industrial","promissao-iv","setor-industrial","modulo-i-centro","trecho-seco",
   ];
-  assert.equal(eight.length, 28);
+  assert.equal(eight.length, 30);
   assert.equal(ten.length, 5);
   assert.deepEqual([...OWNER_CONFIRMED_TEN].sort(), [...ten].sort());
   for (const [id,expected] of [...eight.map(id => [id, 800]), ...ten.map(id => [id, 1000])]) {
@@ -51,7 +51,7 @@ test("33 operator-confirmed localities have the exact approved delivery fees", (
   assert.equal(deliveryLocalityById("juparana").zoneId, "juparana");
   assert.equal(deliveryLocalityById("juparana-empresa").zoneId, "juparana-empresa");
   assert.equal(quoteFulfillment(delivery("juparana-empresa", "juparana-empresa")).delivery_fee_cents, 1000);
-  assert.equal(DELIVERY_LOCALITIES.filter(locality => !deliveryLocalityCanQuote(locality)).length, 56);
+  assert.equal(DELIVERY_LOCALITIES.filter(locality => !deliveryLocalityCanQuote(locality)).length, 54);
   assert.equal(deliveryLocalityById("laercio-cabeline-ii").status, "needs_review",
     "confirmation of Laércio Cabeline must not release Laércio Cabeline II");
 });
@@ -65,6 +65,9 @@ test("Portuguese spelling, roman numerals and common name variants find the inte
   assert.equal(searchDeliveryLocalities("nagibao")[0].id, "nagibao");
   assert.equal(searchDeliveryLocalities("florbiante")[0].id, "flamboyant");
   assert.equal(deliveryLocalityByExactName("AÇAISAL").id, "acaizal");
+  assert.equal(deliveryLocalityByExactName("Centro")?.id, "modulo-i-centro");
+  assert.equal(searchDeliveryLocalities("Centro")[0].id, "modulo-i-centro");
+  assert.equal(searchDeliveryLocalities("Trecho Seco")[0].id, "trecho-seco");
   assert.equal(deliveryLegacyLocality("cidade", "Promissão III").id, "promissao-iii");
 });
 
@@ -77,6 +80,11 @@ test("specific rates override generic city, including official neighborhood name
   assert.equal(deliveryLocalityById("ouro-preto").zoneId, "ouro-preto");
   assert.equal(deliveryLocalityById("ouro-preto").status, "quoted");
   assert.equal(deliveryLocalityById("flamboyant").status, "quoted");
+  assert.equal(deliveryLocalityById("modulo-i-centro").status, "quoted");
+  assert.equal(deliveryLocalityById("trecho-seco").status, "quoted");
+  assert.equal(deliveryLocalityById("modulo-ii").status, "needs_review");
+  assert.equal(deliveryLocalityById("alto-do-vale").status, "needs_review");
+  assert.equal(deliveryLocalityById("area-rural-de-paragominas").status, "needs_review");
 });
 
 const delivery = (localityId, zoneId, neighborhood = deliveryLocalityById(localityId)?.label) => ({
@@ -163,7 +171,7 @@ test("legacy review gate supports phased rollout without changing old clients by
   assert.equal(deliveryLegacyReviewState("Laércio Cabeline II"), "pending");
   assert.equal(deliveryLegacyReviewState("Cidade Nova"), "quoted");
   assert.equal(deliveryLegacyReviewState("Sidney Rosa"), "quoted");
-  assert.equal(deliveryLegacyReviewState("Centro"), "unknown");
+  assert.equal(deliveryLegacyReviewState("Centro"), "quoted");
   assert.equal(deliveryLegacyReviewState(""), "unknown");
   const legacy = neighborhood => ({
     type: "delivery", zone_id: "cidade", neighborhood,
@@ -388,4 +396,22 @@ test("summary makes unpriced delivery explicit without showing a misleading tota
   assert.match(style, /\.summary-delivery-pending-note/);
   assert.equal(quoteFulfillment({ type:"pickup" }).delivery_fee_cents, 0);
   assert.throws(() => quoteFulfillment(delivery("alto-do-vale", "cidade")), /taxa de entrega confirmada/);
+});
+
+
+test("Módulo I (Centro) and Trecho Seco remain R$8 while nearby unknown localities stay pending", () => {
+  for (const [id,label] of [["modulo-i-centro","Módulo I (Centro)"],["trecho-seco","Trecho Seco"]]) {
+    const loc = deliveryLocalityById(id);
+    assert.equal(loc.label,label);
+    assert.equal(loc.status,"quoted");
+    assert.equal(loc.zoneId,"cidade");
+    assert.equal(quoteFulfillment(delivery(id,loc.zoneId)).delivery_fee_cents,800);
+    assert.equal(deliveryLegacyReviewState(label),"quoted");
+  }
+  assert.equal(deliveryLegacyReviewState("Centro"),"quoted");
+  for (const id of ["modulo-ii","alto-do-vale","parque-iv","vila-caip","area-rural-de-paragominas"]) {
+    const loc=deliveryLocalityById(id);
+    assert.equal(loc.status,"needs_review");
+    assert.throws(() => quoteFulfillment(delivery(id,loc.zoneId??"cidade")),/taxa de entrega confirmada/);
+  }
 });
