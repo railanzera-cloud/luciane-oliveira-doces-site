@@ -192,6 +192,27 @@ test("legacy review gate supports phased rollout without changing old clients by
   }
 });
 
+test("strict rollout flag rejects ID-less delivery but preserves explicit locations and pickup", () => {
+  const previousDeno = globalThis.Deno;
+  try {
+    globalThis.Deno = { env: { get: key => key === "DELIVERY_REQUIRE_LOCALITY_ID" ? "true" : undefined } };
+    assert.throws(() => quoteFulfillment({
+      type: "delivery", zone_id: "cidade", neighborhood: "Cidade Nova",
+      street: "Rua Exemplo", number: "12",
+    }), /Atualize a página para selecionar seu bairro/);
+    assert.throws(() => quoteFulfillment({
+      type: "delivery", zone_id: "cidade", neighborhood: "Centro",
+      street: "Rua Exemplo", number: "12",
+    }), /Atualize a página para selecionar seu bairro/);
+    assert.equal(quoteFulfillment(delivery("cidade-nova", "cidade")).delivery_fee_cents, 800);
+    assert.equal(quoteFulfillment(delivery("juparana", "juparana")).delivery_fee_cents, 1000);
+    assert.equal(quoteFulfillment({ type: "pickup" }).delivery_fee_cents, 0);
+  } finally {
+    if (previousDeno === undefined) delete globalThis.Deno;
+    else globalThis.Deno = previousDeno;
+  }
+});
+
 test("both order channels transmit locality ID and preserve their existing checkout behavior", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   const picker = await readFile(new URL("../components/delivery-locality-picker.tsx", import.meta.url), "utf8");
