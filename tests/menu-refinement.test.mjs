@@ -932,6 +932,7 @@ function deliveryState(zoneId, neighborhood, fulfillment='entrega') {
   : deliveryRegistry.DELIVERY_LOCALITIES.find(item=>item.zoneId===zoneId) ?? null;
  const values={fulfillment,deliveryZoneId:zoneId,deliveryLocalityId:locality?.id ?? '',neighborhood,address:'Rua X',addressNumber:'12',
   DELIVERY_ZONES:catalog.DELIVERY_ZONES,deliveryLocalityById:deliveryRegistry.deliveryLocalityById,
+  deliveryLocalityCanQuote:deliveryRegistry.deliveryLocalityCanQuote,
   cleanWhatsAppField:checkout.cleanWhatsAppField,deliveryZoneMismatchMessage:deliveryPolicy.deliveryZoneMismatchMessage};
  values.selectedDeliveryLocality=checkoutCopy('selectedDeliveryLocality',values);
  values.selectedDeliveryZone=checkoutCopy('selectedDeliveryZone',values);
