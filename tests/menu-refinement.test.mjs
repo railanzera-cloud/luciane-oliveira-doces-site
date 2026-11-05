@@ -1151,19 +1151,18 @@ test('return to categories preserves the order while restoring the launch teaser
 });
 
 test('real delivery JSX keeps required city neighborhood, hides it for specific places and shows accessible conflict guidance', () => {
- const city=renderDeliveryFields(deliveryState('cidade','Centro'));
- assert.match(city,/Selecione seu bairro ou local de entrega/);assert.match(city,/id="neighborhood"/);assert.doesNotMatch(city,/id="delivery-zone-error"/);
- assert.match(city,/Taxa de entrega:[\s\S]*8,00/);
+ const city=renderDeliveryFields(deliveryState('cidade','Promissão II'));
+ assert.match(city,/Seu bairro ou local de entrega/);assert.match(city,/id="neighborhood"/);
+ assert.match(city,/Taxa para Promissão II:[\s\S]*8,00/);
  for(const id of ['acaizal','aeroporto','km-12','colonia-uraim']) {
   const html=renderDeliveryFields(deliveryState(id,'Centro'));
-  assert.doesNotMatch(html,/id="neighborhood"|Qual é o seu bairro\?|Digite seu bairro/);
-  assert.match(html,/id="address"/);assert.match(html,/id="address-number"/);
+  assert.match(html,/id="neighborhood"/);assert.match(html,/id="address"/);assert.match(html,/id="address-number"/);
   assert.match(html,/id="complement"/);assert.match(html,/id="reference"/);
  }
- const html=renderDeliveryFields(deliveryState('cidade','  AÇAIZAL '));
- assert.match(html,/aria-invalid="true" aria-describedby="delivery-zone-error"/);
- assert.match(html,/id="delivery-zone-error" class="field-error" role="status"/);
- assert.match(html,/Açaizal — R\$ 10,00/);
+ const pending=renderDeliveryFields(deliveryState('cidade','Promissão IV'));
+ assert.doesNotMatch(pending,/delivery-price-preview/);
+ assert.match(pending,/Confirmar com a loja pelo WhatsApp/);
+}
 });
 
 test('a mismatched locality blocks registration and guides both checkout and sticky action back to delivery', async () => {
@@ -1232,35 +1231,33 @@ test('checkout recalculates existing totals immediately after place, receiving, 
 
 test('delivery copy guides city choice without changing IDs, prices, order or specific labels', () => {
  const initial=renderDeliveryFields(deliveryState('',''));
- assert.match(initial,/id="delivery-zone-label">Selecione seu bairro ou local de entrega/);
- assert.match(initial,/id="delivery-zone-hint" class="delivery-selection-help">Selecione seu local para calcular a taxa de entrega\./);
- assert.doesNotMatch(initial,/id="neighborhood"/);
+ assert.match(initial,/data-locality-picker=""/);
+ assert.doesNotMatch(initial,/delivery-price-preview/);
  const city=renderDeliveryFields(deliveryState('cidade','Promissão I')).replace(/\u00a0/g,' ');
- assert.ok(city.includes('Outro bairro dentro da cidade — R$ 8,00'));
- assert.match(city,/<label for="neighborhood">Qual é o seu bairro\?<\/label>/);
- assert.match(city,/<input(?=[^>]*id="neighborhood")(?=[^>]*value="Promissão I")(?=[^>]*placeholder="Digite seu bairro")[^>]*>/);
+ assert.match(city,/Seu bairro ou local de entrega/);
+ assert.match(city,/Taxa para Promissão I:.*R\$ 8,00/);
+ assert.doesNotMatch(city,/Outro bairro dentro da cidade/);
  const state=deliveryState('cidade','Promissão I');assert.equal(state.addressReady,true);
- assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:state.deliveryNeighborhood}).delivery_fee_cents,800);
- let previous=-1;
- for(const zone of catalog.DELIVERY_ZONES) {
-  const label=zone.id==='cidade'?'Outro bairro dentro da cidade':zone.label;
-  const index=city.indexOf(`${label} — ${checkout.formatOrderMoney(zone.price)}`);
-  assert.ok(index>previous,`option ${zone.id} keeps its order and tariff`);previous=index;
- }
- assert.equal(catalog.DELIVERY_ZONES.find(z=>z.id==='cidade').label,'Dentro da cidade','internal catalog preserved');
- assert.match(source,/aria-describedby="delivery-zone-hint"/);
+ assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,locality_id:state.deliveryLocalityId,
+  neighborhood:state.deliveryNeighborhood}).delivery_fee_cents,800);
+ const special=renderDeliveryFields(deliveryState('acaizal','Açaizal'));
+ assert.match(special,/Taxa para Açaizal:.*R\$ 10,00/);
+ assert.equal(catalog.DELIVERY_ZONES.find(z=>z.id==='cidade').label,'Dentro da cidade');
+}
 });
 
 test('delivery copy refinement retains mobile trigger, scrollable dropdown and shared checkout CTA', async () => {
- const css=await readFile(new URL('../app/globals.css',import.meta.url),'utf8');
- assert.match(css,/\.delivery-select-trigger \{[^}]*height: 48px !important;/);
- assert.match(css,/\.delivery-select-trigger \[data-slot="select-value"\] \{[^}]*white-space: normal;[^}]*min-width: 0;/);
- assert.match(css,/\.delivery-select-content \{[^}]*max-height: min\(420px, 70vh\)/);
- assert.match(css,/-webkit-line-clamp: 2;/);
- assert.match(source,/onValueChange=\{setDeliveryZoneId\}/);
+ const css=await readFile(new URL('../app/delivery-locality.css',import.meta.url),'utf8');
+ const picker=await readFile(new URL('../components/delivery-locality-picker.tsx',import.meta.url),'utf8');
+ assert.match(css,/delivery-locality-input input[\s\S]*min-height:52px/);
+ assert.match(css,/delivery-locality-results[\s\S]*max-height:min\(320px,46vh\)/);
+ assert.match(css,/-webkit-overflow-scrolling:touch/);
+ assert.match(picker,/role="combobox"/);assert.match(picker,/aria-autocomplete="list"/);
+ assert.match(picker,/onKeyDown=/);
+ assert.match(source,/<DeliveryLocalityPicker/);
  assert.match(source,/onClick=\{handleStickyAction\}/);
  assert.match(source,/onClick=\{handleFinalAction\}/);
- assert.match(source,/zone\.id === "cidade" \? "Outro bairro dentro da cidade" : zone\.label/);
+}
 });
 
 function withTintimBrowser({href='https://fixture.invalid/', cookies='', session=null, local=null, blocked=false}, run) {
@@ -1347,8 +1344,10 @@ test('all three secondary contact paths keep their original messages using the s
  const mock=props=>{received.push(props);return React.createElement(contact.TintimContactLink,props);};
  const nodes=[];
  function visit(node){if(ts.isJsxElement(node)&&node.openingElement.tagName.getText(ast)==='TintimContactLink')nodes.push(node);ts.forEachChild(node,visit);}
- visit(ast);assert.equal(nodes.length,1);
- const {outputText}=ts.transpileModule(`const render=()=>(${nodes[0].getText(ast)});`,{compilerOptions:{jsx:ts.JsxEmit.React}});
+ visit(ast);assert.equal(nodes.length,2);
+ const categoryNode=nodes.find(item=>item.getText(ast).includes('className="category-text-link"'));
+ assert.ok(categoryNode);
+ const {outputText}=ts.transpileModule(`const render=()=>(${categoryNode.getText(ast)});`,{compilerOptions:{jsx:ts.JsxEmit.React}});
  renderToStaticMarkup(new Function('React','TintimContactLink','MessageCircle',`${outputText};return render();`)(React,mock,()=>null));
  assert.equal(received[0].message,undefined);assert.equal(received[0].className,'category-text-link');
  for(const file of ['../app/pedido/page.tsx','../components/site-order-result.tsx']) {
