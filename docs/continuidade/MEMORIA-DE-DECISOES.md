@@ -196,3 +196,10 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - **Identidade versus preço:** Sidilândia I e II mantêm ID/nome próprios e usam a zona comercial de R$ 10 do Açaizal; não se tornam Sidney Rosa. O documento municipal relaciona Sidilândia I e II a Açaizal e Jardim Camboatã a Camboatã, mas **não define os preços**.
 - **Checkout:** os IDs de Alan Kardec, Condomínio Residencial Alto do Lago, Condomínio Residencial Tropical e Distrito Industrial Moveleiro são preservados para histórico/recuperação de dados, porém os nomes deixam de aparecer como bairros autônomos no seletor. Ao buscá-los, o site orienta escolher o bairro e informar o local no Complemento. Os nomes restantes sem tarifa não se tornam R$ 8 automaticamente.
 - Após os ajustes, matriz interna esperada: 115 IDs; 71 cotáveis, 44 pendentes. **Ainda não há implantação destas mudanças** no Supabase WhatsApp v27 nem no Cloudflare. Agrupar publicação com as confirmações finais e validar backend + ZIP no mesmo corte.
+
+
+## D-C22 — Corte WhatsApp v28, ZIP Cloudflare manual, rollback v27 preservado (05/11/2026)
+
+- Após validação no commit `93674bb33e10eaa80e1e0651ba5e12860e503de2` (CI 42119880626 SUCCESS), foi implantada somente a Edge de pedidos WhatsApp v28, com `delivery-localities.mjs` atualizado, sem alterar handler principal, outros compartilhados, pagamentos ou SQL. Conferidos todos os arquivos instalados, hash `4280c753e967c42ba07c5ce359afda9a13bba9139f3323edd8c2fdf6b950da94`.
+- O código exato anterior da v27 foi arquivado em `docs/edge-release/rollback/20261105/create-whatsapp-order-v27/` antes do corte. ZIP manual Cloudflare `luciane-oliveira-doces-bairros-agrupados-20261105-cloudflare.zip` corresponde ao código testado e ao backend, checksum `fa0f28fd8c28eecded874edbcf6c7d333ca47d0658d235824d1dbdc87ee6990d`; produção Cloudflare ainda não foi alterada pelo agente.
+- Não inferir aprovação de Safari físico ou comportamento de pedidos reais a partir da CI. As flags estritas seguem sem alteração. Reverter frontend antes de reverter Edge se necessário.
