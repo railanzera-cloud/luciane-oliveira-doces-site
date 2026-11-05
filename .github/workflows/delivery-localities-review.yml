@@ -26,9 +26,9 @@ jobs:
       - run: npm ci
       - name: Testar identidade do bairro, anti-bypass e fluxo
         run: node --test tests/delivery-localities-20261105.test.mjs
-      - name: Conferir regressões comerciais
-        run: node --test tests/*.test.mjs
       - name: Conferir TypeScript
         run: npx tsc --noEmit
       - name: Construir site
         run: npm run build
+      - name: Conferir regressões comerciais (site compilado)
+        run: node --test tests/*.test.mjs
