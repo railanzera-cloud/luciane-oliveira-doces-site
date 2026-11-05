@@ -111,6 +111,17 @@ export function searchDeliveryLocalities(query, limit = 8) {
 }
 
 
+// Mais de uma referência a locais especiais exige confirmação manual;
+// nunca transformar texto ambíguo em R$ 8 por ausência de correspondência única.
+export function deliveryLegacySpecialMentionCount(name) {
+  const query = normalizeDeliverySearch(name);
+  if (!query) return 0;
+  return DELIVERY_LOCALITIES.filter(locality =>
+    locality.zoneId && locality.zoneId !== "cidade"
+      && deliverySearchTerms(locality).some(term =>
+        term.length >= 4 && (` ${query} `).includes(` ${term} `))).length;
+}
+
 // Ajuda conservadora apenas para bloquear taxa urbana incorreta em clientes
 // legados que não enviam locality_id. Nunca adivinha nem autoriza preço.
 // Nomes urbanos exatos têm prioridade: "Juparanã" NÃO é "Juparanã Empresa".
