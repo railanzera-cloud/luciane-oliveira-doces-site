@@ -45,11 +45,12 @@
 .storefront #carrinho .delivery-locality-confirmed svg,
 .storefront #carrinho .delivery-locality-warning svg {flex:none;margin-top:1px;}
 .storefront #carrinho .delivery-locality-help {font-size:.78rem;line-height:1.45;color:#775b46;margin:0;}
-.storefront #carrinho .delivery-locality-assistance {
+.storefront #carrinho .delivery-locality-contact {
   padding:12px 13px; background:#f6e8d7; border:1px solid #dac1a5;
   border-radius:12px; color:#765136; font-size:.81rem; line-height:1.48; margin:0;
 }
-.storefront #carrinho .delivery-locality-assistance a {color:#6a3f23;text-decoration:underline;font-weight:800;text-underline-offset:3px;}
+.storefront #carrinho .delivery-locality-contact a {color:#6a3f23;text-decoration:underline;font-weight:800;text-underline-offset:3px;display:inline-block;padding:5px 0;}
+.storefront #carrinho .delivery-locality-contact span {display:block;margin-top:2px;font-size:.74rem;color:#80604b;}
 .storefront #carrinho .delivery-price-preview {display:block; padding:11px 13px; border:1px solid #d5b998; border-radius:12px; background:#f7ecdc; color:#5a3b26; font-size:.85rem;}
 .storefront #carrinho .delivery-price-preview strong {font-size:1rem;color:#2b654a;}
 @media (max-width:430px) {
