@@ -88,6 +88,7 @@ export type CreateSiteOrderInput = {
   fulfillment: {
     type: "delivery" | "pickup";
     zone_id?: string;
+    locality_id?: string;
     neighborhood?: string;
     street?: string;
     number?: string;
