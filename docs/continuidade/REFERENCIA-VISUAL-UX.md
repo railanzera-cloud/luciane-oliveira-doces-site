@@ -152,3 +152,12 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 ```
 
 **Este arquivo é a “memória do bom” do site:** pode ser melhorado com nova aprovação, mas não deve ser descartado quando uma conversa terminar.
+
+
+### UX-CANDIDATA-20261105 — Busca contextual de bairro na entrega
+
+- **Problema observado:** menu longo de tarifas por região seguido de bairro livre no fluxo de recebimento; risco de cobrar tarifa urbana por região especial.
+- **Direção aceita em conversa:** escolher localidade pesquisável por nome/variante, exibir taxa verdadeira após seleção e só então rua/número/complemento. Sem GPS obrigatório. Contato assistido quando a localidade não tem tarifa homologada.
+- **Implementação em revisão:** `components/delivery-locality-picker.tsx`, `app/delivery-locality.css`, `app/page.tsx` na branch `work/entrega-busca-bairros-segura-20261105`.
+- **Protegido:** proporção e tonalidade da experiência de checkout já existente, preço final, formas de pagamento, jornada WhatsApp, captura de campanhas, pedidos e impressão.
+- **Grau de aprovação:** conceito aprovado; UI codificada como **candidata**. Não houve ainda confronto visual aprovado em Safari/iPhone, WebKit ou publicação comprovada. Não registrar como visual final.
