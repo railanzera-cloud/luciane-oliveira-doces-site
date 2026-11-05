@@ -47,7 +47,7 @@ try {
       await input.waitFor({ state: "visible" });
 
       await input.fill("Promissão II");
-      await page.getByRole("option", { name: /Promissão II/ }).tap();
+      await page.locator('button[role="option"][id$="-promissao-ii"]').tap();
       assert.equal(await input.inputValue(), "Promissão II");
       await page.locator(".delivery-price-preview").waitFor();
       assert.match(await page.locator(".delivery-price-preview").innerText(), /8,00/);
@@ -67,7 +67,7 @@ try {
       await input.fill("promisao 2");
       await page.locator(".delivery-locality-approximate").waitFor();
       assert.equal(await page.locator(".delivery-price-preview").count(), 0);
-      await page.getByRole("option", { name: /Promissão II/ }).tap();
+      await page.locator('button[role="option"][id$="-promissao-ii"]').tap();
       assert.equal(await input.inputValue(), "Promissão II");
 
       await input.fill("Promissão III");
