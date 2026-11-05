@@ -232,3 +232,23 @@ Não repetir tarefas aprovadas para mostrar movimento. Um check verde no antigo 
 **Ações proibidas neste checkpoint sem gate explícito:** merge em `main`, alteração de valores produtivos, deploy Supabase/Cloudflare, ativação de `DELIVERY_REQUIRE_LOCALITY_ID`, registrar pagamento real ou afirmar que o QA em Safari físico foi concluído. As funções de produção seguem `create-order` v14 e `create-whatsapp-order` v26 conforme verificação de leitura. Continuar em `docs/ENTREGA-RELEASE-GATE-20261105.md`.
 
 **Próximo trabalho necessário para lançamento:** obter a confirmação da operação para as localidades de maior uso (24+9 primeiro, depois demais), testar dropdown em Safari e navegador do Instagram num iPhone físico, planejar deploy do backend compatível sem perder contrato de estoque/mercearia e executar publicação com rollback demonstrável. Não considerar o ZIP de QA como publicável.
+
+
+## 15. Homologação comercial explícita de 33 localidades — 05/11/2026
+
+**Origem:** o proprietário respondeu à lista de 24 bairros urbanos + 9 localidades não classificadas, confirmando **todos os 33** e corrigindo exceções. Para esta etapa, não inferir mais a tarifa de acordo com pedidos históricos: existe declaração comercial expressa.
+
+**Tarifas confirmadas para pedidos futuros no catálogo candidato:**
+- **R$ 10:** `ouro-preto` (Ouro Preto), `juparana` (Juparanã bairro), `aragao` (Aragão), `laercio-cabeline` (Laércio Cabeline) e `sidney-rosa` (Sidney Rosa).
+- **R$ 8:** os outros **28 IDs** da listagem de 33 nomes, enumerados um a um em `docs/ENTREGA-HOMOLOGACAO-LOCALIDADES-20261105.md`.
+- **Não confundir:** `juparana-empresa` permanece própria e R$ 10; `laercio-cabeline-ii` **não foi homologada**; nomes semelhantes/variantes não devem ser fundidos automaticamente.
+
+**Atualização efetiva da branch:** `supabase/functions/_shared/delivery-localities.mjs` associa os IDs à zona e libera apenas os confirmados; `supabase/functions/_shared/commerce-catalog.mjs` e `app/catalog.ts` adicionam as cinco zonas próprias de R$ 10 (mantendo a zona urbana R$ 8 e todas as 20 zonas especiais prévias). `scripts/audit-delivery-contract.mjs`, `tests/delivery-localities-20261105.test.mjs` e `tests/menu-refinement.test.mjs` foram ajustados para a nova matriz.
+
+**Novo estado:** **114 nomes pesquisáveis**, **58 locais cotáveis** (20 legados + 5 urbanos anteriormente informados + 33 agora homologados), **56 pendentes** (30 candidatos urbanos, 26 sem zona), **26 zonas de tarifa** em frontend/Edge. A CI verifica os 33 preços nominalmente e os limites das pendências, além de testar que special R$ 10 não pode ser cobrado R$ 8 por `zone_id=cidade`.
+
+**Referência atual:** `docs/ENTREGA-HOMOLOGACAO-LOCALIDADES-20261105.md` é a matriz principal, com os 33 locais movidos de pendentes para confirmados. O relatório `docs/ENTREGA-HISTORICO-AGREGADO-20261105.md` permanece como fotografia **anterior à confirmação**, não como lista de pendências atuais.
+
+**Limites e release:** ainda não houve teste físico com Safari/iPhone/Instagram e **as Edge Functions publicadas (create-order v14, create-whatsapp-order v26)** não recebem o contrato `locality_id`. Sem deploy, merge, atualização do banco, recomputação de histórico de pedidos, flag ou publicação Cloudflare. Respeitar `docs/ENTREGA-RELEASE-GATE-20261105.md`. O ZIP de QA anterior representa checkpoint antigo e não contém as 33 novas liberações.
+
+**Checkpoint de código:** usar o HEAD da PR #6 e seus resultados de CI específicos antes de afirmar que o incremento novo foi validado; commits históricos anteriores não são prova de CI para esta atualização.
