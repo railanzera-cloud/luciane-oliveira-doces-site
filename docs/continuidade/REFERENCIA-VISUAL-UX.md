@@ -161,3 +161,12 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Implementação em revisão:** `components/delivery-locality-picker.tsx`, `app/delivery-locality.css`, `app/page.tsx` na branch `work/entrega-busca-bairros-segura-20261105`.
 - **Protegido:** proporção e tonalidade da experiência de checkout já existente, preço final, formas de pagamento, jornada WhatsApp, captura de campanhas, pedidos e impressão.
 - **Grau de aprovação:** conceito aprovado; UI codificada como **candidata**. Não houve ainda confronto visual aprovado em Safari/iPhone, WebKit ou publicação comprovada. Não registrar como visual final.
+
+
+### UX-CANDIDATA-20261105.2 — Teclado móvel, busca persistente e grid de entrega
+
+- **Origem:** continuidade do refinamento de entregas, ainda na PR #6. Foco no usuário de iPhone que busca bairro com teclado virtual aberto e no checkout desktop em duas colunas.
+- **Candidato codificado:** a lista de bairros mede o espaço via `visualViewport` e pode aparecer acima/abaixo do campo; altura limitada e rolagem própria. Buscador e etiqueta de taxa ocupam **largura integral** no grid desktop. O texto digitado não é apagado quando a pessoa modifica uma seleção existente, mas é reconciliado quando muda externamente. Contato assistido aparece somente para bairro pendente selecionado ou busca sem resultados.
+- **Contrato protegido:** nenhuma mudança de tarifa ou de identidade de localidades; 89 localidades não homologadas continuam sem cotação. Não alterar estética global de Gourmet, Trufadas, Fatias, checkout financeiro, WhatsApp ou painel.
+- **Evidência técnica:** `components/delivery-picker-logic.mjs`, `components/delivery-locality-picker.tsx`, `app/delivery-locality.css`; [CI do código `89ff2890`](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42075931114), com 10 testes especializados, 724 regressões e build aprovados.
+- **Evidência visual:** **não existe ainda screenshot comparativa em 320/375/390/430 px ou teste físico no Safari/Instagram**. O layout é candidato para homologação, não visual aprovado nem publicado.
