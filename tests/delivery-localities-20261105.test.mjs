@@ -218,3 +218,18 @@ test("site and WhatsApp Edge handlers both use the same server delivery quote", 
   assert.match(catalog, /deliveryLocalityCanQuote\(locality\)/);
   assert.match(catalog, /locality\.zoneId !== zone\.id/);
 });
+
+
+test("summary makes unpriced delivery explicit without showing a misleading total", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const style = await readFile(new URL("../app/delivery-locality.css", import.meta.url), "utf8");
+  assert.match(page, /fulfillment === "entrega" && !selectedDeliveryZone && \(/);
+  assert.match(page, /className="summary-row summary-delivery-pending"/);
+  assert.match(page, /<strong>A confirmar<\/strong>/);
+  assert.match(page, /O total ficará disponível após confirmar a taxa do bairro/);
+  assert.match(page, /cart\.length > 0 && \(/);
+  assert.match(page, /fulfillment === "entrega" && selectedDeliveryZone && \(/);
+  assert.match(style, /\.summary-delivery-pending-note/);
+  assert.equal(quoteFulfillment({ type:"pickup" }).delivery_fee_cents, 0);
+  assert.throws(() => quoteFulfillment(delivery("ouro-preto", "cidade")), /taxa de entrega confirmada/);
+});
