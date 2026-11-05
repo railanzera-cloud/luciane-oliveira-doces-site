@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import {
   DELIVERY_LOCALITIES, OWNER_CONFIRMED_TEN, normalizeDeliverySearch, searchDeliveryLocalities,
   deliveryLocalityById, deliveryLocalityByExactName, deliveryLegacyLocality, deliveryLocalityCanQuote,
-  deliveryLocalityTextMatches, deliveryLegacySpecificCandidate, deliveryLegacySpecialMentionCount,
+  deliveryLocalityTextMatches, deliveryLegacyReviewState, deliveryLegacySpecificCandidate, deliveryLegacySpecialMentionCount,
 } from "../supabase/functions/_shared/delivery-localities.mjs";
 import {
   DELIVERY_ZONES, quoteFulfillment, deliveryZoneMismatchMessage,
@@ -155,6 +155,41 @@ test("legacy checkout detects special destinations with typos and extra delivery
   assert.equal(deliveryLegacySpecificCandidate("Juparanã Empresa, portaria lateral")?.id, "juparana-empresa");
   assert.equal(deliveryLegacySpecificCandidate("Juparanã")?.id, "juparana");
   assert.equal(deliveryLegacySpecificCandidate("abc"), null);
+});
+
+
+test("legacy review gate supports phased rollout without changing old clients by default", () => {
+  assert.equal(deliveryLegacyReviewState("Alto do Vale"), "pending");
+  assert.equal(deliveryLegacyReviewState("Laércio Cabeline II"), "pending");
+  assert.equal(deliveryLegacyReviewState("Cidade Nova"), "quoted");
+  assert.equal(deliveryLegacyReviewState("Sidney Rosa"), "quoted");
+  assert.equal(deliveryLegacyReviewState("Centro"), "unknown");
+  assert.equal(deliveryLegacyReviewState(""), "unknown");
+  const legacy = neighborhood => ({
+    type: "delivery", zone_id: "cidade", neighborhood,
+    street: "Rua Exemplo", number: "12",
+  });
+  // Sem o flag, a fase de deploy backend compatível NÃO rejeita uma aba antiga.
+  assert.equal(quoteFulfillment(legacy("Alto do Vale")).delivery_fee_cents, 800);
+  const previousDeno = globalThis.Deno;
+  try {
+    globalThis.Deno = { env: { get: key => key === "DELIVERY_LEGACY_REVIEW_GUARD" ? "true" : undefined } };
+    for (const neighborhood of ["Alto do Vale", "Laércio Cabeline II"]) {
+      assert.throws(() => quoteFulfillment(legacy(neighborhood)), /precisa de confirmação da taxa/,
+        "O modo intermediário bloqueia apenas locais conhecidos e pendentes.");
+    }
+    assert.equal(quoteFulfillment(legacy("Cidade Nova")).delivery_fee_cents, 800,
+      "Bairro homologado segue aceito em aba antiga.");
+    assert.equal(quoteFulfillment(legacy("Centro")).delivery_fee_cents, 800,
+      "Localidade não reconhecida ainda depende do flag estrito posterior.");
+    assert.equal(quoteFulfillment(delivery("juparana", "juparana")).delivery_fee_cents, 1000,
+      "A flag não interfere na escolha explícita de uma tarifa especial.");
+    assert.throws(() => quoteFulfillment(delivery("alto-do-vale", "cidade")), /taxa de entrega confirmada/,
+      "O novo checkout rejeita locais pendentes independentemente de flags.");
+  } finally {
+    if (previousDeno === undefined) delete globalThis.Deno;
+    else globalThis.Deno = previousDeno;
+  }
 });
 
 test("both order channels transmit locality ID and preserve their existing checkout behavior", async () => {
