@@ -38,7 +38,8 @@ export function deliveryLocalityByExactName(name, zoneId = null) {
 export function searchDeliveryLocalities(query, limit = 8) {
   const normalized = normalizeDeliverySearch(query);
   const defaults = ["promissao-i", "promissao-ii", "promissao-iii", "tiao-mineiro", "acaizal"];
-  if (!normalized) return defaults.map(deliveryLocalityById).filter(Boolean).slice(0, limit);
+  if (!normalized) return DELIVERY_LOCALITIES.filter(locality => defaults.includes(locality.id))
+    .sort((left, right) => defaults.indexOf(left.id) - defaults.indexOf(right.id)).slice(0, limit);
   return DELIVERY_LOCALITIES
     .map(locality => {
       const terms = [locality.label, ...locality.aliases].map(normalizeDeliverySearch);
