@@ -175,3 +175,26 @@ Não repetir tarefas aprovadas para mostrar movimento. Um check verde no antigo 
 - **Alterações:** `supabase/functions/_shared/delivery-localities.mjs`, `components/delivery-locality-picker.tsx`, `app/delivery-locality.css`, `tests/delivery-localities-20261105.test.mjs` e documentação `docs/ENTREGA-BAIRROS-BUSCA-20261105.md`.
 - **Estado por dimensão:** código implementado e CI do SHA técnico aprovada; visual Safari/iPhone e Instagram **não homologado fisicamente**; 89 bairros/denominações continuam aguardando validação comercial; ZIP publicável, deploy Edge/Supabase/Cloudflare, dados reais, pagamentos, impressão e merge **não executados**.
 - **Próxima tarefa que não se resolve só com código:** homologar com a loja as 89 tarifas/associações e validar o uso real do dropdown no iPhone; depois conferir backend publicado para ativação coordenada sob autorização específica, sem cortar clientes com checkout legado.
+
+
+## 13. Incremento pré-release e auditoria da produção comercial — 05/11/2026
+
+**Origem:** solicitação expressa para continuar até concluir, respeitando o isolamento do projeto e a necessidade de autorização específica para deploy real. A PR #6 continua em draft, sobre `docs/continuidade-comercial-20261105`, sem alterações em `main`.
+
+**Incremento de código implementado:**
+- `supabase/functions/_shared/commerce-catalog.mjs`: identificação de zona validada como **propriedade própria** do catálogo com `Object.hasOwn`; rejeita `__proto__`, `constructor`, `toString` etc. Confere centavos inteiros finitos, mantendo tarifa, retirada e fluxo antigo compatíveis.
+- `app/page.tsx` e `app/delivery-locality.css`: para entregas sem bairro homologado o resumo informa **"Taxa de entrega: A confirmar"** e orienta sobre a ausência do total; não representa frete desconhecido como R$ 0.
+- `scripts/audit-delivery-contract.mjs`: preflight sem acesso a produção que percorre **todas as 114 localidades**, confirma 25 cotáveis, 89 pendentes, centros de preço válidos, rejeições de zona inválida, aliases, retirada grátis, e que **ambos** os handlers usam o contrato compartilhado. Integrado ao workflow `.github/workflows/delivery-localities-review.yml`.
+- Testes focados de manipulação de payload, paridade das duas Edge Functions e resumo de taxa pendente.
+
+**Evidência de CI do último SHA técnico:** [run `42082285144`](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42082285144), commit `d081bcf04413209668a505dc82575d5fca43c207`: auditoria completa **SUCCESS**, 15/15 testes específicos, 729/729 testes comerciais, `npm run build` sucesso, verificação sem novos erros TS. Quatro erros preexistentes fora de entregas ainda estão documentados. Commits documentais posteriores exigem checagem em seu próprio SHA.
+
+**Produção efetivamente consultada via conexão Supabase comercial, somente leitura:**
+- Projeto `edqiwvccmboyayojvuea` **ACTIVE_HEALTHY**, 49 migrações; última `20261101165247_trufadas_pmg_nove_skus_20261101`.
+- `create-order` **ativa v14**, com catálogo embutido legado de aprox. 10.153 caracteres, **sem `locality_id`/flag**. A função no GitHub mudou também o cálculo das promoções (`applyPopcornPromotionToQuote`), portanto um deploy inteiro não seria alteração exclusivamente de frete.
+- `create-whatsapp-order` **ativa v26**, com catálogo compartilhado de aprox. 12.763 caracteres, **sem `locality_id`/flag**; é distinta da versão do GitHub com 14.711 caracteres e guardas recentes. Entry point v26 existe e é estável em produção; não substituí-lo cegamente.
+- **Nenhum** deploy de função, SQL, configuração secreta, preço real, dado de pedido, Cloudflare ou merge ocorreu.
+
+**Gate/rollback documentado:** `docs/ENTREGA-RELEASE-GATE-20261105.md`. Confirmar 89 localidades pendentes e 20 tarifas especiais com loja, homologar Safari/iPhone e Instagram reais, preservar as versões de Edge publicadas, testar compatibilidade em ambiente isolado, depois (com autorização própria) backend compatível → frontend → flag de obrigatoriedade. Rollback preserva pedidos e exige primeiro desligar flag se ativo.
+
+**Estado:** incremento de código e CI **tecnicamente aprovados**, mas **lançamento não autorizado/não executado**; existem bloqueios reais de homologação comercial, UX em hardware e paridade de produção. Não confundir com conclusão da publicação.
