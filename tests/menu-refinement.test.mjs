@@ -1236,7 +1236,7 @@ test('delivery copy guides city choice without changing IDs, prices, order or sp
  const state=deliveryState('cidade','Promissão I');assert.equal(state.addressReady,true);
  assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,locality_id:state.deliveryLocalityId,
   neighborhood:state.deliveryNeighborhood}).delivery_fee_cents,800);
- const special=renderDeliveryFields(deliveryState('acaizal','Açaizal'));
+ const special=renderDeliveryFields(deliveryState('acaizal','Açaizal')).replace(/\u00a0/g,' ');
  assert.match(special,/Taxa para Açaizal:.*R\$ 10,00/);
  assert.equal(catalog.DELIVERY_ZONES.find(z=>z.id==='cidade').label,'Dentro da cidade');
 });
