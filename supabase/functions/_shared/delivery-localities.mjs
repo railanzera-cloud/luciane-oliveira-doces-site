@@ -1,0 +1,60 @@
+// Catálogo de busca, separado da tabela de preços do servidor.
+// Fontes: Plano Diretor Municipal 2023 (SEPLAN), diretórios postais e regras legadas.
+// Uma localidade sem zoneId nunca recebe R$ 8 por omissão: exige confirmação da loja.
+// Associações "cidade" derivam da regra geral informada pelo proprietário para a zona urbana;
+// conferir limites e exceções antes do rollout. IDs de zonas comerciais legadas não mudam.
+const ROWS = "aeroporto|Aeroporto|aeroporto|\namper-elisa-empresa|Amper Elisa Empresa|amper-elisa-empresa|\nacaizal|Açaizal|acaizal|Açaisal,Açaisal,Acaisal\nbairro-novo-canaa|Bairro Novo Canaã|novo-canaa|Novo Canaã,Novo Canaa\nbambu|Bambu|bambu|\ncolonia-do-uraim|Colônia do Uraim|colonia-uraim|\ncondominio-rural|Condomínio Rural|condominio-rural|\ncoopernorte-km-15|Coopernorte KM 15|coopernorte-km-15|\netepa|ETEPA|etepa|\nfloraplac-mdf|Floraplac MDF|floraplac-mdf|\nfrigorifico|Frigorífico|frigorifico|\nintegral-mix|Integral Mix|integral-mix|\njuparana-empresa|Juparanã Empresa|juparana-empresa|Juparana Empresa\nkm-12|KM 12|km-12|\nkm-15|KM 15|km-15|\nnagibao|Nagib Demachki (Nagibão)|nagibao|Nagibão,Nagib Demachki\npandolfe|Pandolfe|pandolfe|Pandolf\npromissao-i|Promissão I|cidade|Promissão 1\npromissao-ii|Promissão II|cidade|Promissão 2\npromissao-iii|Promissão III|cidade|Promissão 3\nresort-toddys|Resort Toddys|resort-toddys|\ntiao-mineiro|Tião Mineiro|cidade|\ntraterra|Traterra|traterra|\nufra|UFRA|ufra|\nalan-kardec|Alan Kardec||\naldeia-indigena-canide|Aldeia Indígena Canidé||\nalto-do-vale|Alto do Vale|cidade|\nandradina|Andradina|cidade|\nangelim|Angelim|cidade|\naragao|Aragão||\nbela-vista|Bela Vista||\nbonaparte|Bonaparte||\ncamboata|Camboatã|cidade|\ncamboata-i|Camboatã I|cidade|\ncamboata-ii|Camboatã II|cidade|\ncarvalho|Carvalho||\ncidade-jardim|Cidade Jardim|cidade|\ncidade-nova|Cidade Nova|cidade|\nclube-do-cavalo|Clube do Cavalo|cidade|\ncondominio-residencial-alto-do-lago|Condomínio Residencial Alto do Lago||\ncondominio-residencial-tropical|Condomínio Residencial Tropical||\ncelio-miranda|Célio Miranda|cidade|\ndistrito-industrial-moveleiro|Distrito Industrial Moveleiro||\nescadinha|Escadinha||\nflamboyant|Flamboyant|cidade|Florboiante,Florbiante\nflor-de-lis|Flor de Lis||\nflorbiante-grafia-a-confirmar|Florbiante (grafia a confirmar)||\nguanabara|Guanabara|cidade|\nguilherme-gabriel|Guilherme Gabriel||\nindependencia|Independência||\nindustrial|Industrial||\ninocencio-oliveira|Inocêncio Oliveira|cidade|\njaderlandia|Jaderlândia|cidade|\njardelandia|Jardelandia|cidade|\njardim-amazonico|Jardim Amazônico||\njardim-atlantico|Jardim Atlântico|cidade|\njardim-bela-vista|Jardim Bela Vista||\njardim-camboata|Jardim Camboatã|cidade|\njardim-camboata-ii|Jardim Camboatã II|cidade|\njardim-elandia-grafia-a-confirmar|Jardim Elândia (grafia a confirmar)||\njuparana|Juparanã|cidade|\nlaercio-cabeline|Laércio Cabeline||\nlaercio-cabeline-ii|Laércio Cabeline II||\nmanoel-nahor-de-lima|Manoel Nahor de Lima|cidade|\nmarisa-rocha|Marisa Rocha|cidade|\nmariza-rocha|Mariza Rocha|cidade|\nmorada-do-sol|Morada do Sol|cidade|\nmorada-dos-ventos|Morada dos Ventos|cidade|\nmorada-verde|Morada Verde|cidade|\nmodulo-i-centro|Módulo I (Centro)|cidade|\nmodulo-ii|Módulo II|cidade|\nnova-conquista|Nova Conquista|cidade|\nnova-esperanca|Nova Esperança|cidade|\nnovo-camboata|Novo Camboatã||\nnovo-horizonte|Novo Horizonte|cidade|\nolga-moreira|Olga Moreira|cidade|\nouro-preto|Ouro Preto|cidade|\nouro-verde|Ouro Verde|cidade|\nparaiso|Paraíso||\nparica|Paricá|cidade|\nparque-das-americas|Parque das Américas|cidade|\nparque-iv|Parque IV|cidade|\nparque-village-flamboyant|Parque Village Flamboyant||\npresidente-juscelino|Presidente Juscelino Kubitschek (JK)|cidade|JK,Presidente Juscelino Kubitschek\npromissao|Promissão|cidade|\npromissao-iv|Promissão IV||\nresidencial-cidade-jardim|Residencial Cidade Jardim|cidade|\nresidencial-helena-coutinho|Residencial Helena Coutinho|cidade|\nresidencial-jardim-america|Residencial Jardim América|cidade|\nresidencial-jose-alberto|Residencial José Alberto|cidade|\nresidencial-maria-de-lourdes-sobrinho|Residencial Maria de Lourdes Sobrinho|cidade|\nresidencial-nilma-dias|Residencial Nilma Dias|cidade|\nresidencial-olga-moreira|Residencial Olga Moreira|cidade|\nresidencial-pandolfi|Residencial Pandolfi||\nresidencial-selectas|Residencial Selectas|cidade|\nresidencial-zeno-azeredo|Residencial Zeno Azeredo|cidade|\nsanta-rosa|Santa Rosa|cidade|\nsetor-industrial|Setor Industrial||\nsidilandia-i|Sidilândia I||\nsidilandia-ii|Sidilândia II||\nsidney-rosa|Sidney Rosa||\nsol-nascente|Sol Nascente|cidade|\ntrecho-seco|Trecho Seco||\ntropical|Tropical|cidade|Bairro Tropical\nuraim|Uraim|cidade|\nuraim-i|Uraim I|cidade|\nuraim-ii|Uraim II|cidade|\nuraim-iii|Uraim III|cidade|\nvale-do-uraim|Vale do Uraim||\nvale-dos-lirios|Vale dos Lírios||\nvila-cabral|Vila Cabral|cidade|\nvila-caip|Vila CAIP||\nvila-rica|Vila Rica||\narea-rural-de-paragominas|Área Rural de Paragominas||";
+const NUMERALS = Object.freeze({ i: "1", ii: "2", iii: "3", iv: "4" });
+
+export function normalizeDeliverySearch(input) {
+  if (typeof input !== "string") return "";
+  return input.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("pt-BR").replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\b(?:iv|iii|ii|i)\b/g, value => NUMERALS[value] ?? value)
+    .replace(/\s+/g, " ").trim();
+}
+
+export const DELIVERY_LOCALITIES = Object.freeze(ROWS.split("\n").map(row => {
+  const [id, label, zoneId, aliases] = row.split("|");
+  return Object.freeze({ id, label, zoneId: zoneId || null, aliases: Object.freeze(aliases ? aliases.split(",") : []),
+    status: zoneId ? "quoted" : "needs_review" });
+}));
+const BY_ID = new Map(DELIVERY_LOCALITIES.map(locality => [locality.id, locality]));
+
+export function deliveryLocalityById(id) {
+  return typeof id === "string" ? BY_ID.get(id) ?? null : null;
+}
+
+export function deliveryLocalityByExactName(name, zoneId = null) {
+  const query = normalizeDeliverySearch(name);
+  if (!query) return null;
+  const matches = DELIVERY_LOCALITIES.filter(locality =>
+    (zoneId === null || locality.zoneId === zoneId)
+      && [locality.label, ...locality.aliases].some(candidate => normalizeDeliverySearch(candidate) === query));
+  // Nomes ambíguos não devem gerar cobrança automaticamente.
+  return matches.length === 1 ? matches[0] : null;
+}
+
+export function searchDeliveryLocalities(query, limit = 8) {
+  const normalized = normalizeDeliverySearch(query);
+  const defaults = ["promissao-i", "promissao-ii", "promissao-iii", "tiao-mineiro", "acaizal"];
+  if (!normalized) return defaults.map(deliveryLocalityById).filter(Boolean).slice(0, limit);
+  return DELIVERY_LOCALITIES
+    .map(locality => {
+      const terms = [locality.label, ...locality.aliases].map(normalizeDeliverySearch);
+      const score = terms.some(term => term === normalized) ? 0
+        : terms.some(term => term.startsWith(normalized)) ? 1
+        : terms.some(term => term.includes(normalized)) ? 2 : 9;
+      return { locality, score };
+    })
+    .filter(match => match.score < 9)
+    .sort((a, b) => a.score - b.score || a.locality.label.localeCompare(b.locality.label, "pt-BR"))
+    .slice(0, Math.max(1, Math.min(limit, 20)))
+    .map(match => match.locality);
+}
+
+export function deliveryLegacyLocality(zoneId, neighborhood) {
+  if (typeof zoneId !== "string") return null;
+  if (zoneId !== "cidade") return DELIVERY_LOCALITIES.find(locality => locality.zoneId === zoneId) ?? null;
+  return deliveryLocalityByExactName(neighborhood, "cidade");
+}
