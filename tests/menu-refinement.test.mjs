@@ -964,9 +964,14 @@ test('city delivery blocks exact specific names including accents, case and spac
    assert.throws(()=>deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:typed}),/taxa de entrega específica/);
   }
  }
- for(const typed of ['Centro','Acaizal próximo à praça','Acaizais','Alto do Vale']) {
+ for(const typed of ['Acaizal próximo à praça','Acaizais','Alto do Vale']) {
   assert.equal(deliveryState('cidade',typed).addressReady,false);
  }
+ const centro=deliveryState('cidade','Centro');
+ assert.equal(centro.deliveryLocalityId,'modulo-i-centro');
+ assert.equal(centro.addressReady,true,'Centro is now an explicitly approved R$8 alias of Módulo I');
+ assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,locality_id:centro.deliveryLocalityId,
+  neighborhood:centro.deliveryNeighborhood}).delivery_fee_cents,800);
  const valid=deliveryState('cidade','Promissão I');
  assert.equal(valid.addressReady,true);
  assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,locality_id:valid.deliveryLocalityId,
