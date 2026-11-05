@@ -1,0 +1,38 @@
+name: Contrato de continuidade comercial (somente documentos)
+
+on:
+  push:
+    branches:
+      - 'docs/continuidade-*'
+    paths:
+      - 'AGENTS.md'
+      - 'README.md'
+      - 'ESTADO_ATUAL_VITRINE.md'
+      - 'docs/continuidade/**'
+      - 'tests/continuity-contract.test.mjs'
+      - '.github/workflows/continuity-commercial-contract.yml'
+  pull_request:
+    paths:
+      - 'AGENTS.md'
+      - 'README.md'
+      - 'ESTADO_ATUAL_VITRINE.md'
+      - 'docs/continuidade/**'
+      - 'tests/continuity-contract.test.mjs'
+      - '.github/workflows/continuity-commercial-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  continuity:
+    name: Integridade da memoria do site
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Conferir fontes e links de continuidade
+        run: node --test tests/continuity-contract.test.mjs

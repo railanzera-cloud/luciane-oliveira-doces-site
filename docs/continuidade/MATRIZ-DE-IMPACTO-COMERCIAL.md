@@ -1,0 +1,106 @@
+# Matriz de impacto comercial — Luciane Oliveira Doces
+
+**Instituída em 05/11/2026** · **Objetivo:** impedir a regressão “adicionou o produto, mas o cliente não conseguiu pedi-lo”.  
+**Não é uma lista de testes a executar integralmente em todo commit.** Selecionar o conjunto real de dependências **a partir da mudança solicitada**, preservando contratos contíguos. Para dúvida de arquitetura, ler o código e a RPC antes de assumir conexão.
+
+## 1. Estados a manter separados
+
+| Estado | Não confundir com |
+|---|---|
+| Produto/foto aparece na vitrine | SKU realmente aceito no backend, estoque disponível, pedido concluído |
+| Loja/categoria visível | Venda permitida pelo backend/estoque/horário |
+| Item no carrinho | Reserva efetiva, pedido criado, receita |
+| Pedido persistido | Mensagem WhatsApp enviada, pagamento aprovado, comanda impressa |
+| WhatsApp aberto | Mensagem efetivamente enviada, conversa recebida, opt-in comercial |
+| Aceite operacional | Pix/cartão aprovado, dinheiro recebido |
+| Estoque reservado | Estoque consumido, pagamento confirmado |
+| QZ informa job/conclusão | Papel fisicamente impresso |
+| Conversa de cliente no CRM | Compra, consentimento, atribuição orgânica |
+| Pixel/CAPI Purchase | Pedido criado, pagamento pendente, clique |
+| Teste aprovado em commit | Deploy da mesma revisão |
+| ZIP construído | Edge Function e migrations efetivamente compatíveis e instaladas |
+
+## 2. Mapa de dependências por tipo de trabalho
+
+**Use esta tabela ao planejar e ao revisar a entrega.** Caminhos são referências da base cumulativa vista em 05/11; confirme se arquivos/contratos foram renomeados em commits posteriores.
+
+| Mudança pedida | Verificações mínimas de contrato | Código / evidência inicial | Aceitação sem regressão |
+|---|---|---|---|
+| Foto, corte, cor, espaçamento, tipografia | Assets, largura/altura, contraste, estados visuais, foco, retorno | `app/page.tsx`, `app/storefront-*.css`, `public/images/`, `REFERENCIA-VISUAL-UX.md` | Mesma foto, CTA e produto; sem overflow, layout shift relevante ou perda de foco |
+| Redesenho de vitrine/categoria | Destino `?categoria`, estado de loja, CTA verdadeiro, UTMs/fbclid/Tintim, histórico | `app/page.tsx`, `app/menu-navigation.ts`, `app/menu-availability.ts` | Ao entrar/voltar, categoria e primeira ação corretas; campanhas preservadas |
+| Adicionar produto ou sabor | Catálogo frontend/backend, identificadores legados, fotos, variantes, preço, quantidade, disponibilidade, admin, cozinha, resumo e emissão | `app/catalog.ts`, `supabase/functions/_shared/commerce-catalog.mjs`, `app/order-checkout.ts`, `components/admin-orders-panel.tsx` | Seleção real → pedido autorizado com o **mesmo item e valor** → admin/WhatsApp/cozinha sem substituição errada |
+| Alterar tamanho ou variante | SKU, gramagem exibida quando autorizada, preço centavos, pacote histórico, RPC, foto/estoque por combinação | `supabase/functions/_shared/trufadas-variants.mjs`, `components/admin-trufadas-stock.tsx`, catálogo | P, M e G não compartilham baixa; pedido antigo mantém identidade; sem preço inventado |
+| Mudar preço/regra promocional | Cotação backend, grupo/recheio, relógio Belém, duração, site ordering vs WhatsApp, mensagem e desconto real | `supabase/functions/_shared/popcorn-promotion.mjs`, `app/catalog.ts`, `docs/GOURMET-CONVERSAO-REFINAMENTO-20261102.md` | Sem `price_changed` por frontend/backend divergentes; expiração realmente remove oferta |
+| Mudar estoque, pré-reserva ou categoria habilitada | Total, reservado, disponível, CAS/versão, lock, loja fechada, data/lote, estoque externo | `app/menu-availability.ts`, `components/admin-trufadas-stock.tsx`, `components/admin-strawberry-preorder.tsx`, SQL/RPC pertinentes | Concorrência não vende além de saldo; fechado ≠ esgotado; cancelamento libera conforme contrato |
+| Carrinho, personalização ou valor | Identidades por item, preço, taxas, frete, quantidade, rollback de seleção, estado de sessão | `app/order-checkout.ts`, `app/catalog.ts`, `lib/site-order.ts` | Soma bate com fonte do servidor; refresh/clique repetido não cria duas compras |
+| Checkout / criação de pedido | Disponibilidade e cotação transacionais, payload, pedidos, status, retries, Pix/cartão/dinheiro, resposta | `supabase/functions/create-whatsapp-order/index.ts`, `supabase/functions/create-order/index.ts`, `app/order-checkout.ts` | SKU/fonte aceita mesma variante; um evento idempotente, total correto, sem perder sessão |
+| Pós-pedido / WhatsApp | Link Tintim, token/número de sessão, mensagem conforme pagamento, acompanhamento, consentimento | `components/whatsapp-order-result.tsx`, `lib/whatsapp-finalization.ts`, `app/pedido/` | “Ver pedido” → recuperar envio original ou assistência segura; sem novo pedido, sem falso pagamento |
+| Mercado Pago / Pix / webhook | HMAC/autenticidade, `paid_at`, evento financeiro deduplicado, cancelamentos, CAPI | `components/mercado-pago-card-form.tsx`, `supabase/functions/mercadopago-webhook/index.ts`, backend | Pagamento só aprovado com prova válida; falha/retry não duplica Purchase ou pagamento |
+| Painel / status de pedidos | Auth/RLS, estado pedido, busca, quantidade por SKU, cancelamento, estoque, repasse à cozinha | `app/admin/`, `components/admin-orders-panel.tsx`, `lib/admin-orders-client.ts` | Admin mostra o que cliente registrou; ações não alteram finanças por engano |
+| Cozinha / impressão QZ | Seleção da impressora, certificado, claim, elegibilidade, hold, reconexão, ESC/POS 58 mm, reimpressão incerta | `lib/qz-print-client.ts`, `lib/kitchen-auto-client.ts`, `supabase/functions/qz-sign/index.ts` | Comanda fiel, sem duplicar, identifica Pix pendente; erro físico documentado |
+| CRM, Tintim, Meta, follow-up | Origem, consentimento, opt-out, horário, resposta, compra, dedupe, envio assistido | `components/admin-crm-panel.tsx`, `lib/crm-assisted.ts`, `supabase/functions/tintim-webhook/`, `crm-whatsapp-webhook/` | Sem compra artificial/atribuição inventada; abertura ≠ envio; não disparar sem gate |
+| Resultados / períodos / relatórios | America/Belem, status aprovado/pago/estornado, totais e comparações, dedupe, autorização | `app/admin/page.tsx`, relatórios/testes `tests/admin-results-*.test.mjs` | Receita não inclui pedidos pendentes como pagos; valores e linhas coincidem |
+| Conteúdo editorial sem mudança funcional | Texto conciso, disponibilidade, preço, SEO quando pertinente, acessibilidade, links | Página/componente e estilos envolvidos | Nenhum atributo de produto/promoção fictício; CTA existente continua certo |
+
+**A matriz é um checklist de investigação, não autorização para fazer integrações externas**. Uma modificação de CSS que não toca preço só necessita teste de navegação/semântica, mas um novo SKU **não** pode ignorar a cadeia de pedidos.
+
+## 3. “Definição de pronto” para adicionar produto (caso concreto)
+
+Antes de declarar integração:
+1. **Produto:** confirmar com o proprietário nome, sabor, foto real, apresentação, variante e preço. Se estiver ausente e for indispensável, perguntar **apenas o dado faltante**. Nunca inventar gramagem ou saldo.
+2. **Identidade:** mapear `product_id` e `sku` existentes, distinguindo os antigos; aceitar pedidos históricos.
+3. **Fonte de preço:** definir a mesma cotação frontend/backend para o método de pedido ativo, inclusive promoção e data.
+4. **Disponibilidade:** backend/RPC, item habilitado e loja aberta; verificar resposta a esgotamento e concorrência. Estoque não consultado não vira saldo positivo.
+5. **Jornada:** exibir foto/nome/valor, selecionar, adicionar, visualizar carrinho, revisar total, registrar idempotentemente, recuperar retorno após WhatsApp/pagamento.
+6. **Operação:** verificar representação no admin, estoque reservado/baixado conforme contrato, cozinha/etiqueta 58 mm e resultados sem duplicidade.
+7. **Integrações:** metas/campanhas/UTM e CAPI apenas quando realmente afetados; webhook/CRM sem status inventado.
+8. **Teste:** SQL isolado e concorrência se migração, unit/DOM/render, checkout de SKU, falha/retentativa, visual mobile, integração sintética; ausência de pedido real sem autorização.
+9. **Release:** CI + artefato do mesmo SHA; compatibilidade das Edge Functions e SQL **efetivamente instalados**; aprovação para deploy/validação real separada.
+
+Se qualquer elo estiver **sem prova**, declarar “produto integrado no frontend, mas fluxo total pendente”, não “finalizado”.
+
+## 4. Jornada de teste orientada por risco
+
+**UX-only:**
+- Uma captura/caminho base e uma da candidata (se ferramentas disponíveis); 320/375/390/430/desktop conforme layout.
+- Revisar botão, alvo, fonte, foto, label, estado selecionado, fechamento da loja, back/forward, baixa conectividade, leitor/teclado.
+- Executar testes específicos de UI e build/TypeScript do SHA quando publicável. Não tocar em SQL/pagamento sem dependência.
+
+**Mudança de contrato:**
+- Comparar módulos frontend, Edge e SQL/RPC; testar status válido/inválido, dados ausentes, dois pedidos concorrentes, replay idempotente, bloqueio RLS, estorno/cancelamento; teste de restauração/rollback.
+- Conferir que a área gerencial e a impressão consomem os mesmos dados sem criar outro produto.
+- Não acionar número comercial, pedido real ou QZ físico por default.
+
+**Mudança de pagamentos/estoque:**
+- Exigir evidências de instalação real, backup apropriado, autorização do corte, monitoramento, reversibilidade e validação de pós-deploy; não “corrigir” por CSS/flag.
+
+## 5. Testes e fluxos já existentes na base candidata 03/11 (não assumir que sempre passam)
+
+- Catálogo: `tests/trufadas-variants-pmg-20261101.test.mjs`, `tests/trufadas-stock-controls.test.mjs`, `tests/popcorn-premium-pricing.test.mjs`.
+- Vitrine: `tests/home-premium-reconstrucao-20261102.test.mjs`, `tests/gourmet-rolagem-contextual-20261103.test.mjs`, `tests/storefront-vitrine-editorial-experiment.test.mjs`.
+- WhatsApp: `tests/whatsapp-finalization-20261102.test.mjs`, `tests/checkout-premium-unificado-20261018.test.mjs`.
+- Admin: `tests/admin-disponibilidade-premium-20261102.test.mjs`, `tests/admin-order-items-slice-quantity-20261024.test.mjs`.
+- QZ/cozinha: `tests/kitchen-auto-mode-20261017.test.mjs`, `tests/cozinha-worker-id-20261102.test.mjs`, `tests/qz-printer-recovery-20261102.test.mjs`.
+- CRM/Meta: `tests/crm-assisted-client-20261031.test.mjs`, `tests/crm-followup-preflight-20261026.test.mjs`, `tests/crm-meta-delivery-status-20261027.test.mjs`.
+- Integração: `.github/workflows/design-boutique-preview.yml` (build/testes/pacote/preview) e `.github/workflows/trufadas-pmg-isolated-db.yml` (PostgreSQL isolado) quando aplicáveis.
+
+**Cuidado:** qualquer workflow ou teste daqui pode ter mudado após 05/11. Verifique arquivo e SHA, não apenas nome.
+
+## 6. Gate de release e evidências
+
+```text
+[ ] Base correta e diferenças/PRs comparadas
+[ ] Critérios de UX e componentes protegidos definidos
+[ ] Contratos adjacentes relevantes mapeados
+[ ] Assets aprovados presentes e referenciados no repositório
+[ ] Código completo no SHA, sem conflito ou dados fictícios produtivos
+[ ] Testes focados e globais requeridos no SHA (erros e limites declarados)
+[ ] SQL/Edge instalada compatível com frontend (verificação do estado real)
+[ ] ZIP/artefato corresponde ao SHA e inclui frontend/admin/pedido/assets/worker
+[ ] Identidade do deployment Cloudflare anterior conhecida para rollback
+[ ] Permissão específica para migração, Edge e/ou publicação, se necessárias
+[ ] Safari/iPhone/QZ/pagamento reais homologados ou pendência explicitamente aberta
+[ ] Memória, referência visual e checkpoint atualizados sem inventar estados
+```
+
+**Não mover qualquer checkbox apenas porque uma mensagem anterior disse “concluído”.** Evidências devem ser verificadas no contexto da mudança.

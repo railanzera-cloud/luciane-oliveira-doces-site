@@ -1,3 +1,7 @@
+> **NOTA DE CONTINUIDADE (05/11/2026):** o checkpoint abaixo preserva **aprovações visuais e fotografias específicas** do período em que foi escrito, mas não é mais a fonte única para saber qual branch, checkout, catálogo, Edge Function ou deployment está vigente. Leia [AGENTS.md](AGENTS.md), [Referência Visual e UX](docs/continuidade/REFERENCIA-VISUAL-UX.md) e [Checkpoint Vivo](docs/continuidade/CHECKPOINT-VIVO.md); compare o código remoto antes de executar tarefas. **Não regredir fotos/enquadramentos aprovados** por causa desta atualização de ordem de leitura. Nenhuma preferência visual registrada abaixo foi descartada.
+
+---
+
 # LUCIANE OLIVEIRA DOCES — ESTADO ATUAL DA VITRINE (LEITURA OBRIGATÓRIA)
 
 **Atualizado em 14/10/2026 após aprovação visual no Safari do iPhone.**
