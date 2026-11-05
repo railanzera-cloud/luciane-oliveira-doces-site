@@ -13,6 +13,7 @@ on:
       - 'supabase/functions/_shared/delivery-localities.mjs'
       - 'supabase/functions/_shared/commerce-catalog.mjs'
       - 'tests/delivery-localities-20261105.test.mjs'
+      - 'scripts/audit-delivery-contract.mjs'
 permissions:
   contents: read
 jobs:
@@ -27,6 +28,8 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm ci
+      - name: Auditar todas as tarifas e localidades do release
+        run: node scripts/audit-delivery-contract.mjs
       - name: Testar identidade do bairro, anti-bypass e fluxo
         run: node --test tests/delivery-localities-20261105.test.mjs
       - name: Conferir TypeScript (falhar em erros novos)
