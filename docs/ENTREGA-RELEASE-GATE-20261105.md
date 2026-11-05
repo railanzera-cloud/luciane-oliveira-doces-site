@@ -59,3 +59,8 @@ Se o frontend apresentar problemas: **não apagar pedidos reais nem reverter aut
 ## 6. Fontes de restauração guardadas no GitHub
 
 As duas Edge instaladas foram lidas em modo read-only e arquivadas com hashes em `docs/edge-release/rollback/20261105/`. O teste `tests/delivery-edge-rollback-20261105.test.mjs` verifica os sete arquivos, a integridade dos imports, as 21 tarifas legadas e a cotação comercial do WhatsApp v26 em matriz sintética. Consultar [`docs/EDGE-ROLLBACK-BUNDLE-20261105.md`](EDGE-ROLLBACK-BUNDLE-20261105.md) para sequência do corte e rollback sem destruir dados. Reconfirmar hashes live imediatamente antes de qualquer deploy; backups de código não preservam configurações secretas nem comprovam release. Permanece NO-GO.
+
+
+## 7. QA móvel automatizado WebKit: etapa técnica concluída, Safari real pendente
+
+Na branch `work/entrega-busca-bairros-segura-20261105`, o código SHA `1a6a12877e9b214e57b24f0462849537f6f5220a` passou em [GitHub Actions 42105774369](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42105774369), inclusive no job WebKit em 320, 375, 390 e 430 px. O script `scripts/qa-delivery-webkit.mjs` testa seleção por toque/teclado, 8/10 reais da tabela candidata, pendência sem cotação, assistência e overflow; captura em [artefato de screenshots QA](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42105774369/artifacts/13451467528). Ambiente sem chaves produtivas e bloqueio da rede externa. Essa é prova de **WebKit automatizado**, não aprovação de teclado físico iPhone ou webview do Instagram. Manter ambos no gate manual e não antecipar a publicação/flag estrita.
