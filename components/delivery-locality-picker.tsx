@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Check, MapPin, Search, ShieldAlert } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { TintimContactLink } from "@/components/tintim-contact-link";
+import { deliverySuggestionLayout, queryAfterDeliverySelectionChange } from "@/components/delivery-picker-logic.mjs";
 import { DELIVERY_ZONES } from "@/app/catalog";
 import { deliveryLocalityById, deliveryLocalityCanQuote, searchDeliveryLocalities } from "@/supabase/functions/_shared/delivery-localities.mjs";
 
@@ -22,15 +23,62 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
   const [query, setQuery] = useState(selected?.label ?? "");
   const [expanded, setExpanded] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const fieldRef = useRef<HTMLInputElement>(null);
+  const previousSelectedIdRef = useRef(selectedId);
+  const clearingByTypingRef = useRef(false);
+  const [listPlacement, setListPlacement] = useState<"above" | "below">("below");
+  const [listMaxHeight, setListMaxHeight] = useState(320);
   const results = useMemo(() => searchDeliveryLocalities(query), [query]);
 
   useEffect(() => {
-    if (selected) setQuery(selected.label);
+    const nextQuery = queryAfterDeliverySelectionChange({
+      previousId: previousSelectedIdRef.current,
+      nextId: selectedId,
+      nextLabel: selected?.label ?? "",
+      typedValue: query,
+      clearedByTyping: clearingByTypingRef.current,
+    });
+    previousSelectedIdRef.current = selectedId;
+    clearingByTypingRef.current = false;
+    if (nextQuery === null) return; // Ao apagar um bairro escolhido, não apagar a nova busca.
+    setQuery(nextQuery);
+    setExpanded(false);
+    setActiveIndex(0);
   }, [selectedId, selected?.label]);
+
+  useEffect(() => {
+    if (!expanded) return;
+    const updateLayout = () => {
+      const element = fieldRef.current;
+      if (!element) return;
+      const rect = element.getBoundingClientRect();
+      const viewport = window.visualViewport;
+      const layout = deliverySuggestionLayout({
+        fieldTop: rect.top,
+        fieldBottom: rect.bottom,
+        viewportTop: viewport?.offsetTop ?? 0,
+        viewportHeight: viewport?.height ?? window.innerHeight,
+      });
+      setListPlacement(layout.placement);
+      setListMaxHeight(layout.maxHeight);
+    };
+    updateLayout();
+    window.addEventListener("resize", updateLayout);
+    window.addEventListener("scroll", updateLayout, { passive: true });
+    window.visualViewport?.addEventListener("resize", updateLayout);
+    window.visualViewport?.addEventListener("scroll", updateLayout);
+    return () => {
+      window.removeEventListener("resize", updateLayout);
+      window.removeEventListener("scroll", updateLayout);
+      window.visualViewport?.removeEventListener("resize", updateLayout);
+      window.visualViewport?.removeEventListener("scroll", updateLayout);
+    };
+  }, [expanded]);
 
   const activeResult = results[Math.min(activeIndex, Math.max(0, results.length - 1))];
   const contactLocation = (selected?.label ?? query.trim()).slice(0, 100);
-  const needsManualQuote = !deliveryLocalityCanQuote(selected) && Boolean(selected || query.trim().length >= 2);
+  const needsManualQuote = !deliveryLocalityCanQuote(selected)
+    && (Boolean(selected) || (query.trim().length >= 2 && results.length === 0));
 
   function choose(locality: Locality) {
     setQuery(locality.label);
@@ -47,6 +95,7 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
       <div className="delivery-locality-input">
         <Search size={18} aria-hidden="true" />
         <Input
+          ref={fieldRef}
           id="neighborhood"
           role="combobox"
           aria-autocomplete="list"
@@ -62,7 +111,10 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
             setQuery(event.target.value);
             setExpanded(true);
             setActiveIndex(0);
-            if (selectedId) onClear();
+            if (selectedId) {
+              clearingByTypingRef.current = true;
+              onClear();
+            }
           }}
           onKeyDown={(event) => {
             if (event.key === "Escape") { setExpanded(false); return; }
@@ -83,9 +135,10 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
         />
         {deliveryLocalityCanQuote(selected) && <Check className="delivery-locality-ok" size={18} aria-label="Bairro selecionado" />}
       {expanded && (
-        <div className="delivery-locality-results" id={listId} role="listbox" aria-label="Sugestões de bairros">
+        <div className="delivery-locality-results" id={listId} role="listbox" aria-label="Sugestões de bairros"
+          data-placement={listPlacement} style={{ maxHeight: `${listMaxHeight}px` }}>
           {results.length === 0 ? (
-            <p className="delivery-locality-empty">Não encontramos esse nome. Confira a grafia ou solicite confirmação com a loja.</p>
+            <p className="delivery-locality-empty" role="status">Não encontramos esse nome. Confira a grafia ou solicite confirmação com a loja.</p>
           ) : results.map((locality, index) => {
             const zone = deliveryLocalityCanQuote(locality)
               ? DELIVERY_ZONES.find((candidate) => candidate.id === locality.zoneId)
