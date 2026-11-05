@@ -19,15 +19,17 @@ Leitura somente dos metadados e arquivos de Edge Functions, **sem alterar produ�
 ## 2. Estado da implementação candidata
 
 - 114 nomes pesquisáveis com aliases, busca aproximada sem cotação implícita, seleção explícita e aviso de tarifa pendente.
-- 20 localidades com tarifas especiais históricas do código + 5 exemplos urbanos informados pelo proprietário; **89 localidades pendentes não recebem preço automático** (54 candidatos urbanos e 35 com região incerta).
+- **58 localidades cotáveis:** 20 destinos especiais históricos, 5 exemplos urbanos já registrados e **33 novas confirmações do proprietário em 05/11/2026** (28 a R$ 8 e 5 a R$ 10). **56 localidades continuam pendentes** (30 candidatos urbanos e 26 sem vínculo tarifário). Nenhuma pendente recebe frete automático.
 - O servidor rejeita zonas fora do catálogo (inclusive nomes herdados do protótipo JavaScript), locais pendentes, IDs e tarifas contraditórios. Ambos os handlers de pedidos usam `quoteFulfillment` compartilhada.
 - Resumo do carrinho para destino pendente mostra **"Taxa de entrega: A confirmar"**, não total imaginário.
 - `scripts/audit-delivery-contract.mjs` faz preflight **sem acessar produção nem gravar dados**. Rodar `node scripts/audit-delivery-contract.mjs` e `node --test tests/delivery-localities-20261105.test.mjs` antes de qualquer publicação.
 - Resultado de build/CI deve sempre estar associado ao SHA exato, não atribuído a uma documentação mais nova sem novo teste.
 
+**Tarifas agora aprovadas no candidato (não publicadas):** Ouro Preto, Juparanã (bairro), Aragão, Laércio Cabeline e Sidney Rosa custam R$ 10. Os outros 28 destinos do grupo de 33 foram confirmados a R$ 8. Juparanã Empresa conserva sua zona diferente, também R$ 10. A validação automática confere **26 zonas tarifárias** entre navegador e servidor. Os demais 56 nomes não podem ser liberados por suposição.
+
 ## 3. Critérios GO / NO-GO
 
-**NO-GO para publicar nesta fotografia**: as 89 localidades ainda exigem conferência comercial; não houve teste de uso no Safari/iPhone real; o backend comercial publicado NÃO entende `locality_id`; as duas Edge Functions podem ter diferenças de negócio/versões próprias.
+**NO-GO para publicar nesta fotografia:** restam 56 localidades sem confirmação; as taxas especiais históricas e limites de atendimento ainda precisam de conferência abrangente. Não houve teste de uso no Safari/iPhone real; o backend comercial publicado NÃO entende `locality_id`; as duas Edge Functions podem ter diferenças de negócio/versões próprias.
 
 Para obter **GO**:
 1. **Luciane e responsável pelas entregas** validam, na [matriz de 114 localidades](ENTREGA-HOMOLOGACAO-LOCALIDADES-20261105.md): quais bairros são atendidos, tarifa efetiva, sinônimos, limites de divisa e data. Não inferir R$ 8 por ser bairro oficialmente urbano. Atualizar IDs/estado conforme validação e rodar a auditoria novamente.
