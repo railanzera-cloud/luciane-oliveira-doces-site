@@ -24,6 +24,7 @@ test("Portuguese spelling, roman numerals and common name variants find the inte
   assert.equal(normalizeDeliverySearch("Promissao 2"), "promissao 2");
   assert.equal(searchDeliveryLocalities("promissao 2")[0].id, "promissao-ii");
   assert.equal(searchDeliveryLocalities("açaisal")[0].id, "acaizal");
+  assert.equal(searchDeliveryLocalities("Saisal")[0].id, "acaizal");
   assert.equal(searchDeliveryLocalities("nagibao")[0].id, "nagibao");
   assert.equal(searchDeliveryLocalities("florbiante")[0].id, "flamboyant");
   assert.equal(deliveryLocalityByExactName("AÇAISAL").id, "acaizal");
@@ -65,6 +66,7 @@ test("cannot claim special destinations at city rate, including edited payloads"
 
 test("legacy free-text guard catches special alias rather than only exact label", () => {
   assert.match(deliveryZoneMismatchMessage("cidade", "Açaisal"), /Açaizal/);
+  assert.match(deliveryZoneMismatchMessage("cidade", "Saisal"), /Açaizal/);
   assert.match(deliveryZoneMismatchMessage("cidade", "Nagib Demachki"), /Nagibão/);
   assert.throws(() => quoteFulfillment({
     type: "delivery", zone_id: "cidade", neighborhood: "Açaisal",
