@@ -179,3 +179,6 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Proteção contra falso nome próximo:** a busca aproximada podia sugerir "Parque IV" para "Parque 3" por diferença de um caractere. Aplicar filtro exclusivo de resultados na interface, exigindo coincidência de todos os tokens numéricos (romanos já normalizados), preservando "Promissão 3" → "Promissão III" e buscas textuais sem número. **Não** modificar catálogo compartilhado, ID, valor, backend ou zonas.
 - **Prova exigida:** testes de regra e WebKit 320/375/390/430 com "Parque 3" ausente, "Parque 4" correspondente a IV sem tarifa presumida, e restauração do checkout. Safari/Instagram físico continua prova posterior.
 - **Estado:** revisão aprovada, implementação em branch e CI a conferir; publicação Cloudflare posterior será manual.
+
+
+- **Evidência posterior da aprovação:** SHA `95907ca1d7ec9c87cb6443f31ca80b7968581673`, [CI 42111993368](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42111993368) aprovada em WebKit 320/375/390/430, 21 testes de entregas, 752 regressões e build. Verificada geração de ZIP conectado ao Supabase para publicação manual. Não existe ainda inspeção do novo texto em Safari físico após publicação.
