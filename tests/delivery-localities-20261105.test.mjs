@@ -8,6 +8,9 @@ import {
 import {
   DELIVERY_ZONES, quoteFulfillment, deliveryZoneMismatchMessage,
 } from "../supabase/functions/_shared/commerce-catalog.mjs";
+import {
+  queryAfterDeliverySelectionChange, deliverySuggestionLayout,
+} from "../components/delivery-picker-logic.mjs";
 
 test("catalogue includes 114 distinct known locality candidates, without default fares", () => {
   assert.equal(DELIVERY_LOCALITIES.length, 114);
@@ -101,4 +104,54 @@ test("both order channels transmit locality ID and preserve their existing check
   assert.match(picker, /deliveryLocalityCanQuote\(locality\)/);
   assert.match(picker, /deliveryLocalityCanQuote\(selected\)/);
   assert.doesNotMatch(page, /Outro bairro dentro da cidade/);
+});
+
+
+test("search field preserves active typing but resets when external selection changes", () => {
+  assert.equal(queryAfterDeliverySelectionChange({
+    previousId: "promissao-i", nextId: "", nextLabel: "",
+    clearedByTyping: true,
+  }), null, "the text being typed must not disappear when onClear fires");
+  assert.equal(queryAfterDeliverySelectionChange({
+    previousId: "promissao-i", nextId: "", nextLabel: "",
+    clearedByTyping: false,
+  }), "", "external clearing should reset a stale selected name");
+  assert.equal(queryAfterDeliverySelectionChange({
+    previousId: "promissao-i", nextId: "acaizal", nextLabel: "Açaizal",
+  }), "Açaizal", "new selection updates input");
+  assert.equal(queryAfterDeliverySelectionChange({
+    previousId: "acaizal", nextId: "acaizal", nextLabel: "Açaizal",
+  }), null, "unrelated rerenders must not overwrite a user's search");
+});
+
+test("iPhone visual viewport positions results away from the virtual keyboard", () => {
+  const compact = deliverySuggestionLayout({
+    fieldTop: 235, fieldBottom: 287, viewportTop: 0, viewportHeight: 360,
+  });
+  assert.equal(compact.placement, "above", "not enough room under input");
+  assert.ok(compact.maxHeight <= 223 && compact.maxHeight >= 72);
+  const regular = deliverySuggestionLayout({
+    fieldTop: 120, fieldBottom: 172, viewportTop: 0, viewportHeight: 760,
+  });
+  assert.equal(regular.placement, "below");
+  assert.equal(regular.maxHeight, 320);
+  const scrolled = deliverySuggestionLayout({
+    fieldTop: 400, fieldBottom: 450, viewportTop: 320, viewportHeight: 280,
+  });
+  assert.equal(scrolled.placement, "below");
+  assert.ok(scrolled.maxHeight <= 138);
+  assert.equal(deliverySuggestionLayout({ fieldTop: 0, fieldBottom: 0 }).maxHeight, 72);
+});
+
+test("dropdown is full-width on desktop and adapts to visualViewport on mobile", async () => {
+  const picker = await readFile(new URL("../components/delivery-locality-picker.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/delivery-locality.css", import.meta.url), "utf8");
+  assert.match(picker, /clearingByTypingRef\.current = true/);
+  assert.match(picker, /queryAfterDeliverySelectionChange/);
+  assert.match(picker, /window\.visualViewport\?\.addEventListener\("resize"/);
+  assert.match(picker, /data-placement=\{listPlacement\}/);
+  assert.match(css, /delivery-fields > \.delivery-locality-picker,[\s\S]*grid-column:1 \/ -1/);
+  assert.match(css, /delivery-locality-results\[data-placement="above"\]/);
+  assert.match(picker, /results\.length === 0/);
+  assert.match(picker, /query\.trim\(\)\.length >= 2 && results\.length === 0/);
 });
