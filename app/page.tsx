@@ -31,7 +31,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { DeliveryLocalityPicker } from "@/components/delivery-locality-picker";
-import { deliveryLocalityById, deliveryLegacyLocality } from "@/supabase/functions/_shared/delivery-localities.mjs";
+import { deliveryLocalityById, deliveryLegacyLocality, deliveryLocalityCanQuote } from "@/supabase/functions/_shared/delivery-localities.mjs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -834,7 +834,7 @@ export default function Home() {
           ?? deliveryLegacyLocality(savedOrder.deliveryZoneId, savedOrder.neighborhood);
         if (savedLocality) {
           setDeliveryLocalityId(savedLocality.id);
-          setDeliveryZoneId(savedLocality.zoneId ?? "");
+          setDeliveryZoneId(deliveryLocalityCanQuote(savedLocality) ? savedLocality.zoneId : "");
         }
         if (typeof savedOrder.address === "string") {
           setAddress(savedOrder.address);
@@ -925,7 +925,8 @@ export default function Home() {
   const selectedSliceVariant = selectedSlice?.variants[0];
   const selectedDeliveryLocality = deliveryLocalityById(deliveryLocalityId);
   const selectedDeliveryZone = DELIVERY_ZONES.find((zone) =>
-    zone.id === deliveryZoneId && zone.id === selectedDeliveryLocality?.zoneId);
+    deliveryLocalityCanQuote(selectedDeliveryLocality)
+      && zone.id === deliveryZoneId && zone.id === selectedDeliveryLocality?.zoneId);
   const deliveryNeighborhood = selectedDeliveryLocality?.label ?? "";
 
   const deliveryZoneError = deliveryZoneMismatchMessage(deliveryZoneId, cleanWhatsAppField(neighborhood))
@@ -1045,7 +1046,7 @@ export default function Home() {
     ? popcornUnitPrice === null ? null : popcornUnitPrice * popcornQuantity
     : selectedSliceVariant ? selectedSliceVariant.price * sliceQuantity : null;
   const addressReady = fulfillment !== "entrega"
-    || Boolean(selectedDeliveryLocality?.zoneId && selectedDeliveryZone && !deliveryZoneError
+    || Boolean(deliveryLocalityCanQuote(selectedDeliveryLocality) && selectedDeliveryZone && !deliveryZoneError
       && cleanWhatsAppField(deliveryNeighborhood) && cleanWhatsAppField(address) && cleanWhatsAppField(addressNumber));
   const cashReceivedCents = parseCashCents(changeFor);
   const isCashPayment = payment === "dinheiro" || payment === "cash";
@@ -2004,7 +2005,7 @@ export default function Home() {
       ? "Adicione pelo menos um produto ao pedido."
       : !fulfillment
         ? "Escolha entrega ou retirada para continuar."
-        : fulfillment === "entrega" && selectedDeliveryLocality && !selectedDeliveryLocality.zoneId
+        : fulfillment === "entrega" && selectedDeliveryLocality && !deliveryLocalityCanQuote(selectedDeliveryLocality)
           ? "Este local precisa de confirmação da taxa com a loja."
           : fulfillment === "entrega" && !selectedDeliveryZone
             ? "Busque e selecione seu bairro para calcular a entrega."
@@ -2825,7 +2826,7 @@ export default function Home() {
                     selectedId={deliveryLocalityId}
                     onSelect={(locality) => {
                       setDeliveryLocalityId(locality.id);
-                      setDeliveryZoneId(locality.zoneId ?? "");
+                      setDeliveryZoneId(deliveryLocalityCanQuote(locality) ? locality.zoneId! : "");
                       setNeighborhood(locality.label);
                       setCheckoutAvailabilityMessage("");
                     }}
@@ -2840,7 +2841,7 @@ export default function Home() {
                       Taxa para {selectedDeliveryLocality?.label}: <strong>{currency.format(selectedDeliveryZone.price)}</strong>
                     </p>
                   )}
-                  {!selectedDeliveryLocality?.zoneId && (
+                  {!deliveryLocalityCanQuote(selectedDeliveryLocality) && (
                     <p className="delivery-locality-assistance">
                       Bairro não localizado ou tarifa pendente?{" "}
                       <TintimContactLink message="Olá! Quero confirmar a taxa de entrega para meu bairro em Paragominas.">
