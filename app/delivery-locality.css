@@ -68,3 +68,21 @@
 @media (prefers-reduced-motion:reduce) {
   .storefront #carrinho .delivery-locality-option {scroll-behavior:auto;}
 }
+
+
+/* O valor de entrega não é zero enquanto a localidade não tiver taxa homologada. */
+.storefront #carrinho .summary-delivery-pending strong {
+  color:#966332;
+  font-size:.83rem;
+  font-weight:780;
+}
+.storefront #carrinho .summary-delivery-pending-note {
+  margin:4px 0 12px;
+  padding:11px 13px;
+  border:1px solid #dbc3a5;
+  border-radius:12px;
+  background:#f7e9d7;
+  color:#78563c;
+  font-size:.78rem;
+  line-height:1.5;
+}
