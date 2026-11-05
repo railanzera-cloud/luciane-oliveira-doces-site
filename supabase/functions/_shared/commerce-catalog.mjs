@@ -1,3 +1,4 @@
+import { deliveryLocalityById, deliveryLocalityByExactName, normalizeDeliverySearch } from "./delivery-localities.mjs";
 import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
@@ -74,7 +75,10 @@ export function deliveryZoneMismatchMessage(zoneId, neighborhood) {
   if (!DELIVERY_ZONES[zoneId]?.asksNeighborhood || typeof neighborhood !== "string") return "";
   const normalize = value => value.normalize("NFD").replace(/\p{M}/gu, "").trim().replace(/\s+/g, " ").toLowerCase();
   const normalized = normalize(neighborhood);
-  const specific = Object.values(DELIVERY_ZONES).find(zone => !zone.asksNeighborhood && normalize(zone.label) === normalized);
+  const matchingLocality = deliveryLocalityByExactName(neighborhood);
+  const specific = matchingLocality?.zoneId && matchingLocality.zoneId !== "cidade"
+    ? DELIVERY_ZONES[matchingLocality.zoneId]
+    : Object.values(DELIVERY_ZONES).find(zone => !zone.asksNeighborhood && normalize(zone.label) === normalized);
   if (!specific) return "";
   const price = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(specific.priceCents / 100).replace(/\u00a0/g, " ");
   return `Esse local possui uma taxa de entrega específica. Selecione ‘${specific.label} — ${price}’ em ‘Onde será a entrega?’.`;
@@ -209,9 +213,25 @@ export function quoteFulfillment(raw) {
   const zoneId = requiredString(raw.zone_id, "região de entrega", 80);
   const zone = DELIVERY_ZONES[zoneId];
   if (!zone) throw new Error("Escolha uma região de entrega válida.");
-  const neighborhood = zone.asksNeighborhood
-    ? requiredString(raw.neighborhood, "bairro", 120)
-    : zone.label;
+  // O novo checkout sempre envia locality_id. Em publicação faseada, clientes da
+  // versão antiga continuam aceitos até o flag DELIVERY_REQUIRE_LOCALITY_ID ser ativado
+  // após comprovar frontend + Edge atualizados. Sem o flag, o modo legado é limitado.
+  const explicitLocalityId = raw.locality_id;
+  const requireLocalityId = globalThis.Deno?.env?.get("DELIVERY_REQUIRE_LOCALITY_ID") === "true";
+  if (requireLocalityId && !explicitLocalityId) throw new Error("Atualize a página para selecionar seu bairro.");
+  const locality = explicitLocalityId == null ? null : deliveryLocalityById(explicitLocalityId);
+  if (explicitLocalityId != null && (!locality || !locality.zoneId)) {
+    throw new Error("Selecione um bairro com taxa de entrega confirmada.");
+  }
+  if (locality && locality.zoneId !== zone.id) {
+    throw new Error("Bairro e taxa de entrega não correspondem. Selecione novamente seu bairro.");
+  }
+  if (locality && typeof raw.neighborhood === "string"
+      && normalizeDeliverySearch(raw.neighborhood) !== normalizeDeliverySearch(locality.label)) {
+    throw new Error("O bairro informado não corresponde ao selecionado. Revise a entrega.");
+  }
+  const neighborhood = locality?.label ?? (zone.asksNeighborhood
+    ? requiredString(raw.neighborhood, "bairro", 120) : zone.label);
   const mismatch = deliveryZoneMismatchMessage(zone.id, neighborhood);
   if (mismatch) throw new Error(mismatch);
   return {
