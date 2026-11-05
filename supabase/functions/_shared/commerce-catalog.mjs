@@ -1,4 +1,4 @@
-import { deliveryLocalityById, deliveryLocalityByExactName, deliveryLocalityCanQuote, normalizeDeliverySearch } from "./delivery-localities.mjs";
+import { deliveryLocalityById, deliveryLegacySpecificCandidate, deliveryLocalityCanQuote, normalizeDeliverySearch } from "./delivery-localities.mjs";
 import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
@@ -70,13 +70,14 @@ export const DELIVERY_ZONES = Object.freeze({
   "resort-toddys": Object.freeze({ id: "resort-toddys", label: "Resort Toddys", priceCents: 2400 }),
 });
 
-// Correspondência exata após normalização; não tenta adivinhar bairros parecidos.
+// Clientes legados não enviam locality_id. Detecta referências inequívocas a
+// localidades com tarifa especial, sem atribuir preço por similaridade.
 export function deliveryZoneMismatchMessage(zoneId, neighborhood) {
   if (typeof zoneId !== "string" || !Object.hasOwn(DELIVERY_ZONES, zoneId)
       || !DELIVERY_ZONES[zoneId].asksNeighborhood || typeof neighborhood !== "string") return "";
   const normalize = value => value.normalize("NFD").replace(/\p{M}/gu, "").trim().replace(/\s+/g, " ").toLowerCase();
   const normalized = normalize(neighborhood);
-  const matchingLocality = deliveryLocalityByExactName(neighborhood);
+  const matchingLocality = deliveryLegacySpecificCandidate(neighborhood);
   const specific = matchingLocality?.zoneId && matchingLocality.zoneId !== "cidade"
     ? DELIVERY_ZONES[matchingLocality.zoneId]
     : Object.values(DELIVERY_ZONES).find(zone => !zone.asksNeighborhood && normalize(zone.label) === normalized);
