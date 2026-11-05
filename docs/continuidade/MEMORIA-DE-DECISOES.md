@@ -137,3 +137,13 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - Estado por dimensão: decidido / implementado / validado / aprovado visualmente / publicado:
 - Lacuna e gatilho para reavaliar:
 ```
+
+
+## D-C15 — Bairro primeiro, tarifa pelo servidor; entrega com exceções explícitas
+
+- **Origem:** relato do proprietário em 05/11/2026 sobre cliente informando bairro especial na opção genérica R$ 8; aprovação em conversa para busca de localidades e validação no backend.
+- **Decisão:** cliente pesquisa um bairro/localidade identificada, nunca escolhe diretamente o valor da taxa. A tarifa deriva do ID estável vinculado ao contrato do servidor, com R$ 8 para região urbana e exceções comerciais registradas. Áreas ainda sem correspondência suficiente oferecem confirmação pelo WhatsApp, **não um pagamento supostamente validado**.
+- **Rejeitado:** nome livre determinando frete, GPS obrigatório, trocar preços de todas as zonas por distância em linha reta, supor que todo bairro oficial custa R$ 8, considerar um nome parecido como local correto sem escolha consciente.
+- **Implementação candidata:** `supabase/functions/_shared/delivery-localities.mjs`, `components/delivery-locality-picker.tsx`, `app/page.tsx`, `commerce-catalog.mjs`. Preserva IDs das 21 zonas existentes, distingue bairros de localidades especiais e envia `locality_id` em pedidos pelo site e WhatsApp.
+- **Limites e estado:** 114 nomes pesquisáveis; 20 especiais com valores atuais de código, 59 mapeamentos urbanos **candidatos** pela regra geral do proprietário, 35 pendentes de confirmação. A segurança definitiva contra clients legados depende de rollout backend → frontend → flag `DELIVERY_REQUIRE_LOCALITY_ID`, sem quebrar pedidos abertos. Não há garantia de localização física real sem geocodificação. Estado: **aprovado em conceito e implementado em branch candidata**, QA/revisão visual e publicação devem ser registrados separadamente.
+- **Detalhes e fontes:** `docs/ENTREGA-BAIRROS-BUSCA-20261105.md` e teste `tests/delivery-localities-20261105.test.mjs`; não alterar histórico financeiro/estoque para cumprir esta decisão.
