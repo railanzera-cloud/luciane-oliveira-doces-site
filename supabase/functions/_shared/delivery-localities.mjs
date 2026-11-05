@@ -110,6 +110,36 @@ export function searchDeliveryLocalities(query, limit = 8) {
     .map(match => match.locality);
 }
 
+
+// Ajuda conservadora apenas para bloquear taxa urbana incorreta em clientes
+// legados que não enviam locality_id. Nunca adivinha nem autoriza preço.
+// Nomes urbanos exatos têm prioridade: "Juparanã" NÃO é "Juparanã Empresa".
+export function deliveryLegacySpecificCandidate(name) {
+  const query = normalizeDeliverySearch(name);
+  if (!query) return null;
+  const exact = deliveryLocalityByExactName(name);
+  if (exact) return exact.zoneId && exact.zoneId !== "cidade" ? exact : null;
+
+  // Reconhece referência explícita à localidade especial com informação extra
+  // em texto livre: "Açaizal próximo à praça", "perto da Floraplac MDF".
+  const mentioned = DELIVERY_LOCALITIES.filter(locality =>
+    locality.zoneId && locality.zoneId !== "cidade"
+    && deliverySearchTerms(locality).some(term =>
+      term.length >= 4 && (` ${query} `).includes(` ${term} `)));
+  if (mentioned.length === 1) return mentioned[0];
+  if (mentioned.length > 1) return null; // Múltiplos locais: não escolher ao acaso.
+
+  // Para grafia com até uma ou duas diferenças, só bloqueia se a
+  // correspondência for única e não houver resultado urbano igualmente plausível.
+  if (query.length < 5 || query.length > 50) return null;
+  const candidates = searchDeliveryLocalities(query, 20);
+  if (candidates.length !== 1) return null;
+  const candidate = candidates[0];
+  // Correspondência por trecho urbano parcial não pode transformar "Juparanã"
+  // em "Juparanã Empresa"; a busca normal já resolve os exatos primeiro.
+  return candidate.zoneId && candidate.zoneId !== "cidade" ? candidate : null;
+}
+
 export function deliveryLegacyLocality(zoneId, neighborhood) {
   if (typeof zoneId !== "string") return null;
   if (zoneId !== "cidade") return DELIVERY_LOCALITIES.find(locality => locality.zoneId === zoneId) ?? null;
