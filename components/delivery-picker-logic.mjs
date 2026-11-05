@@ -1,7 +1,7 @@
 // Estado previsível do campo durante restauração de rascunhos e troca de bairro.
 // Retornar null significa manter exatamente o texto que a pessoa acabou de digitar.
 export function queryAfterDeliverySelectionChange({
-  previousId, nextId, nextLabel = "", typedValue = "", clearedByTyping = false,
+  previousId, nextId, nextLabel = "", clearedByTyping = false,
 }) {
   if (previousId === nextId) return null;
   if (clearedByTyping && nextId === "") return null;
