@@ -1,3 +1,9 @@
+> **Continuidade permanente — 05/11/2026:** leia primeiro [AGENTS.md](AGENTS.md) e os cinco arquivos de [docs/continuidade](docs/continuidade/). Esta é a entrada atual para novas conversas e trabalhos de design, catálogo, checkout, administração e cozinha. O conteúdo abaixo é mantido como histórico técnico e pode apontar para versões antigas. **Não presuma que a main, um checkpoint ou o ZIP anterior é o Cloudflare ativo.**
+>
+> **Mensagem de retomada:** “Continue o desenvolvimento do site comercial Luciane Oliveira Doces. Leia AGENTS.md e docs/continuidade no GitHub, verifique HEADs/PRs/CI/deploy e siga minha tarefa atual, preservando as decisões visuais e os contratos comerciais. Não misture com Luciane Gestão.”
+
+---
+
 # Luciane Oliveira Doces
 
 **Continuidade oficial da vitrine fotográfica/editorial:** [ESTADO_ATUAL_VITRINE.md](ESTADO_ATUAL_VITRINE.md) — checkpoint funcional v10.7 `5abb4c5`; commit obrigatório no GitHub + ZIP por alteração validada; sem publicação automática.
