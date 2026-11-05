@@ -964,7 +964,7 @@ test('city delivery blocks exact specific names including accents, case and spac
    assert.throws(()=>deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:typed}),/taxa de entrega específica/);
   }
  }
- for(const typed of ['Centro','Acaizal próximo à praça','Acaizais','Promissão IV']) {
+ for(const typed of ['Centro','Acaizal próximo à praça','Acaizais','Alto do Vale']) {
   assert.equal(deliveryState('cidade',typed).addressReady,false);
  }
  const valid=deliveryState('cidade','Promissão I');
@@ -1157,9 +1157,9 @@ test('real delivery JSX keeps required city neighborhood, hides it for specific 
   assert.match(html,/id="neighborhood"/);assert.match(html,/id="address"/);assert.match(html,/id="address-number"/);
   assert.match(html,/id="complement"/);assert.match(html,/id="reference"/);
  }
- const pending=renderDeliveryFields(deliveryState('cidade','Promissão IV'));
+ const pending=renderDeliveryFields(deliveryState('cidade','Alto do Vale'));
  assert.doesNotMatch(pending,/delivery-price-preview/);
- assert.match(pending,/data-locality-picker="promissao-iv"/);
+ assert.match(pending,/data-locality-picker="alto-do-vale"/);
 });
 
 test('a mismatched locality blocks registration and guides both checkout and sticky action back to delivery', async () => {
@@ -1368,7 +1368,7 @@ test('all three secondary contact paths keep their original messages using the s
 test('unpriced locality offers contextual WhatsApp help without invented delivery total', async () => {
  const {DeliveryLocalityPicker}=await vite.ssrLoadModule('/components/delivery-locality-picker.tsx');
  const pending=renderToStaticMarkup(React.createElement(DeliveryLocalityPicker,{
-  selectedId:'ouro-preto',onSelect:()=>{},onClear:()=>{},
+  selectedId:'alto-do-vale',onSelect:()=>{},onClear:()=>{},
  }));
  assert.match(pending,/Essa localidade precisa de confirmação da taxa/);
  assert.match(pending,/Confirmar esse bairro com a loja pelo WhatsApp/);
@@ -1376,7 +1376,7 @@ test('unpriced locality offers contextual WhatsApp help without invented deliver
  const href=pending.match(/href="([^"]+)"/)?.[1];
  assert.ok(href,'contextual support link exists');
  const text=new URL(href.replaceAll('&amp;','&')).searchParams.get('text');
- assert.match(text,/Ouro Preto/);
+ assert.match(text,/Alto do Vale/);
  assert.doesNotMatch(text,/R\$ 8/);
 });
 
