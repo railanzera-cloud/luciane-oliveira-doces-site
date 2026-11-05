@@ -500,7 +500,7 @@ test("explicit new order clears the old draft and creates another code", () => {
     ORDER_STORAGE_KEY: "luciane-order-session-v2", clearDraft: () => {},
     COMMERCE_CONFIG: { siteOrderingEnabled: false },
     window: { sessionStorage: { removeItem: (key) => removed.push(key) } } };
-  for (const setter of ["setOrderContext", "setAddressNumber", "setComplement", "setLegacyAddressNotice", "setCart", "setFulfillment", "setDeliveryZoneId", "setNeighborhood", "setAddress", "setReference", "setPayment", "setCheckoutChannel", "setNotes", "setNotesExpanded", "setWhatsAppResult", "setCustomerName", "setCustomerPhone", "setCustomerEmail", "setSiteResult", "setNewPaymentAttempt", "setNeedsChange", "setChangeFor", "setDrinkMessage", "setRestoredOrderNotice", "setAddedNotice", "setCheckoutAvailabilityMessage", "setBuilderEngaged"]) deps[setter] = (value) => { fields[setter] = value; };
+  for (const setter of ["setOrderContext", "setAddressNumber", "setComplement", "setLegacyAddressNotice", "setCart", "setFulfillment", "setDeliveryZoneId", "setDeliveryLocalityId", "setNeighborhood", "setAddress", "setReference", "setPayment", "setCheckoutChannel", "setNotes", "setNotesExpanded", "setWhatsAppResult", "setCustomerName", "setCustomerPhone", "setCustomerEmail", "setSiteResult", "setNewPaymentAttempt", "setNeedsChange", "setChangeFor", "setDrinkMessage", "setRestoredOrderNotice", "setAddedNotice", "setCheckoutAvailabilityMessage", "setBuilderEngaged"]) deps[setter] = (value) => { fields[setter] = value; };
   pageFunction("clearOrder", deps)();
   assert.equal(contextRef.current, null);
   assert.deepEqual(fields.setCart, []);
@@ -815,7 +815,7 @@ for(const payment of ['pix','dinheiro','credito','debito']) test(`final CTA and 
 function checkoutFeedback(overrides = {}) {
  const state={checkoutChannel:'whatsapp',checkoutFormReady:true,checkoutReady:true,isFinalizing:false,
   whatsAppRetryAvailable:false,deliveryZoneError:'',checkoutAvailabilityMessage:'',availability:{ordersOpen:true},cartIssues:[],cart,
-  fulfillment:'retirada',selectedDeliveryZone:null,neighborhood:'',addressReady:true,customerNameReady:true,
+  fulfillment:'retirada',selectedDeliveryZone:null,selectedDeliveryLocality:null,neighborhood:'',addressReady:true,customerNameReady:true,
   customerPhoneReady:true,payment:'pix',paymentReady:true,changeError:'',address:'Rua A',cleanWhatsAppField:checkout.cleanWhatsAppField,STORE_CONFIG:catalog.STORE_CONFIG,...overrides};
  state.checkoutFeedbackMessage=checkoutCopy('checkoutFeedbackMessage',state);
  state.checkoutShowsReady=checkoutCopy('checkoutShowsReady',state);
@@ -924,15 +924,22 @@ Titular: Luciane Galvão de Oliveira
 });
 
 const deliveryPolicy = await import('../supabase/functions/_shared/commerce-catalog.mjs');
+const deliveryRegistry = await import('../supabase/functions/_shared/delivery-localities.mjs');
 const deliveryAddress = {type:'delivery', zone_id:'cidade', neighborhood:'Centro', street:'Rua X', number:'12', complement:'Casa 2', reference:'Portaria'};
 function deliveryState(zoneId, neighborhood, fulfillment='entrega') {
- const values={fulfillment,deliveryZoneId:zoneId,neighborhood,address:'Rua X',addressNumber:'12',DELIVERY_ZONES:catalog.DELIVERY_ZONES,
+ const locality = zoneId === 'cidade'
+  ? deliveryRegistry.deliveryLocalityByExactName(neighborhood, 'cidade')
+  : deliveryRegistry.DELIVERY_LOCALITIES.find(item=>item.zoneId===zoneId) ?? null;
+ const values={fulfillment,deliveryZoneId:zoneId,deliveryLocalityId:locality?.id ?? '',neighborhood,address:'Rua X',addressNumber:'12',
+  DELIVERY_ZONES:catalog.DELIVERY_ZONES,deliveryLocalityById:deliveryRegistry.deliveryLocalityById,
   cleanWhatsAppField:checkout.cleanWhatsAppField,deliveryZoneMismatchMessage:deliveryPolicy.deliveryZoneMismatchMessage};
+ values.selectedDeliveryLocality=checkoutCopy('selectedDeliveryLocality',values);
  values.selectedDeliveryZone=checkoutCopy('selectedDeliveryZone',values);
  values.deliveryNeighborhood=checkoutCopy('deliveryNeighborhood',values);
  values.deliveryZoneError=checkoutCopy('deliveryZoneError',values);
  values.addressReady=checkoutCopy('addressReady',values);
  return values;
+
 }
 
 test('all existing delivery prices, order and specific locality names remain unchanged', () => {
