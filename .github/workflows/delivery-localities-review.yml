@@ -13,6 +13,7 @@ on:
       - 'supabase/functions/_shared/delivery-localities.mjs'
       - 'supabase/functions/_shared/commerce-catalog.mjs'
       - 'tests/delivery-localities-20261105.test.mjs'
+      - 'scripts/qa-delivery-webkit.mjs'
       - 'scripts/audit-delivery-contract.mjs'
       - 'tests/delivery-edge-rollback-20261105.test.mjs'
       - 'tests/delivery-edge-isolated-flow-20261105.test.mjs'
@@ -66,6 +67,48 @@ jobs:
       - name: Conferir regressões comerciais (site compilado)
         run: node --test tests/*.test.mjs
 
+  webkit-delivery:
+    name: WebKit mobile isolado (NÃO É SAFARI FÍSICO)
+    needs: checkout-delivery
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SITE_ORDERING_ENABLED: 'false'
+      SUPABASE_URL: ''
+      SUPABASE_PUBLISHABLE_KEY: ''
+      MP_PUBLIC_KEY_TEST: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Compilar site estático para QA sem integrações comerciais
+        run: |
+          npm run build
+          node scripts/package-cloudflare.mjs
+      - name: Instalar WebKit separado do projeto
+        run: |
+          npm install --prefix "$RUNNER_TEMP/qa-delivery-webkit" --no-save --no-package-lock playwright@1.56.1
+          "$RUNNER_TEMP/qa-delivery-webkit/node_modules/.bin/playwright" install --with-deps webkit
+      - name: Validar escolha de bairros no WebKit sem rede externa
+        shell: bash
+        run: |
+          python3 -m http.server 8181 --bind 127.0.0.1 --directory outputs/cloudflare-pages >/tmp/lod-delivery-webkit.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          export QA_PACKAGE="$RUNNER_TEMP/qa-delivery-webkit/package.json"
+          export QA_OUTPUT="$RUNNER_TEMP/qa-delivery-evidence"
+          node scripts/qa-delivery-webkit.mjs
+      - name: Preservar capturas do QA (NÃO PUBLICAR)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: QA-ENTREGAS-WEBKIT-NAO-PUBLICAR
+          path: ${{ runner.temp }}/qa-delivery-evidence/
+          if-no-files-found: warn
+          retention-days: 7
   preview-zip:
     name: ZIP de inspeção visual (NÃO PUBLICAR)
     needs: checkout-delivery
