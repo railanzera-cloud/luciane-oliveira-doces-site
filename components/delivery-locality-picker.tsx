@@ -35,7 +35,6 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
       previousId: previousSelectedIdRef.current,
       nextId: selectedId,
       nextLabel: selected?.label ?? "",
-      typedValue: query,
       clearedByTyping: clearingByTypingRef.current,
     });
     previousSelectedIdRef.current = selectedId;
