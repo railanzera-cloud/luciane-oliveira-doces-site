@@ -2,6 +2,7 @@
 // Execute: node scripts/audit-delivery-contract.mjs
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import ts from "typescript";
 import {
   DELIVERY_LOCALITIES, deliveryLocalityCanQuote,
   normalizeDeliverySearch, searchDeliveryLocalities,
@@ -54,6 +55,34 @@ assert.deepEqual(totals, {
   all: 114, quoted: 25, pending: 89,
   special: 20, urbanQuoted: 5, urbanPending: 54,
 }, "Aprovação de novas localidades requer atualização consciente da matriz de homologação.");
+
+// O frontend tem uma tabela de zonas para exibição e o Edge mantém a autoridade
+// dos centavos. Fail-closed se nomes, IDs ou preços divergirem entre as duas fontes.
+const frontendCatalogText = await readFile(new URL("../app/catalog.ts", import.meta.url), "utf8");
+const frontendAst = ts.createSourceFile("catalog.ts", frontendCatalogText, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+const declaration = frontendAst.statements.filter(ts.isVariableStatement)
+  .flatMap(statement => [...statement.declarationList.declarations])
+  .find(item => ts.isIdentifier(item.name) && item.name.text === "DELIVERY_ZONES");
+assert.ok(declaration && declaration.initializer && ts.isArrayLiteralExpression(declaration.initializer),
+  "A tabela de entrega do frontend precisa existir e ser uma lista literal.");
+const browserZoneIds = new Set();
+for (const node of declaration.initializer.elements) {
+  assert.ok(ts.isObjectLiteralExpression(node), "As zonas do frontend precisam usar objetos literais.");
+  const field = name => node.properties.find(prop =>
+    ts.isPropertyAssignment(prop) && prop.name.getText(frontendAst) === name)?.initializer;
+  const id = field("id"), label = field("label"), price = field("price");
+  assert.ok(id && ts.isStringLiteral(id) && label && ts.isStringLiteral(label)
+    && price && ts.isNumericLiteral(price), "Zona do frontend deve declarar ID, nome e tarifa literal.");
+  assert.ok(!browserZoneIds.has(id.text), `Zona duplicada no frontend: ${id.text}`);
+  browserZoneIds.add(id.text);
+  assert.ok(Object.hasOwn(DELIVERY_ZONES, id.text), `Zona não reconhecida pelo servidor: ${id.text}`);
+  const authoritative = DELIVERY_ZONES[id.text];
+  assert.equal(label.text, authoritative.label, `Nome divergente na zona ${id.text}`);
+  assert.equal(Number(price.text) * 100, authoritative.priceCents,
+    `Preço de entrega divergente: ${id.text}`);
+}
+assert.equal(browserZoneIds.size, Object.keys(DELIVERY_ZONES).length,
+  "Frontend e servidor devem conter exatamente as mesmas zonas de entrega.");
 
 assert.equal(quoteFulfillment({ type: "pickup" }).delivery_fee_cents, 0);
 for (const zoneId of ["__proto__", "constructor", "toString", "hasOwnProperty"]) {
