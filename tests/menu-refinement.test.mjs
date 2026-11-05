@@ -1184,7 +1184,7 @@ test('a mismatched locality blocks registration and guides both checkout and sti
 
 test('specific delivery fee and financial total agree from actual request payload through server quote and WhatsApp', async () => {
  for(const zoneId of ['cidade','acaizal','aeroporto','condominio-rural','colonia-uraim']) for(const payment of ['pix','dinheiro','credito','debito']) {
-  const state=deliveryState(zoneId,'Centro');
+  const state=deliveryState(zoneId,zoneId==='cidade'?'Promissão II':'Centro');
   const mode=payment==='credito'?'credit_single':payment==='debito'?'debit':null;
   const {receiptCardQuote}=await import('../supabase/functions/_shared/receipt-card.mjs');
   const items=[{product_id:'pipoca-gourmet',variant_id:'500ml',option_ids:['leitinho'],quantity:1}];
@@ -1219,7 +1219,7 @@ test('checkout recalculates existing totals immediately after place, receiving, 
   ['aeroporto','entrega','credito',47],['aeroporto','entrega','debito',47],['cidade','retirada','debito',47],
   ['cidade','retirada','dinheiro',47],['cidade','entrega','pix',22],
  ]) {
-  const values={...deliveryState(zoneId,'Centro',fulfillment),payment,cartSubtotal:subtotal,checkoutChannel:'whatsapp',receiptCardQuote};
+  const values={...deliveryState(zoneId,zoneId==='cidade'?'Promissão II':'Centro',fulfillment),payment,cartSubtotal:subtotal,checkoutChannel:'whatsapp',receiptCardQuote};
   for(const name of ['deliveryFee','cardMode','cardQuote','orderTotal'])values[name]=checkoutCopy(name,values);
   const expected=receiptCardQuote(Math.round(subtotal*100)+Math.round(values.deliveryFee*100),values.cardMode);
   assert.equal(values.orderTotal,expected.totalCents/100);
