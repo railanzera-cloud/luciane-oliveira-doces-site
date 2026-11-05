@@ -1,3 +1,11 @@
+> **CONTINUIDADE OFICIAL ATUAL (05/11/2026):** consulte primeiro [AGENTS.md](AGENTS.md), [Prompt Mestre Comercial](docs/continuidade/PROMPT-MESTRE-COMERCIAL.md), [Memória de Decisões](docs/continuidade/MEMORIA-DE-DECISOES.md), [Referência Visual e UX](docs/continuidade/REFERENCIA-VISUAL-UX.md), [Matriz de Impacto Comercial](docs/continuidade/MATRIZ-DE-IMPACTO-COMERCIAL.md) e [Checkpoint Vivo](docs/continuidade/CHECKPOINT-VIVO.md). Essas cinco referências preservam a visão, as aprovações visuais, os contratos e o estado de engenharia entre conversas. `main`, o último ZIP, a branch mais recente e o deployment podem ser **versões diferentes**. Verifique o remoto antes de alterar. Este projeto comercial é independente do Luciane Gestão.
+>
+> **Retomada rápida:** “Continue o site comercial Luciane Oliveira Doces lendo AGENTS.md e docs/continuidade no GitHub; confira HEAD, CI e contratos e execute a tarefa que vou indicar sem regredir o visual ou o fluxo de pedidos.”
+>
+> **Os avisos históricos abaixo foram preservados por rastreabilidade**, mas podem representar uma fase já superada. `ESTADO_ATUAL_VITRINE.md` continua valioso para as fotos/enquadramentos aprovados em outubro, não como verificação isolada do estado de todo o sistema em novembro.
+
+---
+
 # Luciane Oliveira Doces
 
 **Continuidade oficial da vitrine fotográfica/editorial:** [ESTADO_ATUAL_VITRINE.md](ESTADO_ATUAL_VITRINE.md) — checkpoint funcional v10.7 `5abb4c5`; commit obrigatório no GitHub + ZIP por alteração validada; sem publicação automática.
