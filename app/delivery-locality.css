@@ -41,6 +41,10 @@
 .storefront #carrinho .delivery-locality-option[aria-selected="true"] {background:#f4e5d1;}
 .storefront #carrinho .delivery-locality-option:focus-visible {outline:2px solid #a86e3f; outline-offset:-2px;}
 .storefront #carrinho .delivery-locality-empty {padding:13px;font-size:.82rem;color:#765d49;}
+.storefront #carrinho .delivery-locality-approximate {
+  padding:9px 10px; margin:2px 0 4px; border-radius:9px;
+  background:#f6e9d7; color:#795135; font-size:.75rem; line-height:1.45; font-weight:650;
+}
 .storefront #carrinho .delivery-locality-confirmed,
 .storefront #carrinho .delivery-locality-warning {display:flex;align-items:flex-start;gap:6px;font-size:.8rem;line-height:1.45;margin:1px 0;}
 .storefront #carrinho .delivery-locality-confirmed {color:#28764d;}
