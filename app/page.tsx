@@ -2999,10 +2999,20 @@ export default function Home() {
               {fulfillment === "entrega" && selectedDeliveryZone && (
                 <div className="summary-row summary-delivery"><span>Taxa de entrega</span><strong>{currency.format(deliveryFee)}</strong></div>
               )}
+              {fulfillment === "entrega" && !selectedDeliveryZone && (
+                <div className="summary-row summary-delivery-pending" role="status">
+                  <span>Taxa de entrega</span><strong>A confirmar</strong>
+                </div>
+              )}
               {fulfillment === "retirada" && <div className="summary-row"><span>Taxa de entrega</span><strong>Não se aplica</strong></div>}
               {cart.length > 0 && (fulfillment === "retirada" || (fulfillment === "entrega" && selectedDeliveryZone)) && (
                 <>{cardMode && <div className="summary-row"><span>Acréscimo do cartão ({(cardQuote.basisPoints / 100).toLocaleString("pt-BR")}%)</span><strong>{currency.format(cardQuote.feeCents / 100)}</strong></div>}
                 <div className="summary-row summary-total"><span>Total a pagar</span><strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(orderTotal)}</strong></div></>
+              )}
+              {fulfillment === "entrega" && !selectedDeliveryZone && cart.length > 0 && (
+                <p className="summary-delivery-pending-note" role="note">
+                  O total ficará disponível após confirmar a taxa do bairro. Nenhum valor de entrega será cobrado automaticamente.
+                </p>
               )}
               {fulfillment === "entrega" && <div className="summary-address"><strong>Endereço de entrega</strong><p>{[address, addressNumber].filter(Boolean).join(", ") || "Informe a rua e o número"}</p>{complement && <p>{complement}</p>}<p>{deliveryNeighborhood || "Informe o bairro"}</p>{reference && <p>Referência: {reference}</p>}</div>}
               {isCashPayment && needsChange && !changeError && !cartNeedsSizeReview && <div className="summary-address boutique-change-summary">
