@@ -81,7 +81,8 @@ export function searchDeliveryLocalities(query, limit = 8) {
   const normalized = normalizeDeliverySearch(query);
   const size = Math.max(1, Math.min(Number.isFinite(limit) ? Math.floor(limit) : 8, 20));
   const defaults = ["promissao-i", "promissao-ii", "promissao-iii", "tiao-mineiro", "acaizal"];
-  if (!normalized) return defaults.map(id => BY_ID.get(id)).filter(Boolean).slice(0, size);
+  if (!normalized) return DELIVERY_LOCALITIES.filter(locality => defaults.includes(locality.id))
+    .sort((left, right) => defaults.indexOf(left.id) - defaults.indexOf(right.id)).slice(0, size);
   const scored = DELIVERY_LOCALITIES.map(locality => {
     const terms = deliverySearchTerms(locality);
     const score = terms.some(term => term === normalized) ? 0
