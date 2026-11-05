@@ -1,4 +1,4 @@
-import { deliveryLocalityById, deliveryLegacySpecificCandidate, deliveryLegacySpecialMentionCount, deliveryLocalityCanQuote, normalizeDeliverySearch } from "./delivery-localities.mjs";
+import { deliveryLocalityById, deliveryLegacyReviewState, deliveryLegacySpecificCandidate, deliveryLegacySpecialMentionCount, deliveryLocalityCanQuote, normalizeDeliverySearch } from "./delivery-localities.mjs";
 import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
@@ -249,6 +249,17 @@ export function quoteFulfillment(raw) {
     ? requiredString(raw.neighborhood, "bairro", 120) : zone.label);
   const mismatch = deliveryZoneMismatchMessage(zone.id, neighborhood);
   if (mismatch) throw new Error(mismatch);
+  // Etapa opcional da implantação: impede cotar nomes conhecidos que ainda
+  // precisam de validação, mas preserva inicialmente clientes antigos ativos.
+  // Continua distinta da flag final DELIVERY_REQUIRE_LOCALITY_ID: nomes não
+  // cadastrados só serão impedidos após a exigência de IDs no frontend novo.
+  if (!locality && zone.asksNeighborhood
+      && globalThis.Deno?.env?.get("DELIVERY_LEGACY_REVIEW_GUARD") === "true") {
+    const reviewState = deliveryLegacyReviewState(neighborhood);
+    if (reviewState === "pending" || reviewState === "ambiguous") {
+      throw new Error("Esse bairro precisa de confirmação da taxa com a loja. Atualize a página para selecionar o bairro.");
+    }
+  }
   return {
     fulfillment_type: "delivery",
     delivery_zone_id: zone.id,
