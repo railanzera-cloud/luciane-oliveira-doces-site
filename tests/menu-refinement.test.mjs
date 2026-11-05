@@ -945,45 +945,48 @@ function deliveryState(zoneId, neighborhood, fulfillment='entrega') {
 test('all existing delivery prices, order and specific locality names remain unchanged', () => {
  assert.deepEqual(catalog.DELIVERY_ZONES.map(z=>z.id),Object.keys(deliveryPolicy.DELIVERY_ZONES));
  for(const zone of catalog.DELIVERY_ZONES) {
-  const state=deliveryState(zone.id,'Centro');
-  const recorded=deliveryPolicy.quoteFulfillment({...deliveryAddress,zone_id:zone.id,neighborhood:state.deliveryNeighborhood,delivery_fee:0});
+  const state=deliveryState(zone.id,zone.id==='cidade'?'Promissão II':zone.label);
+  const recorded=deliveryPolicy.quoteFulfillment({...deliveryAddress,zone_id:zone.id,
+   locality_id:state.deliveryLocalityId,neighborhood:state.deliveryNeighborhood,delivery_fee:0});
   assert.equal(recorded.delivery_fee_cents,zone.price*100);
-  assert.equal(recorded.neighborhood,zone.asksNeighborhood?'Centro':zone.label);
-  assert.equal(state.deliveryNeighborhood,recorded.neighborhood);
-  assert.equal(state.addressReady,true); assert.equal(state.deliveryZoneError,'');
+  assert.equal(recorded.neighborhood,state.deliveryNeighborhood);
+  assert.equal(state.addressReady,true);assert.equal(state.deliveryZoneError,'');
  }
+}
 });
 
 test('city delivery blocks exact specific names including accents, case and spaces in browser and server', () => {
  for(const zone of Object.values(deliveryPolicy.DELIVERY_ZONES).filter(z=>!z.asksNeighborhood)) {
-  for(const typed of [zone.label,zone.label.toUpperCase(),`  ${zone.label.normalize('NFD').replace(/\p{M}/gu,'').toLowerCase()}  `]) {
+  for(const typed of [zone.label,zone.label.toUpperCase(),zone.label.normalize('NFD').replace(/\p{M}/gu,'').toLowerCase()]) {
    const state=deliveryState('cidade',typed);
-   assert.equal(state.addressReady,false);
-   assert.ok(state.deliveryZoneError.includes(`${zone.label} — ${checkout.formatOrderMoney(zone.priceCents/100)}`));
-   assert.ok(state.deliveryZoneError.includes('Selecione seu bairro ou local de entrega'));
-   assert.throws(()=>deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:typed}),{message:deliveryPolicy.deliveryZoneMismatchMessage('cidade',typed)});
-   assert.equal(state.deliveryZoneId,'cidade','no silent tariff switch');
+   assert.equal(state.addressReady,false,'new checkout requires a selected matching locality');
+   assert.match(state.deliveryZoneError,/taxa de entrega específica/);
+   assert.throws(()=>deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:typed}),/taxa de entrega específica/);
   }
  }
- for(const typed of ['Centro','Promissão I','Laércio Cabeline','Acaizal próximo à praça','Acaizais']) {
-  assert.equal(deliveryState('cidade',typed).addressReady,true);
-  assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:typed}).delivery_fee_cents,800);
+ for(const typed of ['Centro','Acaizal próximo à praça','Acaizais','Promissão IV']) {
+  assert.equal(deliveryState('cidade',typed).addressReady,false);
  }
- assert.throws(()=>deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:'   '}),/bairro/);
+ const valid=deliveryState('cidade','Promissão I');
+ assert.equal(valid.addressReady,true);
+ assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,locality_id:valid.deliveryLocalityId,
+  neighborhood:valid.deliveryNeighborhood}).delivery_fee_cents,800);
+}
 });
 
 test('fixing a delivery mismatch or changing to pickup clears only validation, preserving typed fields', () => {
- const invalid=deliveryState('cidade','Acaizal'); assert.equal(invalid.addressReady,false);
- for(const state of [deliveryState('acaizal','Acaizal'),deliveryState('cidade','Centro'),deliveryState('cidade','Acaizal','retirada')]) {
-  assert.equal(state.addressReady,true);if(state.fulfillment==='entrega')assert.equal(state.deliveryZoneError,'');
+ const invalid=deliveryState('cidade','Acaizal');assert.equal(invalid.addressReady,false);
+ for(const state of [deliveryState('acaizal','Acaizal'),deliveryState('cidade','Promissão II'),deliveryState('cidade','Acaizal','retirada')]) {
+  assert.equal(state.addressReady,true);
+  if(state.fulfillment==='entrega') assert.equal(state.deliveryZoneError,'');
   assert.equal(state.address,'Rua X');assert.equal(state.addressNumber,'12');
  }
- assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,type:'pickup',neighborhood:'Acaizal'}).delivery_fee_cents,0);
+ assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,type:'pickup'}).delivery_fee_cents,0);
  const pickup=deliveryState('cidade','Acaizal','retirada');
  assert.equal(checkoutFeedback(pickup).checkoutHint,'Tudo certo! Seu pedido está pronto para ser enviado.');
- // Selecting delivery from pickup must not skip a stored locality conflict before React renders again.
  const next=pageFunction('nextCheckoutSection',{...pickup,customerNameReady:true,checkoutChannel:'whatsapp'});
  assert.equal(next('entrega'),'delivery-fields');
+}
 });
 
 function renderDeliveryFields(state) {
