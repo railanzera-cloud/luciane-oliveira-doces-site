@@ -1,0 +1,34 @@
+name: Homologação de bairros e tarifa de entrega
+on:
+  push:
+    branches:
+      - work/entrega-busca-bairros-segura-20261105
+  pull_request:
+    paths:
+      - 'app/page.tsx'
+      - 'components/delivery-locality-picker.tsx'
+      - 'supabase/functions/_shared/delivery-localities.mjs'
+      - 'supabase/functions/_shared/commerce-catalog.mjs'
+      - 'tests/delivery-localities-20261105.test.mjs'
+permissions:
+  contents: read
+jobs:
+  checkout-delivery:
+    name: Verificar build, tipos e contrato de entrega
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Testar identidade do bairro, anti-bypass e fluxo
+        run: node --test tests/delivery-localities-20261105.test.mjs
+      - name: Conferir regressões comerciais
+        run: node --test tests/*.test.mjs
+      - name: Conferir TypeScript
+        run: npx tsc --noEmit
+      - name: Construir site
+        run: npm run build
