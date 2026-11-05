@@ -187,3 +187,34 @@ test("touch selection remains mounted until click and remains keyboard accessibl
   assert.match(picker, /deliveryLocalityTextMatches/);
   assert.match(picker, /maxLength=\{80\}/);
 });
+
+
+test("tampered zone identifiers cannot resolve inherited object members or affect pricing", () => {
+  for (const unsafe of ["__proto__", "constructor", "toString", "hasOwnProperty", "prototype"]) {
+    assert.throws(() => quoteFulfillment({
+      type: "delivery", zone_id: unsafe, neighborhood: "Promissão II",
+      locality_id: "promissao-ii", street: "Rua Exemplo", number: "12",
+    }), /região de entrega válida/i, unsafe);
+    assert.equal(deliveryZoneMismatchMessage(unsafe, "Açaizal"), "", unsafe);
+  }
+  assert.throws(() => quoteFulfillment({
+    type: "delivery", zone_id: "cidade", locality_id: "acaizal",
+    street: "Rua Exemplo", number: "12",
+  }), /Bairro e taxa de entrega não correspondem/);
+  assert.equal(quoteFulfillment(delivery("promissao-ii", "cidade")).delivery_fee_cents, 800);
+  assert.equal(quoteFulfillment(delivery("acaizal", "acaizal")).delivery_fee_cents, 1000);
+});
+
+test("site and WhatsApp Edge handlers both use the same server delivery quote", async () => {
+  const site = await readFile(new URL("../supabase/functions/create-order/index.ts", import.meta.url), "utf8");
+  const whatsapp = await readFile(new URL("../supabase/functions/create-whatsapp-order/index.ts", import.meta.url), "utf8");
+  const catalog = await readFile(new URL("../supabase/functions/_shared/commerce-catalog.mjs", import.meta.url), "utf8");
+  for (const handler of [site, whatsapp]) {
+    assert.match(handler, /quoteFulfillment\(input\.fulfillment\)/);
+    assert.match(handler, /\.\.\.fulfillment/);
+    assert.match(handler, /fulfillment\.delivery_fee_cents/);
+  }
+  assert.match(catalog, /Object\.hasOwn\(DELIVERY_ZONES, zoneId\)/);
+  assert.match(catalog, /deliveryLocalityCanQuote\(locality\)/);
+  assert.match(catalog, /locality\.zoneId !== zone\.id/);
+});
