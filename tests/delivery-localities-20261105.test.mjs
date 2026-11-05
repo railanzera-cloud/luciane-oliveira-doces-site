@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import {
   DELIVERY_LOCALITIES, normalizeDeliverySearch, searchDeliveryLocalities,
   deliveryLocalityById, deliveryLocalityByExactName, deliveryLegacyLocality, deliveryLocalityCanQuote,
+  deliveryLocalityTextMatches,
 } from "../supabase/functions/_shared/delivery-localities.mjs";
 import {
   DELIVERY_ZONES, quoteFulfillment, deliveryZoneMismatchMessage,
@@ -154,4 +155,35 @@ test("dropdown is full-width on desktop and adapts to visualViewport on mobile",
   assert.match(css, /delivery-locality-results\[data-placement="above"\]/);
   assert.match(picker, /results\.length === 0/);
   assert.match(picker, /query\.trim\(\)\.length >= 2 && results\.length === 0/);
+});
+
+
+test("misspellings suggest candidates, never automatically select or quote their rates", () => {
+  const matches = searchDeliveryLocalities("promisao 2");
+  assert.ok(matches.length > 0, "one missing letter can yield suggestions");
+  assert.equal(matches[0].id, "promissao-ii");
+  assert.equal(deliveryLocalityTextMatches("promisao 2", matches[0]), false);
+  assert.equal(searchDeliveryLocalities("nagibaoo")[0]?.id, "nagibao");
+  assert.equal(searchDeliveryLocalities("saizal")[0]?.id, "acaizal", "explicit alias remains higher priority");
+  assert.deepEqual(searchDeliveryLocalities("xx"), [], "very short unknown queries must not generate noise");
+  assert.deepEqual(searchDeliveryLocalities("x".repeat(80)), [], "pasted text cannot launch expensive fuzzy work");
+  // The new search does NOT create IDs or grant any rate to an unreviewed area.
+  assert.equal(deliveryLocalityByExactName("promisao 2"), null);
+  assert.throws(() => quoteFulfillment(delivery("promisao-ii", "cidade")), /Selecione um bairro/);
+  assert.throws(() => quoteFulfillment(delivery("jaderlandia", "cidade")), /taxa de entrega confirmada/);
+  const afterSelection = quoteFulfillment(delivery(matches[0].id, "cidade"));
+  assert.equal(afterSelection.neighborhood, "Promissão II");
+  assert.equal(afterSelection.delivery_fee_cents, 800);
+});
+
+test("touch selection remains mounted until click and remains keyboard accessible", async () => {
+  const picker = await readFile(new URL("../components/delivery-locality-picker.tsx", import.meta.url), "utf8");
+  assert.match(picker, /pointerInsideOptionsRef\.current/);
+  assert.match(picker, /onPointerDownCapture=/);
+  assert.match(picker, /onPointerCancel=/);
+  assert.match(picker, /onClick=\{\(\) => choose\(locality\)\}/);
+  assert.match(picker, /onKeyDown=/);
+  assert.match(picker, /Sugestões parecidas/);
+  assert.match(picker, /deliveryLocalityTextMatches/);
+  assert.match(picker, /maxLength=\{80\}/);
 });
