@@ -72,7 +72,8 @@ export const DELIVERY_ZONES = Object.freeze({
 
 // Correspondência exata após normalização; não tenta adivinhar bairros parecidos.
 export function deliveryZoneMismatchMessage(zoneId, neighborhood) {
-  if (!DELIVERY_ZONES[zoneId]?.asksNeighborhood || typeof neighborhood !== "string") return "";
+  if (typeof zoneId !== "string" || !Object.hasOwn(DELIVERY_ZONES, zoneId)
+      || !DELIVERY_ZONES[zoneId].asksNeighborhood || typeof neighborhood !== "string") return "";
   const normalize = value => value.normalize("NFD").replace(/\p{M}/gu, "").trim().replace(/\s+/g, " ").toLowerCase();
   const normalized = normalize(neighborhood);
   const matchingLocality = deliveryLocalityByExactName(neighborhood);
@@ -211,8 +212,13 @@ export function quoteFulfillment(raw) {
   }
   if (raw.type !== "delivery" && raw.type !== "entrega") throw new Error("Escolha entrega ou retirada.");
   const zoneId = requiredString(raw.zone_id, "região de entrega", 80);
+  // Object.hasOwn impede acesso a entradas herdadas como "constructor" e "__proto__"
+  // quando a API recebe um identificador adulterado pelo navegador.
+  if (!Object.hasOwn(DELIVERY_ZONES, zoneId)) throw new Error("Escolha uma região de entrega válida.");
   const zone = DELIVERY_ZONES[zoneId];
-  if (!zone) throw new Error("Escolha uma região de entrega válida.");
+  if (!Number.isSafeInteger(zone.priceCents) || zone.priceCents < 0) {
+    throw new Error("Não foi possível calcular a taxa. Confirme a região com a loja.");
+  }
   // O novo checkout sempre envia locality_id. Em publicação faseada, clientes da
   // versão antiga continuam aceitos até o flag DELIVERY_REQUIRE_LOCALITY_ID ser ativado
   // após comprovar frontend + Edge atualizados. Sem o flag, o modo legado é limitado.
