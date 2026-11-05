@@ -68,6 +68,36 @@ try {
       await page.locator(".delivery-price-preview").waitFor();
       assert.match(await page.locator(".delivery-price-preview").innerText(), /8,00/);
 
+      await input.fill("Camboatã 3");
+      await page.locator('button[role="option"][id$="-camboata-iii"]').tap();
+      assert.equal(await input.inputValue(), "Camboatã III");
+      await page.locator(".delivery-price-preview").waitFor();
+      assert.match(await page.locator(".delivery-price-preview").innerText(), /8,00/);
+
+      await input.fill("Uraim III");
+      await page.locator('button[role="option"][id$="-uraim-iii"]').tap();
+      await page.locator(".delivery-price-preview").waitFor();
+      assert.match(await page.locator(".delivery-price-preview").innerText(), /8,00/);
+
+      await input.fill("Sidilândia II");
+      await page.locator('button[role="option"][id$="-sidilandia-ii"]').tap();
+      await page.locator(".delivery-price-preview").waitFor();
+      assert.match(await page.locator(".delivery-price-preview").innerText(), /10,00/);
+
+      await input.fill("Laércio Cabeline II");
+      await page.locator('button[role="option"][id$="-laercio-cabeline-ii"]').tap();
+      await page.locator(".delivery-price-preview").waitFor();
+      assert.match(await page.locator(".delivery-price-preview").innerText(), /10,00/);
+
+      await input.fill("Alto do Lago");
+      await page.locator(".delivery-locality-empty").waitFor();
+      await page.getByText(/Selecione o bairro onde fica esse condomínio/).waitFor();
+      assert.equal(await page.getByRole("option", { name: /Condomínio Residencial Alto do Lago/ }).count(), 0);
+      await input.fill("Tropical");
+      await page.locator('button[role="option"][id$="-tropical"]').tap();
+      await page.locator(".delivery-price-preview").waitFor();
+      assert.match(await page.locator(".delivery-price-preview").innerText(), /8,00/);
+
       await input.fill("Ouro Preto");
       await page.locator(".delivery-price-preview").waitFor({ state: "hidden" });
       await page.getByRole("option", { name: /Ouro Preto/ }).tap();
@@ -102,7 +132,8 @@ try {
       await input.fill("Parque 4");
       await page.locator('button[role="option"][id$="-parque-iv"]').tap();
       assert.equal(await input.inputValue(), "Parque IV");
-      await page.locator(".delivery-locality-warning").waitFor();
+      await page.locator(".delivery-price-preview").waitFor();
+      assert.match(await page.locator(".delivery-price-preview").innerText(), /8,00/);
       await input.fill("zzzzzzz");
       await page.locator(".delivery-locality-empty").waitFor();
       assert.equal(await page.locator(".delivery-price-preview").count(), 0);

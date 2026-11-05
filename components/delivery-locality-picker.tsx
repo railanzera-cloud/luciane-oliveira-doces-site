@@ -4,7 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Check, MapPin, Search, ShieldAlert } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { TintimContactLink } from "@/components/tintim-contact-link";
-import { deliverySuggestionLayout, filterDeliveryNumberConflicts, queryAfterDeliverySelectionChange } from "@/components/delivery-picker-logic.mjs";
+import { deliverySuggestionLayout, filterDeliveryNumberConflicts, filterSecondaryDeliveryPlaces, isSecondaryDeliveryPlaceQuery, queryAfterDeliverySelectionChange } from "@/components/delivery-picker-logic.mjs";
 import { DELIVERY_ZONES } from "@/app/catalog";
 import { deliveryLocalityById, deliveryLocalityCanQuote, deliveryLocalityTextMatches, searchDeliveryLocalities } from "@/supabase/functions/_shared/delivery-localities.mjs";
 
@@ -31,7 +31,13 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
   const pointerInsideOptionsRef = useRef(false);
   const [listPlacement, setListPlacement] = useState<"above" | "below">("below");
   const [listMaxHeight, setListMaxHeight] = useState(320);
-  const results = useMemo(() => filterDeliveryNumberConflicts(query, searchDeliveryLocalities(query)), [query]);
+  const { results, secondaryPlaceSearch } = useMemo(() => {
+    const candidates = searchDeliveryLocalities(query, 20);
+    return {
+      results: filterDeliveryNumberConflicts(query, filterSecondaryDeliveryPlaces(candidates)).slice(0, 8),
+      secondaryPlaceSearch: isSecondaryDeliveryPlaceQuery(query, candidates),
+    };
+  }, [query]);
 
   useEffect(() => {
     const nextQuery = queryAfterDeliverySelectionChange({
@@ -82,7 +88,7 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
     results.every((locality) => !deliveryLocalityTextMatches(query, locality)));
   const contactLocation = (selected?.label ?? query.trim()).slice(0, 100);
   const needsManualQuote = !deliveryLocalityCanQuote(selected)
-    && (Boolean(selected) || (query.trim().length >= 2 && (results.length === 0 || approximateResults)));
+    && (Boolean(selected) || (!secondaryPlaceSearch && query.trim().length >= 2 && (results.length === 0 || approximateResults)));
 
   function choose(locality: Locality) {
     pointerInsideOptionsRef.current = false;
@@ -149,7 +155,9 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
           onPointerCancel={() => { pointerInsideOptionsRef.current = false; }}>
           {approximateResults && <p className="delivery-locality-approximate" role="status">Sugestões parecidas. Confira o nome antes de escolher.</p>}
           {results.length === 0 ? (
-            <p className="delivery-locality-empty" role="status">Não encontramos esse nome. Confira a grafia ou solicite confirmação com a loja.</p>
+            <p className="delivery-locality-empty" role="status">{secondaryPlaceSearch
+              ? "Selecione o bairro onde fica esse condomínio ou residencial. Informe o nome do local no campo Complemento."
+              : "Não encontramos esse nome. Confira a grafia ou solicite confirmação com a loja."}</p>
           ) : results.map((locality, index) => {
             const zone = deliveryLocalityCanQuote(locality)
               ? DELIVERY_ZONES.find((candidate) => candidate.id === locality.zoneId)

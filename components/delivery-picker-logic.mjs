@@ -43,3 +43,27 @@ export function filterDeliveryNumberConflicts(query, localities) {
       return requestedNumbers.every(number => optionNumbers.includes(number));
     }));
 }
+
+
+// Nomes de condomínio/empreendimento já situados dentro de outro bairro.
+// Permanecem no registro interno para sessões antigas; não aparecem como opção
+// de bairro com frete próprio sem homologação expressa da loja.
+export const SECONDARY_DELIVERY_PLACE_IDS = Object.freeze([
+  "alan-kardec",
+  "condominio-residencial-alto-do-lago",
+  "condominio-residencial-tropical",
+  "distrito-industrial-moveleiro",
+]);
+const SECONDARY_PLACE_SET = new Set(SECONDARY_DELIVERY_PLACE_IDS);
+export function filterSecondaryDeliveryPlaces(localities) {
+  return Array.isArray(localities) ? localities.filter(item => !SECONDARY_PLACE_SET.has(item.id)) : [];
+}
+export function isSecondaryDeliveryPlaceQuery(query, localities) {
+  const normalized = normalizeDeliverySearch(query);
+  if (!Array.isArray(localities) || normalized.length < 6) return false;
+  return localities.some(item => SECONDARY_PLACE_SET.has(item.id)
+    && [item.label, ...(item.aliases ?? [])].some(term => {
+      const name = normalizeDeliverySearch(term);
+      return normalized === name || (normalized.includes(" ") && name.includes(normalized));
+    }));
+}

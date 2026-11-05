@@ -11,6 +11,7 @@ import {
 } from "../supabase/functions/_shared/commerce-catalog.mjs";
 import {
   queryAfterDeliverySelectionChange, deliverySuggestionLayout, filterDeliveryNumberConflicts,
+  filterSecondaryDeliveryPlaces, isSecondaryDeliveryPlaceQuery, SECONDARY_DELIVERY_PLACE_IDS,
 } from "../components/delivery-picker-logic.mjs";
 
 test("catalogue includes 114 distinct known locality candidates, without default fares", () => {
@@ -446,5 +447,27 @@ test("explicit numbered families inherit confirmed fees but never merge identiti
   for(const id of ["alto-do-vale","novo-camboata","jardim-amazonico",
     "condominio-residencial-alto-do-lago","area-rural-de-paragominas"]) {
     assert.equal(deliveryLocalityById(id).status,"needs_review",id);
+  }
+});
+
+
+test("secondary addresses are not checkout boroughs, with original IDs preserved", () => {
+  const secondary = ["alan-kardec","condominio-residencial-alto-do-lago",
+    "condominio-residencial-tropical","distrito-industrial-moveleiro"];
+  assert.deepEqual([...SECONDARY_DELIVERY_PLACE_IDS],secondary);
+  for(const id of secondary) {
+    const locality = deliveryLocalityById(id);
+    assert.ok(locality,id);
+    assert.equal(locality.status,"needs_review");
+    assert.deepEqual(filterSecondaryDeliveryPlaces([locality]),[]);
+    assert.equal(deliveryLocalityById(id),locality);
+  }
+  assert.equal(isSecondaryDeliveryPlaceQuery("Alto do Lago",
+    searchDeliveryLocalities("Alto do Lago",20)),true);
+  assert.equal(isSecondaryDeliveryPlaceQuery("Condomínio Residencial Tropical",
+    searchDeliveryLocalities("Condomínio Residencial Tropical",20)),true);
+  for(const label of ["Tropical","Açaizal","Industrial","Promissão III"]) {
+    assert.ok(filterSecondaryDeliveryPlaces(searchDeliveryLocalities(label,20)).some(item =>
+      deliveryLocalityCanQuote(item)),label);
   }
 });
