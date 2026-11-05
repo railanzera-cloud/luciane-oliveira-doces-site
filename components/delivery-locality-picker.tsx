@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { TintimContactLink } from "@/components/tintim-contact-link";
 import { deliverySuggestionLayout, queryAfterDeliverySelectionChange } from "@/components/delivery-picker-logic.mjs";
 import { DELIVERY_ZONES } from "@/app/catalog";
-import { deliveryLocalityById, deliveryLocalityCanQuote, searchDeliveryLocalities } from "@/supabase/functions/_shared/delivery-localities.mjs";
+import { deliveryLocalityById, deliveryLocalityCanQuote, deliveryLocalityTextMatches, searchDeliveryLocalities } from "@/supabase/functions/_shared/delivery-localities.mjs";
 
 type Locality = { id: string; label: string; zoneId: string | null; status: string };
 type Props = {
@@ -26,6 +26,9 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
   const fieldRef = useRef<HTMLInputElement>(null);
   const previousSelectedIdRef = useRef(selectedId);
   const clearingByTypingRef = useRef(false);
+  // Em Safari/iOS tocar uma opção pode tirar o foco antes do click.
+  // Preservar a lista até o clique evita que a opção desapareça.
+  const pointerInsideOptionsRef = useRef(false);
   const [listPlacement, setListPlacement] = useState<"above" | "below">("below");
   const [listMaxHeight, setListMaxHeight] = useState(320);
   const results = useMemo(() => searchDeliveryLocalities(query), [query]);
@@ -75,11 +78,14 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
   }, [expanded]);
 
   const activeResult = results[Math.min(activeIndex, Math.max(0, results.length - 1))];
+  const approximateResults = Boolean(query.trim() && results.length &&
+    results.every((locality) => !deliveryLocalityTextMatches(query, locality)));
   const contactLocation = (selected?.label ?? query.trim()).slice(0, 100);
   const needsManualQuote = !deliveryLocalityCanQuote(selected)
-    && (Boolean(selected) || (query.trim().length >= 2 && results.length === 0));
+    && (Boolean(selected) || (query.trim().length >= 2 && (results.length === 0 || approximateResults)));
 
   function choose(locality: Locality) {
+    pointerInsideOptionsRef.current = false;
     setQuery(locality.label);
     setExpanded(false);
     setActiveIndex(0);
@@ -88,7 +94,8 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
 
   return (
     <div className="delivery-locality-picker" onBlur={(event) => {
-      if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setExpanded(false);
+      if (!pointerInsideOptionsRef.current &&
+        !event.currentTarget.contains(event.relatedTarget as Node | null)) setExpanded(false);
     }}>
       <label htmlFor="neighborhood">Seu bairro ou local de entrega</label>
       <div className="delivery-locality-input">
@@ -103,6 +110,7 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
           aria-activedescendant={expanded && activeResult ? `${listId}-${activeResult.id}` : undefined}
           autoComplete="off"
           inputMode="search"
+          maxLength={80}
           placeholder="Busque seu bairro. Ex.: Promissão II"
           value={query}
           onFocus={() => setExpanded(true)}
@@ -135,7 +143,11 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
         {deliveryLocalityCanQuote(selected) && <Check className="delivery-locality-ok" size={18} aria-label="Bairro selecionado" />}
       {expanded && (
         <div className="delivery-locality-results" id={listId} role="listbox" aria-label="Sugestões de bairros"
-          data-placement={listPlacement} style={{ maxHeight: `${listMaxHeight}px` }}>
+          data-placement={listPlacement} style={{ maxHeight: `${listMaxHeight}px` }}
+          onPointerDownCapture={() => { pointerInsideOptionsRef.current = true; }}
+          onPointerUp={() => { window.setTimeout(() => { pointerInsideOptionsRef.current = false; }, 250); }}
+          onPointerCancel={() => { pointerInsideOptionsRef.current = false; }}>
+          {approximateResults && <p className="delivery-locality-approximate" role="status">Sugestões parecidas. Confira o nome antes de escolher.</p>}
           {results.length === 0 ? (
             <p className="delivery-locality-empty" role="status">Não encontramos esse nome. Confira a grafia ou solicite confirmação com a loja.</p>
           ) : results.map((locality, index) => {
