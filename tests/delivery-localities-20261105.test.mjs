@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import {
   DELIVERY_LOCALITIES, normalizeDeliverySearch, searchDeliveryLocalities,
   deliveryLocalityById, deliveryLocalityByExactName, deliveryLegacyLocality, deliveryLocalityCanQuote,
-  deliveryLocalityTextMatches,
+  deliveryLocalityTextMatches, deliveryLegacySpecificCandidate,
 } from "../supabase/functions/_shared/delivery-localities.mjs";
 import {
   DELIVERY_ZONES, quoteFulfillment, deliveryZoneMismatchMessage,
@@ -88,6 +88,35 @@ test("legacy free-text guard catches special alias rather than only exact label"
     type: "delivery", zone_id: "cidade", neighborhood: "Açaisal",
     street: "Rua Exemplo", number: "12",
   }), /taxa de entrega específica/);
+});
+
+
+test("legacy checkout detects special destinations with typos and extra delivery directions", () => {
+  const specialExamples = [
+    ["Açaizal próximo à praça", "Açaizal"],
+    ["Açaisall", "Açaizal"],
+    ["Nagibaoo", "Nagibão"],
+    ["Bairro Novo Canaã, ao lado do mercado", "Bairro Novo Canaã"],
+    ["perto da Floraplac MDF", "Floraplac MDF"],
+    ["Juparanã Empresa, portaria lateral", "Juparanã Empresa"],
+  ];
+  for (const [entered, canonical] of specialExamples) {
+    const candidate = deliveryLegacySpecificCandidate(entered);
+    assert.ok(candidate, entered);
+    assert.match(deliveryZoneMismatchMessage("cidade", entered), /taxa de entrega específica/, entered);
+    assert.throws(() => quoteFulfillment({
+      type:"delivery", zone_id:"cidade", neighborhood:entered,
+      street:"Rua Exemplo", number:"12",
+    }), /taxa de entrega específica/, entered);
+    assert.equal(DELIVERY_ZONES[candidate.zoneId].priceCents > 800, true);
+  }
+  for (const city of ["Juparanã", "Promissão II", "Flamboyant", "Ouro Preto", "Cidade Nova"]) {
+    assert.equal(deliveryLegacySpecificCandidate(city), null, city);
+    assert.equal(deliveryZoneMismatchMessage("cidade", city), "", city);
+  }
+  assert.equal(deliveryLegacySpecificCandidate("Açaizal ou Aeroporto"), null,
+    "não escolher uma das duas regiões especiais quando ambas aparecem no texto");
+  assert.equal(deliveryLegacySpecificCandidate("abc"), null);
 });
 
 test("both order channels transmit locality ID and preserve their existing checkout behavior", async () => {
