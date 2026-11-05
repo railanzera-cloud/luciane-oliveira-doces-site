@@ -3,7 +3,7 @@ import test from "node:test";
 import { readFile } from "node:fs/promises";
 import {
   DELIVERY_LOCALITIES, normalizeDeliverySearch, searchDeliveryLocalities,
-  deliveryLocalityById, deliveryLocalityByExactName, deliveryLegacyLocality,
+  deliveryLocalityById, deliveryLocalityByExactName, deliveryLegacyLocality, deliveryLocalityCanQuote,
 } from "../supabase/functions/_shared/delivery-localities.mjs";
 import {
   DELIVERY_ZONES, quoteFulfillment, deliveryZoneMismatchMessage,
@@ -16,7 +16,13 @@ test("catalogue includes 114 distinct known locality candidates, without default
     assert.ok(locality.id && locality.label);
     if (locality.zoneId) assert.ok(DELIVERY_ZONES[locality.zoneId], locality.id);
     else assert.equal(locality.status, "needs_review");
+    assert.equal(deliveryLocalityCanQuote(locality), locality.status === "quoted");
   }
+  // 20 zonas especiais herdadas + 5 exemplos urbanos citados pelo proprietário.
+  // Os outros 54 candidatos urbanos e 35 sem associação NÃO cobram automaticamente.
+  assert.equal(DELIVERY_LOCALITIES.filter(locality => locality.status === "quoted").length, 25);
+  assert.equal(DELIVERY_LOCALITIES.filter(locality => locality.zoneId === "cidade" && !deliveryLocalityCanQuote(locality)).length, 54);
+  assert.equal(DELIVERY_LOCALITIES.filter(locality => !locality.zoneId).length, 35);
 });
 
 test("Portuguese spelling, roman numerals and common name variants find the intended place", () => {
@@ -37,6 +43,9 @@ test("specific rates override generic city, including official neighborhood name
   assert.equal(deliveryLocalityById("promissao-ii").zoneId, "cidade");
   assert.equal(deliveryLocalityById("jardim-elandia-grafia-a-confirmar").zoneId, null);
   assert.equal(deliveryLocalityById("area-rural-de-paragominas").zoneId, null);
+  assert.equal(deliveryLocalityById("ouro-preto").zoneId, "cidade");
+  assert.equal(deliveryLocalityById("ouro-preto").status, "needs_review");
+  assert.equal(deliveryLocalityById("flamboyant").status, "quoted");
 });
 
 const delivery = (localityId, zoneId, neighborhood = deliveryLocalityById(localityId)?.label) => ({
@@ -62,6 +71,9 @@ test("cannot claim special destinations at city rate, including edited payloads"
   assert.throws(() => quoteFulfillment(delivery("acaizal", "acaizal", "Promissão II")), /bairro informado não corresponde/i);
   assert.throws(() => quoteFulfillment(delivery("nao-existe", "cidade")), /Selecione um bairro/);
   assert.throws(() => quoteFulfillment(delivery("promissao-iv", "cidade")), /taxa de entrega confirmada/);
+  assert.throws(() => quoteFulfillment(delivery("ouro-preto", "cidade")), /taxa de entrega confirmada/);
+  assert.throws(() => quoteFulfillment(delivery("jaderlandia", "cidade")), /taxa de entrega confirmada/);
+  assert.throws(() => quoteFulfillment(delivery("flamboyant", "acaizal")), /Bairro e taxa/);
 });
 
 test("legacy free-text guard catches special alias rather than only exact label", () => {
@@ -81,10 +93,12 @@ test("both order channels transmit locality ID and preserve their existing check
   assert.match(page, /locality_id: deliveryLocalityId/g);
   assert.equal((page.match(/locality_id: deliveryLocalityId/g) ?? []).length, 2);
   assert.match(page, /deliveryLocalityId, neighborhood, address/);
-  assert.match(page, /selectedDeliveryLocality\?\.zoneId && selectedDeliveryZone/);
+  assert.match(page, /deliveryLocalityCanQuote\(selectedDeliveryLocality\) && selectedDeliveryZone/);
   assert.match(picker, /role="combobox"/);
   assert.match(picker, /aria-autocomplete="list"/);
   assert.match(picker, /onKeyDown=/);
   assert.match(picker, /A confirmar/);
+  assert.match(picker, /deliveryLocalityCanQuote\(locality\)/);
+  assert.match(picker, /deliveryLocalityCanQuote\(selected\)/);
   assert.doesNotMatch(page, /Outro bairro dentro da cidade/);
 });
