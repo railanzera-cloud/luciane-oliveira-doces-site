@@ -28,3 +28,12 @@ O Supabase comercial edqiwvccmboyayojvuea foi lido sem alteração. Fonte preser
 6. Após qualquer restauração, reconsultar versão/hash real, acompanhar pagamento, estoque, idempotência, cozinha e pedidos sem mudar dados históricos. Backups de código não substituem backup de banco.
 
 **NO-GO atual:** nenhuma homologação real de Safari/Instagram, nem prova de ambiente isolado para Mercado Pago e RPCs, nem identificação de deployment Cloudflare anterior. Nenhuma publicação autorizada.
+
+
+## 5. Exercício HTTP completo sem produção (CI comprovada)
+
+`node --test tests/delivery-edge-isolated-flow-20261105.test.mjs` executa os handlers **reais** `create-order` e `create-whatsapp-order` transpilados de TypeScript em uma VM Node; `fetch` é substituído por fixtures locais que permitem apenas o domínio reservado `mock-supabase.invalid`, um stub para a URL do Mercado Pago e o stub de efeitos — nunca é feito acesso a esses endereços de verdade. O teste utiliza chaves fictícias e responde com objetos sintéticos. Destinos não reconhecidos são considerados violação; não há credenciais produtivas nem qualquer escrita no Supabase comercial.
+
+A suíte percorre **12 cenários**: pedido manual em bairro aprovado a R$ 8, exceção a R$ 10, adulteração de tarifa, local pendente, preço divergente, recuperação sem segunda criação, bloqueio estrito de abas antigas e preservação da retirada, loja fechada, dinheiro sem gateway, Pix com resposta pendente, tentativa idempotente e resposta adulterada do gateway, local inventado e origem não autorizada. Cenários agrupados são contabilizados como testes individuais pela ferramenta.
+
+Resultado do commit `45099c9b1821359f6b29741dcef4d0c16f129f5b`: [CI 42102419185](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42102419185) **SUCCESS**, 12/12 cenários isolados, 19/19 de entregas e **750/750 regressões comerciais** no job principal, com build e ZIP de inspeção no job dependente. A suíte valida comportamento do código atual, não a instalação em produção nem integração de gateway/SQL real. Os testes antigos de tarifas/rollback continuam ativos.
