@@ -86,6 +86,19 @@ export function deliveryLocalityByExactName(name, zoneId = null) {
   return matches.length === 1 ? matches[0] : null;
 }
 
+// Política de transição para abas antigas que enviam somente texto, sem ID.
+// Uma correspondência exata pode ser liberada, pendente ou ambígua.
+// Nunca atribui tarifa e nunca tenta adivinhar uma localidade por distância.
+export function deliveryLegacyReviewState(name) {
+  const normalized = normalizeDeliverySearch(name);
+  if (!normalized) return "unknown";
+  const matches = DELIVERY_LOCALITIES.filter(locality =>
+    [locality.label, ...locality.aliases].some(term => normalizeDeliverySearch(term) === normalized));
+  if (matches.length === 0) return "unknown";
+  if (matches.length !== 1) return "ambiguous";
+  return deliveryLocalityCanQuote(matches[0]) ? "quoted" : "pending";
+}
+
 // Busca aproximada serve apenas para SUGERIR nomes. Não altera a lógica
 // de cotação: o cliente precisa escolher uma localidade válida explicitamente.
 function editDistanceAtMost(left, right, max) {
