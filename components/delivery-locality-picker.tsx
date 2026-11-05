@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { Check, MapPin, Search, ShieldAlert } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { TintimContactLink } from "@/components/tintim-contact-link";
 import { DELIVERY_ZONES } from "@/app/catalog";
 import { deliveryLocalityById, deliveryLocalityCanQuote, searchDeliveryLocalities } from "@/supabase/functions/_shared/delivery-localities.mjs";
 
@@ -28,6 +29,8 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
   }, [selectedId, selected?.label]);
 
   const activeResult = results[Math.min(activeIndex, Math.max(0, results.length - 1))];
+  const contactLocation = (selected?.label ?? query.trim()).slice(0, 100);
+  const needsManualQuote = !deliveryLocalityCanQuote(selected) && Boolean(selected || query.trim().length >= 2);
 
   function choose(locality: Locality) {
     setQuery(locality.label);
@@ -118,6 +121,14 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
         </p>
       ))}
       {!selected && <p className="delivery-locality-help">Escolha uma sugestão para calcular o frete. Digitar sem selecionar não confirma o bairro.</p>}
+      {needsManualQuote && (
+        <p className="delivery-locality-contact">
+          <TintimContactLink message={`Olá! Estou fazendo um pedido no site da Luciane Oliveira Doces e preciso confirmar a taxa de entrega para ${contactLocation || "meu bairro"}.`}>
+            Confirmar esse bairro com a loja pelo WhatsApp
+          </TintimContactLink>
+          <span>Seu carrinho ficará preservado para você continuar.</span>
+        </p>
+      )}
     </div>
   );
 }
