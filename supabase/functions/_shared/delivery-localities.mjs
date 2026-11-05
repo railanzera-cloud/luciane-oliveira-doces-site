@@ -150,15 +150,26 @@ export function searchDeliveryLocalities(query, limit = 8) {
 }
 
 
-// Mais de uma referência a locais especiais exige confirmação manual;
-// nunca transformar texto ambíguo em R$ 8 por ausência de correspondência única.
-export function deliveryLegacySpecialMentionCount(name) {
+// Referências curtas contidas em nomes mais específicos não significam
+// automaticamente dois destinos: "Juparanã Empresa" identifica a empresa,
+// mas "Juparanã" continua um bairro distinto com seu próprio ID e tarifa.
+// Se o texto mencionar dois destinos independentes, exigir confirmação.
+function deliveryLegacySpecificMentions(name) {
   const query = normalizeDeliverySearch(name);
-  if (!query) return 0;
-  return DELIVERY_LOCALITIES.filter(locality =>
-    locality.zoneId && locality.zoneId !== "cidade"
-      && deliverySearchTerms(locality).some(term =>
-        term.length >= 4 && (` ${query} `).includes(` ${term} `))).length;
+  if (!query) return [];
+  const mentions = DELIVERY_LOCALITIES.flatMap(locality => {
+    if (!locality.zoneId || locality.zoneId === "cidade") return [];
+    const matched = deliverySearchTerms(locality)
+      .filter(term => term.length >= 4 && (` ${query} `).includes(` ${term} `))
+      .sort((left, right) => right.length - left.length);
+    return matched.length ? [{ locality, term: matched[0] }] : [];
+  });
+  return mentions.filter(candidate => !mentions.some(other =>
+    other !== candidate && other.term !== candidate.term && other.term.includes(candidate.term)));
+}
+
+export function deliveryLegacySpecialMentionCount(name) {
+  return deliveryLegacySpecificMentions(name).length;
 }
 
 // Ajuda conservadora apenas para bloquear taxa urbana incorreta em clientes
@@ -172,11 +183,8 @@ export function deliveryLegacySpecificCandidate(name) {
 
   // Reconhece referência explícita à localidade especial com informação extra
   // em texto livre: "Açaizal próximo à praça", "perto da Floraplac MDF".
-  const mentioned = DELIVERY_LOCALITIES.filter(locality =>
-    locality.zoneId && locality.zoneId !== "cidade"
-    && deliverySearchTerms(locality).some(term =>
-      term.length >= 4 && (` ${query} `).includes(` ${term} `)));
-  if (mentioned.length === 1) return mentioned[0];
+  const mentioned = deliveryLegacySpecificMentions(name);
+  if (mentioned.length === 1) return mentioned[0].locality;
   if (mentioned.length > 1) return null; // Múltiplos locais: não escolher ao acaso.
 
   // Para grafia com até uma ou duas diferenças, só bloqueia se a
