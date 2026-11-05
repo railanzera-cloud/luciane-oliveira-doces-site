@@ -54,3 +54,8 @@ Se o frontend apresentar problemas: **não apagar pedidos reais nem reverter aut
 **Pronto para liberar** = critérios comerciais e UX homologados, backend deployado com autorização, frontend publicado com autorização e evidência de pedidos isolados e monitoramento sem regressões.
 
 **Hoje a segunda condição NÃO está preenchida.** O término da programação não autoriza declarar que o site já opera com a nova entrega.
+
+
+## 6. Fontes de restauração guardadas no GitHub
+
+As duas Edge instaladas foram lidas em modo read-only e arquivadas com hashes em `docs/edge-release/rollback/20261105/`. O teste `tests/delivery-edge-rollback-20261105.test.mjs` verifica os sete arquivos, a integridade dos imports, as 21 tarifas legadas e a cotação comercial do WhatsApp v26 em matriz sintética. Consultar [`docs/EDGE-ROLLBACK-BUNDLE-20261105.md`](../EDGE-ROLLBACK-BUNDLE-20261105.md) para sequência do corte e rollback sem destruir dados. Reconfirmar hashes live imediatamente antes de qualquer deploy; backups de código não preservam configurações secretas nem comprovam release. Permanece NO-GO.

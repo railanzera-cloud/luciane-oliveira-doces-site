@@ -165,3 +165,11 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - **Princípio de lançamento parcial:** não é necessário transformar as 56 pendências em preços inventados para oferecer as **58 cotáveis**. A publicação parcial só pode ser avaliada após aceitar operacionalmente a confirmação manual para as pendentes e homologar Safari, Edge, rollback, pagamento, estoque e WhatsApp. Não é uma autorização de publicação já concedida.
 - **Rejeitado:** aplicar a flag estrita no primeiro deploy, aceitar o nome pendente como R$ 8 sem verificação, declarar todos os nomes desconhecidos bloqueados no modo intermediário ou afirmar que uma região digitada corresponde à localização física.
 - **Evidência:** [CI do código `efe7f453`](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42094262731) aprovou 18 testes de entrega e 732 testes comerciais, build, Deno check e guarda de novos erros TS. `docs/ENTREGA-RELEASE-GATE-20261105.md` contém a ordem de ativação e rollback.
+
+
+## D-C18 — Fonte de rollback verificável antes do corte de Edge (05/11/2026)
+
+- **Motivo:** as Edge produtivas v14 e v26 não têm locality_id, e a v14 de Mercado Pago também difere em catálogo/promoções; rollback só por número de versão não é seguro.
+- **Decisão:** versionar a árvore exata dos arquivos retornados pelo Supabase comercial, com hashes e teste de integridade/imports, conservando 21 preços/zonas legados e a cotação WhatsApp de 40 combinações. Antes do deploy reconfirmar hash/versão; mudança produtiva = novo NO-GO até reconciliação.
+- **Rejeitado:** publicar ambas como simples atualização de frete, confiar em main ou ZIP como backup, reverter funções para versões antigas enquanto o frontend novo requer locality_id.
+- **Estado:** código de rollback e teste preparados na branch; deploy, homologação em Safari físico, pagamentos e restauração não executados. CI do novo SHA precisa ser consultada. Referências: `docs/EDGE-ROLLBACK-BUNDLE-20261105.md` e `docs/edge-release/rollback/20261105/manifest.json`.
