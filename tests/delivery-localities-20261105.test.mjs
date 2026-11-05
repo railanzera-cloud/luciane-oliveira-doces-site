@@ -14,9 +14,9 @@ import {
   filterSecondaryDeliveryPlaces, isSecondaryDeliveryPlaceQuery, SECONDARY_DELIVERY_PLACE_IDS,
 } from "../components/delivery-picker-logic.mjs";
 
-test("catalogue includes 114 distinct known locality candidates, without default fares", () => {
+test("catalogue includes 115 distinct known locality candidates, without default fares", () => {
   assert.equal(DELIVERY_LOCALITIES.length, 115);
-  assert.equal(new Set(DELIVERY_LOCALITIES.map(locality => locality.id)).size, 114);
+  assert.equal(new Set(DELIVERY_LOCALITIES.map(locality => locality.id)).size, 115);
   for (const locality of DELIVERY_LOCALITIES) {
     assert.ok(locality.id && locality.label);
     if (locality.zoneId) assert.ok(DELIVERY_ZONES[locality.zoneId], locality.id);
@@ -172,7 +172,7 @@ test("legacy checkout detects special destinations with typos and extra delivery
 
 test("legacy review gate supports phased rollout without changing old clients by default", () => {
   assert.equal(deliveryLegacyReviewState("Alto do Vale"), "pending");
-  assert.equal(deliveryLegacyReviewState("Laércio Cabeline II"), "pending");
+  assert.equal(deliveryLegacyReviewState("Laércio Cabeline II"), "quoted");
   assert.equal(deliveryLegacyReviewState("Cidade Nova"), "quoted");
   assert.equal(deliveryLegacyReviewState("Sidney Rosa"), "quoted");
   assert.equal(deliveryLegacyReviewState("Centro"), "quoted");
@@ -186,14 +186,16 @@ test("legacy review gate supports phased rollout without changing old clients by
   const previousDeno = globalThis.Deno;
   try {
     globalThis.Deno = { env: { get: key => key === "DELIVERY_LEGACY_REVIEW_GUARD" ? "true" : undefined } };
-    for (const neighborhood of ["Alto do Vale", "Laércio Cabeline II"]) {
+    for (const neighborhood of ["Alto do Vale"]) {
       assert.throws(() => quoteFulfillment(legacy(neighborhood)), /precisa de confirmação da taxa/,
         "O modo intermediário bloqueia apenas locais conhecidos e pendentes.");
     }
+    assert.throws(() => quoteFulfillment(legacy("Laércio Cabeline II")), /taxa de entrega específica/,
+      "Old tabs cannot force the newly approved R$10 locality into R$8 city delivery.");
     assert.equal(quoteFulfillment(legacy("Cidade Nova")).delivery_fee_cents, 800,
       "Bairro homologado segue aceito em aba antiga.");
     assert.equal(quoteFulfillment(legacy("Centro")).delivery_fee_cents, 800,
-      "Localidade não reconhecida ainda depende do flag estrito posterior.");
+      "Centro já está homologado a R$8 e não pode gerar um valor genérico errado.");
     assert.equal(quoteFulfillment(delivery("juparana", "juparana")).delivery_fee_cents, 1000,
       "A flag não interfere na escolha explícita de uma tarifa especial.");
     assert.throws(() => quoteFulfillment(delivery("alto-do-vale", "cidade")), /taxa de entrega confirmada/,
@@ -339,7 +341,7 @@ test("delivery microcopy remains concise and explicit about selecting a suggesti
   assert.match(picker, /Bairro ou local de entrega<\/label>/);
   assert.match(picker, /placeholder="Ex\.: Promissão II, Açaizal\.\.\."/);
   assert.match(picker, /Digite seu bairro e selecione uma opção da lista para ver a taxa de entrega\./);
-  assert.match(picker, /filterDeliveryNumberConflicts\(query, searchDeliveryLocalities\(query\)\)/);
+  assert.match(picker, /filterDeliveryNumberConflicts\(query, filterSecondaryDeliveryPlaces\(candidates\)\)/);
   assert.doesNotMatch(picker, /Digitar sem selecionar não confirma o bairro/);
   assert.doesNotMatch(page, /A taxa é calculada pelo local escolhido\. Confira o endereço e o total antes de enviar/);
 });
