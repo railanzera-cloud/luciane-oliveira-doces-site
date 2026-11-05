@@ -1,4 +1,4 @@
-import { deliveryLocalityById, deliveryLocalityByExactName, normalizeDeliverySearch } from "./delivery-localities.mjs";
+import { deliveryLocalityById, deliveryLocalityByExactName, deliveryLocalityCanQuote, normalizeDeliverySearch } from "./delivery-localities.mjs";
 import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
@@ -220,7 +220,7 @@ export function quoteFulfillment(raw) {
   const requireLocalityId = globalThis.Deno?.env?.get("DELIVERY_REQUIRE_LOCALITY_ID") === "true";
   if (requireLocalityId && !explicitLocalityId) throw new Error("Atualize a página para selecionar seu bairro.");
   const locality = explicitLocalityId == null ? null : deliveryLocalityById(explicitLocalityId);
-  if (explicitLocalityId != null && (!locality || !locality.zoneId)) {
+  if (explicitLocalityId != null && !deliveryLocalityCanQuote(locality)) {
     throw new Error("Selecione um bairro com taxa de entrega confirmada.");
   }
   if (locality && locality.zoneId !== zone.id) {
