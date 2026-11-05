@@ -16,13 +16,13 @@ O arquivo `supabase/functions/_shared/delivery-localities.mjs` contém **114 nom
 - [Plano municipal / loteamentos](https://camaraparagominas.pa.gov.br/wp-content/uploads/2023/02/PROJETO-DE-LEI-No-030-2023-PLANO-MUNICIPAL-PELA-PRIMEIRA-INFANCIA-ANEXOS.pdf);
 - 20 destinos especiais e suas taxas existentes em `commerce-catalog.mjs`.
 
-**Classificação da candidata:** 20 destinos especiais conservam a tarifa legada; 59 associações à tarifa urbana R$ 8 foram propostas com base na regra geral informada pelo proprietário e nas referências urbanas; 35 localidades sem vínculo suficientemente claro permanecem com **"A confirmar"** (nunca R$ 8 por fallback). Essas 59 associações **não são homologação individual da loja**. Confirmar as bordas urbanas, subdivisões, novos loteamentos e grafias antes de ativação comercial. Número de entradas não equivale a número de bairros oficiais.
+**Classificação e cotação protegida (incremento de 05/11):** 20 destinos especiais mantêm a tarifa já existente no código. Das 59 associações propostas à tarifa urbana R$ 8, **somente cinco exemplos explicitamente citados pelo proprietário** (Promissão I, II, III, Tião Mineiro e Flamboyant/“Florboiante”) estão liberados como exemplos urbanos da operação; **54 associações urbanas candidatas ficam em "A confirmar"** até homologação individual. Outras **35 localidades sem vínculo tarifário** também ficam em "A confirmar". Total: **25 localidades com cotação disponível, 89 pendentes, 114 nomes pesquisáveis**. Não se trata de aprovação geral do mapa nem de garantia geográfica do endereço real. Confirmar bordas urbanas, subdivisões, novos loteamentos e grafias antes de ativação comercial. Número de entradas não equivale a número de bairros oficiais.
 
 **Exceções incontornáveis:** Açaizal e Nagibão podem constar como bairros oficiais e, mesmo assim, têm taxas especiais no catálogo comercial. "Jaderlândia"/"Jardelandia"/"Jardim Elândia" não são automaticamente fundidos; a localização real deve ser confirmada. CEP não define tarifa única.
 
 ## Código e contrato
 
-- `delivery-localities.mjs`: identidade estável de cada local, aliases, normalização de acentos e algarismos romanos, busca limitada e status sem tarifa;
+- `delivery-localities.mjs`: identidade estável de cada local, aliases, normalização de acentos e algarismos romanos, busca limitada e estado **cotável ou pendente de homologação**; localidades urbanas candidatas retêm o vínculo para revisão, mas não podem gerar preço nem pedido automático;
 - `components/delivery-locality-picker.tsx` e `app/delivery-locality.css`: seleção pesquisável no celular; teclado; resultado cotado ou pendente; nenhuma opção genérica de frete digitável;
 - `app/page.tsx`: escolha é persistida com `deliveryLocalityId` na sessão; restauração de pedido antigo quando identificável; preço/total e recepção mantidos; payload contém `locality_id` em **ambos** os canais;
 - `commerce-catalog.mjs`: servidor recusa localidade inexistente, pendente ou com `zone_id` conflitante, recalcula centavos usando tarifa oficial, normaliza nome e protege variantes especiais no modo legado. `pickup` permanece sem frete;
@@ -32,7 +32,7 @@ O arquivo `supabase/functions/_shared/delivery-localities.mjs` contém **114 nom
 
 ## Checklist de ativação (não concluído)
 
-1. Validar com a proprietária **59 associações urbanas e 35 nomes pendentes**, além de 20 taxas legadas e aliases. Recusar falso positivo de tarifa.
+1. Homologar individualmente **54 associações urbanas candidatas** e **35 localidades sem tarifa definida**, conferir as cinco citações urbanas e as 20 taxas especiais legadas. Fazer isso sem transformar automaticamente candidatos em R$ 8.
 2. CI completa do SHA do candidato e prova visual em mobile, Safari/Instagram no dispositivo real, fluxo de pedido sintético nos dois canais.
 3. Confirmar código Edge instalado e migrações reais, sem sobrescrever versões recentes de catálogo/promos; backend compatível primeiro.
 4. Distribuir novo frontend, conferir pedido sintético sem gravar compra financeira real, monitorar falhas e recuperação de rascunhos.
