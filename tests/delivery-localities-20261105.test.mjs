@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import {
   DELIVERY_LOCALITIES, normalizeDeliverySearch, searchDeliveryLocalities,
   deliveryLocalityById, deliveryLocalityByExactName, deliveryLegacyLocality, deliveryLocalityCanQuote,
-  deliveryLocalityTextMatches, deliveryLegacySpecificCandidate,
+  deliveryLocalityTextMatches, deliveryLegacySpecificCandidate, deliveryLegacySpecialMentionCount,
 } from "../supabase/functions/_shared/delivery-localities.mjs";
 import {
   DELIVERY_ZONES, quoteFulfillment, deliveryZoneMismatchMessage,
@@ -116,6 +116,13 @@ test("legacy checkout detects special destinations with typos and extra delivery
   }
   assert.equal(deliveryLegacySpecificCandidate("Açaizal ou Aeroporto"), null,
     "não escolher uma das duas regiões especiais quando ambas aparecem no texto");
+  assert.equal(deliveryLegacySpecialMentionCount("Açaizal ou Aeroporto"), 2);
+  assert.match(deliveryZoneMismatchMessage("cidade", "Açaizal ou Aeroporto"), /mais de uma região/);
+  assert.throws(() => quoteFulfillment({
+    type: "delivery", zone_id: "cidade", neighborhood: "Açaizal ou Aeroporto",
+    street: "Rua Exemplo", number: "12",
+  }), /mais de uma região/);
+  assert.equal(deliveryLegacySpecialMentionCount("Juparanã"), 0);
   assert.equal(deliveryLegacySpecificCandidate("abc"), null);
 });
 
