@@ -40,6 +40,13 @@
 - O teste específico `tests/gourmet-rolagem-contextual-20261103.test.mjs` e documentação de 03/11 abordam a seleção de potes e rolagem até controle real.
 - As melhorias acumuladas estão no GitHub, mas **não foi verificado nesta sessão** o ID de deployment Cloudflare atual, versão de Edge Functions de hoje, migrações aplicadas nem saldos reais. `main` é antiga; NÃO afirmar correspondência com produção.
 
+### Registro auditável da primeira implementação documental
+
+- **Primeiro commit documental gravado no GitHub:** `4d2187907078e335790640a4601bb79acf9ba488` na branch `docs/continuidade-comercial-20261105`, descendente direta da base `62f7780c...`.
+- **PR de documentação:** [PR #5](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/pull/5), base `work/gourmet-rolagem-contexto-premium-20261103`, aberto em modo draft; comparação da primeira revisão: **1 commit à frente, 0 atrás, 10 arquivos** de documentação/QA.
+- **CI isolada do commit documental:** workflow `Contrato de continuidade comercial (somente documentos)`, [execução 42015397561](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42015397561) **SUCCESS, 5/5 testes**. Não foi feito build integral do frontend **nesse commit documental**, nem há prova de mudança no deployment.
+- **Observação:** este registro de evidência foi acrescentado **depois** do primeiro commit, criando novo HEAD documental. A prova acima é referente a `4d218...`; o SHA deste adendo deve ser validado pela própria CI após commit. Nenhum código operacional mudou.
+
 ### O que mudou nesta etapa de continuidade (05/11)
 
 **Escopo documental:** cinco documentos duráveis `PROMPT-MESTRE-COMERCIAL.md`, `MEMORIA-DE-DECISOES.md`, `REFERENCIA-VISUAL-UX.md`, `MATRIZ-DE-IMPACTO-COMERCIAL.md` e este `CHECKPOINT-VIVO.md`; roteamento no `AGENTS.md` e no `README.md`; teste `tests/continuity-contract.test.mjs` de presença/ligação/isolamento. Nada nesta documentação autoriza novos preços, migrações, Edge, Cloudflare, CRM ou impressora. **A CI do commit documental deve ser consultada antes de afirmar o seu resultado; o SHA final será registrado no PR e em atualização futura.**
