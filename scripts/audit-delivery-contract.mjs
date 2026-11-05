@@ -52,8 +52,8 @@ for (const locality of DELIVERY_LOCALITIES) {
 }
 
 assert.deepEqual(totals, {
-  all: 114, quoted: 25, pending: 89,
-  special: 20, urbanQuoted: 5, urbanPending: 54,
+  all: 114, quoted: 58, pending: 56,
+  special: 25, urbanQuoted: 33, urbanPending: 30,
 }, "Aprovação de novas localidades requer atualização consciente da matriz de homologação.");
 
 // O frontend tem uma tabela de zonas para exibição e o Edge mantém a autoridade
