@@ -1,4 +1,6 @@
 /* Entrega: busca de bairros sem grade de tarifas e sem valor genérico editável. */
+.storefront #carrinho .delivery-fields > .delivery-locality-picker,
+.storefront #carrinho .delivery-fields > .delivery-price-preview {grid-column:1 / -1;min-width:0;}
 .storefront #carrinho .delivery-locality-picker { position:relative; z-index:12; display:grid; gap:8px; }
 .storefront #carrinho .delivery-locality-picker > label { font-weight:800; color:#493021; font-size:.88rem; }
 .storefront #carrinho .delivery-locality-input { position:relative; display:flex; align-items:center; }
@@ -23,6 +25,7 @@
   box-shadow:0 15px 40px rgba(51,28,13,.25); padding:5px;
   -webkit-overflow-scrolling:touch;
 }
+.storefront #carrinho .delivery-locality-results[data-placement="above"] {top:auto;bottom:calc(100% + 4px);}
 .storefront #carrinho .delivery-locality-option {
   display:flex; align-items:center; gap:8px; min-height:49px; width:100%; padding:10px;
   border:0; border-bottom:1px solid rgba(148,105,73,.13); border-radius:9px;
