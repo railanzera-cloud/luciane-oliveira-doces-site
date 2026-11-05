@@ -4,7 +4,7 @@ import { useEffect, useId, useMemo, useState } from "react";
 import { Check, MapPin, Search, ShieldAlert } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { DELIVERY_ZONES } from "@/app/catalog";
-import { deliveryLocalityById, searchDeliveryLocalities } from "@/supabase/functions/_shared/delivery-localities.mjs";
+import { deliveryLocalityById, deliveryLocalityCanQuote, searchDeliveryLocalities } from "@/supabase/functions/_shared/delivery-localities.mjs";
 
 type Locality = { id: string; label: string; zoneId: string | null; status: string };
 type Props = {
@@ -78,13 +78,15 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
             }
           }}
         />
-        {selected?.zoneId && <Check className="delivery-locality-ok" size={18} aria-label="Bairro selecionado" />}
+        {deliveryLocalityCanQuote(selected) && <Check className="delivery-locality-ok" size={18} aria-label="Bairro selecionado" />}
       {expanded && (
         <div className="delivery-locality-results" id={listId} role="listbox" aria-label="Sugestões de bairros">
           {results.length === 0 ? (
             <p className="delivery-locality-empty">Não encontramos esse nome. Confira a grafia ou solicite confirmação com a loja.</p>
           ) : results.map((locality, index) => {
-            const zone = DELIVERY_ZONES.find((candidate) => candidate.id === locality.zoneId);
+            const zone = deliveryLocalityCanQuote(locality)
+              ? DELIVERY_ZONES.find((candidate) => candidate.id === locality.zoneId)
+              : null;
             return (
               <button
                 type="button"
@@ -106,7 +108,7 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
         </div>
       )}
       </div>
-      {selected && (selected.zoneId ? (
+      {selected && (deliveryLocalityCanQuote(selected) ? (
         <p className="delivery-locality-confirmed" role="status">
           <Check size={15} aria-hidden="true" /> {selected.label} — taxa calculada para o bairro selecionado.
         </p>
