@@ -198,3 +198,18 @@ Não repetir tarefas aprovadas para mostrar movimento. Um check verde no antigo 
 **Gate/rollback documentado:** `docs/ENTREGA-RELEASE-GATE-20261105.md`. Confirmar 89 localidades pendentes e 20 tarifas especiais com loja, homologar Safari/iPhone e Instagram reais, preservar as versões de Edge publicadas, testar compatibilidade em ambiente isolado, depois (com autorização própria) backend compatível → frontend → flag de obrigatoriedade. Rollback preserva pedidos e exige primeiro desligar flag se ativo.
 
 **Estado:** incremento de código e CI **tecnicamente aprovados**, mas **lançamento não autorizado/não executado**; existem bloqueios reais de homologação comercial, UX em hardware e paridade de produção. Não confundir com conclusão da publicação.
+
+
+## 14. Homologação priorizada com histórico agregado — 05/11/2026
+
+**Motivo:** o único bloqueio comercial de maior alcance são 89 localidades ainda não homologadas. Em vez de classificá-las automaticamente ou repetir auditorias de código, foi feita leitura **somente agregada** no Supabase comercial `edqiwvccmboyayojvuea` da relação bairro/região/taxa de pedidos de entrega registrados desde 01/09/2026. Nenhum nome de cliente, rua, telefone, CPF, dado financeiro individual, alteração SQL ou escrita operacional foi feito.
+
+**Evidência e limite:**
+- 427 entregas em 148 grupos de nomes/região/taxa no recorte; 312 registros corresponderam sem ambiguidade às denominações públicas da base candidata.
+- **24 dos 54 bairros urbanos pendentes** já constam em pedidos com `delivery_zone_id=cidade` e R$ 8. **9 dos 35 nomes sem região definida** também aparecem com R$ 8. Isso **prioriza a confirmação humana**, mas não prova bairro físico, aprovação do valor ou status pago.
+- **2 registros de Açaizal apareceram com tarifa urbana R$ 8**, embora o catálogo comercial atual tenha tarifa Açaizal R$ 10. Não inferir fraude; podem ser erros ou ajustes históricos. É evidência de por que a validação bairro/taxa precisa ser reforçada.
+- Relatório sem PII, gerado apenas com nomes públicos do catálogo e contagens agregadas: `docs/ENTREGA-HISTORICO-AGREGADO-20261105.md`. Não publicar esse relatório como estatística de mercado ou garantia de cobertura.
+- **Nenhum** dos 89 status pendentes foi liberado automaticamente; continuam não cotáveis até a Luciane confirmar a tarifa atual.
+- **Impacto no rollout:** aprovar primeiro bairros de maior frequência e validar os nomes especiais, depois atualizar catálogo/CI e revisar experiência móvel. Produção e `main` permanecem intocadas.
+
+**Esta é atualização documental posterior ao último SHA técnico validado.** A CI da branch deve ser conferida no HEAD antes de anunciar checks aprovados nele.
