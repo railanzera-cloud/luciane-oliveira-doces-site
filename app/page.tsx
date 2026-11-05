@@ -2004,10 +2004,10 @@ export default function Home() {
       ? "Adicione pelo menos um produto ao pedido."
       : !fulfillment
         ? "Escolha entrega ou retirada para continuar."
-        : fulfillment === "entrega" && !selectedDeliveryZone
-          ? "Escolha onde será a entrega."
-          : fulfillment === "entrega" && selectedDeliveryZone?.asksNeighborhood && !neighborhood.trim()
-            ? "Informe seu bairro."
+        : fulfillment === "entrega" && selectedDeliveryLocality && !selectedDeliveryLocality.zoneId
+          ? "Este local precisa de confirmação da taxa com a loja."
+          : fulfillment === "entrega" && !selectedDeliveryZone
+            ? "Busque e selecione seu bairro para calcular a entrega."
             : !addressReady
               ? !cleanWhatsAppField(address) ? "Informe a rua da entrega." : "Informe o número da entrega (ou s/n)."
               : !customerNameReady
