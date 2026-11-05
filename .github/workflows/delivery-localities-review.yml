@@ -7,6 +7,9 @@ on:
     paths:
       - 'app/page.tsx'
       - 'components/delivery-locality-picker.tsx'
+      - 'components/delivery-picker-logic.mjs'
+      - 'app/delivery-locality.css'
+      - 'app/layout.tsx'
       - 'supabase/functions/_shared/delivery-localities.mjs'
       - 'supabase/functions/_shared/commerce-catalog.mjs'
       - 'tests/delivery-localities-20261105.test.mjs'
