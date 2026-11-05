@@ -4,7 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Check, MapPin, Search, ShieldAlert } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { TintimContactLink } from "@/components/tintim-contact-link";
-import { deliverySuggestionLayout, queryAfterDeliverySelectionChange } from "@/components/delivery-picker-logic.mjs";
+import { deliverySuggestionLayout, filterDeliveryNumberConflicts, queryAfterDeliverySelectionChange } from "@/components/delivery-picker-logic.mjs";
 import { DELIVERY_ZONES } from "@/app/catalog";
 import { deliveryLocalityById, deliveryLocalityCanQuote, deliveryLocalityTextMatches, searchDeliveryLocalities } from "@/supabase/functions/_shared/delivery-localities.mjs";
 
@@ -31,7 +31,7 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
   const pointerInsideOptionsRef = useRef(false);
   const [listPlacement, setListPlacement] = useState<"above" | "below">("below");
   const [listMaxHeight, setListMaxHeight] = useState(320);
-  const results = useMemo(() => searchDeliveryLocalities(query), [query]);
+  const results = useMemo(() => filterDeliveryNumberConflicts(query, searchDeliveryLocalities(query)), [query]);
 
   useEffect(() => {
     const nextQuery = queryAfterDeliverySelectionChange({
@@ -97,7 +97,7 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
       if (!pointerInsideOptionsRef.current &&
         !event.currentTarget.contains(event.relatedTarget as Node | null)) setExpanded(false);
     }}>
-      <label htmlFor="neighborhood">Seu bairro ou local de entrega</label>
+      <label htmlFor="neighborhood">Bairro ou local de entrega</label>
       <div className="delivery-locality-input">
         <Search size={18} aria-hidden="true" />
         <Input
@@ -111,7 +111,7 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
           autoComplete="off"
           inputMode="search"
           maxLength={80}
-          placeholder="Busque seu bairro. Ex.: Promissão II"
+          placeholder="Ex.: Promissão II, Açaizal..."
           value={query}
           onFocus={() => setExpanded(true)}
           onChange={(event) => {
@@ -184,7 +184,7 @@ export function DeliveryLocalityPicker({ selectedId, onSelect, onClear }: Props)
           <ShieldAlert size={16} aria-hidden="true" /> Essa localidade precisa de confirmação da taxa com a loja antes de registrar o pedido.
         </p>
       ))}
-      {!selected && <p className="delivery-locality-help">Escolha uma sugestão para calcular o frete. Digitar sem selecionar não confirma o bairro.</p>}
+      {!selected && <p className="delivery-locality-help">Digite seu bairro e selecione uma opção da lista para ver a taxa de entrega.</p>}
       {needsManualQuote && (
         <p className="delivery-locality-contact">
           <TintimContactLink message={`Olá! Estou fazendo um pedido no site da Luciane Oliveira Doces e preciso confirmar a taxa de entrega para ${contactLocation || "meu bairro"}.`}>

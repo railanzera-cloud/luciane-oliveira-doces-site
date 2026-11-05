@@ -10,7 +10,7 @@ import {
   DELIVERY_ZONES, quoteFulfillment, deliveryZoneMismatchMessage,
 } from "../supabase/functions/_shared/commerce-catalog.mjs";
 import {
-  queryAfterDeliverySelectionChange, deliverySuggestionLayout,
+  queryAfterDeliverySelectionChange, deliverySuggestionLayout, filterDeliveryNumberConflicts,
 } from "../components/delivery-picker-logic.mjs";
 
 test("catalogue includes 114 distinct known locality candidates, without default fares", () => {
@@ -297,6 +297,39 @@ test("misspellings suggest candidates, never automatically select or quote their
   const afterSelection = quoteFulfillment(delivery(matches[0].id, "cidade"));
   assert.equal(afterSelection.neighborhood, "Promissão II");
   assert.equal(afterSelection.delivery_fee_cents, 800);
+});
+
+test("numeric district suffixes cannot be confused by fuzzy suggestions in the UI", () => {
+  const suggest = query => filterDeliveryNumberConflicts(query, searchDeliveryLocalities(query));
+  assert.ok(searchDeliveryLocalities("Parque 3").some(locality => locality.id === "parque-iv"),
+    "plain Levenshtein would incorrectly suggest Parque IV");
+  assert.deepEqual(suggest("Parque 3"), [],
+    "Parque 3 must not be offered as Parque IV or another unnumbered district");
+  assert.deepEqual(suggest("Parque 5"), [],
+    "unknown number cannot be replaced by a near numeric neighbor");
+  assert.equal(suggest("Parque 4")[0]?.id, "parque-iv");
+  assert.equal(suggest("Parque IV")[0]?.id, "parque-iv");
+  assert.ok(suggest("Parque").some(locality => locality.id === "parque-iv"),
+    "partial street or neighborhood searches without numbers remain searchable");
+  assert.equal(suggest("Promissão 3")[0]?.id, "promissao-iii");
+  assert.equal(suggest("promisao 2")[0]?.id, "promissao-ii",
+    "misspelled text with correct number remains a safe suggestion");
+  assert.equal(suggest("KM 12")[0]?.id, "km-12");
+  assert.deepEqual(suggest("KM 13"), [], "rural kilometrage may not be guessed");
+  // UI filtering never grants a zone or changes server-authoritative values.
+  assert.equal(quoteFulfillment(delivery("promissao-iii", "cidade")).delivery_fee_cents, 800);
+  assert.throws(() => quoteFulfillment(delivery("parque-iv", "cidade")), /taxa de entrega confirmada/i);
+});
+
+test("delivery microcopy remains concise and explicit about selecting a suggestion", async () => {
+  const picker = await readFile(new URL("../components/delivery-locality-picker.tsx", import.meta.url), "utf8");
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  assert.match(picker, /Bairro ou local de entrega<\/label>/);
+  assert.match(picker, /placeholder="Ex\.: Promissão II, Açaizal\.\.\."/);
+  assert.match(picker, /Digite seu bairro e selecione uma opção da lista para ver a taxa de entrega\./);
+  assert.match(picker, /filterDeliveryNumberConflicts\(query, searchDeliveryLocalities\(query\)\)/);
+  assert.doesNotMatch(picker, /Digitar sem selecionar não confirma o bairro/);
+  assert.doesNotMatch(page, /A taxa é calculada pelo local escolhido\. Confira o endereço e o total antes de enviar/);
 });
 
 test("touch selection remains mounted until click and remains keyboard accessible", async () => {

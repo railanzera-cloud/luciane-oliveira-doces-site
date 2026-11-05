@@ -1,3 +1,5 @@
+import { normalizeDeliverySearch } from "../supabase/functions/_shared/delivery-localities.mjs";
+
 // Estado previsível do campo durante restauração de rascunhos e troca de bairro.
 // Retornar null significa manter exatamente o texto que a pessoa acabou de digitar.
 export function queryAfterDeliverySelectionChange({
@@ -25,4 +27,19 @@ export function deliverySuggestionLayout({
     placement,
     maxHeight: Math.max(72, Math.min(320, Math.floor(available))),
   });
+}
+
+
+// Uma numeração diferente é um bairro diferente. Busca aproximada por
+// caracteres pode confundir "Parque 3" e "Parque IV"; nunca oferecer uma
+// localidade com número divergente. IDs, status e tarifas seguem no backend.
+export function filterDeliveryNumberConflicts(query, localities) {
+  if (!Array.isArray(localities)) return [];
+  const requestedNumbers = normalizeDeliverySearch(query).match(/\b\d+\b/g) ?? [];
+  if (!requestedNumbers.length) return localities;
+  return localities.filter(locality =>
+    [locality.label, ...(locality.aliases ?? [])].some(name => {
+      const optionNumbers = normalizeDeliverySearch(name).match(/\b\d+\b/g) ?? [];
+      return requestedNumbers.every(number => optionNumbers.includes(number));
+    }));
 }

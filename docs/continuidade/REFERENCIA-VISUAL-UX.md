@@ -170,3 +170,12 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Contrato protegido:** nenhuma mudança de tarifa ou de identidade de localidades; 89 localidades não homologadas continuam sem cotação. Não alterar estética global de Gourmet, Trufadas, Fatias, checkout financeiro, WhatsApp ou painel.
 - **Evidência técnica:** `components/delivery-picker-logic.mjs`, `components/delivery-locality-picker.tsx`, `app/delivery-locality.css`; [CI do código `89ff2890`](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42075931114), com 10 testes especializados, 724 regressões e build aprovados.
 - **Evidência visual:** **não existe ainda screenshot comparativa em 320/375/390/430 px ou teste físico no Safari/Instagram**. O layout é candidato para homologação, não visual aprovado nem publicado.
+
+
+### UX-APROVADA-20261105.3 — Microtextos e numeração exata na busca de bairros
+
+- **Aprovação do proprietário:** após avaliar a tela em iPhone, aceitou encurtar o título para "Bairro ou local de entrega", usar placeholder "Ex.: Promissão II, Açaizal..." e a orientação direta "Digite seu bairro e selecione uma opção da lista para ver a taxa de entrega.".
+- **Limpeza visual:** retirar somente a nota redundante após os campos ("A taxa é calculada pelo local escolhido..."), sem omitir o prazo de entrega, sem alterar cartões, cores, layout ou resumo financeiro.
+- **Proteção contra falso nome próximo:** a busca aproximada podia sugerir "Parque IV" para "Parque 3" por diferença de um caractere. Aplicar filtro exclusivo de resultados na interface, exigindo coincidência de todos os tokens numéricos (romanos já normalizados), preservando "Promissão 3" → "Promissão III" e buscas textuais sem número. **Não** modificar catálogo compartilhado, ID, valor, backend ou zonas.
+- **Prova exigida:** testes de regra e WebKit 320/375/390/430 com "Parque 3" ausente, "Parque 4" correspondente a IV sem tarifa presumida, e restauração do checkout. Safari/Instagram físico continua prova posterior.
+- **Estado:** revisão aprovada, implementação em branch e CI a conferir; publicação Cloudflare posterior será manual.

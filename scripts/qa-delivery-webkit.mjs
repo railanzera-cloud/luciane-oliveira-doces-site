@@ -45,6 +45,10 @@ try {
         { waitUntil: "domcontentloaded" });
       const input = page.locator("#neighborhood");
       await input.waitFor({ state: "visible" });
+      assert.equal(await input.getAttribute("placeholder"), "Ex.: Promissão II, Açaizal...");
+      await page.getByText("Bairro ou local de entrega", { exact: true }).waitFor();
+      await page.getByText("Digite seu bairro e selecione uma opção da lista para ver a taxa de entrega.", { exact: true }).waitFor();
+      assert.equal(await page.getByText("A taxa é calculada pelo local escolhido. Confira o endereço e o total antes de enviar.").count(), 0);
 
       await input.fill("Promissão II");
       await page.locator('button[role="option"][id$="-promissao-ii"]').tap();
@@ -78,6 +82,15 @@ try {
       await input.press("Enter");
       assert.equal(await input.inputValue(), "Promissão III");
 
+      await input.fill("Parque 3");
+      await page.locator(".delivery-locality-empty").waitFor();
+      assert.equal(await page.getByRole("option", { name: /Parque IV/ }).count(), 0,
+        "wrong district number must never be suggested");
+      assert.equal(await page.locator(".delivery-price-preview").count(), 0);
+      await input.fill("Parque 4");
+      await page.locator('button[role="option"][id$="-parque-iv"]').tap();
+      assert.equal(await input.inputValue(), "Parque IV");
+      await page.locator(".delivery-locality-warning").waitFor();
       await input.fill("zzzzzzz");
       await page.locator(".delivery-locality-empty").waitFor();
       assert.equal(await page.locator(".delivery-price-preview").count(), 0);
