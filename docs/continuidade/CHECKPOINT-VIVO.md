@@ -213,3 +213,22 @@ Não repetir tarefas aprovadas para mostrar movimento. Um check verde no antigo 
 - **Impacto no rollout:** aprovar primeiro bairros de maior frequência e validar os nomes especiais, depois atualizar catálogo/CI e revisar experiência móvel. Produção e `main` permanecem intocadas.
 
 **Esta é atualização documental posterior ao último SHA técnico validado.** A CI da branch deve ser conferida no HEAD antes de anunciar checks aprovados nele.
+
+
+## 14. Continuidade 05/11/2026 — variantes do checkout antigo, paridade de preços e ZIP de QA
+
+**Pedido:** usuário autorizou prosseguir com todas as implementações necessárias, preservando as exigências de segurança e publicação. Este incremento ocorreu após `c0470c5532abfa5960f16d8533d32d4939feb8d2`, sem reiniciar a PR #6.
+
+**Código implementado:**
+- `delivery-localities.mjs` adicionou `deliveryLegacySpecificCandidate`: detecta menções inequívocas e grafias próximas de localidades especiais para proteger pedidos de **clientes com checkout antigo sem `locality_id`**. Não atribui tarifa por aproximação e não bloqueia uma região urbana homônima (ex.: Juparanã vs. Juparanã Empresa).
+- `deliveryLegacySpecialMentionCount` sinaliza quando um campo legado cita mais de um destino especial; `commerce-catalog.mjs` exige confirmação em vez de aceitar R$ 8 por ambiguidade. Exemplos protegidos em testes: `Açaisall`, `Nagibaoo`, `Açaizal próximo à praça` e `Açaizal ou Aeroporto`. É defesa conservadora, **não comprova endereço físico** nem elimina o risco de uma localidade inteiramente inventada no formato antigo.
+- `scripts/audit-delivery-contract.mjs` agora analisa a AST de `app/catalog.ts` via TypeScript para garantir **paridade de ID, nome e preço das 21 regiões** com o catálogo do Edge, além de auditar 114 locais, pendências e handlers.
+- `.github/workflows/delivery-localities-review.yml` ganhou job dependente de testes para gerar ZIP **somente de inspeção visual** sem Supabase e com `SITE_ORDERING_ENABLED=false`. Nome do artefato: `QA-ENTREGAS-SOMENTE-VISUAL-NAO-PUBLICAR`. Não é ZIP comercial/de produção.
+
+**Verificações:** o commit `87e08e23208acc294417109f2b1faa3591753313` passou no [GitHub Actions 42084539081](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42084539081) com **16/16 testes focalizados, 730/730 regressões, Deno check, build e guarda de novos erros TS aprovados**. O commit `04bb0cd53c3b876cf1126b8e59c0d78261c0990b` teve [workflow 42085236722](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42085236722) aprovado, incluindo geração e retenção por 7 dias do ZIP isolado de QA. A CI dos últimos commits de paridade/ambiguidade deve ser verificada no SHA final, não herdada de runs anteriores.
+
+**Evidência histórica agregada:** `docs/ENTREGA-HISTORICO-AGREGADO-20261105.md` documenta apenas contagens: 427 entregas no recorte desde setembro, 24 candidatos urbanos com pedidos de R$ 8 e 9 locais sem zona também com pedidos de R$ 8, incluindo 2 casos de Açaizal com tarifa urbana. Sem dados pessoais nem acesso a pedidos individuais. **Histórico não é homologação**, não aprova preços automaticamente, não autoriza mudar pedidos antigos. A matriz de 89 pendências permanece.
+
+**Ações proibidas neste checkpoint sem gate explícito:** merge em `main`, alteração de valores produtivos, deploy Supabase/Cloudflare, ativação de `DELIVERY_REQUIRE_LOCALITY_ID`, registrar pagamento real ou afirmar que o QA em Safari físico foi concluído. As funções de produção seguem `create-order` v14 e `create-whatsapp-order` v26 conforme verificação de leitura. Continuar em `docs/ENTREGA-RELEASE-GATE-20261105.md`.
+
+**Próximo trabalho necessário para lançamento:** obter a confirmação da operação para as localidades de maior uso (24+9 primeiro, depois demais), testar dropdown em Safari e navegador do Instagram num iPhone físico, planejar deploy do backend compatível sem perder contrato de estoque/mercearia e executar publicação com rollback demonstrável. Não considerar o ZIP de QA como publicável.
