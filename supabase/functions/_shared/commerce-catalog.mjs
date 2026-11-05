@@ -1,4 +1,4 @@
-import { deliveryLocalityById, deliveryLegacySpecificCandidate, deliveryLocalityCanQuote, normalizeDeliverySearch } from "./delivery-localities.mjs";
+import { deliveryLocalityById, deliveryLegacySpecificCandidate, deliveryLegacySpecialMentionCount, deliveryLocalityCanQuote, normalizeDeliverySearch } from "./delivery-localities.mjs";
 import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
@@ -81,6 +81,9 @@ export function deliveryZoneMismatchMessage(zoneId, neighborhood) {
   const specific = matchingLocality?.zoneId && matchingLocality.zoneId !== "cidade"
     ? DELIVERY_ZONES[matchingLocality.zoneId]
     : Object.values(DELIVERY_ZONES).find(zone => !zone.asksNeighborhood && normalize(zone.label) === normalized);
+  if (!specific && deliveryLegacySpecialMentionCount(neighborhood) > 1) {
+    return "O endereço menciona mais de uma região com taxa especial. Confirme o bairro correto antes de finalizar.";
+  }
   if (!specific) return "";
   const price = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(specific.priceCents / 100).replace(/\u00a0/g, " ");
   return `Esse local possui uma taxa de entrega específica. Selecione ‘${specific.label} — ${price}’ em ‘Onde será a entrega?’.`;
