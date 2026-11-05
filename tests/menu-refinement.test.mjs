@@ -952,7 +952,6 @@ test('all existing delivery prices, order and specific locality names remain unc
   assert.equal(recorded.neighborhood,state.deliveryNeighborhood);
   assert.equal(state.addressReady,true);assert.equal(state.deliveryZoneError,'');
  }
-}
 });
 
 test('city delivery blocks exact specific names including accents, case and spaces in browser and server', () => {
@@ -971,7 +970,6 @@ test('city delivery blocks exact specific names including accents, case and spac
  assert.equal(valid.addressReady,true);
  assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,locality_id:valid.deliveryLocalityId,
   neighborhood:valid.deliveryNeighborhood}).delivery_fee_cents,800);
-}
 });
 
 test('fixing a delivery mismatch or changing to pickup clears only validation, preserving typed fields', () => {
@@ -986,7 +984,6 @@ test('fixing a delivery mismatch or changing to pickup clears only validation, p
  assert.equal(checkoutFeedback(pickup).checkoutHint,'Tudo certo! Seu pedido está pronto para ser enviado.');
  const next=pageFunction('nextCheckoutSection',{...pickup,customerNameReady:true,checkoutChannel:'whatsapp'});
  assert.equal(next('entrega'),'delivery-fields');
-}
 });
 
 function renderDeliveryFields(state) {
@@ -1162,7 +1159,6 @@ test('real delivery JSX keeps required city neighborhood, hides it for specific 
  const pending=renderDeliveryFields(deliveryState('cidade','Promissão IV'));
  assert.doesNotMatch(pending,/delivery-price-preview/);
  assert.match(pending,/Confirmar com a loja pelo WhatsApp/);
-}
 });
 
 test('a mismatched locality blocks registration and guides both checkout and sticky action back to delivery', async () => {
@@ -1243,7 +1239,6 @@ test('delivery copy guides city choice without changing IDs, prices, order or sp
  const special=renderDeliveryFields(deliveryState('acaizal','Açaizal'));
  assert.match(special,/Taxa para Açaizal:.*R\$ 10,00/);
  assert.equal(catalog.DELIVERY_ZONES.find(z=>z.id==='cidade').label,'Dentro da cidade');
-}
 });
 
 test('delivery copy refinement retains mobile trigger, scrollable dropdown and shared checkout CTA', async () => {
@@ -1257,7 +1252,6 @@ test('delivery copy refinement retains mobile trigger, scrollable dropdown and s
  assert.match(source,/<DeliveryLocalityPicker/);
  assert.match(source,/onClick=\{handleStickyAction\}/);
  assert.match(source,/onClick=\{handleFinalAction\}/);
-}
 });
 
 function withTintimBrowser({href='https://fixture.invalid/', cookies='', session=null, local=null, blocked=false}, run) {
