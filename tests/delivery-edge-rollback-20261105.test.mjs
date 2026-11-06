@@ -55,7 +55,10 @@ test("all 21 original delivery tariff zones are preserved and only five approved
   }
   const additions = Object.keys(candidate.DELIVERY_ZONES).filter(id => !waIds.includes(id)).sort();
   assert.deepEqual(additions, ["aragao", "juparana", "laercio-cabeline", "ouro-preto", "sidney-rosa"]);
-  for (const id of additions) assert.equal(candidate.DELIVERY_ZONES[id].priceCents, 1000);
+  for (const id of additions) assert.equal(candidate.DELIVERY_ZONES[id].priceCents,
+    id === "juparana" ? 800 : 1000,
+    "Only Juparanã bairro was repriced by explicit owner correction; Empresa remains R$10");
+  assert.equal(candidate.DELIVERY_ZONES["juparana-empresa"].priceCents, 1000);
   assert.equal(Object.keys(candidate.DELIVERY_ZONES).length, 26);
 });
 
