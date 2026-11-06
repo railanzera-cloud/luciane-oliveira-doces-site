@@ -2371,7 +2371,7 @@ export default function Home() {
                 <div className="step-heading flavor-heading">
                   <StepMarker number={2} state={popcornFlavorStepState} />
                   <div><h3 id="step-flavors">Escolha os sabores da sua pipoca</h3><p>{popcornVariant ? `Combine até ${popcornMaxOptions} sabores neste pote.` : "Primeiro, escolha o tamanho acima."}</p></div>
-                  <div className="gourmet-flavor-progress" aria-label={popcornVariant ? `${popcornOptionIds.length} de ${popcornMaxOptions} sabores escolhidos` : "Escolha primeiro o tamanho"}>
+                  <div className="gourmet-flavor-progress" role="group" aria-label={popcornVariant ? `${popcornOptionIds.length} de ${popcornMaxOptions} sabores escolhidos` : "Escolha primeiro o tamanho"}>
                     <span className="selection-count" aria-hidden="true">{popcornVariant ? `${popcornOptionIds.length}/${popcornMaxOptions}` : "—"}</span>
                     {popcornMaxOptions > 0 && (
                       <span className="gourmet-flavor-progress-track" aria-hidden="true">
