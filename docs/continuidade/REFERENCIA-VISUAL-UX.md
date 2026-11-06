@@ -217,3 +217,11 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Resumo:** `Seus sabores` compacto, alinhado ao design chocolate/cappuccino, com os sabores removíveis e sem título, contador e instrução redundantes; progressão superior 1/2, 2/3 etc permanece.
 - **Barra:** reutilizar a barra flutuante original, não acrescentar outra. No meio da grade, com 1 ou 2 de 3 sabores, alterna para `Continuar com N sabor(es)`, tamanho compacto, área segura e foco acessível; deve sumir quando o botão inline ou a etapa da quantidade já estejam visíveis. A grade deve continuar tocável e rolar normalmente.
 - **QA:** [CI 42303415543](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42303415543), 4/4 jobs aprovados; screenshots de barra compacta em 320/375/390/430px no artifact `QA-ENTREGAS-WEBKIT-NAO-PUBLICAR` ID `13544184735`, sem sobreposição impeditiva nos cenários exercitados. **Sem equivaler a aceite em Safari físico ou deploy.**
+
+### UX-CANDIDATA-20261106.5 — Sua combinação: cabeçalho editorial e remoção compreensível
+
+- **Problema observado pelo proprietário:** o título “Seus sabores” ao lado de chips desalinhados diminuiu a profundidade visual premium do configurador. Não foi contestada a utilidade de editar a combinação.
+- **Tratamento aprovado:** `Sua combinação` como título serifado destacado, acompanhado de selo de confirmação, orientação curta `Toque no × para remover um sabor e escolher outro.` e chips em grupo abaixo. Acabamento com gradiente chocolate, borda dourada sutil, alvos de toque de pelo menos 44 px, foco visível e reduced-motion.
+- **Compactação com critério:** não repetir o tamanho, o preço, a contagem de sabores ou a orientação de limite preenchido que já é visível em `2/2` ou `3/3`. A mensagem de erro deve continuar acessível mesmo quando o limite estiver completo.
+- **Não tocar:** seleção, quantidade, botão flutuante, promoção, estoque, preço de maior grupo, checkout, foto Gourmet, categorias e engenharia comercial. A versão é candidata para PR #10, ainda não uma publicação ou aceite final no navegador real.
+- **QA adicional:** capturas WebKit com 1 e 3 sabores em 320/375/390/430 px, além da navegação original e dos testes comerciais. Verificar agrupamento, legibilidade, ausência de overflow, instrução única e remoção por teclado/touch.
