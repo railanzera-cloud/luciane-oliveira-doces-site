@@ -99,6 +99,7 @@ test("both Edge candidate entrypoints use validated shared fulfillment, without 
     '      throw new HttpError(409, "price_changed", "O preço mudou. Atualize o cardápio e confira o total antes de continuar.");',
     "    }",
     "",
+    "",
   ].join("\n");
   const restored = whatsapp.slice(0, start) + oldPriceGate + whatsapp.slice(end);
   assert.equal(restored, oldWa, "Nenhum trecho do handler pode mudar fora do gate Juparanã");
