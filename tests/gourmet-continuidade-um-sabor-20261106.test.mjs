@@ -23,11 +23,15 @@ test("legenda aprovada confirma a liberdade de escolher de 1 até o limite real"
 
 test("revisão compacta retém a remoção de sabores, sem repetir o limite e a instrução",()=>{
   assert.match(page,/className="boutique-flavor-summary gourmet-combination-review"/);
-  assert.match(page,/>Seus sabores<\/span>/);
+  assert.match(page,/>Sua combinação<\/span>/);
+  assert.match(page,/Toque no × para remover um sabor e escolher outro\./);
+  assert.match(page,/aria-describedby="gourmet-combination-instruction"/);
   assert.match(page,/onClick=\{\(\) => togglePopcornOption\(flavor\)\}/);
   assert.match(page,/aria-label=\{\x60Remover \$\{flavor\.name\} da combinação\x60\}/);
   assert.doesNotMatch(page,/className="gourmet-combination-size"/);
-  assert.doesNotMatch(page,/className="gourmet-combination-hint"/);
+  assert.match(page,/className="gourmet-combination-hint"/);
+  assert.doesNotMatch(page,/className="gourmet-combination-size"/);
+  assert.doesNotMatch(page,/Limite preenchido\. Desmarque um sabor para trocar/);
   assert.match(css,/#sabores \.gourmet-removable-tag/);
   assert.match(css,/min-height: 44px/);
 });
