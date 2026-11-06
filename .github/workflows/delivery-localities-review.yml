@@ -105,6 +105,11 @@ jobs:
           export QA_PACKAGE="$RUNNER_TEMP/qa-delivery-webkit/package.json"
           export QA_OUTPUT="$RUNNER_TEMP/qa-delivery-evidence"
           node scripts/qa-delivery-webkit.mjs
+          # Segundo pacote somente para QA: chave pública fictícia e TODOS os acessos externos
+          # interceptados pelo browser. Não corresponde ao ZIP de distribuição/publicação.
+          SUPABASE_URL="https://edqiwvccmboyayojvuea.supabase.co" \
+          SUPABASE_PUBLISHABLE_KEY="qa_mock_no_credentials_20261106" npm run build
+          node scripts/package-cloudflare.mjs
           node scripts/qa-checkout-complements-webkit.mjs
       - name: Preservar capturas do QA (NÃO PUBLICAR)
         if: always()
