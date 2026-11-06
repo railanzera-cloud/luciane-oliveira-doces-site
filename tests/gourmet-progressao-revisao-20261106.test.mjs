@@ -19,8 +19,13 @@ test("resumo Gourmet tem remoção direta, consciente, acessível e escopada aos
   assert.match(page, /onClick=\{\(\) => togglePopcornOption\(flavor\)\}/);
   assert.match(page, /aria-label=\{\x60Remover \$\{flavor\.name\} da combinação\x60\}/);
   assert.match(page, /<X size=\{14\} strokeWidth=\{2\} aria-hidden="true"/);
-  assert.match(page, /<span className="boutique-flavor-summary-title">Seus sabores<\/span>/);
-  assert.doesNotMatch(page, /gourmet-combination-hint">Toque em um sabor/);
+  assert.match(page, /<span className="boutique-flavor-summary-title">Sua combinação<\/span>/);
+  assert.match(page, /className="gourmet-combination-title-line"/);
+  assert.match(page, /className="gourmet-combination-emblem" aria-hidden="true"/);
+  assert.match(page, /Toque no × para remover um sabor e escolher outro\./);
+  assert.match(page, /aria-describedby="gourmet-combination-instruction"/);
+  assert.match(page, /\(selectionMessage \|\| !popcornLimitReached\)/);
+  assert.doesNotMatch(page, /Limite preenchido\. Desmarque um sabor para trocar\./);
   assert.doesNotMatch(page, /onClick=\{\(\) => setPopcornOptionIds\(\[\]\)\}/);
 });
 
