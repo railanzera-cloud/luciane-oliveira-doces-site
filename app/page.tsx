@@ -2456,11 +2456,19 @@ export default function Home() {
                           {!popcornPromotionActive && !selected && !disabled && potPriceWithOption !== null && (
                             <span
                               className={`boutique-flavor-impact ${priceDifference > 0 ? "has-increase" : "is-same"}`}
-                              aria-label={`Com ${option.name}, o pote fica por ${currency.format(potPriceWithOption)}`}
+                              aria-label={!popcornOptionIds.length
+                                ? `Com ${option.name}, o pote fica por ${currency.format(potPriceWithOption)}`
+                                : priceDifference > 0
+                                  ? `Ao adicionar ${option.name}, o pote passa a custar ${currency.format(potPriceWithOption)}`
+                                  : `Ao adicionar ${option.name}, o pote mantém o preço de ${currency.format(potPriceWithOption)}`}
                             >
                               {!popcornOptionIds.length && priceDifference === 0
                                 ? "Preço base"
-                                : `Pote fica por ${currency.format(potPriceWithOption)}`}
+                                : !popcornOptionIds.length
+                                  ? `Pote fica por ${currency.format(potPriceWithOption)}`
+                                  : priceDifference === 0
+                                    ? `Mantém ${currency.format(potPriceWithOption)}`
+                                    : `Pote vai para ${currency.format(potPriceWithOption)}`}
                             </span>
                           )}
                           {selected && <span className="boutique-flavor-picked"><Check size={13} strokeWidth={2.8} aria-hidden="true" /> Escolhido</span>}
