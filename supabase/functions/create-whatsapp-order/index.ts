@@ -256,10 +256,25 @@ Deno.serve(async (request: Request) => {
     await revalidateAvailability(quote.availabilityKeys);
     // Availability can cross the promotion boundary: price again before validating/storing.
     quote = quoteCartItems(input.items, Date.now());
-    const cardQuote = receiptCardQuote(quote.subtotalCents + fulfillment.delivery_fee_cents, cardMode);
+    let cardQuote = receiptCardQuote(quote.subtotalCents + fulfillment.delivery_fee_cents, cardMode);
     const expected = parseMoneyToCents(input.expected_total);
     if (expected === null || expected !== cardQuote.totalCents) {
-      throw new HttpError(409, "price_changed", "O preço mudou. Atualize o cardápio e confira o total antes de continuar.");
+      // Ponte de compatibilidade para abas antigas de Juparanã (bairro), cujo
+      // checkout cotava R$ 10 antes da correção aprovada para R$ 8.
+      // Só admite os dois totais EXATOS reprecificados pelo servidor (inclusive
+      // tarifa de cartão). Nunca aceita valor livre, desconto ou outra zona.
+      const historicalFeeCents = 1000;
+      const historicalQuote = fulfillment.fulfillment_type === "delivery"
+        && fulfillment.delivery_zone_id === "juparana"
+        && fulfillment.delivery_fee_cents === 800
+        ? receiptCardQuote(quote.subtotalCents + historicalFeeCents, cardMode)
+        : null;
+      if (historicalQuote && expected === historicalQuote.totalCents) {
+        fulfillment = { ...fulfillment, delivery_fee_cents: historicalFeeCents };
+        cardQuote = historicalQuote;
+      } else {
+        throw new HttpError(409, "price_changed", "O preço mudou. Atualize o cardápio e confira o total antes de continuar.");
+      }
     }
 
     const totalCents = cardQuote.totalCents;
