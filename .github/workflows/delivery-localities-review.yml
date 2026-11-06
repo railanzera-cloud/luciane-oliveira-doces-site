@@ -14,6 +14,10 @@ on:
       - 'supabase/functions/_shared/commerce-catalog.mjs'
       - 'tests/delivery-localities-20261105.test.mjs'
       - 'scripts/qa-delivery-webkit.mjs'
+      - 'scripts/qa-checkout-complements-webkit.mjs'
+      - 'lib/checkout-complement-order.mjs'
+      - 'tests/checkout-complement-order-20261106.test.mjs'
+      - 'app/storefront-checkout-premium.css'
       - 'scripts/audit-delivery-contract.mjs'
       - 'tests/delivery-edge-rollback-20261105.test.mjs'
       - 'tests/delivery-edge-isolated-flow-20261105.test.mjs'
@@ -92,7 +96,7 @@ jobs:
         run: |
           npm install --prefix "$RUNNER_TEMP/qa-delivery-webkit" --no-save --no-package-lock playwright@1.56.1
           "$RUNNER_TEMP/qa-delivery-webkit/node_modules/.bin/playwright" install --with-deps webkit
-      - name: Validar escolha de bairros no WebKit sem rede externa
+      - name: Validar bairros e complementos no WebKit sem rede externa
         shell: bash
         run: |
           python3 -m http.server 8181 --bind 127.0.0.1 --directory outputs/cloudflare-pages >/tmp/lod-delivery-webkit.log 2>&1 &
@@ -101,6 +105,7 @@ jobs:
           export QA_PACKAGE="$RUNNER_TEMP/qa-delivery-webkit/package.json"
           export QA_OUTPUT="$RUNNER_TEMP/qa-delivery-evidence"
           node scripts/qa-delivery-webkit.mjs
+          node scripts/qa-checkout-complements-webkit.mjs
       - name: Preservar capturas do QA (NÃO PUBLICAR)
         if: always()
         uses: actions/upload-artifact@v4
