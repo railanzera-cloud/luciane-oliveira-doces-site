@@ -79,8 +79,9 @@ test("calda tem contraste explícito em ambos os estados e mantém valores exist
 
 test("o interior deixa explícitas as opções e o produto selecionado, sem passos extras", () => {
   assert.ok(home.includes('className="boutique-slice-preview"'));
-  assert.ok(home.includes('className="boutique-flavor-summary"'));
-  assert.ok(home.includes('className="boutique-flavor-tags"'));
+  assert.ok(home.includes('className="boutique-flavor-summary gourmet-combination-review"'));
+  assert.ok(home.includes('className="boutique-flavor-tags gourmet-removable-tags"'));
+  assert.ok(home.includes('className="gourmet-removable-tag"'), "Resumo segue com sabores acessíveis e agora editáveis");
   assert.ok(home.includes('Sem cobertura adicional'));
   assert.ok(home.includes('Cobertura de chocolate'));
   assert.ok(home.includes("SLICE_OPTIONS.map(option =>"));

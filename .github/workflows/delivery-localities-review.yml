@@ -18,6 +18,9 @@ on:
       - 'lib/checkout-complement-order.mjs'
       - 'tests/checkout-complement-order-20261106.test.mjs'
       - 'app/storefront-checkout-premium.css'
+      - 'app/gourmet-steps.css'
+      - 'tests/gourmet-progressao-revisao-20261106.test.mjs'
+      - 'scripts/qa-gourmet-progressao-webkit-20261106.mjs'
       - 'scripts/audit-delivery-contract.mjs'
       - 'tests/delivery-edge-rollback-20261105.test.mjs'
       - 'tests/delivery-edge-isolated-flow-20261105.test.mjs'
@@ -111,6 +114,7 @@ jobs:
           SUPABASE_PUBLISHABLE_KEY="qa_mock_no_credentials_20261106" npm run build
           node scripts/package-cloudflare.mjs
           node scripts/qa-checkout-complements-webkit.mjs
+          node scripts/qa-gourmet-progressao-webkit-20261106.mjs
       - name: Preservar capturas do QA (NÃO PUBLICAR)
         if: always()
         uses: actions/upload-artifact@v4

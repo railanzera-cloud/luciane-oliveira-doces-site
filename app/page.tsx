@@ -27,6 +27,7 @@ import {
   Trash2,
   Truck,
   UserRound,
+  X,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -2370,7 +2371,16 @@ export default function Home() {
                 <div className="step-heading flavor-heading">
                   <StepMarker number={2} state={popcornFlavorStepState} />
                   <div><h3 id="step-flavors">Escolha os sabores da sua pipoca</h3><p>{popcornVariant ? `Combine até ${popcornMaxOptions} sabores neste pote.` : "Primeiro, escolha o tamanho acima."}</p></div>
-                  <span className="selection-count" aria-live="polite">{popcornVariant ? `${popcornOptionIds.length}/${popcornMaxOptions}` : "—"}</span>
+                  <div className="gourmet-flavor-progress" role="group" aria-label={popcornVariant ? `${popcornOptionIds.length} de ${popcornMaxOptions} sabores escolhidos` : "Escolha primeiro o tamanho"}>
+                    <span className="selection-count" aria-hidden="true">{popcornVariant ? `${popcornOptionIds.length}/${popcornMaxOptions}` : "—"}</span>
+                    {popcornMaxOptions > 0 && (
+                      <span className="gourmet-flavor-progress-track" aria-hidden="true">
+                        {Array.from({ length: popcornMaxOptions }, (_, index) => (
+                          <span key={index} className={index < popcornOptionIds.length ? "is-filled" : ""} />
+                        ))}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {popcornVariantUsable && popcornVariant && (
                   <div className="boutique-flavor-stage">
@@ -2463,14 +2473,25 @@ export default function Home() {
                   })}
                 </div>
                 {popcornOptionIds.length > 0 && (
-                  <div className="boutique-flavor-summary" aria-live="polite" aria-label="Sabores escolhidos">
-                    <span className="boutique-flavor-summary-title">Sua combinação</span>
-                    <div className="boutique-flavor-tags">
+                  <div className="boutique-flavor-summary gourmet-combination-review" role="group" aria-label="Revisar os sabores escolhidos">
+                    <div className="gourmet-combination-heading">
+                      <span className="boutique-flavor-summary-title">Sua combinação</span>
+                      <span className="gourmet-combination-size">{popcornVariant?.label} · {popcornOptionIds.length} {popcornOptionIds.length === 1 ? "sabor" : "sabores"}</span>
+                    </div>
+                    <div className="boutique-flavor-tags gourmet-removable-tags">
                       {popcornOptionIds.map(optionId => {
                         const flavor = POPCORN.options.find(option => option.id === optionId);
-                        return flavor ? <span key={optionId}>{flavor.name}</span> : null;
+                        return flavor ? (
+                          <button type="button" key={optionId} className="gourmet-removable-tag"
+                            onClick={() => togglePopcornOption(flavor)}
+                            aria-label={`Remover ${flavor.name} da combinação`}>
+                            <span>{flavor.name}</span>
+                            <X size={14} strokeWidth={2} aria-hidden="true" />
+                          </button>
+                        ) : null;
                       })}
                     </div>
+                    <p className="gourmet-combination-hint">Toque em um sabor para removê-lo ou trocar sua escolha.</p>
                   </div>
                 )}
                 <div className={`selection-helper ${selectionMessage ? "has-message" : ""}`} aria-live="polite">
