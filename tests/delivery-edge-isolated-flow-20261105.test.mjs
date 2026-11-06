@@ -181,6 +181,67 @@ test("WhatsApp: approved R$8 locality persists only server-authoritative fee and
   assert.equal(edge.calls.filter(c => c.url === MP_URL).length, 0);
 });
 
+
+test("WhatsApp: Juparanã bairro corrige R$8 sem interromper abas antigas com R$10", async () => {
+  const juparana = {
+    type: "delivery", zone_id: "juparana", locality_id: "juparana",
+    neighborhood: "Juparanã", street: "Rua Exemplo", number: "12",
+  };
+  for (const [total, expectedFee] of [["28.00", "8.00"], ["30.00", "10.00"]]) {
+    const edge = await isolatedHandler("create-whatsapp-order");
+    const result = await edge.send(makeOrder("manual_pix", juparana, total));
+    assert.equal(result.status, 201, "cotação exata "+total+" precisa funcionar");
+    const saved = edge.rpc("create_whatsapp_store_order").data.p_order;
+    assert.equal(saved.delivery_fee, expectedFee);
+    assert.equal(saved.total, total);
+    assert.equal(saved.delivery_zone_id, "juparana");
+    assert.equal(saved.neighborhood, "Juparanã");
+    assert.equal(edge.calls.filter(c => c.url === MP_URL).length, 0);
+  }
+});
+
+test("WhatsApp: ponte Juparanã não aceita outros valores, zona errada ou empresa com taxa menor", async () => {
+  const juparana = {
+    type: "delivery", zone_id: "juparana", locality_id: "juparana",
+    neighborhood: "Juparanã", street: "Rua Exemplo", number: "12",
+  };
+  for (const total of ["27.00", "29.00", "31.00", "0.00"]) {
+    const edge = await isolatedHandler("create-whatsapp-order");
+    const rejected = await edge.send(makeOrder("manual_pix", juparana, total));
+    assert.equal(rejected.status, 409);
+    assert.equal(rejected.json.error.code, "price_changed");
+    assert.equal(edge.wroteOrder(), false);
+  }
+  const empresa = { ...juparana, zone_id: "juparana-empresa",
+    locality_id: "juparana-empresa", neighborhood: "Juparanã Empresa" };
+  const edgeEmpresa = await isolatedHandler("create-whatsapp-order");
+  const bad = await edgeEmpresa.send(makeOrder("manual_pix", empresa, "28.00"));
+  assert.equal(bad.status, 409);
+  assert.equal(edgeEmpresa.wroteOrder(), false);
+  const edgeMismatch = await isolatedHandler("create-whatsapp-order");
+  const mismatch = await edgeMismatch.send(makeOrder("manual_pix", { ...juparana,
+    locality_id: "juparana-empresa" }, "30.00"));
+  assert.equal(mismatch.status, 400);
+  assert.equal(edgeMismatch.wroteOrder(), false);
+});
+
+test("WhatsApp: ponte Juparanã respeita taxa de cartão calculada no servidor", async () => {
+  const juparana = {
+    type: "delivery", zone_id: "juparana", locality_id: "juparana",
+    neighborhood: "Juparanã", street: "Rua Exemplo", number: "12",
+  };
+  const legacyQuote = receipt.receiptCardQuote(3000, "credit_single");
+  const order = makeOrder("card_on_delivery", juparana, (legacyQuote.totalCents / 100).toFixed(2));
+  order.payment.card_mode = "credit_single";
+  const edge = await isolatedHandler("create-whatsapp-order");
+  const response = await edge.send(order);
+  assert.equal(response.status, 201);
+  const saved = edge.rpc("create_whatsapp_store_order").data.p_order;
+  assert.equal(saved.delivery_fee, "10.00");
+  assert.equal(saved.card_fee, (legacyQuote.feeCents / 100).toFixed(2));
+  assert.equal(saved.total, (legacyQuote.totalCents / 100).toFixed(2));
+});
+
 test("WhatsApp: R$10 destination and old city R$8 payload mismatch never undercharge", async () => {
   const allowed = await isolatedHandler("create-whatsapp-order");
   const ok = await allowed.send(makeOrder("manual_pix", special(), "30.00"));
