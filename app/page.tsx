@@ -2520,8 +2520,14 @@ export default function Home() {
                 </div>
                 {popcornOptionIds.length > 0 && (
                   <div className="boutique-flavor-summary gourmet-combination-review" role="group" aria-label="Revisar os sabores escolhidos">
-                    <span className="boutique-flavor-summary-title">Seus sabores</span>
-                    <div className="boutique-flavor-tags gourmet-removable-tags">
+                    <div className="gourmet-combination-heading">
+                      <div className="gourmet-combination-title-line">
+                        <span className="gourmet-combination-emblem" aria-hidden="true"><Check size={15} strokeWidth={2} /></span>
+                        <span className="boutique-flavor-summary-title">Sua combinação</span>
+                      </div>
+                      <p className="gourmet-combination-hint" id="gourmet-combination-instruction">Toque no × para remover um sabor e escolher outro.</p>
+                    </div>
+                    <div className="boutique-flavor-tags gourmet-removable-tags" aria-describedby="gourmet-combination-instruction">
                       {popcornOptionIds.map(optionId => {
                         const flavor = POPCORN.options.find(option => option.id === optionId);
                         return flavor ? (
@@ -2537,15 +2543,15 @@ export default function Home() {
                     </div>
                   </div>
                 )}
-                <div className={`selection-helper ${selectionMessage ? "has-message" : ""}`} aria-live="polite">
-                  {selectionMessage || (!popcornVariant
-                    ? "Primeiro escolha o tamanho. Depois, os sabores serão liberados."
-                    : popcornOptionIds.length === 0
-                      ? "Escolha pelo menos 1 sabor para adicionar ao pedido."
-                    : popcornLimitReached
-                      ? "Limite preenchido. Desmarque um sabor para trocar."
-                      : `Você pode escolher mais ${popcornMaxOptions - popcornOptionIds.length} ${popcornMaxOptions - popcornOptionIds.length === 1 ? "sabor" : "sabores"}, se quiser.`)}
-                </div>
+                {(selectionMessage || !popcornLimitReached) && (
+                  <div className={`selection-helper ${selectionMessage ? "has-message" : ""}`} aria-live="polite">
+                    {selectionMessage || (!popcornVariant
+                      ? "Primeiro escolha o tamanho. Depois, os sabores serão liberados."
+                      : popcornOptionIds.length === 0
+                        ? "Escolha pelo menos 1 sabor para adicionar ao pedido."
+                        : `Você pode escolher mais ${popcornMaxOptions - popcornOptionIds.length} ${popcornMaxOptions - popcornOptionIds.length === 1 ? "sabor" : "sabores"}, se quiser.`)}
+                  </div>
+                )}
                 {popcornReady && popcornOptionIds.length < popcornMaxOptions && (
                   <Button type="button" variant="outline" className="flavor-continue"
                     onClick={() => requestScroll("quantidade-pipocas")}>
