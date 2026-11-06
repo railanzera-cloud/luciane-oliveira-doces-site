@@ -210,3 +210,10 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - Os preços dos cartões são referências do pote *com aquele sabor*; a combinação inteira mantém o preço do grupo mais caro. Não somar valores, não inferir adicional individual.
 - Legendas do efeito da decisão: primeiro sabor base → `Preço base`; primeiro sabor especial → `Pote fica por R$ X`; sabor adicional que não eleva o preço → `Mantém R$ X`; sabor que eleva o preço → `Pote vai para R$ X`. Os rótulos de leitores de tela explicam que o **preço do pote** se mantém ou muda.
 - **Verificação:** fonte PR #9 `a7769c88e51d9aebb0d70c3fac3d27a0f9731b96`, [CI 42296935358](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42296935358) aprovada 4/4; WebKit 320, 375, 390 e 430 px inclui o exemplo de 1 L com Leitinho/Ovomaltine/Nutella; avaliação final pelo proprietário após eventual publicação continua distinta.
+
+### UX-CANDIDATA-20261106.4 — Gourmet: liberdade de sabores com próxima ação evidente
+
+- **Texto aprovado:** `Escolha de 1 até 2 sabores. Você decide quantos combinar.`, com limite dinâmico de 3 no tamanho 1 litro. Sem microcopy extra de urgência ou pressão para escolher o máximo.
+- **Resumo:** `Seus sabores` compacto, alinhado ao design chocolate/cappuccino, com os sabores removíveis e sem título, contador e instrução redundantes; progressão superior 1/2, 2/3 etc permanece.
+- **Barra:** reutilizar a barra flutuante original, não acrescentar outra. No meio da grade, com 1 ou 2 de 3 sabores, alterna para `Continuar com N sabor(es)`, tamanho compacto, área segura e foco acessível; deve sumir quando o botão inline ou a etapa da quantidade já estejam visíveis. A grade deve continuar tocável e rolar normalmente.
+- **QA:** [CI 42303415543](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42303415543), 4/4 jobs aprovados; screenshots de barra compacta em 320/375/390/430px no artifact `QA-ENTREGAS-WEBKIT-NAO-PUBLICAR` ID `13544184735`, sem sobreposição impeditiva nos cenários exercitados. **Sem equivaler a aceite em Safari físico ou deploy.**
