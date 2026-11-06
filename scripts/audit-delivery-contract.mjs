@@ -55,6 +55,8 @@ assert.deepEqual(totals, {
   all: 115, quoted: 71, pending: 44,
   special: 28, urbanQuoted: 43, urbanPending: 22,
 }, "Aprovação de novas localidades requer atualização consciente da matriz de homologação.");
+assert.equal(DELIVERY_ZONES.juparana.priceCents, 800, "Juparanã bairro deve ser R$8");
+assert.equal(DELIVERY_ZONES["juparana-empresa"].priceCents, 1000, "Juparanã Empresa permanece R$10");
 
 // O frontend tem uma tabela de zonas para exibição e o Edge mantém a autoridade
 // dos centavos. Fail-closed se nomes, IDs ou preços divergirem entre as duas fontes.

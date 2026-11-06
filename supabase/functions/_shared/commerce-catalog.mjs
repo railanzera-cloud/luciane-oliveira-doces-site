@@ -54,7 +54,7 @@ export const DELIVERY_ZONES = Object.freeze({
   "floraplac-mdf": Object.freeze({ id: "floraplac-mdf", label: "Floraplac MDF", priceCents: 1000 }),
   "juparana-empresa": Object.freeze({ id: "juparana-empresa", label: "Juparanã Empresa", priceCents: 1000 }),
   "ouro-preto": Object.freeze({ id: "ouro-preto", label: "Ouro Preto", priceCents: 1000 }),
-  "juparana": Object.freeze({ id: "juparana", label: "Juparanã", priceCents: 1000 }),
+  "juparana": Object.freeze({ id: "juparana", label: "Juparanã", priceCents: 800 }),
   "aragao": Object.freeze({ id: "aragao", label: "Aragão", priceCents: 1000 }),
   "laercio-cabeline": Object.freeze({ id: "laercio-cabeline", label: "Laércio Cabeline", priceCents: 1000 }),
   "sidney-rosa": Object.freeze({ id: "sidney-rosa", label: "Sidney Rosa", priceCents: 1000 }),

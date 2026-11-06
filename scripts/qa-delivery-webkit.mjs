@@ -98,6 +98,18 @@ try {
       await page.locator(".delivery-price-preview").waitFor();
       assert.match(await page.locator(".delivery-price-preview").innerText(), /8,00/);
 
+      await input.fill("Juparanã");
+      await page.locator('button[role="option"][id$="-juparana"]').tap();
+      assert.equal(await input.inputValue(), "Juparanã");
+      await page.locator(".delivery-price-preview").waitFor();
+      assert.match(await page.locator(".delivery-price-preview").innerText(), /8,00/);
+
+      await input.fill("Juparanã Empresa");
+      await page.locator('button[role="option"][id$="-juparana-empresa"]').tap();
+      assert.equal(await input.inputValue(), "Juparanã Empresa");
+      await page.locator(".delivery-price-preview").waitFor();
+      assert.match(await page.locator(".delivery-price-preview").innerText(), /10,00/);
+
       await input.fill("Ouro Preto");
       await page.locator(".delivery-price-preview").waitFor({ state: "hidden" });
       await page.getByRole("option", { name: /Ouro Preto/ }).tap();

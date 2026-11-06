@@ -301,7 +301,7 @@ export const DELIVERY_ZONES: DeliveryZone[] = [
   { id: "floraplac-mdf", label: "Floraplac MDF", price: 10, group: "mais-pedidas" },
   { id: "juparana-empresa", label: "Juparanã Empresa", price: 10, group: "mais-pedidas" },
   { id: "ouro-preto", label: "Ouro Preto", price: 10, group: "mais-pedidas" },
-  { id: "juparana", label: "Juparanã", price: 10, group: "mais-pedidas" },
+  { id: "juparana", label: "Juparanã", price: 8, group: "mais-pedidas" },
   { id: "aragao", label: "Aragão", price: 10, group: "mais-pedidas" },
   { id: "laercio-cabeline", label: "Laércio Cabeline", price: 10, group: "mais-pedidas" },
   { id: "sidney-rosa", label: "Sidney Rosa", price: 10, group: "mais-pedidas" },

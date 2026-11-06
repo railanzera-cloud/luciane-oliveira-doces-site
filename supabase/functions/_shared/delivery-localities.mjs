@@ -56,7 +56,6 @@ const OWNER_CONFIRMED_EIGHT = new Set([
 ]);
 export const OWNER_CONFIRMED_TEN = Object.freeze([
   "ouro-preto",
-  "juparana",
   "aragao",
   "laercio-cabeline",
   "sidney-rosa",

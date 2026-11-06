@@ -24,14 +24,14 @@ test("catalogue includes 115 distinct known locality candidates, without default
     assert.equal(deliveryLocalityCanQuote(locality), locality.status === "quoted");
   }
   // 20 especiais herdadas, 5 exemplos urbanos prévios e 46 localidades
-  // homologadas pelo proprietário: 38 a R$ 8 + 8 a R$ 10.
+  // homologadas pelo proprietário: 38 bairros urbanos a R$ 8, Juparanã a R$ 8 e outras 7 a R$ 10.
   assert.equal(DELIVERY_LOCALITIES.filter(locality => locality.status === "quoted").length, 71);
   assert.equal(DELIVERY_LOCALITIES.filter(locality => locality.zoneId === "cidade" && !deliveryLocalityCanQuote(locality)).length, 22);
   assert.equal(DELIVERY_LOCALITIES.filter(locality => !locality.zoneId).length, 22);
 });
 
 test("46 operator-confirmed localities have the exact approved delivery fees", () => {
-  const ten = ["ouro-preto","juparana","aragao","laercio-cabeline","sidney-rosa",
+  const ten = ["ouro-preto","aragao","laercio-cabeline","sidney-rosa",
     "laercio-cabeline-ii","sidilandia-i","sidilandia-ii"];
   const eight = [
     "tropical","camboata","jardim-atlantico","cidade-nova","celio-miranda",
@@ -44,9 +44,9 @@ test("46 operator-confirmed localities have the exact approved delivery fees", (
     "modulo-ii","parque-iv","uraim-ii","uraim-iii",
   ];
   assert.equal(eight.length, 38);
-  assert.equal(ten.length, 8);
+  assert.equal(ten.length, 7);
   assert.deepEqual([...OWNER_CONFIRMED_TEN].sort(), [...ten].sort());
-  for (const [id,expected] of [...eight.map(id => [id, 800]), ...ten.map(id => [id, 1000])]) {
+  for (const [id,expected] of [...eight.map(id => [id, 800]), ...ten.map(id => [id, 1000]), ["juparana", 800]]) {
     const locality = deliveryLocalityById(id);
     assert.ok(locality, id);
     assert.equal(locality.status, "quoted", id);
@@ -55,6 +55,7 @@ test("46 operator-confirmed localities have the exact approved delivery fees", (
   assert.equal(deliveryLocalityById("juparana").zoneId, "juparana");
   assert.equal(deliveryLocalityById("juparana-empresa").zoneId, "juparana-empresa");
   assert.equal(quoteFulfillment(delivery("juparana-empresa", "juparana-empresa")).delivery_fee_cents, 1000);
+  assert.equal(quoteFulfillment(delivery("juparana", "juparana")).delivery_fee_cents, 800);
   assert.equal(DELIVERY_LOCALITIES.filter(locality => !deliveryLocalityCanQuote(locality)).length, 44);
   assert.equal(deliveryLocalityById("laercio-cabeline-ii").status, "quoted",
     "owner now explicitly extended R$10 to Laércio Cabeline II");
@@ -73,6 +74,26 @@ test("Portuguese spelling, roman numerals and common name variants find the inte
   assert.equal(searchDeliveryLocalities("Centro")[0].id, "modulo-i-centro");
   assert.equal(searchDeliveryLocalities("Trecho Seco")[0].id, "trecho-seco");
   assert.equal(deliveryLegacyLocality("cidade", "Promissão III").id, "promissao-iii");
+});
+
+test("Juparanã bairro remains distinct and R$8, Juparanã Empresa stays R$10", () => {
+  const bairro = deliveryLocalityById("juparana");
+  const empresa = deliveryLocalityById("juparana-empresa");
+  assert.equal(bairro.label, "Juparanã");
+  assert.equal(empresa.label, "Juparanã Empresa");
+  assert.notEqual(bairro.id, empresa.id);
+  assert.equal(bairro.status, "quoted");
+  assert.equal(empresa.status, "quoted");
+  assert.equal(DELIVERY_ZONES[bairro.zoneId].priceCents, 800);
+  assert.equal(DELIVERY_ZONES[empresa.zoneId].priceCents, 1000);
+  assert.equal(quoteFulfillment(delivery(bairro.id, bairro.zoneId)).delivery_fee_cents, 800);
+  assert.equal(quoteFulfillment(delivery(empresa.id, empresa.zoneId)).delivery_fee_cents, 1000);
+  assert.throws(() => quoteFulfillment(delivery(bairro.id, empresa.zoneId)), /Bairro e taxa/);
+  assert.throws(() => quoteFulfillment(delivery(empresa.id, bairro.zoneId)), /Bairro e taxa/);
+  assert.equal(deliveryLocalityByExactName("Juparanã")?.id, bairro.id);
+  assert.equal(deliveryLocalityByExactName("Juparanã Empresa")?.id, empresa.id);
+  assert.equal(searchDeliveryLocalities("Juparanã")[0].id, bairro.id);
+  assert.equal(searchDeliveryLocalities("Juparanã Empresa")[0].id, empresa.id);
 });
 
 test("specific rates override generic city, including official neighborhood names", () => {
@@ -196,7 +217,7 @@ test("legacy review gate supports phased rollout without changing old clients by
       "Bairro homologado segue aceito em aba antiga.");
     assert.equal(quoteFulfillment(legacy("Centro")).delivery_fee_cents, 800,
       "Centro já está homologado a R$8 e não pode gerar um valor genérico errado.");
-    assert.equal(quoteFulfillment(delivery("juparana", "juparana")).delivery_fee_cents, 1000,
+    assert.equal(quoteFulfillment(delivery("juparana", "juparana")).delivery_fee_cents, 800,
       "A flag não interfere na escolha explícita de uma tarifa especial.");
     assert.throws(() => quoteFulfillment(delivery("alto-do-vale", "cidade")), /taxa de entrega confirmada/,
       "O novo checkout rejeita locais pendentes independentemente de flags.");
@@ -219,7 +240,7 @@ test("strict rollout flag rejects ID-less delivery but preserves explicit locati
       street: "Rua Exemplo", number: "12",
     }), /Atualize a página para selecionar seu bairro/);
     assert.equal(quoteFulfillment(delivery("cidade-nova", "cidade")).delivery_fee_cents, 800);
-    assert.equal(quoteFulfillment(delivery("juparana", "juparana")).delivery_fee_cents, 1000);
+    assert.equal(quoteFulfillment(delivery("juparana", "juparana")).delivery_fee_cents, 800);
     assert.equal(quoteFulfillment({ type: "pickup" }).delivery_fee_cents, 0);
   } finally {
     if (previousDeno === undefined) delete globalThis.Deno;
