@@ -203,3 +203,10 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 
 
 **Evidência técnica posterior da candidata Gourmet (06/11):** [CI 42293702356](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42293702356), fonte `55c8ab5ed7a24ddc08b3d0a0468d6d3f917be49a`, quatro jobs aprovados. WebKit 320/375/390/430 aprovou troca direta de sabores no resumo, atualização do preço por maior grupo, quantidade e inclusão em carrinho; screenshots `gourmet-revisao-{320,375,390,430}.png` no artifact `13541670333`. As capturas mostram resumo compacto, caracteres legíveis e as ações de remover com foco; **não** atribuir aprovação estética final do proprietário nem publicação só por CI.
+
+### UX-CANDIDATA-20261106.3 — Legenda de impacto nos sabores Gourmet
+
+- **Preservar** a identidade aprovada (paleta, cartões, preview com foto e preço em destaque, chips editáveis e sticky CTA) da PR #8; **nenhuma mudança estrutural ou de CSS**.
+- Os preços dos cartões são referências do pote *com aquele sabor*; a combinação inteira mantém o preço do grupo mais caro. Não somar valores, não inferir adicional individual.
+- Legendas do efeito da decisão: primeiro sabor base → `Preço base`; primeiro sabor especial → `Pote fica por R$ X`; sabor adicional que não eleva o preço → `Mantém R$ X`; sabor que eleva o preço → `Pote vai para R$ X`. Os rótulos de leitores de tela explicam que o **preço do pote** se mantém ou muda.
+- **Verificação:** fonte PR #9 `a7769c88e51d9aebb0d70c3fac3d27a0f9731b96`, [CI 42296935358](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42296935358) aprovada 4/4; WebKit 320, 375, 390 e 430 px inclui o exemplo de 1 L com Leitinho/Ovomaltine/Nutella; avaliação final pelo proprietário após eventual publicação continua distinta.

@@ -49,11 +49,13 @@ try {
       const progress=page.locator("#sabores .gourmet-flavor-progress");
       assert.equal(await progress.locator(".gourmet-flavor-progress-track > span").count(),0);
       await page.locator('label[for="size-500ml"]').tap();
+      assert.match(await page.locator('label[for="flavor-nutella"] .boutique-flavor-impact').innerText(),/Pote fica por R\$\s*33,00/);
       assert.equal(await progress.locator(".gourmet-flavor-progress-track > span").count(),2);
       assert.match(await progress.getAttribute("aria-label"),/0 de 2 sabores escolhidos/);
       await page.locator('label[for="flavor-leitinho"]').tap();
       assert.match(await progress.getAttribute("aria-label"),/1 de 2 sabores escolhidos/);
       assert.match(await page.locator("#sabores .boutique-price-guide").innerText(),/R\$\s*25,00/);
+      assert.match(await page.locator('label[for="flavor-nutella"] .boutique-flavor-impact').innerText(),/Pote vai para R\$\s*33,00/);
       const firstTag=page.locator('#sabores .gourmet-removable-tag');
       assert.equal(await firstTag.count(),1);
       assert.equal(await firstTag.getAttribute("aria-label"),"Remover Leitinho da combinação");
@@ -71,6 +73,10 @@ try {
       await page.locator('label[for="flavor-nutella"]').tap();
       assert.match(await page.locator("#sabores .boutique-price-guide").innerText(),/R\$\s*33,00/);
       assert.equal(await page.locator('#sabores .gourmet-removable-tag').count(),2);
+      await page.getByRole("button",{name:"Remover Leitinho da combinação"}).tap();
+      assert.match(await page.locator('label[for="flavor-leitinho"] .boutique-flavor-impact').innerText(),/Mantém R\$\s*33,00/);
+      assert.match(await page.locator('label[for="flavor-leitinho"] .boutique-flavor-impact').getAttribute("aria-label"),/mantém o preço/i);
+      await page.locator('label[for="flavor-leitinho"]').tap();
       const review=page.locator("#sabores .gourmet-combination-review");
       await review.scrollIntoViewIfNeeded();
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,"sem overflow horizontal");
@@ -83,6 +89,21 @@ try {
       await page.locator("#quantidade-pipocas .add-button").tap();
       await page.locator("#recebimento .boutique-added-continuity").waitFor({state:"visible"});
       assert.equal(await page.locator("#carrinho .cart-item").count(),1);
+
+      // Checagem concreta do contrato do pote 1 litro: o recheio mais caro
+      // governa o preço, sem somar os valores de cada sabor.
+      await page.goto(site+"/?categoria=pipocas&utm_source=qa-gourmet-preco", {waitUntil:"domcontentloaded"});
+      await page.locator('label[for="size-1l"]').tap();
+      await page.locator('label[for="flavor-leitinho"]').tap();
+      assert.match(await page.locator("#sabores .boutique-price-guide").innerText(),/R\$\s*49,00/);
+      assert.match(await page.locator('label[for="flavor-ovomaltine"] .boutique-flavor-impact').innerText(),/Mantém R\$\s*49,00/);
+      assert.match(await page.locator('label[for="flavor-nutella"] .boutique-flavor-impact').innerText(),/Pote vai para R\$\s*58,00/);
+      await page.locator('label[for="flavor-ovomaltine"]').tap();
+      assert.match(await page.locator("#sabores .boutique-price-guide").innerText(),/R\$\s*49,00/);
+      await page.getByRole("button",{name:"Remover Ovomaltine da combinação"}).tap();
+      await page.locator('label[for="flavor-nutella"]').tap();
+      assert.match(await page.locator("#sabores .boutique-price-guide").innerText(),/R\$\s*58,00/);
+      assert.equal(await page.locator("#carrinho .cart-item").count(),1,"revisar outro pote não duplica o carrinho");
       assert.equal(errors.length,0,"runtime errors: "+errors.join("; "));
       passed++;
       console.log("Gourmet WebKit revisável "+width+"x"+height+" OK");
