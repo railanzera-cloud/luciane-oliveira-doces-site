@@ -906,6 +906,8 @@ export default function Home() {
   // No iPhone, a barra flutuante não deve cobrir os checkboxes enquanto
   // o cliente percorre a lista real de recheios. Ela volta ao sair da lista.
   const [gourmetFlavorsInView, setGourmetFlavorsInView] = useState(false);
+  // Oculta o atalho inferior se o usuário já pode enxergar a continuação inline.
+  const [gourmetNextStepInlineVisible, setGourmetNextStepInlineVisible] = useState(true);
   useEffect(() => {
     if (activeCategory !== "pipocas" || showLimitedCupView || !popcornVariantUsable) {
       setGourmetFlavorsInView(false);
@@ -1026,6 +1028,31 @@ export default function Home() {
     && popcornOptionIds.length <= popcornMaxOptions
     && popcornOptionIds.every((optionId) => popcornFlavorIsAvailable(optionId)),
   );
+  // Apenas observa a ação existente e a etapa de quantidade. Não altera a
+  // seleção, a rolagem automática de limite preenchido, nem o preço do pote.
+  useEffect(() => {
+    if (activeCategory !== "pipocas" || showLimitedCupView || !popcornReady
+      || popcornOptionIds.length >= popcornMaxOptions || typeof IntersectionObserver === "undefined") {
+      setGourmetNextStepInlineVisible(true);
+      return;
+    }
+    const targets = [
+      document.querySelector<HTMLElement>("#sabores .flavor-continue"),
+      document.querySelector<HTMLElement>("#quantidade-pipocas .quantity-row"),
+    ].filter((target): target is HTMLElement => Boolean(target));
+    if (targets.length === 0) {
+      setGourmetNextStepInlineVisible(true);
+      return;
+    }
+    setGourmetNextStepInlineVisible(true);
+    const visible = new Map<Element, boolean>(targets.map((node) => [node, false]));
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) visible.set(entry.target, entry.isIntersecting);
+      setGourmetNextStepInlineVisible([...visible.values()].some(Boolean));
+    }, { threshold: 0.2, rootMargin: "0px 0px -74px 0px" });
+    targets.forEach((node) => observer.observe(node));
+    return () => observer.disconnect();
+  }, [activeCategory, showLimitedCupView, popcornReady, popcornOptionIds.length, popcornMaxOptions]);
   const strawberryPreorder = availability.slicePreorder?.active ? availability.slicePreorder : null;
   const strawberryReadyLabel = strawberryPreorder && Number.isFinite(Date.parse(strawberryPreorder.ready_at ?? ""))
     ? new Intl.DateTimeFormat("pt-BR", {
@@ -1110,6 +1137,11 @@ export default function Home() {
       ? "complete"
       : "active";
   const builderFlowActive = !showLimitedCupView && Boolean(activeCategory && (editingId || builderEngaged || draftReady || !cart.length));
+  // A barra de navegação existente vira uma ação compacta somente enquanto
+  // há uma escolha válida menor que o limite e a continuação não está visível.
+  const gourmetContinueAvailable = builderFlowActive && activeCategory === "pipocas"
+    && popcornReady && popcornOptionIds.length < popcornMaxOptions
+    && gourmetFlavorsInView && !gourmetNextStepInlineVisible && !inlineBuilderActionVisible;
   const cupBuilderFlowActive = showLimitedCupView && cupSalesEnabled;
   const stickyUsesCheckoutAction = !builderFlowActive && !cupBuilderFlowActive;
   const stickyIsCheckoutReady = stickyUsesCheckoutAction && checkoutReady;
@@ -2370,7 +2402,7 @@ export default function Home() {
               <section className={`step-block step-state-${popcornFlavorStepState}`} id="sabores" aria-labelledby="step-flavors" aria-current={popcornFlavorStepState === "active" ? "step" : undefined}>
                 <div className="step-heading flavor-heading">
                   <StepMarker number={2} state={popcornFlavorStepState} />
-                  <div><h3 id="step-flavors">Escolha os sabores da sua pipoca</h3><p>{popcornVariant ? `Combine até ${popcornMaxOptions} sabores neste pote.` : "Primeiro, escolha o tamanho acima."}</p></div>
+                  <div><h3 id="step-flavors">Escolha os sabores da sua pipoca</h3><p>{popcornVariant ? `Escolha de 1 até ${popcornMaxOptions} sabores. Você decide quantos combinar.` : "Primeiro, escolha o tamanho acima."}</p></div>
                   <div className="gourmet-flavor-progress" role="group" aria-label={popcornVariant ? `${popcornOptionIds.length} de ${popcornMaxOptions} sabores escolhidos` : "Escolha primeiro o tamanho"}>
                     <span className="selection-count" aria-hidden="true">{popcornVariant ? `${popcornOptionIds.length}/${popcornMaxOptions}` : "—"}</span>
                     {popcornMaxOptions > 0 && (
@@ -2482,24 +2514,21 @@ export default function Home() {
                 </div>
                 {popcornOptionIds.length > 0 && (
                   <div className="boutique-flavor-summary gourmet-combination-review" role="group" aria-label="Revisar os sabores escolhidos">
-                    <div className="gourmet-combination-heading">
-                      <span className="boutique-flavor-summary-title">Sua combinação</span>
-                      <span className="gourmet-combination-size">{popcornVariant?.label} · {popcornOptionIds.length} {popcornOptionIds.length === 1 ? "sabor" : "sabores"}</span>
-                    </div>
+                    <span className="boutique-flavor-summary-title">Seus sabores</span>
                     <div className="boutique-flavor-tags gourmet-removable-tags">
                       {popcornOptionIds.map(optionId => {
                         const flavor = POPCORN.options.find(option => option.id === optionId);
                         return flavor ? (
                           <button type="button" key={optionId} className="gourmet-removable-tag"
                             onClick={() => togglePopcornOption(flavor)}
-                            aria-label={`Remover ${flavor.name} da combinação`}>
+                            aria-label={`Remover ${flavor.name} da combinação`}
+                            title={`Remover ${flavor.name}`}>
                             <span>{flavor.name}</span>
                             <X size={14} strokeWidth={2} aria-hidden="true" />
                           </button>
                         ) : null;
                       })}
                     </div>
-                    <p className="gourmet-combination-hint">Toque em um sabor para removê-lo ou trocar sua escolha.</p>
                   </div>
                 )}
                 <div className={`selection-helper ${selectionMessage ? "has-message" : ""}`} aria-live="polite">
@@ -3113,12 +3142,15 @@ export default function Home() {
 
       <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
-      {(activeCategory || cart.length > 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen && Boolean(cupFlavorPreview && cupSizeId) && cupCanOrder)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && !(builderFlowActive && activeCategory === "pipocas" && gourmetFlavorsInView) && (
-      <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"} ${stickyIsCheckoutReady && checkoutChannel === "whatsapp" ? "is-whatsapp" : ""} ${cupBuilderFlowActive ? "is-crocantes-step" : ""} ${stickyUsesCheckoutAction ? "is-checkout-flow" : ""} ${builderFlowActive && activeCategory === "pipocas" ? "is-gourmet-step" : ""}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
-        <div className="mobile-sticky-price" aria-live="polite" aria-atomic="true"><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></div>
-        <Button type="button" onClick={handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || cupAdding || (cupBuilderFlowActive && Boolean(cupFlavorPreview && cupSizeId) && !cupCanOrder) || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
-          {stickyButtonLabel}
-          {stickyIsCheckoutReady ? checkoutChannel === "whatsapp" ? <MessageCircle size={17} /> : <ShoppingBag size={17} /> : <ChevronRight size={17} />}
+      {(activeCategory || cart.length > 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen && Boolean(cupFlavorPreview && cupSizeId) && cupCanOrder)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && !(builderFlowActive && activeCategory === "pipocas" && gourmetFlavorsInView && !gourmetContinueAvailable) && (
+      <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"} ${stickyIsCheckoutReady && checkoutChannel === "whatsapp" ? "is-whatsapp" : ""} ${cupBuilderFlowActive ? "is-crocantes-step" : ""} ${stickyUsesCheckoutAction ? "is-checkout-flow" : ""} ${builderFlowActive && activeCategory === "pipocas" ? "is-gourmet-step" : ""} ${gourmetContinueAvailable ? "is-gourmet-flavor-continue" : ""}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
+        <div className="mobile-sticky-price" aria-live="polite" aria-atomic="true">
+          {gourmetContinueAvailable ? <><small>Sabores escolhidos</small><strong>{popcornOptionIds.length} de {popcornMaxOptions}</strong></>
+            : <><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></>}
+        </div>
+        <Button type="button" onClick={gourmetContinueAvailable ? () => requestScroll("gourmet-quantity-action") : handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || cupAdding || (cupBuilderFlowActive && Boolean(cupFlavorPreview && cupSizeId) && !cupCanOrder) || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
+          {gourmetContinueAvailable ? `Continuar com ${popcornOptionIds.length} ${popcornOptionIds.length === 1 ? "sabor" : "sabores"}` : stickyButtonLabel}
+          {gourmetContinueAvailable ? <ChevronRight size={17} aria-hidden="true" /> : stickyIsCheckoutReady ? checkoutChannel === "whatsapp" ? <MessageCircle size={17} /> : <ShoppingBag size={17} /> : <ChevronRight size={17} />}
         </Button>
       </div>
       )}
