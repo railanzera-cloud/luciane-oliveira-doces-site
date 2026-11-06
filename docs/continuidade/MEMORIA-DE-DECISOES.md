@@ -235,3 +235,19 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - **Decisão de UX:** preservar a referência por sabor e o valor atual do pote, alterando apenas a microcopy do selo de efeito da seleção: primeiro sabor de preço-base “Preço base”; primeiro sabor especial “Pote fica por R$ X”; outro sabor sem aumento “Mantém R$ X”; outro sabor que eleva o grupo “Pote vai para R$ X”. Rótulos de acessibilidade explicam que o total mantém ou passa a custar determinado valor; nunca dizer apenas “gratuito”/“Sem acréscimo” isoladamente.
 - **Escopo técnico:** `app/page.tsx`, sem ajustes no catálogo, funções Supabase, checkout, carrinho, promoções, disponibilidade, fotos ou CSS. Candidato em `work/gourmet-clareza-impacto-preco-20261106` / PR #9, derivada da revisão Gourmet PR #8.
 - **Status:** código e QA automatizados aprovados; publicação Cloudflare e avaliação final em Safari/Instagram físico continuam distintas.
+
+## D-C27 — Continuação opcional de sabores Gourmet sem atrito (06/11/2026)
+
+- **Decisão aprovada pelo proprietário:** copy exata `Escolha de 1 até 2 sabores. Você decide quantos combinar.` (limite 3 para o pote de 1 litro). Um sabor sempre constitui escolha válida, sem obrigação de completar 2/3 nem alterar preços.
+- **Experiência:** compactar o resumo de sabores editável para `Seus sabores`, mantendo os chips removíveis, com alvo de toque de 44px e sem contagem/tip extra redundante. Não descartar a utilidade da revisão de sabores selecionados.
+- **Navegação:** a barra flutuante existente passa a exibir `Continuar com N sabor(es)` somente enquanto o cliente está visualizando a grade, escolheu pelo menos 1 sabor válido e menos que o limite, e ainda não há botão de continuação ou quantidade acessível na área visível. A ação apenas rola até quantidade usando `gourmet-quantity-action`. O limite preenchido conserva o avanço automático original. Não há CTA adicional permanente ou finalização direta.
+- **Segurança e isolamento:** não alterar catálogo, regra do maior grupo de preço, promoções, estoque, abertura de pedidos, Meta, WhatsApp, Supabase, CRM, cozinha nem Luciane Gestão. Implementação exclusivamente frontend e QA, em `work/gourmet-continuar-sabor-unico-20261106` / PR #10.
+- **Aceite:** funcionamento e WebKit isolado homologados; estética final em Safari/Instagram físico e Cloudflare de produção ainda dependem de avaliação/publicação do proprietário.
+
+## D-C28 — Recuperar profundidade editorial do resumo Gourmet sem duplicar instruções (06/11/2026)
+
+- **Feedback visual do proprietário:** a compactação da PR #10 estava funcional, mas o bloco “Seus sabores” ficou simples demais e desalinhado em tela pequena. O proprietário autorizou refinar sua apresentação, **não** descartar a edição rápida nem voltar ao componente excessivamente alto.
+- **Decisão:** preservar o mesmo resumo e os chips removíveis, restaurando o título **“Sua combinação”**, um selo discreto de confirmação e orientação curta dentro do cartão: **“Toque no × para remover um sabor e escolher outro.”** O cabeçalho ocupa linha própria e os sabores ficam abaixo, em grupo visual coerente.
+- **Evitar redundância:** não repetir tamanho, preço nem indicador `3/3` no cartão; quando o limite for atingido e não houver erro, ocultar a frase separada “Limite preenchido. Desmarque um sabor para trocar.” O fluxo mantém mensagens reais de erro ou indisponibilidade.
+- **Continuidade protegida:** a barra contextual de “Continuar com 1/2 sabores”, limite opcional 1 até 2/3, seleção individual, precificação pelo grupo mais caro, CTA e checkout continuam idênticos. A mudança é apresentação e microcopy, não regra de negócio.
+- **Situação:** implementada como refinamento na própria PR #10; nova homologação WebKit e conferência no Instagram/iPhone permanecem etapas distintas da autorização conceitual.

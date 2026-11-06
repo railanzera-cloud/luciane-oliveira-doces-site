@@ -286,3 +286,149 @@
     transform: none !important;
   }
 }
+
+
+/*
+ * Continuação opcional de 1..N sabores · 06/11/2026.
+ * Reaproveita a mesma barra do checkout, sem criar uma segunda ação.
+ *
+ * Resumo premium compacto: recupera a hierarquia editorial aprovada,
+ * explica a remoção e não repete quantidade, preço ou limite no próprio cartão.
+ */
+.storefront #configurador #sabores .gourmet-combination-review {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 11px;
+  margin-top: 12px;
+  padding: 13px 14px 14px;
+  border: 1px solid rgba(240, 194, 132, .49);
+  border-radius: 15px;
+  background:
+    radial-gradient(ellipse 115% 125% at 0% 0%, rgba(182, 113, 60, .18), transparent 67%),
+    linear-gradient(120deg, #493022 0%, #2b1b13 100%);
+  box-shadow: inset 0 1px rgba(255, 241, 211, .09), 0 9px 19px rgba(18, 9, 5, .13);
+}
+.storefront #configurador #sabores .gourmet-combination-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 4px;
+  min-width: 0;
+}
+.storefront #configurador #sabores .gourmet-combination-title-line {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.storefront #configurador #sabores .gourmet-combination-emblem {
+  display: grid;
+  flex: 0 0 25px;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border: 1px solid rgba(242, 201, 149, .62);
+  border-radius: 50%;
+  background: rgba(244, 202, 144, .13);
+  color: #f5cd96;
+}
+.storefront #configurador #sabores .gourmet-combination-title-line .boutique-flavor-summary-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.04rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: #ffe3bd;
+  letter-spacing: -.012em;
+}
+.storefront #configurador #sabores .gourmet-combination-hint {
+  margin: 0 0 0 34px;
+  color: #dec1a1;
+  font-size: .73rem;
+  line-height: 1.38;
+  text-wrap: pretty;
+}
+.storefront #configurador #sabores .gourmet-removable-tags {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  min-width: 0;
+  gap: 7px;
+}
+.storefront #configurador #sabores .gourmet-removable-tag {
+  min-height: 44px;
+  gap: 8px;
+  padding: 9px 11px;
+  border: 1px solid rgba(241, 197, 139, .44);
+  border-radius: 11px;
+  background: linear-gradient(130deg, rgba(249, 214, 173, .11), rgba(249, 214, 173, .055));
+  color: #fff0d9;
+  font-size: .78rem;
+  font-weight: 690;
+  line-height: 1.22;
+  box-shadow: inset 0 1px rgba(255, 240, 215, .06);
+}
+.storefront #configurador #sabores .flavor-card {
+  scroll-margin-block-end: 92px;
+}
+@media (max-width: 599px) {
+  .storefront .mobile-sticky-bar.is-gourmet-flavor-continue {
+    right: max(8px, env(safe-area-inset-right));
+    left: max(8px, env(safe-area-inset-left));
+    bottom: max(8px, env(safe-area-inset-bottom));
+    width: auto;
+    max-width: 460px;
+    min-height: 54px;
+    margin-inline: auto;
+    gap: 8px;
+    padding: 6px 7px 6px 11px;
+    border-radius: 14px;
+    background: rgba(36, 23, 16, .97);
+    box-shadow: 0 8px 27px rgba(16, 9, 5, .29);
+  }
+  .storefront .mobile-sticky-bar.is-gourmet-flavor-continue .mobile-sticky-price {
+    flex: 0 0 auto;
+    min-width: 52px;
+  }
+  .storefront .mobile-sticky-bar.is-gourmet-flavor-continue .mobile-sticky-price small {
+    font-size: .61rem;
+  }
+  .storefront .mobile-sticky-bar.is-gourmet-flavor-continue .mobile-sticky-price strong {
+    font-size: .82rem;
+  }
+  .storefront .mobile-sticky-bar.is-gourmet-flavor-continue button {
+    flex: 1 1 auto;
+    min-height: 44px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: .77rem;
+    line-height: 1.25;
+  }
+  .storefront .mobile-sticky-bar.is-gourmet-flavor-continue button:focus-visible {
+    outline: 3px solid #ffe4b8;
+    outline-offset: 2px;
+  }
+}
+@media (max-width: 359px) {
+  .storefront #configurador #sabores .gourmet-combination-review {
+    padding: 12px 11px 13px;
+    gap: 10px;
+  }
+  .storefront #configurador #sabores .gourmet-combination-hint {
+    margin-left: 0;
+  }
+  .storefront #configurador #sabores .gourmet-removable-tags {
+    gap: 6px;
+  }
+  .storefront .mobile-sticky-bar.is-gourmet-flavor-continue button {
+    font-size: .74rem;
+    padding-inline: 7px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront .mobile-sticky-bar.is-gourmet-flavor-continue,
+  .storefront .mobile-sticky-bar.is-gourmet-flavor-continue button {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -19,7 +19,13 @@ test("resumo Gourmet tem remoção direta, consciente, acessível e escopada aos
   assert.match(page, /onClick=\{\(\) => togglePopcornOption\(flavor\)\}/);
   assert.match(page, /aria-label=\{\x60Remover \$\{flavor\.name\} da combinação\x60\}/);
   assert.match(page, /<X size=\{14\} strokeWidth=\{2\} aria-hidden="true"/);
-  assert.match(page, /className="gourmet-combination-size"/);
+  assert.match(page, /<span className="boutique-flavor-summary-title">Sua combinação<\/span>/);
+  assert.match(page, /className="gourmet-combination-title-line"/);
+  assert.match(page, /className="gourmet-combination-emblem" aria-hidden="true"/);
+  assert.match(page, /Toque no × para remover um sabor e escolher outro\./);
+  assert.match(page, /aria-describedby="gourmet-combination-instruction"/);
+  assert.match(page, /\(selectionMessage \|\| !popcornLimitReached\)/);
+  assert.doesNotMatch(page, /Limite preenchido\. Desmarque um sabor para trocar\./);
   assert.doesNotMatch(page, /onClick=\{\(\) => setPopcornOptionIds\(\[\]\)\}/);
 });
 
@@ -58,6 +64,8 @@ test("acabamento premium mantém contraste, toque, foco e acessibilidade a movim
   assert.match(css, /#sabores \.gourmet-removable-tag/);
   assert.match(css, /min-height: 43px/);
   assert.match(css, /gourmet-removable-tag:focus-visible/);
+  assert.match(css, /#sabores \.gourmet-combination-review/);
+  assert.match(css, /is-gourmet-flavor-continue button:focus-visible/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.doesNotMatch(css, /#carrinho \.gourmet-/);
 });
