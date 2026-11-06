@@ -28,9 +28,13 @@ test("guides dependent steps only after a conscious first choice", () => {
 test("keeps a second product easy to add beside the receiving options", () => {
   assert.doesNotMatch(page, /id="item-adicionado"/);
   assert.match(page, /className="boutique-added-continuity"/);
-  assert.match(page, /Quer adicionar mais alguma coisa\?/);
-  assert.match(page, /\{addMoreButtonLabel\(category, cart\)\}/);
-  assert.match(page, /onClick=\{\(\) => startAnother\(category\)\}/);
+  assert.match(page, /Quer completar seu pedido\?/);
+  assert.match(page, /\{checkoutComplementItems\.map\(\(id\) => \{/);
+  assert.match(page, /if \(id === "gourmet"\) startAnother\("pipocas"\)/);
+  assert.match(page, /else if \(id === "fatias"\) startAnother\("fatias"\)/);
+  assert.match(page, /else if \(id === "trufadas"\) startAnotherCrocantes\(\)/);
+  assert.match(page, /\{!addedNotice && <div className="cart-add-more">/);
+  assert.match(page, /setAddedNotice\(null\);\s+setFulfillment/);
   assert.match(page, /cart-add-options \$\{STORE_CONFIG\.enabledExtras\.drinks \? "" : "without-drinks"\}/);
   assert.match(page, /const destination = wasEditing \? "carrinho" : "recebimento"/);
 });
@@ -99,7 +103,10 @@ test("additional category labels use actual items in cart, not the last added ca
   // A seção de continuidade e a área do carrinho devem usar a mesma lógica.
   assert.match(page, /\{addMoreButtonLabel\("fatias", cart\)\}/);
   assert.match(page, /\{addMoreButtonLabel\("pipocas", cart\)\}/);
-  assert.match(page, /\{addMoreButtonLabel\(category, cart\)\}/);
-  // A regra específica de copos permanece intacta.
-  assert.equal((page.match(/cartContainsCrocantes \? "Adicionar outro pacote" : "Adicionar pacote Trufado"/g) ?? []).length, 2);
+  // O novo módulo usa o MESMO helper do carrinho para não inventar "outro".
+  assert.match(page, /id === "gourmet" \? addMoreButtonLabel\("pipocas", cart\)/);
+  assert.match(page, /id === "fatias" \? addMoreButtonLabel\("fatias", cart\)/);
+  // O atalho de Trufadas permanece, com apresentação contextual quando recém-adicionado.
+  assert.equal((page.match(/cartContainsCrocantes \? "Adicionar outro pacote" : "Adicionar pacote Trufado"/g) ?? []).length, 1);
+  assert.match(page, /cartContainsCrocantes \? "Outro pacote Trufado" : "Pipocas Trufadas"/);
 });

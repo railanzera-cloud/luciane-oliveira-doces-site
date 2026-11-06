@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 const css = await readFile(new URL("../app/storefront-boutique-v3.css", import.meta.url), "utf8");
+const checkoutCss = await readFile(new URL("../app/storefront-checkout-premium.css", import.meta.url), "utf8");
 const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
 const catalog = await readFile(new URL("../app/catalog.ts", import.meta.url), "utf8");
 
@@ -246,8 +247,11 @@ test("4.2 mostra confirmação compacta e mais produtos na mesma área das escol
   assert.ok(page.includes('className="boutique-added-continuity"'));
   assert.ok(page.includes('className="boutique-added-photo"'));
   assert.ok(page.includes("justAddedProduct.cardImage ?? justAddedProduct.image"));
-  assert.ok(page.includes("Quer adicionar mais alguma coisa?"));
-  assert.ok(page.includes('onClick={() => startAnother(category)}'));
+  assert.ok(page.includes("Quer completar seu pedido?"));
+  assert.ok(page.includes('className="boutique-complement-grid"'));
+  assert.ok(page.includes('else if (id === "fatias") startAnother("fatias")'));
+  assert.ok(page.includes('if (id === "gourmet") startAnother("pipocas")'));
+  assert.ok(checkoutCss.includes(".storefront #carrinho .boutique-complement-choice:focus-visible"));
   assert.ok(page.includes('id="recebimento"'));
   assert.ok(page.includes('id="receive-delivery"'));
   assert.ok(page.includes('id="receive-pickup"'));
@@ -349,7 +353,10 @@ test("4.5 mantém as duas entradas de adicionar produtos para momentos distintos
   assert.ok(page.includes('className="boutique-added-other"'));
   assert.ok(page.includes("onClick={() => startAnother(\"fatias\")}"));
   assert.ok(page.includes("onClick={() => startAnother(\"pipocas\")}"));
-  assert.ok(page.includes("onClick={() => startAnother(category)}"));
+  assert.ok(page.includes('else if (id === "fatias") startAnother("fatias")'));
+  assert.ok(page.includes('if (id === "gourmet") startAnother("pipocas")'));
+  assert.ok(page.includes('{!addedNotice && <div className="cart-add-more">'));
+  assert.ok(page.includes('setAddedNotice(null);\n    setFulfillment(value as Fulfillment)'));
   assert.ok(page.includes('const destination = wasEditing ? "carrinho" : "recebimento"'));
   assert.ok(css.includes(".storefront .menu-entry.has-category"));
   assert.ok(css.includes(".storefront .builder-section .section-intro h2"));

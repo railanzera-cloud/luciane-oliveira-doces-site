@@ -54,7 +54,12 @@ test("nova experiência Trufadas usa tamanho e preço corretos sem data de estre
   assert.ok(css.includes('.limited-cup-size-option[aria-pressed="true"]'));
 });
 test("compras adicionais identificam outro copo e mantêm o fluxo original",()=>{
-  assert.equal((page.match(/cartContainsCrocantes \? "Adicionar outro pacote" : "Adicionar pacote Trufado"/g)||[]).length,2);
+  // O atalho do carrinho e a sugestão temporária continuam existindo,
+  // mas nunca aparecem como dois conjuntos idênticos ao mesmo tempo.
+  assert.equal((page.match(/cartContainsCrocantes \? "Adicionar outro pacote" : "Adicionar pacote Trufado"/g)||[]).length,1);
+  assert.ok(page.includes('cartContainsCrocantes ? "Outro pacote Trufado" : "Pipocas Trufadas"'));
+  assert.ok(page.includes('{!addedNotice && <div className="cart-add-more">'));
+  assert.ok(page.includes('else if (id === "trufadas") startAnotherCrocantes();'));
   assert.ok(page.includes('className="crocantes-cross-sell"'));
   assert.ok(page.includes('onClick={startAnotherCrocantes}'));
   assert.ok(page.includes('PIX_DETAILS), attribution'));
