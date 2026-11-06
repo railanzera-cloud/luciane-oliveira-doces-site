@@ -1992,6 +1992,12 @@ export default function Home() {
   }
 
   function handleStickyAction() {
+    // Mantém o dispatcher central de navegação; o caso Gourmet contextual
+    // apenas leva à quantidade, sem adicionar item nem pular etapas.
+    if (gourmetContinueAvailable) {
+      requestScroll("gourmet-quantity-action");
+      return;
+    }
     if (typeof cupBuilderFlowActive !== "undefined" && cupBuilderFlowActive) handleCupPurchaseAction();
     else if (stickyUsesCheckoutAction) handleFinalAction();
     else stickyBuilderAction();
@@ -3148,7 +3154,7 @@ export default function Home() {
           {gourmetContinueAvailable ? <><small>Sabores escolhidos</small><strong>{popcornOptionIds.length} de {popcornMaxOptions}</strong></>
             : <><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></>}
         </div>
-        <Button type="button" onClick={gourmetContinueAvailable ? () => requestScroll("gourmet-quantity-action") : handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || cupAdding || (cupBuilderFlowActive && Boolean(cupFlavorPreview && cupSizeId) && !cupCanOrder) || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
+        <Button type="button" onClick={handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || cupAdding || (cupBuilderFlowActive && Boolean(cupFlavorPreview && cupSizeId) && !cupCanOrder) || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
           {gourmetContinueAvailable ? `Continuar com ${popcornOptionIds.length} ${popcornOptionIds.length === 1 ? "sabor" : "sabores"}` : stickyButtonLabel}
           {gourmetContinueAvailable ? <ChevronRight size={17} aria-hidden="true" /> : stickyIsCheckoutReady ? checkoutChannel === "whatsapp" ? <MessageCircle size={17} /> : <ShoppingBag size={17} /> : <ChevronRight size={17} />}
         </Button>
