@@ -66,6 +66,7 @@ try {
         const r=node.getBoundingClientRect();
         return r.top>=0&&r.top<window.innerHeight*.86;
       });
+      await dock.waitFor({state:"detached",timeout:6000});
       assert.equal(await dock.count(),0,"Ao alcançar quantidade a ação especial desaparece");
       assert.equal(await page.locator("#quantidade-pipocas .quantity-control strong").innerText(),"1");
 
