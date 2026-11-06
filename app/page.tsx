@@ -30,18 +30,11 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { DeliveryLocalityPicker } from "@/components/delivery-locality-picker";
+import { deliveryLocalityById, deliveryLegacyLocality, deliveryLocalityCanQuote } from "@/supabase/functions/_shared/delivery-localities.mjs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   DELIVERY_ZONES,
   DELIVERY_TIME_ESTIMATE,
@@ -146,6 +139,7 @@ type SavedOrder = {
   cart: CartItem[];
   fulfillment: Fulfillment;
   deliveryZoneId: string;
+  deliveryLocalityId?: string;
   neighborhood: string;
   address: string;
   addressNumber?: string;
@@ -557,6 +551,7 @@ export default function Home() {
   const [drinkMessage, setDrinkMessage] = useState("");
   const [fulfillment, setFulfillment] = useState<Fulfillment>("");
   const [deliveryZoneId, setDeliveryZoneId] = useState("");
+  const [deliveryLocalityId, setDeliveryLocalityId] = useState("");
   const [neighborhood, setNeighborhood] = useState("");
   const [address, setAddress] = useState("");
   const [addressNumber, setAddressNumber] = useState("");
@@ -835,6 +830,12 @@ export default function Home() {
           setDeliveryZoneId(savedOrder.deliveryZoneId);
         }
         if (typeof savedOrder.neighborhood === "string") setNeighborhood(savedOrder.neighborhood);
+        const savedLocality = deliveryLocalityById(savedOrder.deliveryLocalityId)
+          ?? deliveryLegacyLocality(savedOrder.deliveryZoneId, savedOrder.neighborhood);
+        if (savedLocality) {
+          setDeliveryLocalityId(savedLocality.id);
+          setDeliveryZoneId(deliveryLocalityCanQuote(savedLocality) ? (savedLocality.zoneId ?? "") : "");
+        }
         if (typeof savedOrder.address === "string") {
           setAddress(savedOrder.address);
           setLegacyAddressNotice(Boolean(savedOrder.address && !savedOrder.addressNumber));
@@ -922,10 +923,11 @@ export default function Home() {
   const popcornLimitReached = Boolean(popcornVariant) && popcornOptionIds.length >= popcornMaxOptions;
   const selectedSlice = SLICES.find((product) => product.id === sliceProductId);
   const selectedSliceVariant = selectedSlice?.variants[0];
-  const selectedDeliveryZone = DELIVERY_ZONES.find((zone) => zone.id === deliveryZoneId);
-  const deliveryNeighborhood = selectedDeliveryZone?.asksNeighborhood
-    ? neighborhood.trim()
-    : selectedDeliveryZone?.label ?? "";
+  const selectedDeliveryLocality = deliveryLocalityById(deliveryLocalityId);
+  const selectedDeliveryZone = DELIVERY_ZONES.find((zone) =>
+    deliveryLocalityCanQuote(selectedDeliveryLocality)
+      && zone.id === deliveryZoneId && zone.id === selectedDeliveryLocality?.zoneId);
+  const deliveryNeighborhood = selectedDeliveryLocality?.label ?? "";
 
   const deliveryZoneError = deliveryZoneMismatchMessage(deliveryZoneId, cleanWhatsAppField(neighborhood))
     .replace("‘Onde será a entrega?’", "‘Selecione seu bairro ou local de entrega’");
@@ -1044,7 +1046,8 @@ export default function Home() {
     ? popcornUnitPrice === null ? null : popcornUnitPrice * popcornQuantity
     : selectedSliceVariant ? selectedSliceVariant.price * sliceQuantity : null;
   const addressReady = fulfillment !== "entrega"
-    || Boolean(selectedDeliveryZone && !deliveryZoneError && cleanWhatsAppField(deliveryNeighborhood) && cleanWhatsAppField(address) && cleanWhatsAppField(addressNumber));
+    || Boolean(deliveryLocalityCanQuote(selectedDeliveryLocality) && selectedDeliveryZone && !deliveryZoneError
+      && cleanWhatsAppField(deliveryNeighborhood) && cleanWhatsAppField(address) && cleanWhatsAppField(addressNumber));
   const cashReceivedCents = parseCashCents(changeFor);
   const isCashPayment = payment === "dinheiro" || payment === "cash";
   const changeError = isCashPayment && needsChange
@@ -1187,6 +1190,7 @@ export default function Home() {
   };
   const checkoutFingerprint = JSON.stringify({
     ...checkoutDetails,
+    delivery_locality_id: fulfillment === "entrega" ? deliveryLocalityId : null,
     checkout_channel: checkoutChannel,
     selected_payment: payment,
     ...(checkoutChannel === "site" ? {
@@ -1213,7 +1217,7 @@ export default function Home() {
   }, [checkoutFingerprint, storageReady, cart.length]);
 
   const savedOrder: SavedOrder = {
-    version: 2, cart, fulfillment, deliveryZoneId, neighborhood, address, addressNumber, complement,
+    version: 2, cart, fulfillment, deliveryZoneId, deliveryLocalityId, neighborhood, address, addressNumber, complement,
     reference, payment, checkoutChannel, customerName, customerPhone, customerEmail, siteResult, notes, whatsappResult,
     needsChange, changeFor, order: orderContext, order_details: checkoutDetails,
   };
@@ -1360,6 +1364,7 @@ export default function Home() {
     setCart([]);
     setFulfillment("");
     setDeliveryZoneId("");
+    setDeliveryLocalityId("");
     setNeighborhood("");
     setAddress("");
     setReference("");
@@ -1795,6 +1800,7 @@ export default function Home() {
         fulfillment: fulfillment === "retirada" ? { type: "pickup" } : {
           type: "delivery",
           zone_id: deliveryZoneId,
+          locality_id: deliveryLocalityId,
           neighborhood: deliveryNeighborhood,
           street: address,
           number: addressNumber,
@@ -1882,7 +1888,7 @@ export default function Home() {
         customer: { name: customerName.trim(), phone: "" },
         items: checkoutDetails.items.map(({ product_id, variant_id, option_ids, quantity }) => ({ product_id, variant_id, option_ids, quantity })),
         fulfillment: { type: fulfillment === "entrega" ? "delivery" : "pickup",
-          ...(fulfillment === "entrega" ? { zone_id: deliveryZoneId, neighborhood: deliveryNeighborhood, street: address, number: addressNumber, complement, reference } : {}) },
+          ...(fulfillment === "entrega" ? { zone_id: deliveryZoneId, locality_id: deliveryLocalityId, neighborhood: deliveryNeighborhood, street: address, number: addressNumber, complement, reference } : {}) },
         payment: { method: payment === "pix" ? "manual_pix" : ["cartao", "credito", "debito"].includes(payment) ? "card_on_delivery" : "cash",
           ...(cardMode ? { card_mode: cardMode } : {}),
           ...(payment === "dinheiro" && needsChange && cashReceivedCents !== null ? { change_for: (cashReceivedCents / 100).toFixed(2) } : {}) },
@@ -1999,10 +2005,10 @@ export default function Home() {
       ? "Adicione pelo menos um produto ao pedido."
       : !fulfillment
         ? "Escolha entrega ou retirada para continuar."
-        : fulfillment === "entrega" && !selectedDeliveryZone
-          ? "Escolha onde será a entrega."
-          : fulfillment === "entrega" && selectedDeliveryZone?.asksNeighborhood && !neighborhood.trim()
-            ? "Informe seu bairro."
+        : fulfillment === "entrega" && selectedDeliveryLocality && !deliveryLocalityCanQuote(selectedDeliveryLocality)
+          ? "Este local precisa de confirmação da taxa com a loja."
+          : fulfillment === "entrega" && !selectedDeliveryZone
+            ? "Busque e selecione seu bairro para calcular a entrega."
             : !addressReady
               ? !cleanWhatsAppField(address) ? "Informe a rua da entrega." : "Informe o número da entrega (ou s/n)."
               : !customerNameReady
@@ -2816,38 +2822,24 @@ export default function Home() {
               </RadioGroup>
               {fulfillment === "entrega" && (
                 <div className="delivery-fields" id="delivery-fields">
-                  <div className="field-group delivery-zone-field">
-                    <label id="delivery-zone-label">Selecione seu bairro ou local de entrega</label>
-                    <small id="delivery-zone-hint" className="delivery-selection-help">Selecione seu local para calcular a taxa de entrega.</small>
-                    <Select value={deliveryZoneId} onValueChange={setDeliveryZoneId}>
-                      <SelectTrigger className="delivery-select-trigger" aria-labelledby="delivery-zone-label" aria-describedby="delivery-zone-hint">
-                        <SelectValue placeholder="Selecione o local de entrega" />
-                      </SelectTrigger>
-                      <SelectContent className="delivery-select-content" align="start">
-                        <SelectGroup>
-                          <SelectLabel>Mais pedidas</SelectLabel>
-                          {DELIVERY_ZONES.filter((zone) => zone.group === "mais-pedidas").map((zone) => (
-                            <SelectItem key={zone.id} value={zone.id}>{zone.id === "cidade" ? "Outro bairro dentro da cidade" : zone.label} — {currency.format(zone.price)}</SelectItem>
-                          ))}
-                        </SelectGroup>
-                        <SelectGroup>
-                          <SelectLabel>Outras regiões</SelectLabel>
-                          {DELIVERY_ZONES.filter((zone) => zone.group === "outras-regioes").map((zone) => (
-                            <SelectItem key={zone.id} value={zone.id}>{zone.id === "cidade" ? "Outro bairro dentro da cidade" : zone.label} — {currency.format(zone.price)}</SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                    {selectedDeliveryZone && (
-                      <span className="delivery-price-preview">Taxa de entrega: <strong>{currency.format(selectedDeliveryZone.price)}</strong></span>
-                    )}
-                  </div>
-                  {selectedDeliveryZone?.asksNeighborhood && (
-                    <div className="field-group">
-                      <label htmlFor="neighborhood">Qual é o seu bairro?</label>
-                      <Input id="neighborhood" value={neighborhood} onChange={(event) => setNeighborhood(event.target.value)} placeholder="Digite seu bairro" autoComplete="address-level3" aria-invalid={Boolean(deliveryZoneError)} aria-describedby={deliveryZoneError ? "delivery-zone-error" : undefined} />
-                      {deliveryZoneError && <p id="delivery-zone-error" className="field-error" role="status">{deliveryZoneError}</p>}
-                    </div>
+                  <DeliveryLocalityPicker
+                    selectedId={deliveryLocalityId}
+                    onSelect={(locality) => {
+                      setDeliveryLocalityId(locality.id);
+                      setDeliveryZoneId(deliveryLocalityCanQuote(locality) ? locality.zoneId! : "");
+                      setNeighborhood(locality.label);
+                      setCheckoutAvailabilityMessage("");
+                    }}
+                    onClear={() => {
+                      setDeliveryLocalityId("");
+                      setDeliveryZoneId("");
+                      setNeighborhood("");
+                    }}
+                  />
+                  {selectedDeliveryZone && (
+                    <p className="delivery-price-preview" role="status">
+                      Taxa para {selectedDeliveryLocality?.label}: <strong>{currency.format(selectedDeliveryZone.price)}</strong>
+                    </p>
                   )}
                   {legacyAddressNotice && <p className="field-note" role="status">Seu endereço anterior foi preservado. Confira a rua e informe o número; se não houver, use s/n.</p>}
                   <div className="field-group"><label htmlFor="address">Rua</label><Input id="address" value={address} onChange={(event) => setAddress(event.target.value)} placeholder="Ex.: Rua das Flores" autoComplete="address-line1" /></div>
@@ -2858,7 +2850,6 @@ export default function Home() {
                       <div className="field-group"><label htmlFor="reference">Ponto de referência (opcional)</label><Input id="reference" value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Ex.: próximo à praça" /></div>
                     </div>
                   </div>
-                  <p className="field-note">A taxa é calculada pelo local escolhido. Confira o endereço e o total antes de enviar.</p>
                   <p className="field-note">{DELIVERY_TIME_ESTIMATE} O prazo começa após a confirmação da loja.</p>
                 </div>
               )}
@@ -3007,10 +2998,20 @@ export default function Home() {
               {fulfillment === "entrega" && selectedDeliveryZone && (
                 <div className="summary-row summary-delivery"><span>Taxa de entrega</span><strong>{currency.format(deliveryFee)}</strong></div>
               )}
+              {fulfillment === "entrega" && !selectedDeliveryZone && (
+                <div className="summary-row summary-delivery-pending" role="status">
+                  <span>Taxa de entrega</span><strong>A confirmar</strong>
+                </div>
+              )}
               {fulfillment === "retirada" && <div className="summary-row"><span>Taxa de entrega</span><strong>Não se aplica</strong></div>}
               {cart.length > 0 && (fulfillment === "retirada" || (fulfillment === "entrega" && selectedDeliveryZone)) && (
                 <>{cardMode && <div className="summary-row"><span>Acréscimo do cartão ({(cardQuote.basisPoints / 100).toLocaleString("pt-BR")}%)</span><strong>{currency.format(cardQuote.feeCents / 100)}</strong></div>}
                 <div className="summary-row summary-total"><span>Total a pagar</span><strong>{cartNeedsSizeReview ? "Revise o tamanho" : currency.format(orderTotal)}</strong></div></>
+              )}
+              {fulfillment === "entrega" && !selectedDeliveryZone && cart.length > 0 && (
+                <p className="summary-delivery-pending-note" role="note">
+                  O total ficará disponível após confirmar a taxa do bairro. Nenhum valor de entrega será cobrado automaticamente.
+                </p>
               )}
               {fulfillment === "entrega" && <div className="summary-address"><strong>Endereço de entrega</strong><p>{[address, addressNumber].filter(Boolean).join(", ") || "Informe a rua e o número"}</p>{complement && <p>{complement}</p>}<p>{deliveryNeighborhood || "Informe o bairro"}</p>{reference && <p>Referência: {reference}</p>}</div>}
               {isCashPayment && needsChange && !changeError && !cartNeedsSizeReview && <div className="summary-address boutique-change-summary">
@@ -3019,7 +3020,7 @@ export default function Home() {
                 <div className="boutique-change-row"><span>Seu troco</span><b>{formatOrderMoney((cashReceivedCents! - Math.round(orderTotal * 100)) / 100)}</b></div>
               </div>}
               {<div className="summary-address"><strong>Cliente</strong><p>{customerName.trim() || "Informe seu nome"}</p>{checkoutChannel === "site" && <p>{customerPhone.trim() || "Informe seu celular"}</p>}{payment === "mercado_pago_pix" && <p>{customerEmail.trim() || "Informe seu e-mail"}</p>}</div>}
-              <button type="button" className="summary-link" onClick={() => enterCheckout("recebimento")}><span><small>Recebimento</small><strong>{fulfillment === "entrega" ? selectedDeliveryZone ? `Entrega — ${selectedDeliveryZone.id === "cidade" ? "Outro bairro dentro da cidade" : selectedDeliveryZone.label} · ${currency.format(deliveryFee)}` : "Entrega — escolher local" : fulfillment === "retirada" ? "Retirada em Paragominas" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
+              <button type="button" className="summary-link" onClick={() => enterCheckout("recebimento")}><span><small>Recebimento</small><strong>{fulfillment === "entrega" ? selectedDeliveryZone ? `Entrega — ${selectedDeliveryLocality?.label ?? selectedDeliveryZone.label} · ${currency.format(deliveryFee)}` : "Entrega — escolher local" : fulfillment === "retirada" ? "Retirada em Paragominas" : "Escolher opção"}</strong></span><ChevronRight size={18} /></button>
               <button type="button" className="summary-link" onClick={() => enterCheckout("pagamento")}><span><small>Pagamento</small><strong>{paymentLabel}</strong></span><ChevronRight size={18} /></button>
             </div>
             <div className="boutique-final-action" ref={inlineFinalActionRef}>

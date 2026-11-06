@@ -1,3 +1,4 @@
+import { deliveryLocalityById, deliveryLegacyReviewState, deliveryLegacySpecificCandidate, deliveryLegacySpecialMentionCount, deliveryLocalityCanQuote, normalizeDeliverySearch } from "./delivery-localities.mjs";
 import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
@@ -52,6 +53,11 @@ export const DELIVERY_ZONES = Object.freeze({
   "novo-canaa": Object.freeze({ id: "novo-canaa", label: "Bairro Novo Canaã", priceCents: 1000 }),
   "floraplac-mdf": Object.freeze({ id: "floraplac-mdf", label: "Floraplac MDF", priceCents: 1000 }),
   "juparana-empresa": Object.freeze({ id: "juparana-empresa", label: "Juparanã Empresa", priceCents: 1000 }),
+  "ouro-preto": Object.freeze({ id: "ouro-preto", label: "Ouro Preto", priceCents: 1000 }),
+  "juparana": Object.freeze({ id: "juparana", label: "Juparanã", priceCents: 800 }),
+  "aragao": Object.freeze({ id: "aragao", label: "Aragão", priceCents: 1000 }),
+  "laercio-cabeline": Object.freeze({ id: "laercio-cabeline", label: "Laércio Cabeline", priceCents: 1000 }),
+  "sidney-rosa": Object.freeze({ id: "sidney-rosa", label: "Sidney Rosa", priceCents: 1000 }),
   "amper-elisa-empresa": Object.freeze({ id: "amper-elisa-empresa", label: "Amper Elisa Empresa", priceCents: 1000 }),
   aeroporto: Object.freeze({ id: "aeroporto", label: "Aeroporto", priceCents: 1600 }),
   ufra: Object.freeze({ id: "ufra", label: "UFRA", priceCents: 1600 }),
@@ -69,12 +75,20 @@ export const DELIVERY_ZONES = Object.freeze({
   "resort-toddys": Object.freeze({ id: "resort-toddys", label: "Resort Toddys", priceCents: 2400 }),
 });
 
-// Correspondência exata após normalização; não tenta adivinhar bairros parecidos.
+// Clientes legados não enviam locality_id. Detecta referências inequívocas a
+// localidades com tarifa especial, sem atribuir preço por similaridade.
 export function deliveryZoneMismatchMessage(zoneId, neighborhood) {
-  if (!DELIVERY_ZONES[zoneId]?.asksNeighborhood || typeof neighborhood !== "string") return "";
+  if (typeof zoneId !== "string" || !Object.hasOwn(DELIVERY_ZONES, zoneId)
+      || !DELIVERY_ZONES[zoneId].asksNeighborhood || typeof neighborhood !== "string") return "";
   const normalize = value => value.normalize("NFD").replace(/\p{M}/gu, "").trim().replace(/\s+/g, " ").toLowerCase();
   const normalized = normalize(neighborhood);
-  const specific = Object.values(DELIVERY_ZONES).find(zone => !zone.asksNeighborhood && normalize(zone.label) === normalized);
+  const matchingLocality = deliveryLegacySpecificCandidate(neighborhood);
+  const specific = matchingLocality?.zoneId && matchingLocality.zoneId !== "cidade"
+    ? DELIVERY_ZONES[matchingLocality.zoneId]
+    : Object.values(DELIVERY_ZONES).find(zone => !zone.asksNeighborhood && normalize(zone.label) === normalized);
+  if (!specific && deliveryLegacySpecialMentionCount(neighborhood) > 1) {
+    return "O endereço menciona mais de uma região com taxa especial. Confirme o bairro correto antes de finalizar.";
+  }
   if (!specific) return "";
   const price = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(specific.priceCents / 100).replace(/\u00a0/g, " ");
   return `Esse local possui uma taxa de entrega específica. Selecione ‘${specific.label} — ${price}’ em ‘Onde será a entrega?’.`;
@@ -207,13 +221,45 @@ export function quoteFulfillment(raw) {
   }
   if (raw.type !== "delivery" && raw.type !== "entrega") throw new Error("Escolha entrega ou retirada.");
   const zoneId = requiredString(raw.zone_id, "região de entrega", 80);
+  // Object.hasOwn impede acesso a entradas herdadas como "constructor" e "__proto__"
+  // quando a API recebe um identificador adulterado pelo navegador.
+  if (!Object.hasOwn(DELIVERY_ZONES, zoneId)) throw new Error("Escolha uma região de entrega válida.");
   const zone = DELIVERY_ZONES[zoneId];
-  if (!zone) throw new Error("Escolha uma região de entrega válida.");
-  const neighborhood = zone.asksNeighborhood
-    ? requiredString(raw.neighborhood, "bairro", 120)
-    : zone.label;
+  if (!Number.isSafeInteger(zone.priceCents) || zone.priceCents < 0) {
+    throw new Error("Não foi possível calcular a taxa. Confirme a região com a loja.");
+  }
+  // O novo checkout sempre envia locality_id. Em publicação faseada, clientes da
+  // versão antiga continuam aceitos até o flag DELIVERY_REQUIRE_LOCALITY_ID ser ativado
+  // após comprovar frontend + Edge atualizados. Sem o flag, o modo legado é limitado.
+  const explicitLocalityId = raw.locality_id;
+  const requireLocalityId = globalThis.Deno?.env?.get("DELIVERY_REQUIRE_LOCALITY_ID") === "true";
+  if (requireLocalityId && !explicitLocalityId) throw new Error("Atualize a página para selecionar seu bairro.");
+  const locality = explicitLocalityId == null ? null : deliveryLocalityById(explicitLocalityId);
+  if (explicitLocalityId != null && !deliveryLocalityCanQuote(locality)) {
+    throw new Error("Selecione um bairro com taxa de entrega confirmada.");
+  }
+  if (locality && locality.zoneId !== zone.id) {
+    throw new Error("Bairro e taxa de entrega não correspondem. Selecione novamente seu bairro.");
+  }
+  if (locality && typeof raw.neighborhood === "string"
+      && normalizeDeliverySearch(raw.neighborhood) !== normalizeDeliverySearch(locality.label)) {
+    throw new Error("O bairro informado não corresponde ao selecionado. Revise a entrega.");
+  }
+  const neighborhood = locality?.label ?? (zone.asksNeighborhood
+    ? requiredString(raw.neighborhood, "bairro", 120) : zone.label);
   const mismatch = deliveryZoneMismatchMessage(zone.id, neighborhood);
   if (mismatch) throw new Error(mismatch);
+  // Etapa opcional da implantação: impede cotar nomes conhecidos que ainda
+  // precisam de validação, mas preserva inicialmente clientes antigos ativos.
+  // Continua distinta da flag final DELIVERY_REQUIRE_LOCALITY_ID: nomes não
+  // cadastrados só serão impedidos após a exigência de IDs no frontend novo.
+  if (!locality && zone.asksNeighborhood
+      && globalThis.Deno?.env?.get("DELIVERY_LEGACY_REVIEW_GUARD") === "true") {
+    const reviewState = deliveryLegacyReviewState(neighborhood);
+    if (reviewState === "pending" || reviewState === "ambiguous") {
+      throw new Error("Esse bairro precisa de confirmação da taxa com a loja. Atualize a página para selecionar o bairro.");
+    }
+  }
   return {
     fulfillment_type: "delivery",
     delivery_zone_id: zone.id,

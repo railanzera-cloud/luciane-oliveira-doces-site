@@ -1,0 +1,53 @@
+{
+  "project_id": "edqiwvccmboyayojvuea",
+  "captured_on": "2026-11-05",
+  "note": "Read-only Supabase Edge get_edge_function snapshot of source, NOT live env secrets, database, Cloudflare, nor authorization to deploy. Recheck versions before release.",
+  "functions": [
+    {
+      "slug": "create-order",
+      "version": 14,
+      "verify_jwt": false,
+      "ezbr_sha256": "22883c7f7a38bdac8ac9b105df2f46551bf8813a4bfce6c777a25b42f129d871",
+      "snapshot_root": "docs/edge-release/rollback/20261105/create-order-v14",
+      "files": [
+        {
+          "path": "docs/edge-release/rollback/20261105/create-order-v14/index.ts",
+          "git_blob_sha1": "feddd5be10d81232b91f2c45d9e630f05814dafa"
+        },
+        {
+          "path": "docs/edge-release/rollback/20261105/create-order-v14/commerce-catalog.mjs",
+          "git_blob_sha1": "9c671d98401e792d590f2c8a07dde2e455165485"
+        }
+      ]
+    },
+    {
+      "slug": "create-whatsapp-order",
+      "version": 26,
+      "verify_jwt": false,
+      "ezbr_sha256": "988387b66ce6b2a1afd08d10de3f51ce3b4c115b75e7d620100883f374ebe104",
+      "snapshot_root": "docs/edge-release/rollback/20261105/create-whatsapp-order-v26",
+      "files": [
+        {
+          "path": "docs/edge-release/rollback/20261105/create-whatsapp-order-v26/functions/create-whatsapp-order/index.ts",
+          "git_blob_sha1": "1a4e564ade4c8ff8fb7f41151c1eeb357c1109f5"
+        },
+        {
+          "path": "docs/edge-release/rollback/20261105/create-whatsapp-order-v26/functions/_shared/receipt-card.mjs",
+          "git_blob_sha1": "693c22354235139f8a978b66e4b9af9582ea8c2f"
+        },
+        {
+          "path": "docs/edge-release/rollback/20261105/create-whatsapp-order-v26/functions/_shared/commerce-catalog.mjs",
+          "git_blob_sha1": "f0eaa31ed9d5a5fbe08666ebfdc212bb643a7dca"
+        },
+        {
+          "path": "docs/edge-release/rollback/20261105/create-whatsapp-order-v26/functions/_shared/popcorn-promotion.mjs",
+          "git_blob_sha1": "45a7c8ca95361a0d3811d2e229922a98a5330de4"
+        },
+        {
+          "path": "docs/edge-release/rollback/20261105/create-whatsapp-order-v26/functions/_shared/trufadas-variants.mjs",
+          "git_blob_sha1": "b3e95551b18109cf6e05b41ded18a0c7d21b3291"
+        }
+      ]
+    }
+  ]
+}

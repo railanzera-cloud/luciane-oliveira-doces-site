@@ -1,0 +1,88 @@
+/* Entrega: busca de bairros sem grade de tarifas e sem valor genérico editável. */
+.storefront #carrinho .delivery-fields > .delivery-locality-picker,
+.storefront #carrinho .delivery-fields > .delivery-price-preview {grid-column:1 / -1;min-width:0;}
+.storefront #carrinho .delivery-locality-picker { position:relative; z-index:12; display:grid; gap:8px; }
+.storefront #carrinho .delivery-locality-picker > label { font-weight:800; color:#493021; font-size:.88rem; }
+.storefront #carrinho .delivery-locality-input { position:relative; display:flex; align-items:center; }
+.storefront #carrinho .delivery-locality-input > svg:first-child {
+  position:absolute; left:15px; z-index:1; color:#936c50; pointer-events:none;
+}
+.storefront #carrinho .delivery-locality-input input {
+  width:100%; min-height:52px; padding-left:43px; padding-right:40px; font-size:16px;
+  background:#fffcf6; border:1px solid rgba(118,78,49,.36); border-radius:13px;
+  color:#332015; box-shadow:inset 0 1px 2px rgba(58,35,18,.04);
+}
+.storefront #carrinho .delivery-locality-input input:focus-visible {
+  outline:2px solid #a86e3f; outline-offset:2px; border-color:#a86e3f;
+}
+.storefront #carrinho .delivery-locality-input .delivery-locality-ok {
+  position:absolute; right:14px; color:#28764d; pointer-events:none;
+}
+.storefront #carrinho .delivery-locality-results {
+  position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:55;
+  max-height:min(320px,46vh); overflow-y:auto; overscroll-behavior:contain;
+  border:1px solid #c8ad8f; border-radius:13px; background:#fffcf6;
+  box-shadow:0 15px 40px rgba(51,28,13,.25); padding:5px;
+  -webkit-overflow-scrolling:touch;
+}
+.storefront #carrinho .delivery-locality-results[data-placement="above"] {top:auto;bottom:calc(100% + 4px);}
+.storefront #carrinho .delivery-locality-option {
+  display:flex; align-items:center; gap:8px; min-height:49px; width:100%; padding:10px;
+  border:0; border-bottom:1px solid rgba(148,105,73,.13); border-radius:9px;
+  background:transparent; color:#412917; text-align:left; cursor:pointer;
+  font-size:.84rem; line-height:1.35;
+}
+.storefront #carrinho .delivery-locality-option > svg {flex:none;color:#956e4e;}
+.storefront #carrinho .delivery-locality-option > span {flex:1;min-width:0;overflow-wrap:anywhere;}
+.storefront #carrinho .delivery-locality-option > small {flex:none;font-weight:800;color:#387553;white-space:nowrap;}
+.storefront #carrinho .delivery-locality-option > small.is-pending {color:#956e4e;font-size:.72rem;}
+.storefront #carrinho .delivery-locality-option:hover,
+.storefront #carrinho .delivery-locality-option.is-active,
+.storefront #carrinho .delivery-locality-option[aria-selected="true"] {background:#f4e5d1;}
+.storefront #carrinho .delivery-locality-option:focus-visible {outline:2px solid #a86e3f; outline-offset:-2px;}
+.storefront #carrinho .delivery-locality-empty {padding:13px;font-size:.82rem;color:#765d49;}
+.storefront #carrinho .delivery-locality-approximate {
+  padding:9px 10px; margin:2px 0 4px; border-radius:9px;
+  background:#f6e9d7; color:#795135; font-size:.75rem; line-height:1.45; font-weight:650;
+}
+.storefront #carrinho .delivery-locality-confirmed,
+.storefront #carrinho .delivery-locality-warning {display:flex;align-items:flex-start;gap:6px;font-size:.8rem;line-height:1.45;margin:1px 0;}
+.storefront #carrinho .delivery-locality-confirmed {color:#28764d;}
+.storefront #carrinho .delivery-locality-warning {color:#996022;}
+.storefront #carrinho .delivery-locality-confirmed svg,
+.storefront #carrinho .delivery-locality-warning svg {flex:none;margin-top:1px;}
+.storefront #carrinho .delivery-locality-help {font-size:.78rem;line-height:1.45;color:#775b46;margin:0;}
+.storefront #carrinho .delivery-locality-contact {
+  padding:12px 13px; background:#f6e8d7; border:1px solid #dac1a5;
+  border-radius:12px; color:#765136; font-size:.81rem; line-height:1.48; margin:0;
+}
+.storefront #carrinho .delivery-locality-contact a {color:#6a3f23;text-decoration:underline;font-weight:800;text-underline-offset:3px;display:inline-block;padding:5px 0;}
+.storefront #carrinho .delivery-locality-contact span {display:block;margin-top:2px;font-size:.74rem;color:#80604b;}
+.storefront #carrinho .delivery-price-preview {display:block; padding:11px 13px; border:1px solid #d5b998; border-radius:12px; background:#f7ecdc; color:#5a3b26; font-size:.85rem;}
+.storefront #carrinho .delivery-price-preview strong {font-size:1rem;color:#2b654a;}
+@media (max-width:430px) {
+  .storefront #carrinho .delivery-locality-results {max-height:min(285px,40vh);}
+  .storefront #carrinho .delivery-locality-option {min-height:52px;}
+  .storefront #carrinho .delivery-locality-option > small {font-size:.78rem;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .storefront #carrinho .delivery-locality-option {scroll-behavior:auto;}
+}
+
+
+/* O valor de entrega não é zero enquanto a localidade não tiver taxa homologada. */
+.storefront #carrinho .summary-delivery-pending strong {
+  color:#966332;
+  font-size:.83rem;
+  font-weight:780;
+}
+.storefront #carrinho .summary-delivery-pending-note {
+  margin:4px 0 12px;
+  padding:11px 13px;
+  border:1px solid #dbc3a5;
+  border-radius:12px;
+  background:#f7e9d7;
+  color:#78563c;
+  font-size:.78rem;
+  line-height:1.5;
+}

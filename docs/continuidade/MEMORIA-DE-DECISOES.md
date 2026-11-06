@@ -137,3 +137,76 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - Estado por dimensão: decidido / implementado / validado / aprovado visualmente / publicado:
 - Lacuna e gatilho para reavaliar:
 ```
+
+
+## D-C15 — Bairro primeiro, tarifa pelo servidor; entrega com exceções explícitas
+
+- **Origem:** relato do proprietário em 05/11/2026 sobre cliente informando bairro especial na opção genérica R$ 8; aprovação em conversa para busca de localidades e validação no backend.
+- **Decisão:** cliente pesquisa um bairro/localidade identificada, nunca escolhe diretamente o valor da taxa. A tarifa deriva do ID estável vinculado ao contrato do servidor, com R$ 8 para região urbana e exceções comerciais registradas. Áreas ainda sem correspondência suficiente oferecem confirmação pelo WhatsApp, **não um pagamento supostamente validado**.
+- **Rejeitado:** nome livre determinando frete, GPS obrigatório, trocar preços de todas as zonas por distância em linha reta, supor que todo bairro oficial custa R$ 8, considerar um nome parecido como local correto sem escolha consciente.
+- **Implementação candidata:** `supabase/functions/_shared/delivery-localities.mjs`, `components/delivery-locality-picker.tsx`, `app/page.tsx`, `commerce-catalog.mjs`. Preserva IDs das 21 zonas existentes, distingue bairros de localidades especiais e envia `locality_id` em pedidos pelo site e WhatsApp.
+- **Limites e estado (incremento posterior de 05/11):** 114 nomes pesquisáveis; 20 regiões especiais conservam preços históricos do código e cinco exemplos urbanos foram mencionados pelo proprietário como dentro da cidade (R$ 8). **Outras 54 associações urbanas candidatas e 35 localidades sem tarifa — 89 ao todo — estão marcadas "A confirmar" e não podem gerar cobrança automática no novo contrato.** Registrar cada homologação antes de liberar cotação. A proteção definitiva contra payloads legados depende de rollout backend → frontend → flag `DELIVERY_REQUIRE_LOCALITY_ID`, sem quebrar pedidos abertos. Não há garantia de localização física real sem geocodificação. Estado: **aprovado em conceito e implementado em branch candidata**, QA/revisão visual e publicação devem ser registrados separadamente.
+- **Detalhes e fontes:** `docs/ENTREGA-BAIRROS-BUSCA-20261105.md`, `docs/ENTREGA-HOMOLOGACAO-LOCALIDADES-20261105.md` e teste `tests/delivery-localities-20261105.test.mjs`; não alterar histórico financeiro/estoque para cumprir esta decisão.
+
+
+## D-C16 — Taxas confirmadas pelo proprietário em áudio/texto (05/11/2026)
+
+- **Decisão comercial expressa:** os 33 locais priorizados no relatório de histórico foram revisados pelo proprietário. Os **24 candidatos urbanos** e os **9 nomes sem vínculo anterior** foram classificados: **28 a R$ 8** e **5 a R$ 10**. Exceções: **Ouro Preto**, **Juparanã (bairro)**, **Aragão**, **Laércio Cabeline** e **Sidney Rosa** a **R$ 10**; todos os demais 28 da lista a R$ 8.
+- **Distinção obrigatória:** **Juparanã Empresa** é diferente do bairro **Juparanã**; ambos R$ 10, com IDs/zones próprios. **Laércio Cabeline II** não foi aprovado automaticamente. Preservar Jaderlândia/Jardelandia/Jardim Elândia como entradas distintas, até evidência de sinônimos.
+- **Reconciliação dos números do D-C15:** 114 nomes pesquisáveis, **58 cotáveis (20 especiais legados, 5 urbanos anteriores, 33 novos confirmados)**, **56 pendentes (30 urbanos candidatos e 26 sem associação)**; frontend e backend têm **26 zonas tarifárias**. O checkpoint D-C15 de 25/89 e 21 zonas é HISTÓRICO, não o estado atual.
+- **Efeito técnico:** `delivery-localities.mjs`, `commerce-catalog.mjs`, `app/catalog.ts` e testes atualizados; preços de pedidos anteriores **não** são reescritos. Não há autorização implícita para publicar Edge/Cloudflare, ativar flag ou fazer merge somente porque a tabela foi confirmada.
+- **Evidência:** `docs/ENTREGA-HOMOLOGACAO-LOCALIDADES-20261105.md` e CI do HEAD da PR #6. `docs/ENTREGA-RELEASE-GATE-20261105.md` descreve o corte coordenado e o rollback.
+
+
+## D-C17 — Liberação progressiva de localidades e compatibilidade do checkout legado (05/11/2026)
+
+- **Problema encontrado:** o frontend novo envia `locality_id` e o backend bloqueia os 56 destinos pendentes; abas antigas não enviam esse identificador. Ativar a obrigatoriedade imediatamente após o backend quebraria pedidos antigos, inclusive de bairros aprovados.
+- **Decisão técnica implementada:** criar classificação *somente por correspondência exata ou alias* via `deliveryLegacyReviewState` (`quoted`, `pending`, `ambiguous`, `unknown`) e flag **`DELIVERY_LEGACY_REVIEW_GUARD`**. A flag está **desligada por padrão**; quando autorizada, bloqueia apenas nomes conhecidos não homologados ou ambíguos enviados por checkout antigo, sem impedir antigas abas com bairros confirmados. Os nomes desconhecidos continuam aceitos nessa etapa intermediária; a flag final `DELIVERY_REQUIRE_LOCALITY_ID` é a única que exige ID para todas as entregas.
+- **Princípio de lançamento parcial:** não é necessário transformar as 56 pendências em preços inventados para oferecer as **58 cotáveis**. A publicação parcial só pode ser avaliada após aceitar operacionalmente a confirmação manual para as pendentes e homologar Safari, Edge, rollback, pagamento, estoque e WhatsApp. Não é uma autorização de publicação já concedida.
+- **Rejeitado:** aplicar a flag estrita no primeiro deploy, aceitar o nome pendente como R$ 8 sem verificação, declarar todos os nomes desconhecidos bloqueados no modo intermediário ou afirmar que uma região digitada corresponde à localização física.
+- **Evidência:** [CI do código `efe7f453`](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42094262731) aprovou 18 testes de entrega e 732 testes comerciais, build, Deno check e guarda de novos erros TS. `docs/ENTREGA-RELEASE-GATE-20261105.md` contém a ordem de ativação e rollback.
+
+
+## D-C18 — Fonte de rollback verificável antes do corte de Edge (05/11/2026)
+
+- **Motivo:** as Edge produtivas v14 e v26 não têm locality_id, e a v14 de Mercado Pago também difere em catálogo/promoções; rollback só por número de versão não é seguro.
+- **Decisão:** versionar a árvore exata dos arquivos retornados pelo Supabase comercial, com hashes e teste de integridade/imports, conservando 21 preços/zonas legados e a cotação WhatsApp de 40 combinações. Antes do deploy reconfirmar hash/versão; mudança produtiva = novo NO-GO até reconciliação.
+- **Rejeitado:** publicar ambas como simples atualização de frete, confiar em main ou ZIP como backup, reverter funções para versões antigas enquanto o frontend novo requer locality_id.
+- **Estado:** código de rollback e teste preparados na branch; deploy, homologação em Safari físico, pagamentos e restauração não executados. CI do novo SHA precisa ser consultada. Referências: `docs/EDGE-ROLLBACK-BUNDLE-20261105.md` e `docs/edge-release/rollback/20261105/manifest.json`.
+
+
+## D-C19 — Corte limitado ao canal WhatsApp, sem mexer no gateway Mercado Pago (05/11/2026)
+
+- **Motivo:** o pacote comercial anterior mais recente disponível para inspeção (03/11) tinha `siteOrderingEnabled=false` e `mercadoPagoPublicKey=''`, enquanto o backend `create-order` v14 possui diferenças de promoções e catálogo além das entregas.
+- **Decisão:** implantação autorizada e efetivada somente da função WhatsApp `create-whatsapp-order` v27, preservando as fontes v26 para rollback; manter `create-order` v14 intacta. O ZIP conectado replica o perfil **WhatsApp-only do pacote de referência** e é oferecido ao proprietário para Cloudflare manual, com identificação clara do SHA/CI e das restrições. A versão efetivamente publicada no Cloudflare **não foi verificada**.
+- **Não fazer:** presumir pagamentos online ativos e alterá-los, forçar `SITE_ORDERING_ENABLED=true` sem public key test validada, ativar flags estritas ou tentar rollback backend antes de retornar frontend antigo.
+- **Evidência:** CI 42107709877, Supabase v27 SHA256 `3a9f2b6d683e6f675bbbd81dc1bf38edaf7cce94229a4de2a9b35b3b5469c3e3`, ZIP SHA256 `c634e77541de945602f1451469772ea21db3751f17e642b64a4c3fd2a58b3669`.
+
+
+## D-C20 — Homologação progressiva dos bairros efetivamente demandados (05/11/2026)
+
+- O proprietário confirmou **Módulo I (Centro)** e **Trecho Seco** dentro da cidade, com frete **R$ 8,00** para ambos. `Centro` é alias do Módulo I; `Trecho Seco` sai da lista sem zona e é vinculado à zona urbana existente. Não cria zona nova nem modifica valor da zona `cidade`.
+- Política: o proprietário pode confirmar os bairros pendentes em lotes por frequência real de pedidos; **não** atribuir R$ 8 por pressuposição de urbanidade. Após estas duas confirmações, 60 nomes passam a ser cotáveis e 54 continuam pendentes.
+- Para reduzir deploys desnecessários, deixar alterações do novo lote preparadas na branch e aguardar as demais tarifas fornecidas na conversa antes de trocar novamente o bundle de Edge e o ZIP de Cloudflare. Não alterar pagamentos, estoque ou Luciane Gestão.
+
+
+## D-C21 — Tarifas dos grupos numerados e filtro de referências subordinadas (05/11/2026)
+
+- Confirmações comerciais do proprietário: R$ 8 para Promissão I–IV, Camboatã I–III, Jardim Camboatã/II, Uraim I–III, Módulos I/II e Parque IV; R$ 10 para Laércio Cabeline/II e Sidilândia I/II, além das exceções já aprovadas (Aragão, Açaizal, Sidney Rosa, etc.). A regra vale **somente para as localidades listadas**, sem usar proximidade de nomes como autorização genérica para criar tarifas. Camboatã III tem ID novo porque foi mencionado pelo proprietário.
+- **Identidade versus preço:** Sidilândia I e II mantêm ID/nome próprios e usam a zona comercial de R$ 10 do Açaizal; não se tornam Sidney Rosa. O documento municipal relaciona Sidilândia I e II a Açaizal e Jardim Camboatã a Camboatã, mas **não define os preços**.
+- **Checkout:** os IDs de Alan Kardec, Condomínio Residencial Alto do Lago, Condomínio Residencial Tropical e Distrito Industrial Moveleiro são preservados para histórico/recuperação de dados, porém os nomes deixam de aparecer como bairros autônomos no seletor. Ao buscá-los, o site orienta escolher o bairro e informar o local no Complemento. Os nomes restantes sem tarifa não se tornam R$ 8 automaticamente.
+- Após os ajustes, matriz interna esperada: 115 IDs; 71 cotáveis, 44 pendentes. **Ainda não há implantação destas mudanças** no Supabase WhatsApp v27 nem no Cloudflare. Agrupar publicação com as confirmações finais e validar backend + ZIP no mesmo corte.
+
+
+## D-C22 — Corte WhatsApp v28, ZIP Cloudflare manual, rollback v27 preservado (05/11/2026)
+
+- Após validação no commit `93674bb33e10eaa80e1e0651ba5e12860e503de2` (CI 42119880626 SUCCESS), foi implantada somente a Edge de pedidos WhatsApp v28, com `delivery-localities.mjs` atualizado, sem alterar handler principal, outros compartilhados, pagamentos ou SQL. Conferidos todos os arquivos instalados, hash `4280c753e967c42ba07c5ce359afda9a13bba9139f3323edd8c2fdf6b950da94`.
+- O código exato anterior da v27 foi arquivado em `docs/edge-release/rollback/20261105/create-whatsapp-order-v27/` antes do corte. ZIP manual Cloudflare `luciane-oliveira-doces-bairros-agrupados-20261105-cloudflare.zip` corresponde ao código testado e ao backend, checksum `fa0f28fd8c28eecded874edbcf6c7d333ca47d0658d235824d1dbdc87ee6990d`; produção Cloudflare ainda não foi alterada pelo agente.
+- Não inferir aprovação de Safari físico ou comportamento de pedidos reais a partir da CI. As flags estritas seguem sem alteração. Reverter frontend antes de reverter Edge se necessário.
+
+## D-C23 — Correção prioritária de Juparanã, mantendo Empresa separada (06/11/2026)
+
+- A decisão expressa atual substitui o valor anterior de Juparanã bairro em D-C19: **bairro R$ 8; Juparanã Empresa R$ 10**.
+- Permanecem IDs `juparana` e `juparana-empresa`, zonas distintas, nenhuma migração de dados. O preço R$ 8 está na zona própria do bairro, sem fundir com `cidade` e sem redefinir a zona da empresa.
+- Código e testes atualizados nos contratos frontend/backend; não mexer na loja Gestao, no gateway Mercado Pago, em pagamentos históricos nem em taxas de outros bairros.
+- **Evitar divergência entre site e servidor:** a versão anterior do frontend calcula R$ 10 para o bairro; o backend novo precisa cobrar R$ 8 e rejeita total divergente. Não implantar Edge v29 antecipadamente enquanto o usuário não estiver pronto para subir o ZIP atualizado; publicar ambos em uma janela curta e verificar pedido real logo após.

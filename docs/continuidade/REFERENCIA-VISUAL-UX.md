@@ -152,3 +152,33 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 ```
 
 **Este arquivo é a “memória do bom” do site:** pode ser melhorado com nova aprovação, mas não deve ser descartado quando uma conversa terminar.
+
+
+### UX-CANDIDATA-20261105 — Busca contextual de bairro na entrega
+
+- **Problema observado:** menu longo de tarifas por região seguido de bairro livre no fluxo de recebimento; risco de cobrar tarifa urbana por região especial.
+- **Direção aceita em conversa:** escolher localidade pesquisável por nome/variante, exibir taxa verdadeira após seleção e só então rua/número/complemento. Sem GPS obrigatório. Contato assistido quando a localidade não tem tarifa homologada.
+- **Implementação em revisão:** `components/delivery-locality-picker.tsx`, `app/delivery-locality.css`, `app/page.tsx` na branch `work/entrega-busca-bairros-segura-20261105`.
+- **Protegido:** proporção e tonalidade da experiência de checkout já existente, preço final, formas de pagamento, jornada WhatsApp, captura de campanhas, pedidos e impressão.
+- **Grau de aprovação:** conceito aprovado; UI codificada como **candidata**. Não houve ainda confronto visual aprovado em Safari/iPhone, WebKit ou publicação comprovada. Não registrar como visual final.
+
+
+### UX-CANDIDATA-20261105.2 — Teclado móvel, busca persistente e grid de entrega
+
+- **Origem:** continuidade do refinamento de entregas, ainda na PR #6. Foco no usuário de iPhone que busca bairro com teclado virtual aberto e no checkout desktop em duas colunas.
+- **Candidato codificado:** a lista de bairros mede o espaço via `visualViewport` e pode aparecer acima/abaixo do campo; altura limitada e rolagem própria. Buscador e etiqueta de taxa ocupam **largura integral** no grid desktop. O texto digitado não é apagado quando a pessoa modifica uma seleção existente, mas é reconciliado quando muda externamente. Contato assistido aparece somente para bairro pendente selecionado ou busca sem resultados.
+- **Contrato protegido:** nenhuma mudança de tarifa ou de identidade de localidades; 89 localidades não homologadas continuam sem cotação. Não alterar estética global de Gourmet, Trufadas, Fatias, checkout financeiro, WhatsApp ou painel.
+- **Evidência técnica:** `components/delivery-picker-logic.mjs`, `components/delivery-locality-picker.tsx`, `app/delivery-locality.css`; [CI do código `89ff2890`](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42075931114), com 10 testes especializados, 724 regressões e build aprovados.
+- **Evidência visual:** **não existe ainda screenshot comparativa em 320/375/390/430 px ou teste físico no Safari/Instagram**. O layout é candidato para homologação, não visual aprovado nem publicado.
+
+
+### UX-APROVADA-20261105.3 — Microtextos e numeração exata na busca de bairros
+
+- **Aprovação do proprietário:** após avaliar a tela em iPhone, aceitou encurtar o título para "Bairro ou local de entrega", usar placeholder "Ex.: Promissão II, Açaizal..." e a orientação direta "Digite seu bairro e selecione uma opção da lista para ver a taxa de entrega.".
+- **Limpeza visual:** retirar somente a nota redundante após os campos ("A taxa é calculada pelo local escolhido..."), sem omitir o prazo de entrega, sem alterar cartões, cores, layout ou resumo financeiro.
+- **Proteção contra falso nome próximo:** a busca aproximada podia sugerir "Parque IV" para "Parque 3" por diferença de um caractere. Aplicar filtro exclusivo de resultados na interface, exigindo coincidência de todos os tokens numéricos (romanos já normalizados), preservando "Promissão 3" → "Promissão III" e buscas textuais sem número. **Não** modificar catálogo compartilhado, ID, valor, backend ou zonas.
+- **Prova exigida:** testes de regra e WebKit 320/375/390/430 com "Parque 3" ausente, "Parque 4" correspondente a IV sem tarifa presumida, e restauração do checkout. Safari/Instagram físico continua prova posterior.
+- **Estado:** revisão aprovada, implementação em branch e CI a conferir; publicação Cloudflare posterior será manual.
+
+
+- **Evidência posterior da aprovação:** SHA `95907ca1d7ec9c87cb6443f31ca80b7968581673`, [CI 42111993368](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42111993368) aprovada em WebKit 320/375/390/430, 21 testes de entregas, 752 regressões e build. Verificada geração de ZIP conectado ao Supabase para publicação manual. Não existe ainda inspeção do novo texto em Safari físico após publicação.

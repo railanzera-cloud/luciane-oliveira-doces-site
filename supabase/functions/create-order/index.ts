@@ -495,7 +495,7 @@ Deno.serve(async (request: Request) => {
         : "O pagamento não foi aceito. Revise os dados e tente novamente.");
     }
 
-    const safe = { ...safeGatewayResponse(gatewayBody), method };
+    const safe: Record<string, unknown> = { ...safeGatewayResponse(gatewayBody), method };
     const mpOrderId = optionalString(gatewayBody.id, 120);
     const mpExternalReference = optionalString(gatewayBody.external_reference, 120);
     const mpTotalCents = parseMoneyToCents(gatewayBody.total_amount);

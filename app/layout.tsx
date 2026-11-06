@@ -5,6 +5,7 @@ import "./storefront-boutique.css";
 import "./storefront-boutique-v3.css";
 import "./storefront-vitrine-editorial-experiment.css";
 import "./storefront-checkout-premium.css";
+import "./delivery-locality.css";
 import "./storefront-collection.css";
 import "./storefront-collection-premium.css";
 import "./gourmet-feriado-20261102.css";

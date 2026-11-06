@@ -104,3 +104,12 @@ Se qualquer elo estiver **sem prova**, declarar “produto integrado no frontend
 ```
 
 **Não mover qualquer checkbox apenas porque uma mensagem anterior disse “concluído”.** Evidências devem ser verificadas no contexto da mudança.
+
+
+## 7. Novo contrato de seleção de localidade e entrega — 05/11/2026
+
+**Escopo:** `docs/ENTREGA-BAIRROS-BUSCA-20261105.md`. Ao alterar nome/alias/bairro, testar busca, ambiguidade, IDs persistidos, restauro de sessão e aviso de localidade sem tarifa. Ao alterar vínculo zona/tarifa, testar **frontend + `quoteFulfillment`** e preço cotado em ambos os pedidos (site e WhatsApp), total, cartão, troco, painel, comanda e histórico.
+
+**Invariantes:** `locality_id` é obrigatório para a interface nova; o servidor verifica se a localidade existe, tem tarifa autorizada e corresponde ao `zone_id`; valor monetário vem da tabela do servidor, nunca do navegador. Taxa pendente não vira R$ 8 genéricos. Retirada mantém frete zero. IDs legados permanecem estáveis; guardas de nomes especiais no fluxo anterior não podem ser removidos durante a migração.
+
+**Rollout:** backend compatível → frontend → conferência de sessões antigas → ativação específica de `DELIVERY_REQUIRE_LOCALITY_ID`; antes de ativar o flag, não afirmar resistência absoluta a payloads legados fabricados. Exigir validação da tabela urbana e teste de Safari físico, especialmente quando teclado e dropdown abrem próximos ao rodapé do checkout.

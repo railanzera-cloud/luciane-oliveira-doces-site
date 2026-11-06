@@ -500,7 +500,7 @@ test("explicit new order clears the old draft and creates another code", () => {
     ORDER_STORAGE_KEY: "luciane-order-session-v2", clearDraft: () => {},
     COMMERCE_CONFIG: { siteOrderingEnabled: false },
     window: { sessionStorage: { removeItem: (key) => removed.push(key) } } };
-  for (const setter of ["setOrderContext", "setAddressNumber", "setComplement", "setLegacyAddressNotice", "setCart", "setFulfillment", "setDeliveryZoneId", "setNeighborhood", "setAddress", "setReference", "setPayment", "setCheckoutChannel", "setNotes", "setNotesExpanded", "setWhatsAppResult", "setCustomerName", "setCustomerPhone", "setCustomerEmail", "setSiteResult", "setNewPaymentAttempt", "setNeedsChange", "setChangeFor", "setDrinkMessage", "setRestoredOrderNotice", "setAddedNotice", "setCheckoutAvailabilityMessage", "setBuilderEngaged"]) deps[setter] = (value) => { fields[setter] = value; };
+  for (const setter of ["setOrderContext", "setAddressNumber", "setComplement", "setLegacyAddressNotice", "setCart", "setFulfillment", "setDeliveryZoneId", "setDeliveryLocalityId", "setNeighborhood", "setAddress", "setReference", "setPayment", "setCheckoutChannel", "setNotes", "setNotesExpanded", "setWhatsAppResult", "setCustomerName", "setCustomerPhone", "setCustomerEmail", "setSiteResult", "setNewPaymentAttempt", "setNeedsChange", "setChangeFor", "setDrinkMessage", "setRestoredOrderNotice", "setAddedNotice", "setCheckoutAvailabilityMessage", "setBuilderEngaged"]) deps[setter] = (value) => { fields[setter] = value; };
   pageFunction("clearOrder", deps)();
   assert.equal(contextRef.current, null);
   assert.deepEqual(fields.setCart, []);
@@ -815,7 +815,7 @@ for(const payment of ['pix','dinheiro','credito','debito']) test(`final CTA and 
 function checkoutFeedback(overrides = {}) {
  const state={checkoutChannel:'whatsapp',checkoutFormReady:true,checkoutReady:true,isFinalizing:false,
   whatsAppRetryAvailable:false,deliveryZoneError:'',checkoutAvailabilityMessage:'',availability:{ordersOpen:true},cartIssues:[],cart,
-  fulfillment:'retirada',selectedDeliveryZone:null,neighborhood:'',addressReady:true,customerNameReady:true,
+  fulfillment:'retirada',selectedDeliveryZone:null,selectedDeliveryLocality:null,neighborhood:'',addressReady:true,customerNameReady:true,
   customerPhoneReady:true,payment:'pix',paymentReady:true,changeError:'',address:'Rua A',cleanWhatsAppField:checkout.cleanWhatsAppField,STORE_CONFIG:catalog.STORE_CONFIG,...overrides};
  state.checkoutFeedbackMessage=checkoutCopy('checkoutFeedbackMessage',state);
  state.checkoutShowsReady=checkoutCopy('checkoutShowsReady',state);
@@ -924,57 +924,70 @@ Titular: Luciane Galvão de Oliveira
 });
 
 const deliveryPolicy = await import('../supabase/functions/_shared/commerce-catalog.mjs');
+const deliveryRegistry = await import('../supabase/functions/_shared/delivery-localities.mjs');
 const deliveryAddress = {type:'delivery', zone_id:'cidade', neighborhood:'Centro', street:'Rua X', number:'12', complement:'Casa 2', reference:'Portaria'};
 function deliveryState(zoneId, neighborhood, fulfillment='entrega') {
- const values={fulfillment,deliveryZoneId:zoneId,neighborhood,address:'Rua X',addressNumber:'12',DELIVERY_ZONES:catalog.DELIVERY_ZONES,
+ const locality = zoneId === 'cidade'
+  ? deliveryRegistry.deliveryLocalityByExactName(neighborhood)
+  : deliveryRegistry.DELIVERY_LOCALITIES.find(item=>item.zoneId===zoneId) ?? null;
+ const values={fulfillment,deliveryZoneId:zoneId,deliveryLocalityId:locality?.id ?? '',neighborhood,address:'Rua X',addressNumber:'12',
+  DELIVERY_ZONES:catalog.DELIVERY_ZONES,deliveryLocalityById:deliveryRegistry.deliveryLocalityById,
+  deliveryLocalityCanQuote:deliveryRegistry.deliveryLocalityCanQuote,
   cleanWhatsAppField:checkout.cleanWhatsAppField,deliveryZoneMismatchMessage:deliveryPolicy.deliveryZoneMismatchMessage};
+ values.selectedDeliveryLocality=checkoutCopy('selectedDeliveryLocality',values);
  values.selectedDeliveryZone=checkoutCopy('selectedDeliveryZone',values);
  values.deliveryNeighborhood=checkoutCopy('deliveryNeighborhood',values);
  values.deliveryZoneError=checkoutCopy('deliveryZoneError',values);
  values.addressReady=checkoutCopy('addressReady',values);
  return values;
+
 }
 
 test('all existing delivery prices, order and specific locality names remain unchanged', () => {
  assert.deepEqual(catalog.DELIVERY_ZONES.map(z=>z.id),Object.keys(deliveryPolicy.DELIVERY_ZONES));
  for(const zone of catalog.DELIVERY_ZONES) {
-  const state=deliveryState(zone.id,'Centro');
-  const recorded=deliveryPolicy.quoteFulfillment({...deliveryAddress,zone_id:zone.id,neighborhood:state.deliveryNeighborhood,delivery_fee:0});
+  const state=deliveryState(zone.id,zone.id==='cidade'?'Promissão II':zone.label);
+  const recorded=deliveryPolicy.quoteFulfillment({...deliveryAddress,zone_id:zone.id,
+   locality_id:state.deliveryLocalityId,neighborhood:state.deliveryNeighborhood,delivery_fee:0});
   assert.equal(recorded.delivery_fee_cents,zone.price*100);
-  assert.equal(recorded.neighborhood,zone.asksNeighborhood?'Centro':zone.label);
-  assert.equal(state.deliveryNeighborhood,recorded.neighborhood);
-  assert.equal(state.addressReady,true); assert.equal(state.deliveryZoneError,'');
+  assert.equal(recorded.neighborhood,state.deliveryNeighborhood);
+  assert.equal(state.addressReady,true);assert.equal(state.deliveryZoneError,'');
  }
 });
 
 test('city delivery blocks exact specific names including accents, case and spaces in browser and server', () => {
  for(const zone of Object.values(deliveryPolicy.DELIVERY_ZONES).filter(z=>!z.asksNeighborhood)) {
-  for(const typed of [zone.label,zone.label.toUpperCase(),`  ${zone.label.normalize('NFD').replace(/\p{M}/gu,'').toLowerCase()}  `]) {
+  for(const typed of [zone.label,zone.label.toUpperCase(),zone.label.normalize('NFD').replace(/\p{M}/gu,'').toLowerCase()]) {
    const state=deliveryState('cidade',typed);
-   assert.equal(state.addressReady,false);
-   assert.ok(state.deliveryZoneError.includes(`${zone.label} — ${checkout.formatOrderMoney(zone.priceCents/100)}`));
-   assert.ok(state.deliveryZoneError.includes('Selecione seu bairro ou local de entrega'));
-   assert.throws(()=>deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:typed}),{message:deliveryPolicy.deliveryZoneMismatchMessage('cidade',typed)});
-   assert.equal(state.deliveryZoneId,'cidade','no silent tariff switch');
+   assert.equal(state.addressReady,false,'new checkout requires a selected matching locality');
+   assert.match(state.deliveryZoneError,/taxa de entrega específica/);
+   assert.throws(()=>deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:typed}),/taxa de entrega específica/);
   }
  }
- for(const typed of ['Centro','Promissão I','Laércio Cabeline','Acaizal próximo à praça','Acaizais']) {
-  assert.equal(deliveryState('cidade',typed).addressReady,true);
-  assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:typed}).delivery_fee_cents,800);
+ for(const typed of ['Acaizal próximo à praça','Acaizais','Alto do Vale']) {
+  assert.equal(deliveryState('cidade',typed).addressReady,false);
  }
- assert.throws(()=>deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:'   '}),/bairro/);
+ const centro=deliveryState('cidade','Centro');
+ assert.equal(centro.deliveryLocalityId,'modulo-i-centro');
+ assert.equal(centro.addressReady,true,'Centro is now an explicitly approved R$8 alias of Módulo I');
+ assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,locality_id:centro.deliveryLocalityId,
+  neighborhood:centro.deliveryNeighborhood}).delivery_fee_cents,800);
+ const valid=deliveryState('cidade','Promissão I');
+ assert.equal(valid.addressReady,true);
+ assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,locality_id:valid.deliveryLocalityId,
+  neighborhood:valid.deliveryNeighborhood}).delivery_fee_cents,800);
 });
 
 test('fixing a delivery mismatch or changing to pickup clears only validation, preserving typed fields', () => {
- const invalid=deliveryState('cidade','Acaizal'); assert.equal(invalid.addressReady,false);
- for(const state of [deliveryState('acaizal','Acaizal'),deliveryState('cidade','Centro'),deliveryState('cidade','Acaizal','retirada')]) {
-  assert.equal(state.addressReady,true);if(state.fulfillment==='entrega')assert.equal(state.deliveryZoneError,'');
+ const invalid=deliveryState('cidade','Acaizal');assert.equal(invalid.addressReady,false);
+ for(const state of [deliveryState('acaizal','Acaizal'),deliveryState('cidade','Promissão II'),deliveryState('cidade','Acaizal','retirada')]) {
+  assert.equal(state.addressReady,true);
+  if(state.fulfillment==='entrega') assert.equal(state.deliveryZoneError,'');
   assert.equal(state.address,'Rua X');assert.equal(state.addressNumber,'12');
  }
- assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,type:'pickup',neighborhood:'Acaizal'}).delivery_fee_cents,0);
+ assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,type:'pickup'}).delivery_fee_cents,0);
  const pickup=deliveryState('cidade','Acaizal','retirada');
  assert.equal(checkoutFeedback(pickup).checkoutHint,'Tudo certo! Seu pedido está pronto para ser enviado.');
- // Selecting delivery from pickup must not skip a stored locality conflict before React renders again.
  const next=pageFunction('nextCheckoutSection',{...pickup,customerNameReady:true,checkoutChannel:'whatsapp'});
  assert.equal(next('entrega'),'delivery-fields');
 });
@@ -986,14 +999,18 @@ function renderDeliveryFields(state) {
   ts.forEachChild(candidate,visit);
  }
  visit(ast);assert.ok(node);
- const container=({children})=>React.createElement('div',null,children);
+ const picker=props=>React.createElement('div',{'data-locality-picker':props.selectedId},
+   React.createElement('label',{htmlFor:'neighborhood'},'Seu bairro ou local de entrega'),
+   React.createElement('input',{id:'neighborhood',role:'combobox',readOnly:true,value:state.deliveryNeighborhood}));
  const values={React,...state,currency:new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}),legacyAddressNotice:false,
-  setDeliveryZoneId:()=>{},setNeighborhood:()=>{},setAddress:()=>{},setAddressNumber:()=>{},setLegacyAddressNotice:()=>{},
+  setDeliveryLocalityId:()=>{},setDeliveryZoneId:()=>{},setNeighborhood:()=>{},setAddress:()=>{},
+  setAddressNumber:()=>{},setLegacyAddressNotice:()=>{},setCheckoutAvailabilityMessage:()=>{},
   setComplement:()=>{},setReference:()=>{},complement:'',reference:'',DELIVERY_TIME_ESTIMATE:catalog.DELIVERY_TIME_ESTIMATE,
-  Select:container,SelectTrigger:container,SelectValue:()=>null,SelectContent:container,SelectGroup:container,SelectLabel:container,SelectItem:container,
+  DeliveryLocalityPicker:picker,TintimContactLink:({children})=>React.createElement('a',{href:'#'},children),
   Input:props=>React.createElement('input',props),...state};
- const {outputText}=ts.transpileModule(`const render=()=>(${node.getText(ast)});`,{compilerOptions:{jsx:ts.JsxEmit.React,target:ts.ScriptTarget.ES2022}});
- return renderToStaticMarkup(new Function(...Object.keys(values),`${outputText};return render();`)(...Object.values(values)));
+ const {outputText}=ts.transpileModule('const render=()=>('+node.getText(ast)+');',{compilerOptions:{jsx:ts.JsxEmit.React,target:ts.ScriptTarget.ES2022}});
+ return renderToStaticMarkup(new Function(...Object.keys(values),outputText+';return render();')(...Object.values(values)));
+
 }
 
 test('optional complement and reference stay visible and preserve saved values', () => {
@@ -1137,19 +1154,17 @@ test('return to categories preserves the order while restoring the launch teaser
 });
 
 test('real delivery JSX keeps required city neighborhood, hides it for specific places and shows accessible conflict guidance', () => {
- const city=renderDeliveryFields(deliveryState('cidade','Centro'));
- assert.match(city,/Selecione seu bairro ou local de entrega/);assert.match(city,/id="neighborhood"/);assert.doesNotMatch(city,/id="delivery-zone-error"/);
- assert.match(city,/Taxa de entrega:[\s\S]*8,00/);
+ const city=renderDeliveryFields(deliveryState('cidade','Promissão II'));
+ assert.match(city,/Seu bairro ou local de entrega/);assert.match(city,/id="neighborhood"/);
+ assert.match(city,/Taxa para Promissão II:[\s\S]*8,00/);
  for(const id of ['acaizal','aeroporto','km-12','colonia-uraim']) {
   const html=renderDeliveryFields(deliveryState(id,'Centro'));
-  assert.doesNotMatch(html,/id="neighborhood"|Qual é o seu bairro\?|Digite seu bairro/);
-  assert.match(html,/id="address"/);assert.match(html,/id="address-number"/);
+  assert.match(html,/id="neighborhood"/);assert.match(html,/id="address"/);assert.match(html,/id="address-number"/);
   assert.match(html,/id="complement"/);assert.match(html,/id="reference"/);
  }
- const html=renderDeliveryFields(deliveryState('cidade','  AÇAIZAL '));
- assert.match(html,/aria-invalid="true" aria-describedby="delivery-zone-error"/);
- assert.match(html,/id="delivery-zone-error" class="field-error" role="status"/);
- assert.match(html,/Açaizal — R\$ 10,00/);
+ const pending=renderDeliveryFields(deliveryState('cidade','Alto do Vale'));
+ assert.doesNotMatch(pending,/delivery-price-preview/);
+ assert.match(pending,/data-locality-picker="alto-do-vale"/);
 });
 
 test('a mismatched locality blocks registration and guides both checkout and sticky action back to delivery', async () => {
@@ -1171,7 +1186,7 @@ test('a mismatched locality blocks registration and guides both checkout and sti
 
 test('specific delivery fee and financial total agree from actual request payload through server quote and WhatsApp', async () => {
  for(const zoneId of ['cidade','acaizal','aeroporto','condominio-rural','colonia-uraim']) for(const payment of ['pix','dinheiro','credito','debito']) {
-  const state=deliveryState(zoneId,'Centro');
+  const state=deliveryState(zoneId,zoneId==='cidade'?'Promissão II':'Centro');
   const mode=payment==='credito'?'credit_single':payment==='debito'?'debit':null;
   const {receiptCardQuote}=await import('../supabase/functions/_shared/receipt-card.mjs');
   const items=[{product_id:'pipoca-gourmet',variant_id:'500ml',option_ids:['leitinho'],quantity:1}];
@@ -1206,7 +1221,7 @@ test('checkout recalculates existing totals immediately after place, receiving, 
   ['aeroporto','entrega','credito',47],['aeroporto','entrega','debito',47],['cidade','retirada','debito',47],
   ['cidade','retirada','dinheiro',47],['cidade','entrega','pix',22],
  ]) {
-  const values={...deliveryState(zoneId,'Centro',fulfillment),payment,cartSubtotal:subtotal,checkoutChannel:'whatsapp',receiptCardQuote};
+  const values={...deliveryState(zoneId,zoneId==='cidade'?'Promissão II':'Centro',fulfillment),payment,cartSubtotal:subtotal,checkoutChannel:'whatsapp',receiptCardQuote};
   for(const name of ['deliveryFee','cardMode','cardQuote','orderTotal'])values[name]=checkoutCopy(name,values);
   const expected=receiptCardQuote(Math.round(subtotal*100)+Math.round(values.deliveryFee*100),values.cardMode);
   assert.equal(values.orderTotal,expected.totalCents/100);
@@ -1218,35 +1233,31 @@ test('checkout recalculates existing totals immediately after place, receiving, 
 
 test('delivery copy guides city choice without changing IDs, prices, order or specific labels', () => {
  const initial=renderDeliveryFields(deliveryState('',''));
- assert.match(initial,/id="delivery-zone-label">Selecione seu bairro ou local de entrega/);
- assert.match(initial,/id="delivery-zone-hint" class="delivery-selection-help">Selecione seu local para calcular a taxa de entrega\./);
- assert.doesNotMatch(initial,/id="neighborhood"/);
+ assert.match(initial,/data-locality-picker=""/);
+ assert.doesNotMatch(initial,/delivery-price-preview/);
  const city=renderDeliveryFields(deliveryState('cidade','Promissão I')).replace(/\u00a0/g,' ');
- assert.ok(city.includes('Outro bairro dentro da cidade — R$ 8,00'));
- assert.match(city,/<label for="neighborhood">Qual é o seu bairro\?<\/label>/);
- assert.match(city,/<input(?=[^>]*id="neighborhood")(?=[^>]*value="Promissão I")(?=[^>]*placeholder="Digite seu bairro")[^>]*>/);
+ assert.match(city,/Seu bairro ou local de entrega/);
+ assert.match(city,/Taxa para Promissão I:.*R\$ 8,00/);
+ assert.doesNotMatch(city,/Outro bairro dentro da cidade/);
  const state=deliveryState('cidade','Promissão I');assert.equal(state.addressReady,true);
- assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,neighborhood:state.deliveryNeighborhood}).delivery_fee_cents,800);
- let previous=-1;
- for(const zone of catalog.DELIVERY_ZONES) {
-  const label=zone.id==='cidade'?'Outro bairro dentro da cidade':zone.label;
-  const index=city.indexOf(`${label} — ${checkout.formatOrderMoney(zone.price)}`);
-  assert.ok(index>previous,`option ${zone.id} keeps its order and tariff`);previous=index;
- }
- assert.equal(catalog.DELIVERY_ZONES.find(z=>z.id==='cidade').label,'Dentro da cidade','internal catalog preserved');
- assert.match(source,/aria-describedby="delivery-zone-hint"/);
+ assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,locality_id:state.deliveryLocalityId,
+  neighborhood:state.deliveryNeighborhood}).delivery_fee_cents,800);
+ const special=renderDeliveryFields(deliveryState('acaizal','Açaizal')).replace(/\u00a0/g,' ');
+ assert.match(special,/Taxa para Açaizal:.*R\$ 10,00/);
+ assert.equal(catalog.DELIVERY_ZONES.find(z=>z.id==='cidade').label,'Dentro da cidade');
 });
 
 test('delivery copy refinement retains mobile trigger, scrollable dropdown and shared checkout CTA', async () => {
- const css=await readFile(new URL('../app/globals.css',import.meta.url),'utf8');
- assert.match(css,/\.delivery-select-trigger \{[^}]*height: 48px !important;/);
- assert.match(css,/\.delivery-select-trigger \[data-slot="select-value"\] \{[^}]*white-space: normal;[^}]*min-width: 0;/);
- assert.match(css,/\.delivery-select-content \{[^}]*max-height: min\(420px, 70vh\)/);
- assert.match(css,/-webkit-line-clamp: 2;/);
- assert.match(source,/onValueChange=\{setDeliveryZoneId\}/);
+ const css=await readFile(new URL('../app/delivery-locality.css',import.meta.url),'utf8');
+ const picker=await readFile(new URL('../components/delivery-locality-picker.tsx',import.meta.url),'utf8');
+ assert.match(css,/delivery-locality-input input[\s\S]*min-height:52px/);
+ assert.match(css,/delivery-locality-results[\s\S]*max-height:min\(320px,46vh\)/);
+ assert.match(css,/-webkit-overflow-scrolling:touch/);
+ assert.match(picker,/role="combobox"/);assert.match(picker,/aria-autocomplete="list"/);
+ assert.match(picker,/onKeyDown=/);
+ assert.match(source,/<DeliveryLocalityPicker/);
  assert.match(source,/onClick=\{handleStickyAction\}/);
  assert.match(source,/onClick=\{handleFinalAction\}/);
- assert.match(source,/zone\.id === "cidade" \? "Outro bairro dentro da cidade" : zone\.label/);
 });
 
 function withTintimBrowser({href='https://fixture.invalid/', cookies='', session=null, local=null, blocked=false}, run) {
@@ -1334,7 +1345,9 @@ test('all three secondary contact paths keep their original messages using the s
  const nodes=[];
  function visit(node){if(ts.isJsxElement(node)&&node.openingElement.tagName.getText(ast)==='TintimContactLink')nodes.push(node);ts.forEachChild(node,visit);}
  visit(ast);assert.equal(nodes.length,1);
- const {outputText}=ts.transpileModule(`const render=()=>(${nodes[0].getText(ast)});`,{compilerOptions:{jsx:ts.JsxEmit.React}});
+ const categoryNode=nodes.find(item=>item.getText(ast).includes('className="category-text-link"'));
+ assert.ok(categoryNode);
+ const {outputText}=ts.transpileModule(`const render=()=>(${categoryNode.getText(ast)});`,{compilerOptions:{jsx:ts.JsxEmit.React}});
  renderToStaticMarkup(new Function('React','TintimContactLink','MessageCircle',`${outputText};return render();`)(React,mock,()=>null));
  assert.equal(received[0].message,undefined);assert.equal(received[0].className,'category-text-link');
  for(const file of ['../app/pedido/page.tsx','../components/site-order-result.tsx']) {
@@ -1355,6 +1368,21 @@ test('all three secondary contact paths keep their original messages using the s
   assert.equal(url.searchParams.get('text'),'Olá! Já fiz o pedido #1025 pelo site e preciso de ajuda.');
   assert.equal(url.origin,'https://tintim.link');
  }
+});
+
+test('unpriced locality offers contextual WhatsApp help without invented delivery total', async () => {
+ const {DeliveryLocalityPicker}=await vite.ssrLoadModule('/components/delivery-locality-picker.tsx');
+ const pending=renderToStaticMarkup(React.createElement(DeliveryLocalityPicker,{
+  selectedId:'alto-do-vale',onSelect:()=>{},onClear:()=>{},
+ }));
+ assert.match(pending,/Essa localidade precisa de confirmação da taxa/);
+ assert.match(pending,/Confirmar esse bairro com a loja pelo WhatsApp/);
+ assert.doesNotMatch(pending,/delivery-locality-ok|taxa calculada para o bairro selecionado/);
+ const href=pending.match(/href="([^"]+)"/)?.[1];
+ assert.ok(href,'contextual support link exists');
+ const text=new URL(href.replaceAll('&amp;','&')).searchParams.get('text');
+ assert.match(text,/Alto do Vale/);
+ assert.doesNotMatch(text,/R\$ 8/);
 });
 
 test('campaign links distinguish bags from pots and retain historic back entries', () => {

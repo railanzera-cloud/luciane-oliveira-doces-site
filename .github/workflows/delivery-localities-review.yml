@@ -1,0 +1,228 @@
+name: Homologação de bairros e tarifa de entrega
+on:
+  push:
+    branches:
+      - work/entrega-busca-bairros-segura-20261105
+  pull_request:
+    paths:
+      - 'app/page.tsx'
+      - 'components/delivery-locality-picker.tsx'
+      - 'components/delivery-picker-logic.mjs'
+      - 'app/delivery-locality.css'
+      - 'app/layout.tsx'
+      - 'supabase/functions/_shared/delivery-localities.mjs'
+      - 'supabase/functions/_shared/commerce-catalog.mjs'
+      - 'tests/delivery-localities-20261105.test.mjs'
+      - 'scripts/qa-delivery-webkit.mjs'
+      - 'scripts/audit-delivery-contract.mjs'
+      - 'tests/delivery-edge-rollback-20261105.test.mjs'
+      - 'tests/delivery-edge-isolated-flow-20261105.test.mjs'
+      - 'docs/edge-release/rollback/20261105/**'
+      - 'docs/EDGE-ROLLBACK-BUNDLE-20261105.md'
+permissions:
+  contents: read
+jobs:
+  checkout-delivery:
+    name: Verificar build, tipos e contrato de entrega
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Validar importações e tipos das duas Edge Functions (sem deploy)
+        run: deno check supabase/functions/create-order/index.ts supabase/functions/create-whatsapp-order/index.ts
+      - name: Auditar todas as tarifas e localidades do release
+        run: node scripts/audit-delivery-contract.mjs
+      - name: Conferir fontes exatas das Edge e paridade comercial sem produção
+        run: node --test tests/delivery-edge-rollback-20261105.test.mjs
+      - name: Exercitar handlers reais em isolamento sem rede produtiva
+        run: node --test tests/delivery-edge-isolated-flow-20261105.test.mjs
+      - name: Testar identidade do bairro, anti-bypass e fluxo
+        run: node --test tests/delivery-localities-20261105.test.mjs
+      - name: Conferir TypeScript (falhar em erros novos)
+        shell: bash
+        run: |
+          set +e
+          npx tsc --noEmit > /tmp/delivery-tsc.log 2>&1
+          code=$?
+          set -e
+          cat /tmp/delivery-tsc.log
+          if [ "$code" -ne 0 ]; then
+            grep 'error TS' /tmp/delivery-tsc.log | grep -Ev '^(components/admin-trufadas-stock.tsx|db/index.ts|worker/index.ts)' > /tmp/delivery-tsc-new.log || true
+            if [ -s /tmp/delivery-tsc-new.log ]; then
+              echo "::error::Há novos erros TypeScript nesta implementação."
+              exit 1
+            fi
+            echo "::warning::TypeScript geral ainda tem quatro erros preexistentes fora do módulo de entregas."
+          fi
+      - name: Construir site
+        run: npm run build
+      - name: Conferir regressões comerciais (site compilado)
+        run: node --test tests/*.test.mjs
+
+  webkit-delivery:
+    name: WebKit mobile isolado (NÃO É SAFARI FÍSICO)
+    needs: checkout-delivery
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SITE_ORDERING_ENABLED: 'false'
+      SUPABASE_URL: ''
+      SUPABASE_PUBLISHABLE_KEY: ''
+      MP_PUBLIC_KEY_TEST: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Compilar site estático para QA sem integrações comerciais
+        run: |
+          npm run build
+          node scripts/package-cloudflare.mjs
+      - name: Instalar WebKit separado do projeto
+        run: |
+          npm install --prefix "$RUNNER_TEMP/qa-delivery-webkit" --no-save --no-package-lock playwright@1.56.1
+          "$RUNNER_TEMP/qa-delivery-webkit/node_modules/.bin/playwright" install --with-deps webkit
+      - name: Validar escolha de bairros no WebKit sem rede externa
+        shell: bash
+        run: |
+          python3 -m http.server 8181 --bind 127.0.0.1 --directory outputs/cloudflare-pages >/tmp/lod-delivery-webkit.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          export QA_PACKAGE="$RUNNER_TEMP/qa-delivery-webkit/package.json"
+          export QA_OUTPUT="$RUNNER_TEMP/qa-delivery-evidence"
+          node scripts/qa-delivery-webkit.mjs
+      - name: Preservar capturas do QA (NÃO PUBLICAR)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: QA-ENTREGAS-WEBKIT-NAO-PUBLICAR
+          path: ${{ runner.temp }}/qa-delivery-evidence/
+          if-no-files-found: warn
+          retention-days: 7
+  connected-candidate:
+    name: ZIP conectado de pré-publicação (NÃO PUBLICAR AINDA)
+    needs: [checkout-delivery, webkit-delivery]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Perfil publicamente documentado: entrega pelo WhatsApp, canal site desativado.
+    # Este artefato NÃO é o ZIP de produção até confirmar o perfil Cloudflare atual
+    # e implantar as Edge Functions compatíveis com locality_id.
+    env:
+      SITE_ORDERING_ENABLED: 'false'
+      SUPABASE_URL: 'https://edqiwvccmboyayojvuea.supabase.co'
+      SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_69flK5d9m8Oe3HHVnmKWdA_omNIuIcl'
+      MP_PUBLIC_KEY_TEST: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Compilar perfil conectado sem alterar produção
+        run: npm run build
+      - name: Empacotar candidato comercial fiel ao commit
+        run: node scripts/package-cloudflare.mjs --require-supabase
+      - name: Verificar ZIP, URLs e restrições do candidato
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib, json, os
+          p=Path('outputs/luciane-oliveira-doces-cloudflare-pages.zip')
+          assert p.is_file() and p.stat().st_size > 100000
+          with ZipFile(p) as z:
+              assert z.testzip() is None
+              files=set(z.namelist())
+              required={'index.html','admin/index.html','pedido/index.html','404.html','_worker.js','_routes.json','_headers'}
+              assert required <= files
+              assert not any(n.startswith(('.env','supabase/','node_modules/')) for n in files)
+              js='\n'.join(z.read(n).decode('utf8','replace') for n in files if n.startswith('assets/') and n.endswith('.js'))
+              assert 'https://edqiwvccmboyayojvuea.supabase.co' in js
+              assert 'sb_publishable_' in js
+              assert 'locality_id' in js
+              assert 'create-whatsapp-order' in js
+              assert 'Promissão II' in js
+              assert 'Ouro Preto' in js
+              assert len([n for n in files if n.startswith('assets/') and n.endswith('.js')]) > 5
+          info={
+            'sha':os.getenv('GITHUB_SHA'),
+            'mode':'whatsapp-only: SITE_ORDERING_ENABLED=false',
+            'status':'NAO PUBLICAR ATE COMPATIBILIZAR BACKEND E CONFERIR AMBIENTE CLOUDFLARE',
+            'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),
+            'files':len(files),
+            'bytes':p.stat().st_size
+          }
+          Path('outputs/CANDIDATO-NAO-PUBLICAR.json').write_text(json.dumps(info,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
+          print('SHA256',info['sha256'],'FILES',info['files'],'BYTES',info['bytes'])
+          PY
+      - name: Guardar candidato para revisão, sem fazer deploy
+        uses: actions/upload-artifact@v4
+        with:
+          name: CANDIDATO-CLOUDFLARE-CONNECTED-NAO-PUBLICAR
+          path: |
+            outputs/luciane-oliveira-doces-cloudflare-pages.zip
+            outputs/CANDIDATO-NAO-PUBLICAR.json
+          if-no-files-found: error
+          retention-days: 7
+  preview-zip:
+    name: ZIP de inspeção visual (NÃO PUBLICAR)
+    needs: checkout-delivery
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Este pacote intencionalmente NÃO traz Supabase nem checkout de produção.
+    # Nunca usá-lo para substituir o Cloudflare Pages oficial.
+    env:
+      SITE_ORDERING_ENABLED: 'false'
+      SUPABASE_URL: ''
+      SUPABASE_PUBLISHABLE_KEY: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Compilar artefatos estáticos de revisão
+        run: npm run build
+      - name: Empacotar visualmente sem integrações produtivas
+        run: node scripts/package-cloudflare.mjs
+      - name: Verificar ZIP e registrar restrições
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from zipfile import ZipFile
+          from pathlib import Path
+          p=Path('outputs/luciane-oliveira-doces-cloudflare-pages.zip')
+          assert p.is_file() and p.stat().st_size > 100000
+          with ZipFile(p) as z:
+              assert z.testzip() is None
+              names=set(z.namelist())
+              assert {'index.html','admin/index.html','pedido/index.html','404.html','_worker.js','_routes.json'} <= names
+          Path('outputs/LEIA-ME-NAO-PUBLICAR.txt').write_text(
+              'APENAS INSPEÇÃO VISUAL - NÃO PUBLICAR NO CLOUDFLARE OFICIAL.\n'
+              'Este ZIP não contém Supabase, checkout ou pagamentos produtivos.\n'
+              'O backend publicado ainda usa contratos antigos de localidade.\n'
+              'Use somente em ambiente isolado para revisão de layout.\n',
+              encoding='utf-8')
+          PY
+      - name: Guardar artefato de homologação visual
+        uses: actions/upload-artifact@v4
+        with:
+          name: QA-ENTREGAS-SOMENTE-VISUAL-NAO-PUBLICAR
+          path: |
+            outputs/luciane-oliveira-doces-cloudflare-pages.zip
+            outputs/LEIA-ME-NAO-PUBLICAR.txt
+          if-no-files-found: error
+          retention-days: 7

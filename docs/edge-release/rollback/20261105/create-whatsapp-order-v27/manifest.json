@@ -1,0 +1,38 @@
+{
+  "project_id": "edqiwvccmboyayojvuea",
+  "slug": "create-whatsapp-order",
+  "version": 27,
+  "ezbr_sha256": "3a9f2b6d683e6f675bbbd81dc1bf38edaf7cce94229a4de2a9b35b3b5469c3e3",
+  "verify_jwt": false,
+  "source": "read-only Supabase get_edge_function before targeted v28 release",
+  "files": [
+    {
+      "name": "functions/create-whatsapp-order/index.ts",
+      "bytes": 17768
+    },
+    {
+      "name": "functions/_shared/receipt-card.mjs",
+      "bytes": 1075
+    },
+    {
+      "name": "functions/_shared/commerce-catalog.mjs",
+      "bytes": 16208
+    },
+    {
+      "name": "functions/_shared/delivery-localities.mjs",
+      "bytes": 14194
+    },
+    {
+      "name": "functions/_shared/popcorn-promotion.mjs",
+      "bytes": 919
+    },
+    {
+      "name": "functions/_shared/trufadas-variants.mjs",
+      "bytes": 2277
+    }
+  ],
+  "previous_archive": "docs/edge-release/rollback/20261105/create-whatsapp-order-v26",
+  "release_code_sha": "93674bb33e10eaa80e1e0651ba5e12860e503de2",
+  "release_ci_run": 42119880626,
+  "notes": "No secret values exported; raw Edge source only, not env vars."
+}
