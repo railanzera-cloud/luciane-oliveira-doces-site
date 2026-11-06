@@ -43,7 +43,7 @@ São exemplos expressamente citados como dentro da cidade; ainda vale conferir s
 
 ## 3. Localidades homologadas pelo proprietário em 05/11/2026 (46)
 
-O proprietário confirmou expressamente 38 localidades a **R$ 8** e oito a **R$ 10**, incluindo os grupos numerados de bairros. São valores para pedidos novos **após a publicação coordenada**, não alterações retroativas nem confirmação automática de áreas adjacentes. As grafias “Laresos Cabeline” e “Cidiren Rosa” foram interpretadas pelos nomes exibidos na lista consultada: **Laércio Cabeline** e **Sidney Rosa**, respectivamente.
+O proprietário confirmou expressamente 39 localidades a **R$ 8** e sete a **R$ 10** (correção expressa do bairro Juparanã em 06/11), incluindo os grupos numerados de bairros. São valores para pedidos novos **após a publicação coordenada**, não alterações retroativas nem confirmação automática de áreas adjacentes. As grafias “Laresos Cabeline” e “Cidiren Rosa” foram interpretadas pelos nomes exibidos na lista consultada: **Laércio Cabeline** e **Sidney Rosa**, respectivamente.
 
 | ID | Localidade | Tarifa aprovada | Observação |
 |---|---|---:|---|
@@ -61,7 +61,7 @@ O proprietário confirmou expressamente 38 localidades a **R$ 8** e oito a **R$ 
 | `jardelandia` | Jardelandia | R$ 8,00 | Confirmada em 05/11. |
 | `jardim-atlantico` | Jardim Atlântico | R$ 8,00 | Confirmada em 05/11. |
 | `jardim-bela-vista` | Jardim Bela Vista | R$ 8,00 | Confirmada em 05/11. |
-| `juparana` | Juparanã | R$ 10,00 | Bairro; diferente de Juparanã Empresa (também R$ 10). |
+| `juparana` | Juparanã | R$ 8,00 | Correção em 06/11: bairro R$ 8, distinto de Juparanã Empresa R$ 10. |
 | `laercio-cabeline` | Laércio Cabeline | R$ 10,00 | A regra confirmada agora inclui também Laércio Cabeline II. |
 | `morada-do-sol` | Morada do Sol | R$ 8,00 | Confirmada em 05/11. |
 | `morada-dos-ventos` | Morada dos Ventos | R$ 8,00 | Confirmada em 05/11. |
@@ -161,7 +161,7 @@ Estas podem representar bairros, loteamentos, empresas ou grafias divergentes. C
 4. Verificar paridade de `app/catalog.ts` e `commerce-catalog.mjs` (incluindo Edge realmente publicada), total, Pix, cartão, WhatsApp, administração, cozinha e recuperação de rascunho.
 5. Não publicar código nem aplicar `DELIVERY_REQUIRE_LOCALITY_ID` antes do corte controlado que preserve sessões antigas. Nenhuma linha marcada neste documento muda a produção sozinha.
 
-**Resumo após confirmação dos grupos em 05/11/2026:** 115 IDs de localidades (inclui Camboatã III) / 20 especiais legados / 5 referências urbanas anteriores / 46 confirmações pelo proprietário (38 a R$ 8 e 8 a R$ 10) / 22 candidatos urbanos pendentes / 22 sem zona. **71 localidades cotáveis; 44 ainda pendentes no catálogo interno.** Quatro referências secundárias não aparecem como bairros na busca, mas mantêm os IDs históricos.
+**Resumo após confirmação dos grupos em 05/11/2026:** 115 IDs de localidades (inclui Camboatã III) / 20 especiais legados / 5 referências urbanas anteriores / 46 confirmações pelo proprietário (39 a R$ 8 e 7 a R$ 10) / 22 candidatos urbanos pendentes / 22 sem zona. **71 localidades cotáveis; 44 ainda pendentes no catálogo interno.** Quatro referências secundárias não aparecem como bairros na busca, mas mantêm os IDs históricos.
 
 
 ## 7. Bairro, loteamento e condomínio — esclarecimento da busca
@@ -169,3 +169,8 @@ Estas podem representar bairros, loteamentos, empresas ou grafias divergentes. C
 O Plano Municipal pela Primeira Infância de Paragominas (anexos 2022–2032, páginas 12–13) relaciona Condomínio Alto do Lago e Residencial Tropical ao bairro Tropical; Sidilândia I e II à área do Açaizal; Uraim II e III ao Uraim; Jardim Camboatã e II ao Camboatã; e Parque IV à Promissão. O documento fornece contexto de nomes e localidades, **não tarifas**. Fonte municipal: https://camaraparagominas.pa.gov.br/wp-content/uploads/2023/02/PROJETO-DE-LEI-No-030-2023-PLANO-MUNICIPAL-PELA-PRIMEIRA-INFANCIA-ANEXOS.pdf.
 
 **Limpeza apenas de UI:** Alan Kardec, Condomínio Residencial Alto do Lago, Condomínio Residencial Tropical e Distrito Industrial Moveleiro deixam de aparecer como opções de bairro distintas no checkout; a pessoa deve selecionar o bairro e especificar condomínio/residencial no campo Complemento. Os IDs permanecem no catálogo interno, e essas referências continuam sem cotação automática. Não mapear Alto do Lago para Flamboyant por suposição. Nem todas as outras referências sem tarifa foram ocultadas ou receberam taxa por proximidade.
+
+
+## Correção posterior — 06/11/2026
+
+O proprietário corrigiu expressamente a taxa de **Juparanã (bairro) para R$ 8,00** e manteve **Juparanã Empresa em R$ 10,00**. As duas entradas têm IDs e zonas próprios e continuam identificadas separadamente. Essa decisão substitui qualquer registro anterior que tenha listado ambos a R$ 10; não modifica pedidos históricos. O corte Cloudflare + WhatsApp Edge deve ser coordenado devido ao desencontro de totais em abas antigas.

@@ -203,3 +203,10 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - Após validação no commit `93674bb33e10eaa80e1e0651ba5e12860e503de2` (CI 42119880626 SUCCESS), foi implantada somente a Edge de pedidos WhatsApp v28, com `delivery-localities.mjs` atualizado, sem alterar handler principal, outros compartilhados, pagamentos ou SQL. Conferidos todos os arquivos instalados, hash `4280c753e967c42ba07c5ce359afda9a13bba9139f3323edd8c2fdf6b950da94`.
 - O código exato anterior da v27 foi arquivado em `docs/edge-release/rollback/20261105/create-whatsapp-order-v27/` antes do corte. ZIP manual Cloudflare `luciane-oliveira-doces-bairros-agrupados-20261105-cloudflare.zip` corresponde ao código testado e ao backend, checksum `fa0f28fd8c28eecded874edbcf6c7d333ca47d0658d235824d1dbdc87ee6990d`; produção Cloudflare ainda não foi alterada pelo agente.
 - Não inferir aprovação de Safari físico ou comportamento de pedidos reais a partir da CI. As flags estritas seguem sem alteração. Reverter frontend antes de reverter Edge se necessário.
+
+## D-C23 — Correção prioritária de Juparanã, mantendo Empresa separada (06/11/2026)
+
+- A decisão expressa atual substitui o valor anterior de Juparanã bairro em D-C19: **bairro R$ 8; Juparanã Empresa R$ 10**.
+- Permanecem IDs `juparana` e `juparana-empresa`, zonas distintas, nenhuma migração de dados. O preço R$ 8 está na zona própria do bairro, sem fundir com `cidade` e sem redefinir a zona da empresa.
+- Código e testes atualizados nos contratos frontend/backend; não mexer na loja Gestao, no gateway Mercado Pago, em pagamentos históricos nem em taxas de outros bairros.
+- **Evitar divergência entre site e servidor:** a versão anterior do frontend calcula R$ 10 para o bairro; o backend novo precisa cobrar R$ 8 e rejeita total divergente. Não implantar Edge v29 antecipadamente enquanto o usuário não estiver pronto para subir o ZIP atualizado; publicar ambos em uma janela curta e verificar pedido real logo após.
