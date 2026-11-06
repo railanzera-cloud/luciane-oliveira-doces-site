@@ -1,0 +1,110 @@
+// QA visual do pós-adição. WebKit automatizado em pacote local, sem contatos nem pedidos reais.
+// Simula disponibilidade pública, não usa dados de estoque produtivo nem Safari físico.
+import assert from "node:assert/strict";
+import { mkdir } from "node:fs/promises";
+import path from "node:path";
+import { createRequire } from "node:module";
+
+assert.ok(process.env.QA_PACKAGE && process.env.QA_OUTPUT, "Dependências QA não configuradas");
+const { webkit } = createRequire(process.env.QA_PACKAGE)("playwright");
+const origin = "http://127.0.0.1:8181";
+const out = path.resolve(process.env.QA_OUTPUT);
+await mkdir(out, { recursive: true });
+
+const stockKeys = [
+  "trufada_ninho_p", "trufada_ninho_m", "trufada_ninho_g",
+  "trufada_pacoca_p", "trufada_pacoca_m", "trufada_pacoca_g",
+  "trufada_coco_queimado_p", "trufada_coco_queimado_m", "trufada_coco_queimado_g",
+];
+const screens = [[320,568],[375,667],[390,844],[430,932]];
+const browser = await webkit.launch();
+let completed = 0;
+try {
+  for (const [width, height] of screens) {
+    for (const slicesAvailable of [true, false]) {
+      const context = await browser.newContext({
+        viewport: { width, height }, isMobile: true, hasTouch: true,
+        reducedMotion: "reduce", serviceWorkers: "block",
+      });
+      const menu = [
+        { item_key: "category_pipocas", status: "available" },
+        { item_key: "category_fatias", status: slicesAvailable ? "available" : "sold_out" },
+        { item_key: "popcorn_size_500ml", status: "available" },
+        { item_key: "popcorn_flavor_leitinho", status: "available" },
+        { item_key: "slice_chocolatudo", status: slicesAvailable ? "available" : "sold_out" },
+        ...stockKeys.map(item_key => ({ item_key, status: "available" })),
+      ];
+      const fixtures = {
+        store_settings: [{ key: "orders_open", value: true }],
+        menu_availability: menu,
+        public_crocante_inventory: stockKeys.map(item_key => ({ item_key, available: 3 })),
+        public_slice_preorder: null,
+      };
+      await context.route("**/*", route => {
+        const url = new URL(route.request().url());
+        if (url.origin === origin) return route.continue();
+        if (url.hostname !== "edqiwvccmboyayojvuea.supabase.co") return route.abort();
+        const key = url.pathname.split("/").pop();
+        return Object.hasOwn(fixtures, key)
+          ? route.fulfill({ json: fixtures[key] })
+          : route.abort();
+      });
+      const page = await context.newPage();
+      page.setDefaultTimeout(15000);
+      const errors = [];
+      page.on("pageerror", error => errors.push(error.message));
+      try {
+        await page.goto(origin + "/?categoria=pipocas&utm_source=qa-contextual", { waitUntil: "domcontentloaded" });
+        await page.locator('label[for="size-500ml"]').waitFor({state:"visible"});
+        await page.locator('label[for="size-500ml"]').tap();
+        await page.locator('label[for="flavor-leitinho"]').tap();
+        const add = page.locator("#quantidade-pipocas .add-button");
+        await add.waitFor({state:"visible"});
+        await add.tap();
+        const confirmation = page.locator("#recebimento .boutique-added-continuity");
+        await confirmation.waitFor({state:"visible"});
+        const choices = confirmation.locator(".boutique-complement-choice");
+        assert.equal(await choices.count(), slicesAvailable ? 3 : 2, "Quantidade de categorias sugeridas deve refletir disponibilidade");
+        assert.equal(await page.locator("#carrinho .cart-add-more").count(), 0,
+          "Não exibir dois conjuntos de sugestões durante a confirmação temporária");
+        assert.match(await confirmation.innerText(), /Quer completar seu pedido/i);
+        assert.equal(await confirmation.getByText("Pipocas Trufadas").count(), 1);
+        assert.equal(await confirmation.getByText("Outro pote recheado").count(), 1);
+        assert.equal(await confirmation.getByText("Adicionar fatia").count(), slicesAvailable ? 1 : 0);
+        await confirmation.scrollIntoViewIfNeeded();
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1), false,
+          "Complementos não podem causar overflow horizontal");
+        const imgs = confirmation.locator(".boutique-complement-media img");
+        assert.equal(await imgs.count(), slicesAvailable ? 3 : 2);
+        for (let i=0;i<await imgs.count();i++) {
+          await imgs.nth(i).scrollIntoViewIfNeeded();
+          await imgs.nth(i).evaluate(img => img.decode());
+          assert.ok(await imgs.nth(i).evaluate(img => img.naturalWidth > 0), "Foto precisa carregar");
+        }
+        await confirmation.screenshot({
+          path: path.join(out, "complementos-" + width + "-" + (slicesAvailable ? "com-fatias" : "fatias-esgotadas") + ".png"),
+          animations: "disabled",
+        });
+        await page.locator('label[for="receive-pickup"]').tap();
+        await confirmation.waitFor({state:"detached"});
+        await page.locator("#carrinho .cart-add-more").waitFor({state:"visible"});
+        assert.equal(await page.locator("#carrinho .cart-item").count(), 1,
+          "Escolha da retirada não pode limpar o item");
+        assert.equal(errors.length, 0, "Erro de runtime: "+errors.join("; "));
+        completed++;
+      } catch (error) {
+        await page.screenshot({
+          path: path.join(out, "falha-complementos-" + width + "-" + (slicesAvailable ? "fatias" : "esgotadas") + ".png"),
+          fullPage: true,
+        }).catch(()=>{});
+        throw error;
+      } finally {
+        await context.close();
+      }
+    }
+  }
+} finally {
+  await browser.close();
+}
+assert.equal(completed, screens.length * 2);
+console.log("Complementos WebKit isolados: " + completed + " cenários aprovados; nenhuma venda/pagamento executado.");
