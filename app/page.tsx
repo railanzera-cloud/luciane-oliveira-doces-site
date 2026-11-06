@@ -69,6 +69,7 @@ import { useMenuAvailability } from "@/hooks/use-menu-availability";
 import { isLastSlicesWindow, LAST_SLICES_PRODUCT_IDS } from "@/app/last-slices-campaign";
 import { usePopcornPromotion } from "@/hooks/use-popcorn-promotion";
 import { gourmetFlavorScrollTop } from "@/lib/gourmet-guided-scroll";
+import { orderCheckoutComplements } from "@/lib/checkout-complement-order.mjs";
 import { getLimitedCupPhase, type LimitedCupPhase } from "@/app/limited-cup-release";
 import { isPopcornPromotionActive } from "@/supabase/functions/_shared/popcorn-promotion.mjs";
 import { GOURMET_HOLIDAY_CREATIVE } from "@/lib/storefront-campaign-creative";
@@ -984,9 +985,21 @@ export default function Home() {
   const justAddedProduct = addedNotice
     ? PRODUCTS.find((product) => product.id === addedNotice.productId)
     : null;
-  const addMoreCategories: readonly CategoryId[] = addedNotice?.category === "pipocas"
-    ? ["pipocas", "fatias"]
-    : ["fatias", "pipocas"];
+  // Recomendações são apenas atalhos de navegação para produtos de fato selecionáveis.
+  // Nunca assumem quantidade, alteram preço ou habilitam uma categoria indisponível.
+  const checkoutComplementItems = orderCheckoutComplements(
+    addedNotice && isTrufadaOrLegacy(addedNotice.productId) ? "trufadas"
+      : addedNotice?.category === "fatias" ? "fatias" : "gourmet",
+    {
+      gourmet: availability.ordersOpen && pipocasAvailable && POPCORN.available
+        && POPCORN.variants.some((variant) => variant.available && popcornSizeIsAvailable(variant.id)),
+      fatias: availability.ordersOpen && fatiasAvailable
+        && SLICES.some((slice) => sliceIsVisible(slice.id) && slice.available
+          && Boolean(slice.variants[0]?.available) && sliceIsAvailable(slice.id)),
+      trufadas: cupCanBeAddedFromCheckout,
+      bebidas: STORE_CONFIG.enabledExtras.drinks && availability.ordersOpen,
+    },
+  );
   const cartIssues = useMemo(
     () => cartAvailabilityIssues(cart, availability),
     [availability, cart],
@@ -2768,7 +2781,7 @@ export default function Home() {
                       <p className="cart-save-note"><Check size={14} aria-hidden="true" /> Pedido mantido somente nesta aba. Ao fechá-la, ele é limpo.</p>
                     </div>
                   </details>
-                  <div className="cart-add-more">
+                  {!addedNotice && <div className="cart-add-more">
                     <strong>Adicionar mais itens</strong>
                     <div className={`cart-add-options ${STORE_CONFIG.enabledExtras.drinks ? "" : "without-drinks"} ${cupCanBeAddedFromCheckout ? "has-crocantes-option" : ""}`}>
                       {fatiasAvailable && <Button type="button" variant="outline" onClick={() => startAnother("fatias")}><CakeSlice size={16} /> {addMoreButtonLabel("fatias", cart)}</Button>}
@@ -2776,7 +2789,7 @@ export default function Home() {
                       {cupCanBeAddedFromCheckout && <Button type="button" variant="outline" className="crocantes-cross-sell" onClick={startAnotherCrocantes}><ShoppingBag size={16} /> {cartContainsCrocantes ? "Adicionar outro pacote" : "Adicionar pacote Trufado"} <ChevronRight size={15} aria-hidden="true" /></Button>}
                       {STORE_CONFIG.enabledExtras.drinks && <Button type="button" variant="outline" onClick={() => scrollToSection("acompanhamentos")}><CupSoda size={16} /> Refrigerante</Button>}
                     </div>
-                  </div>
+                  </div>}
                 </div>
               )}
             </section>
@@ -2795,18 +2808,50 @@ export default function Home() {
                       <p>{addedNotice.description}</p>
                     </div>
                   </div>
-                  <div className="boutique-added-other">
-                    <span>Quer adicionar mais alguma coisa?</span>
-                    <div className={`boutique-added-other-actions ${cupCanBeAddedFromCheckout ? "has-crocantes-option" : ""}`}>
-                      {addMoreCategories.filter((category) => categoryIsAvailable(category)).map((category) => (
-                        <Button type="button" key={category} variant="outline" onClick={() => startAnother(category)}>
-                          {category === "pipocas" ? <Plus size={15} aria-hidden="true" /> : <CakeSlice size={15} aria-hidden="true" />}
-                          {addMoreButtonLabel(category, cart)}
-                        </Button>
-                      ))}
-                      {cupCanBeAddedFromCheckout && <Button type="button" variant="outline" className="crocantes-cross-sell" onClick={startAnotherCrocantes}><ShoppingBag size={15} aria-hidden="true" /> {cartContainsCrocantes ? "Adicionar outro pacote" : "Adicionar pacote Trufado"} <ChevronRight size={15} aria-hidden="true" /></Button>}
+                  {checkoutComplementItems.length > 0 && (
+                    <div className="boutique-added-other">
+                      <div className="boutique-added-other-intro">
+                        <strong>Quer completar seu pedido?</strong>
+                        <p>Se preferir, escolha entrega ou retirada logo abaixo.</p>
+                      </div>
+                      <div className="boutique-complement-grid" role="group" aria-label="Outros produtos disponíveis para adicionar">
+                        {checkoutComplementItems.map((id) => {
+                          const heading = id === "gourmet" ? addMoreButtonLabel("pipocas", cart)
+                            : id === "fatias" ? addMoreButtonLabel("fatias", cart)
+                              : id === "trufadas" ? cartContainsCrocantes ? "Outro pacote Trufado" : "Pipocas Trufadas"
+                                : "Refrigerante";
+                          const detail = id === "gourmet" ? "Montar pote Gourmet"
+                            : id === "fatias" ? "Escolher sua fatia"
+                              : id === "trufadas" ? "Escolher sabor e tamanho"
+                                : "Ver acompanhamentos";
+                          const photo = id === "gourmet" ? "/images/categoria-pipocas-editorial-enquadrada-v107.webp"
+                            : id === "fatias" ? "/images/categoria-fatias-editorial.webp"
+                              : id === "trufadas" ? "/images/pipocas-trufadas-ninho-20261101.webp"
+                                : null;
+                          return (
+                            <button type="button" key={id} className="boutique-complement-choice"
+                              onClick={() => {
+                                if (id === "gourmet") startAnother("pipocas");
+                                else if (id === "fatias") startAnother("fatias");
+                                else if (id === "trufadas") startAnotherCrocantes();
+                                else scrollToSection("acompanhamentos");
+                              }}>
+                              <span className="boutique-complement-media" aria-hidden="true">
+                                {photo
+                                  ? <img src={photo} alt="" width="96" height="96" loading="lazy" decoding="async" />
+                                  : <CupSoda size={22} strokeWidth={1.6} />}
+                              </span>
+                              <span className="boutique-complement-copy">
+                                <strong>{heading}</strong>
+                                <small>{detail}</small>
+                              </span>
+                              <ChevronRight size={17} aria-hidden="true" className="boutique-complement-arrow" />
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
               <div className="step-heading checkout-step-heading"><StepMarker number={4} state={receivingStepState} /><div><h2 id="receiving-title">Como deseja receber?</h2><p>Escolha a opção mais conveniente.</p></div></div>
