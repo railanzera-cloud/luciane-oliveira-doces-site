@@ -76,3 +76,10 @@ Na branch `work/entrega-busca-bairros-segura-20261105`, o código SHA `1a6a12877
 ## 9. Gate WhatsApp v28 para bairros agrupados
 
 O backend WhatsApp v28 (hash `4280c753e967c42ba07c5ce359afda9a13bba9139f3323edd8c2fdf6b950da94`) está ativo e conferido byte a byte com commit `93674bb33e10eaa80e1e0651ba5e12860e503de2`. Código CI [42119880626](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42119880626) aprovado (24 testes de entrega, 755 regressões, 12 handlers isolados, WebKit 4 viewports). Arquivo Cloudflare manual `luciane-oliveira-doces-bairros-agrupados-20261105-cloudflare.zip`, SHA256 `fa0f28fd8c28eecded874edbcf6c7d333ca47d0658d235824d1dbdc87ee6990d` (72 arquivos), está pronto para upload **pelo proprietário**, não foi publicado pelo agente. O backend v27 foi arquivado para rollback. Apenas localhost/CI testou UI; Safari físico/Instagram continuam pendentes. Não mexer em pagamentos online, Cloudflare diretamente, flags, SQL, estoque ou pedidos. Ver `docs/ENTREGA-MANUAL-BAIRROS-AGRUPADOS-20261105.md`.
+
+
+## 10. Gate coordenado Juparanã bairro R$ 8 — 06/11/2026
+
+- Code SHA `64701d7d5cb38c49b17247f72e02029352785f53`, GitHub Actions [42271894266](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42271894266) SUCCESS; novo ZIP Cloudflare 72 entradas, SHA256 `1a648860af2ac29c0e0910aa82e7de1192359e981341f7e5f48317f6e676dfd8`.
+- **STATUS: HOLD** até combinar publicação. A função live WhatsApp permanece **v28 com Juparanã bairro R$ 10**, embora o ZIP novo use R$ 8. Publicação isolada do ZIP ou deploy antecipado da função podem recusar pedidos por total divergente.
+- O dono do site faz upload do Cloudflare manualmente, após combinar o instante do corte. Antes: snapshot exato v28, checar hash da função e compatibilidade de seis arquivos, publicar a versão backend compatível e orientar upload do ZIP. Após: simular Juparanã bairro R$ 8, Empresa R$ 10, conferir checkout e pedidos reais sem pagamento automático. Não ativar flags estritas; nada de SQL, estoque, Gestao ou `create-order` v14.
