@@ -1994,7 +1994,7 @@ export default function Home() {
   function handleStickyAction() {
     // Mantém o dispatcher central de navegação; o caso Gourmet contextual
     // apenas leva à quantidade, sem adicionar item nem pular etapas.
-    if (gourmetContinueAvailable) {
+    if (typeof gourmetContinueAvailable !== "undefined" && gourmetContinueAvailable) {
       requestScroll("gourmet-quantity-action");
       return;
     }
