@@ -40,7 +40,7 @@ test("uma única barra contextualmente reutilizada não compete com ações inli
   assert.match(page,/document\.querySelector<HTMLElement>\("#quantidade-pipocas \.quantity-row"\)/);
   assert.match(page,/&& gourmetFlavorsInView && !gourmetContinueAvailable/);
   assert.match(page,/onClick=\{handleStickyAction\}/);
-  assert.match(page,/if \(gourmetContinueAvailable\) \{\s*requestScroll\("gourmet-quantity-action"\);\s*return;/);
+  assert.match(page,/if \(typeof gourmetContinueAvailable !== "undefined" && gourmetContinueAvailable\) \{\s*requestScroll\("gourmet-quantity-action"\);\s*return;/);
   assert.match(page,/is-gourmet-flavor-continue/);
   assert.match(page,/popcornOptionIds\.length === 1 \? "sabor" : "sabores"/);
   assert.match(css,/mobile-sticky-bar\.is-gourmet-flavor-continue/);
