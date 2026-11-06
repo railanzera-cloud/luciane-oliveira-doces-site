@@ -59,8 +59,8 @@ try {
       assert.match(await combination.locator(".gourmet-combination-hint").innerText(),/Toque no × para remover um sabor e escolher outro/);
       assert.equal(await combination.locator(".gourmet-combination-title-line").count(),1);
       assert.equal(await combination.locator(".gourmet-removable-tag").count(),1);
-      await combination.scrollIntoViewIfNeeded();
-      await combination.screenshot({path:path.join(output,`gourmet-combinacao-premium-1-sabor-${width}.png`),animations:"disabled"});
+      // A barra deve ser exercitada antes de rolar até o resumo para a foto.
+      // Ao mover a rolagem, ela se oculta de propósito.
       // Barra compacta não deve estourar viewport nem bloquear a última opção:
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth+1),false);
       const rect=await dock.boundingBox();assert.ok(rect&&rect.height<=65,"bar baixa, sem segundo painel");
@@ -75,6 +75,8 @@ try {
       await dock.waitFor({state:"detached",timeout:6000});
       assert.equal(await dock.count(),0,"Ao alcançar quantidade a ação especial desaparece");
       assert.equal(await page.locator("#quantidade-pipocas .quantity-control strong").innerText(),"1");
+      await combination.scrollIntoViewIfNeeded();
+      await combination.screenshot({path:path.join(output,`gourmet-combinacao-premium-1-sabor-${width}.png`),animations:"disabled"});
 
       // Uma escolha de dois sabores num pote que permite até três: pode seguir
       // a qualquer momento, mas a pessoa ainda consegue selecionar o terceiro.
