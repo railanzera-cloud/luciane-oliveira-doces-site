@@ -54,7 +54,13 @@ try {
       assert.match(await dock.innerText(),/Continuar com 1 sabor/);
       const tags=page.locator("#sabores .gourmet-removable-tag");
       assert.equal(await tags.count(),1);
-      assert.equal(await page.locator("#sabores .gourmet-combination-hint").count(),0);
+      const combination=page.locator("#sabores .gourmet-combination-review");
+      assert.equal(await combination.getByText("Sua combinação").count(),1);
+      assert.match(await combination.locator(".gourmet-combination-hint").innerText(),/Toque no × para remover um sabor e escolher outro/);
+      assert.equal(await combination.locator(".gourmet-combination-title-line").count(),1);
+      assert.equal(await combination.locator(".gourmet-removable-tag").count(),1);
+      await combination.scrollIntoViewIfNeeded();
+      await combination.screenshot({path:path.join(output,`gourmet-combinacao-premium-1-sabor-${width}.png`),animations:"disabled"});
       // Barra compacta não deve estourar viewport nem bloquear a última opção:
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth+1),false);
       const rect=await dock.boundingBox();assert.ok(rect&&rect.height<=65,"bar baixa, sem segundo painel");
@@ -93,6 +99,13 @@ try {
       assert.match(await page.locator("#sabores .boutique-price-guide").innerText(),/R\$\s*58,00/);
       assert.equal(await page.locator("#sabores .gourmet-removable-tag").count(),3);
       assert.equal(await dock.count(),0,"Limite preenchido usa a progressão original");
+      assert.equal(await page.locator("#sabores .selection-helper").count(),0,
+        "Orientação de limite preenchido não pode repetir a instrução do resumo");
+      const combinationFull=page.locator("#sabores .gourmet-combination-review");
+      await combinationFull.scrollIntoViewIfNeeded();
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth > window.innerWidth+1),false,
+        "Resumo com três sabores não pode causar overflow lateral");
+      await combinationFull.screenshot({path:path.join(output,`gourmet-combinacao-premium-3-sabores-${width}.png`),animations:"disabled"});
       assert.equal(errors.length,0,"Erros de runtime: "+errors.join("; "));
       passed++;
       console.log("Gourmet continuar 1 ou 2 sabores WebKit "+width+"x"+height+" OK");
