@@ -261,3 +261,12 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - **Segurança de publicação:** registrar linha individual inicialmente `hidden`; somente o controle autenticado do /admin poderá marcar `available` quando estoque real e versão compatível frontend/Edge estiverem confirmados. O frontend mantém fallback oculto até receber a linha remota. A existência do registro no Supabase não comprova venda liberada.
 - **Rejeitado:** inventar estoque físico, marcar outras fatias disponíveis, reutilizar SKU ou publicar frontend que a Edge v30 não reconheça.
 - **Prova inicial:** branch `feat/fatia-bombom-uva-20261107` descendente de `work/gourmet-editorial-economia-unica-20261107`; SQL individual no Supabase comercial criou `menu_availability.id=36`, `status=hidden`. CI, publicação e Edge posterior devem constar no checkpoint, não ser inferidos aqui.
+
+
+## Adendo D-C03 / D-C15 — Foto natural do Bombom de Uva prevalece sobre tratamento (07/11/2026)
+
+- **Origem:** novo pedido expresso com fotografia `Uva 01(1).jpeg` e captura do site; proprietário quer a mesma linguagem natural dos demais cards.
+- **Decisão:** usar a foto real recebida, sem realce ou reconstituição, apenas redimensionamento/compressão de arquivo para o site; manter preço R$ 20 e indicar 380 g tanto no card quanto no carrinho.
+- **Alternativa rejeitada:** fotografia aprimorada por IA embora inicialmente escolhida, porque destoou das demais fotos naturais ao ser vista na vitrine.
+- **Proteções:** manter o produto `fatia-bombom-uva` / `slice_bombom_uva`, categoria, calda, preço, painel de disponibilidade, status atual e Edge comercial; não tocar em demais fatias.
+- **Status:** código do peso alterado e testes de regressão aprovados; foto original aplicada no ZIP corrigido, **ainda pendente versionar a imagem natural no GitHub** para evitar regressão em rebuild futuro. Publicação do ZIP corrigido não comprovada.
