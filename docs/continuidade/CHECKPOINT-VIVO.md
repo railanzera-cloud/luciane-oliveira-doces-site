@@ -584,3 +584,13 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - **Supabase (somente leitura):** `slice_bombom_uva`, id 36, marcado `available` pelo painel da loja; Edge `create-whatsapp-order` v31 ACTIVE, sem mudanças nesta etapa. Preço e ids intactos.
 - **Importante pendência de reprodutibilidade:** a foto natural foi colocada **no ZIP para publicação**, mas o blob `public/fatia-bombom-uva.avif` do repositório ainda contém a foto anteriormente aprimorada. **Não regenerar/publicar diretamente do GitHub sem sincronizar a foto natural**, para não substituir o aceite atual por versão rejeitada. Manter a referência JPEG e os hashes para regularizar a fonte.
 - **Estado de publicação:** sem acesso à confirmação do novo deployment Cloudflare; não afirmar publicado. Confirmar no domínio/iPhone após upload: foto natural, 380 g, preço R$20, botão e checkout WhatsApp. Sem SQL, Edge deploy, estoque, pagamento, QZ ou CRM alterados neste refinamento.
+
+
+## 41. Chocolate com Maracujá — fotografia do prato branco escolhida (07/11/2026)
+
+- **Solicitação:** substituir a foto anterior de Chocolate com Maracujá pela **última imagem refinada** escolhida pelo proprietário, apresentada no prato branco, mantendo a aparência e a iluminação naturais.
+- **Escopo aplicado no pacote de Cloudflare:** imagens `fatia-chocolate-maracuja.jpeg` (foto completa) e `fatia-chocolate-maracuja-card.webp` (recorte 4:3). Nenhuma alteração nos demais 71 arquivos, incluindo Bombom de Uva natural, preço de R$ 20, peso de 380 g, checkout, CRM, bairros, funções Edge, Supabase ou estoque.
+- **Pacote manual:** `Luciane-Oliveira-Doces-Maracuja-Prato-Branco-20261107.zip`, 73 entradas, tamanho 4.648.958 bytes, SHA256 `057f2b06a736e61a112f0c8aea8e727290003f6e2087f1c78a78f9b772d2bc1f`. ZIP íntegro; comparação por SHA atesta somente dois arquivos modificados desde o ZIP natural do Bombom de Uva.
+- **Novos arquivos de distribuição:** JPEG 900×1200, SHA256 `01334987b575d2be2de96ab51668b5f391cf4ee372ff7513436a222669d4330c`; WebP de cartão 640×480, SHA256 `f91d325ac9dbabb3e3076f334b896e671afa2fcf36fd2db6031d2239fcbc3d37`.
+- **Divergência conhecida:** esta troca está materializada no **ZIP**, mas as duas imagens do repositório GitHub ainda precisam ser sincronizadas. Não reconstruir/prometer equivalência a partir deste HEAD sem os dois assets novos, nem voltar à versão antiga ou ao tratamento do Bombom de Uva não aprovado.
+- **Publicação:** não foi feito deploy no Cloudflare; aguardar upload e confirmar no domínio a foto nova tanto no cartão quanto no detalhe, especialmente em iPhone.
