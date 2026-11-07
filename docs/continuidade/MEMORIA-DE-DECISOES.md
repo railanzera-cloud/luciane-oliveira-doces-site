@@ -251,3 +251,13 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - **Evitar redundância:** não repetir tamanho, preço nem indicador `3/3` no cartão; quando o limite for atingido e não houver erro, ocultar a frase separada “Limite preenchido. Desmarque um sabor para trocar.” O fluxo mantém mensagens reais de erro ou indisponibilidade.
 - **Continuidade protegida:** a barra contextual de “Continuar com 1/2 sabores”, limite opcional 1 até 2/3, seleção individual, precificação pelo grupo mais caro, CTA e checkout continuam idênticos. A mudança é apresentação e microcopy, não regra de negócio.
 - **Situação:** implementada como refinamento na própria PR #10; nova homologação WebKit e conferência no Instagram/iPhone permanecem etapas distintas da autorização conceitual.
+
+
+## D-C29 — Bombom de Uva: produto novo, foto aprovada e disponibilidade independente (07/11/2026)
+
+- **Origem:** proprietária enviou fotos da fatia, aprovou a primeira composição levemente melhorada e confirmou o preço **R$ 20,00**; autorizou registro completo no site e no Supabase comercial.
+- **Decisão:** cadastrar novo `fatia-bombom-uva` / `slice_bombom_uva`, sem reutilizar identidade ou editar as demais fatias. Preservar as opções atuais de calda, a cotação autoritativa de R$ 2.000 centavos, a experiência de carrinho/WhatsApp, o painel de disponibilidade e a comanda pelo fluxo existente.
+- **Imagem:** versão aprovada otimizada em `public/fatia-bombom-uva.avif` (800×1000), derivada de foto enviada pela loja, com refinamento editorial discreto; usar para o produto e seu cartão. Não substituir outras fotos nem presumir que a IA prove peso, quantidade ou estoque.
+- **Segurança de publicação:** registrar linha individual inicialmente `hidden`; somente o controle autenticado do /admin poderá marcar `available` quando estoque real e versão compatível frontend/Edge estiverem confirmados. O frontend mantém fallback oculto até receber a linha remota. A existência do registro no Supabase não comprova venda liberada.
+- **Rejeitado:** inventar estoque físico, marcar outras fatias disponíveis, reutilizar SKU ou publicar frontend que a Edge v30 não reconheça.
+- **Prova inicial:** branch `feat/fatia-bombom-uva-20261107` descendente de `work/gourmet-editorial-economia-unica-20261107`; SQL individual no Supabase comercial criou `menu_availability.id=36`, `status=hidden`. CI, publicação e Edge posterior devem constar no checkpoint, não ser inferidos aqui.
