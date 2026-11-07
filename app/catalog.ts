@@ -241,6 +241,18 @@ export const PRODUCTS: Product[] = [
     options: SLICE_OPTIONS,
   },
   {
+    id: "fatia-bombom-uva",
+    kind: "slice",
+    category: "Fatias Artesanais",
+    name: "Bombom de Uva",
+    image: "/fatia-bombom-uva.avif",
+    cardImage: "/fatia-bombom-uva.avif",
+    imageAlt: "Fatia artesanal de bolo de chocolate com creme e uvas verdes",
+    available: true,
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
+    options: SLICE_OPTIONS,
+  },
+  {
     id: "coca-cola-220",
     kind: "drink",
     category: "Refrigerantes",
