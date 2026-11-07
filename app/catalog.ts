@@ -289,7 +289,7 @@ export function popcornPrice(size: string, optionIds: readonly string[] = [], no
     if (!option?.pricingGroup) throw new Error("Escolha um sabor válido de pipoca.");
     return Math.max(highest, option.pricingGroup) as PopcornPricingGroup;
   }, 1);
-  return promotionalPopcornPriceCents(size, POPCORN_PRICING_GROUPS[group][size as PopcornSize] * 100, now, optionIds) / 100;
+  return promotionalPopcornPriceCents(size, POPCORN_PRICING_GROUPS[group][size as PopcornSize] * 100, now, [...optionIds]) / 100;
 }
 
 // As regiões de R$8 e R$10 aparecem primeiro por serem as mais pedidas.
