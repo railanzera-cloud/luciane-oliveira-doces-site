@@ -6,6 +6,7 @@ import { quoteCartItems } from "../supabase/functions/_shared/commerce-catalog.m
 const front = readFileSync("app/catalog.ts", "utf8");
 const availability = readFileSync("app/menu-availability.ts", "utf8");
 const backend = readFileSync("supabase/functions/_shared/commerce-catalog.mjs", "utf8");
+const page = readFileSync("app/page.tsx", "utf8");
 const migration = readFileSync("supabase/migrations/20261107190000_fatia_bombom_uva.sql", "utf8");
 const productId = "fatia-bombom-uva", itemKey = "slice_bombom_uva", name = "Bombom de Uva";
 
@@ -46,4 +47,10 @@ test("Foto comercial realçada e aprovada está versionada em AVIF", () => {
   const img = readFileSync(path);
   assert.ok(statSync(path).size > 10000);
   assert.equal(img.toString("ascii", 4, 12), "ftypavif");
+});
+
+
+test("Novo sabor não recebe peso genérico não confirmado", () => {
+  assert.ok(page.includes('slice.id !== "fatia-bombom-uva" && <span className="slice-weight">'));
+  assert.ok(page.includes('product.id !== "fatia-bombom-uva" && <span>{SLICE_WEIGHT_GRAMS} g por fatia</span>'));
 });
