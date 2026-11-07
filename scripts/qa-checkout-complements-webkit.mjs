@@ -31,6 +31,8 @@ try {
         { item_key: "category_fatias", status: slicesAvailable ? "available" : "sold_out" },
         { item_key: "popcorn_size_500ml", status: "available" },
         { item_key: "popcorn_flavor_leitinho", status: "available" },
+        { item_key: "popcorn_flavor_kinder_bueno", status: "available" },
+        { item_key: "popcorn_flavor_nutella", status: "available" },
         { item_key: "slice_chocolatudo", status: slicesAvailable ? "available" : "sold_out" },
         ...stockKeys.map(item_key => ({ item_key, status: "available" })),
       ];
@@ -54,6 +56,34 @@ try {
       const errors = [];
       page.on("pageerror", error => errors.push(error.message));
       try {
+        // Janela absoluta: fixtures não dependem do dia em que a CI for executada.
+        await page.clock.install({ time: new Date("2026-11-07T15:00:00Z") });
+        if (width === 390 && slicesAvailable) {
+          await page.goto(origin + "/?categoria=pipocas&utm_source=qa-promo-sabado", { waitUntil: "domcontentloaded" });
+          const banner = page.locator(".gourmet-feriado-edition");
+          await banner.waitFor({ state: "visible" });
+          assert.match(await banner.innerText(), /07\/11/);
+          assert.match(await banner.innerText(), /Nutella é a única exceção/);
+          await banner.screenshot({ path: path.join(out, "promocao-gourmet-0711-editorial-390.png"), animations: "disabled" });
+          await page.locator('label[for="size-500ml"]').tap();
+          await page.locator('label[for="flavor-kinder-bueno"]').tap();
+          assert.match(await page.locator(".boutique-price-guide-copy strong").innerText(), /25,00/,
+            "Kinder Bueno deve ter preço-base na promoção");
+          await page.locator('label[for="flavor-nutella"]').tap();
+          assert.match(await page.locator(".boutique-price-guide-copy strong").innerText(), /33,00/,
+            "Nutella em qualquer combinação deve retornar ao preço normal");
+          assert.match(await page.locator(".boutique-price-guide p").innerText(), /Nutella/);
+          assert.equal(await page.locator('label[for="flavor-nutella"] .gourmet-feriado-regular-price').count(), 0,
+            "Nutella não pode ter preço riscado");
+          await page.locator("#sabores .boutique-flavor-stage").screenshot({
+            path: path.join(out, "promocao-gourmet-0711-excecao-nutella-390.png"), animations: "disabled",
+          });
+          await page.clock.setFixedTime(new Date("2026-11-08T03:00:00Z"));
+          await page.reload({ waitUntil: "domcontentloaded" });
+          await page.locator('label[for="size-500ml"]').waitFor({ state: "visible" });
+          await banner.waitFor({ state: "hidden" });
+          await page.clock.setFixedTime(new Date("2026-11-07T15:00:00Z"));
+        }
         // A home continua navegável mesmo com imagens sem callout/arraste no Safari.
         if (slicesAvailable) {
           await page.goto(origin + "/?utm_source=qa-fotos-home", { waitUntil: "domcontentloaded" });
