@@ -42,7 +42,6 @@ import {
   DRINKS,
   POPCORN,
   popcornPrice,
-  POPCORN_PRICING_GROUPS,
   PRODUCTS,
   SLICES,
   SLICE_WEIGHT_GRAMS,
@@ -72,7 +71,7 @@ import { usePopcornPromotion } from "@/hooks/use-popcorn-promotion";
 import { gourmetFlavorScrollTop } from "@/lib/gourmet-guided-scroll";
 import { orderCheckoutComplements } from "@/lib/checkout-complement-order.mjs";
 import { getLimitedCupPhase, type LimitedCupPhase } from "@/app/limited-cup-release";
-import { isPopcornPromotionActive } from "@/supabase/functions/_shared/popcorn-promotion.mjs";
+import { isPopcornPromotionActive, POPCORN_PROMOTION } from "@/supabase/functions/_shared/popcorn-promotion.mjs";
 import { GOURMET_HOLIDAY_CREATIVE } from "@/lib/storefront-campaign-creative";
 import { StorefrontCampaignEditorial } from "@/components/storefront-campaign-editorial";
 import {
@@ -941,6 +940,18 @@ export default function Home() {
   }, [activeCategory, showLimitedCupView, popcornVariantUsable]);
   const popcornMaxOptions = popcornVariant?.maxOptions ?? 0;
   const popcornLimitReached = Boolean(popcornVariant) && popcornOptionIds.length >= popcornMaxOptions;
+  // A comparação utiliza a MESMA regra do catálogo antes da promoção.
+  // A economia é do pote completo, nunca a soma dos sabores.
+  const popcornRegularCombinationPrice = popcornVariantUsable && popcornVariant && popcornOptionIds.length > 0
+    ? popcornPrice(popcornVariant.id, popcornOptionIds, POPCORN_PROMOTION.startsAt - 1)
+    : null;
+  const popcornCurrentCombinationPrice = popcornVariantUsable && popcornVariant && popcornOptionIds.length > 0
+    ? popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime)
+    : null;
+  const popcornCombinationSavings = popcornPromotionActive
+    && popcornRegularCombinationPrice !== null && popcornCurrentCombinationPrice !== null
+    ? Math.max(0, popcornRegularCombinationPrice - popcornCurrentCombinationPrice)
+    : 0;
   const selectedSlice = SLICES.find((product) => product.id === sliceProductId);
   const selectedSliceVariant = selectedSlice?.variants[0];
   const selectedDeliveryLocality = deliveryLocalityById(deliveryLocalityId);
@@ -2476,10 +2487,10 @@ export default function Home() {
                       ? popcornPrice(popcornVariant.id, [option.id], promotionTime) : null;
                     const priceDifference = currentPotPrice !== null && potPriceWithOption !== null
                       ? Math.max(0, potPriceWithOption - currentPotPrice) : 0;
-                    const regularSpecialPrice = popcornVariantUsable && popcornVariant && option.pricingGroup && option.pricingGroup > 1
-                      ? POPCORN_PRICING_GROUPS[option.pricingGroup][popcornVariant.id as "500ml" | "750ml" | "1l"]
-                      : null;
                     const optionCombination = selected ? popcornOptionIds : [...popcornOptionIds, option.id];
+                    const regularSpecialPrice = popcornVariantUsable && popcornVariant && option.pricingGroup && option.pricingGroup > 1
+                      ? popcornPrice(popcornVariant.id, optionCombination, POPCORN_PROMOTION.startsAt - 1)
+                      : null;
                     const includesNutella = optionCombination.includes("nutella");
                     const savedToday = !includesNutella && regularSpecialPrice !== null && potPriceWithOption !== null
                       ? Math.max(0, regularSpecialPrice - potPriceWithOption)
@@ -2497,7 +2508,7 @@ export default function Home() {
                         <span className="boutique-flavor-value">
                           {potPriceWithOption !== null && (!popcornPromotionActive || available) && (
                             <span className="boutique-flavor-cost">
-                              {popcornPromotionActive && regularSpecialPrice !== null && savedToday > 0 && (
+                              {popcornPromotionActive && !selected && !disabled && regularSpecialPrice !== null && savedToday > 0 && (
                                 <del className="gourmet-feriado-regular-price" aria-label="Preço habitual deste pote com o recheio">
                                   {currency.format(regularSpecialPrice)}
                                 </del>
@@ -2507,7 +2518,7 @@ export default function Home() {
                               {popcornPromotionActive && option.id === "nutella" && available && (
                                 <span className="gourmet-feriado-exception">Preço normal</span>
                               )}
-                              {popcornPromotionActive && savedToday > 0 && available && (
+                              {popcornPromotionActive && popcornOptionIds.length === 0 && !selected && !disabled && savedToday > 0 && available && (
                                 <span className="gourmet-feriado-saving" aria-label={`Economia de ${currency.format(savedToday)} hoje`}>
                                   Economize {currency.format(savedToday)}
                                 </span>
@@ -2564,6 +2575,12 @@ export default function Home() {
                         ) : null;
                       })}
                     </div>
+                    {popcornCombinationSavings > 0 && popcornRegularCombinationPrice !== null && (
+                      <div className="gourmet-combination-savings" role="status" aria-live="polite" aria-atomic="true">
+                        <span>Preço normal do pote <del>{currency.format(popcornRegularCombinationPrice)}</del></span>
+                        <strong>Você economiza {currency.format(popcornCombinationSavings)} neste pote</strong>
+                      </div>
+                    )}
                   </div>
                 )}
                 {(selectionMessage || !popcornLimitReached) && (

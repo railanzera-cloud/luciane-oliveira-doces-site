@@ -153,3 +153,46 @@
   background: rgba(80,49,30,.26); color: #fbe5c5;
   font-size: .67rem; font-weight: 740; line-height: 1.2; white-space: nowrap;
 }
+
+/* 07/11 — destaque sem preços repetidos; economia consolidada só no pote. */
+.storefront #configurador .gourmet-feriado-edition {
+  gap: 7px;
+  margin-bottom: 15px;
+  padding: clamp(13px, 3.3vw, 18px);
+}
+.storefront #configurador .gourmet-feriado-bottom {
+  gap: 3px;
+  padding-top: 7px;
+  margin-top: 0;
+}
+.storefront #configurador .gourmet-feriado-bottom > small { color: #e1c8ae; }
+.storefront #configurador #sabores .gourmet-combination-savings {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 7px 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(240, 194, 132, .27);
+  font-variant-numeric: tabular-nums;
+}
+.storefront #configurador #sabores .gourmet-combination-savings > span {
+  color: #e4cbb0;
+  font-size: .73rem;
+  line-height: 1.4;
+}
+.storefront #configurador #sabores .gourmet-combination-savings del {
+  margin-left: 4px;
+  color: #cfaf92;
+  text-decoration-color: #d5a477;
+}
+.storefront #configurador #sabores .gourmet-combination-savings > strong {
+  color: #ffe0b0;
+  font-size: .82rem;
+  font-weight: 750;
+  line-height: 1.35;
+}
+@media (max-width: 359px) {
+  .storefront #configurador .gourmet-feriado-edition { padding: 12px 11px; }
+  .storefront #configurador #sabores .gourmet-combination-savings { gap: 3px; }
+}
