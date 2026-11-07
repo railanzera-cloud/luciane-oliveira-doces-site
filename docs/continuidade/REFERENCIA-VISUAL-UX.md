@@ -247,3 +247,11 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Problema observado:** valores 500ml/750ml/1L repetidos no destaque e nos seletores logo abaixo; dois selos de “Economize R$5” simultâneos em Kinder Bueno e Choco Cookies podiam sugerir economia acumulada de R$10, embora o pote normal valesse R$30 e o promocional R$25.
 - **Decisão aprovada e implementada:** o destaque editorial informa benefício/urgência/exceção Nutella em menos linhas e deixa os números para os cartões de tamanho; ao começar a seleção, os selos individuais deixam de se repetir nos escolhidos, enquanto a comparação fica disponível para explorar sabores. O resumo “Sua combinação”, sem alterar tags removíveis e a navegação, apresenta uma única linha com preço normal tachado e economia real do pote. Após selecionar Nutella ou encerrar a oferta, não mostrar linha promocional falsa.
 - **Restrições:** reutilizar fotografia e arte já aprovadas; nenhum novo card de promoção duplicado, contador artificial, mudança de preço, fluxo de pagamento ou alteração de SKU. Verificação de WebKit e screenshot para 390px no artifact `13579049297`. Aceite visual no Safari físico depois de publicar é separado de teste automatizado; ZIP conectado artifact `13579932199`.
+
+
+### UX-APROVADA-20261107.4 — Fotografia da nova Fatia Bombom de Uva
+
+- **Referência de aprovação:** proprietária comparou duas fotografias melhoradas da fatia real de bolo de chocolate, creme e uvas verdes, e escolheu explicitamente a **primeira** para o site; edição discreta, sem mudar a composição do doce.
+- **Imagem escolhida:** `public/fatia-bombom-uva.avif`, AVIF 800×1000 (originado da primeira imagem gerada/aperfeiçoada a partir do arquivo da proprietária). Apresentar no cartão e detalhe da fatia, sem floreios, textos sobrepostos ou substituição por imagens de produtos diferentes.
+- **Intocáveis:** fotografias e enquadramentos previamente aprovados das demais fatias, cardápio e cabeçalhos compartilhados; preço único R$20 e status real vindo do Supabase.
+- **Prova:** escolha estética aprovada pelo proprietário; comparação de renderização real em Safari/Instagram, captura do card no site e deploy Cloudflare não foram feitos nesta decisão.
