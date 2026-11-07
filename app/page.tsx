@@ -2672,7 +2672,7 @@ export default function Home() {
                           </span>
                           {slice.subtitle && <em>{slice.subtitle}</em>}
                           <span className="boutique-slice-card-footer">
-                            {slice.id !== "fatia-bombom-uva" && <span className="slice-weight">{SLICE_WEIGHT_GRAMS} g por fatia</span>}
+                            <span className="slice-weight">{SLICE_WEIGHT_GRAMS} g por fatia</span>
                             <b>{currency.format(variant.price)}</b>
                           </span>
                         </span>
@@ -2856,7 +2856,7 @@ export default function Home() {
                             {product.cardName && product.subtitle && <small className="cart-item-subtitle">{product.subtitle}</small>}
                             <div className="cart-item-specs">
                               <span>{variant.label}</span>
-                              {product.kind === "slice" && product.id !== "fatia-bombom-uva" && <span>{SLICE_WEIGHT_GRAMS} g por fatia</span>}
+                              {product.kind === "slice" && <span>{SLICE_WEIGHT_GRAMS} g por fatia</span>}
                               {optionNames && product.optionLabel && <span>{product.optionLabel}: {optionNames}</span>}
                               <span>Quantidade: {item.quantity}</span>
                             </div>
