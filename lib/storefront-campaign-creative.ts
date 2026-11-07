@@ -16,10 +16,10 @@ export type StorefrontCampaignCreative = Readonly<{
 
 export const GOURMET_HOLIDAY_CREATIVE: StorefrontCampaignCreative = Object.freeze({
   id: POPCORN_PROMOTION.id,
-  kicker: "Edição especial · 02/11",
+  kicker: "Sábado Gourmet · 07/11",
   deadline: "Só até 23h59",
-  title: "Hoje, qualquer recheio pelo preço do pote.",
-  description: "Nutella, Kinder Bueno e os outros sabores disponíveis sem pagar mais pelo recheio especial.",
-  assurance: "Escolha o tamanho abaixo e combine seus favoritos.",
-  finePrint: "Somente 02/11, horário de Paragominas. Sujeito à disponibilidade dos sabores.",
+  title: "Hoje, recheios especiais pelo preço-base do pote.",
+  description: "Kinder Bueno, Choco Cookies e os outros sabores disponíveis participam. Nutella é a única exceção e mantém o preço normal, mesmo em combinações.",
+  assurance: "500 ml R$ 25 · 750 ml R$ 39 · 1 litro R$ 49",
+  finePrint: "Somente 07/11, horário de Paragominas. Sujeito à disponibilidade dos sabores. Nutella não participa.",
 });

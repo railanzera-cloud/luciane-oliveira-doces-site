@@ -149,7 +149,7 @@ export function quoteCartItems(rawItems, now = Date.now()) {
         return flavor;
       });
       const pricingGroup = Math.max(...flavors.map((flavor) => flavor.pricingGroup));
-      const unitPriceCents = promotionalPopcornPriceCents(variantId, POPCORN_PRICES_CENTS[pricingGroup][variantId], now);
+      const unitPriceCents = promotionalPopcornPriceCents(variantId, POPCORN_PRICES_CENTS[pricingGroup][variantId], now, optionIds);
       const optionItemKeys = flavors.map((flavor) => flavor.itemKey);
       availabilityKeys.add(CATEGORY_ITEM_KEYS.pipocas);
       availabilityKeys.add(size.itemKey);

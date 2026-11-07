@@ -2451,7 +2451,9 @@ export default function Home() {
                           <strong>{currency.format(popcornPrice(popcornVariant.id, popcornOptionIds, promotionTime))}</strong>
                         </div>
                         <p>{popcornPromotionActive
-                          ? "Recheios especiais incluídos no preço de hoje."
+                          ? popcornOptionIds.includes("nutella")
+                            ? "Com Nutella, vale o preço normal do pote inteiro, mesmo em combinações."
+                            : "Sabores participantes pelo preço-base. Nutella fica no preço normal."
                           : "O preço varia por sabor. Ao combinar, vale o sabor de maior valor."}</p>
                       </div>
                     </div>
@@ -2477,8 +2479,10 @@ export default function Home() {
                     const regularSpecialPrice = popcornVariantUsable && popcornVariant && option.pricingGroup && option.pricingGroup > 1
                       ? POPCORN_PRICING_GROUPS[option.pricingGroup][popcornVariant.id as "500ml" | "750ml" | "1l"]
                       : null;
-                    const savedToday = regularSpecialPrice !== null && popcornVariant
-                      ? Math.max(0, regularSpecialPrice - popcornPrice(popcornVariant.id, [option.id], promotionTime))
+                    const optionCombination = selected ? popcornOptionIds : [...popcornOptionIds, option.id];
+                    const includesNutella = optionCombination.includes("nutella");
+                    const savedToday = !includesNutella && regularSpecialPrice !== null && potPriceWithOption !== null
+                      ? Math.max(0, regularSpecialPrice - potPriceWithOption)
                       : 0;
                     return (
                       <label className={`flavor-card ${selected ? "is-selected" : ""} ${disabled ? "is-disabled" : ""}`} htmlFor={`flavor-${option.id}`} key={option.id}>
@@ -2498,8 +2502,11 @@ export default function Home() {
                                   {currency.format(regularSpecialPrice)}
                                 </del>
                               )}
-                              <strong>{currency.format(flavorPotPrice ?? potPriceWithOption)}</strong>
+                              <strong>{currency.format(popcornPromotionActive ? potPriceWithOption : flavorPotPrice ?? potPriceWithOption)}</strong>
                               <small className="sr-only">Preço do pote com este sabor</small>
+                              {popcornPromotionActive && option.id === "nutella" && available && (
+                                <span className="gourmet-feriado-exception">Preço normal</span>
+                              )}
                               {popcornPromotionActive && savedToday > 0 && available && (
                                 <span className="gourmet-feriado-saving" aria-label={`Economia de ${currency.format(savedToday)} hoje`}>
                                   Economize {currency.format(savedToday)}
@@ -2507,7 +2514,7 @@ export default function Home() {
                               )}
                             </span>
                           )}
-                          {!popcornPromotionActive && !selected && !disabled && potPriceWithOption !== null && (
+                          {(!popcornPromotionActive || option.id === "nutella") && !selected && !disabled && potPriceWithOption !== null && (
                             <span
                               className={`boutique-flavor-impact ${priceDifference > 0 ? "has-increase" : "is-same"}`}
                               aria-label={!popcornOptionIds.length

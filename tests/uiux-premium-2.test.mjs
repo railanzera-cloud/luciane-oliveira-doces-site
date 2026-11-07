@@ -9,7 +9,8 @@ test("premium 2.0 esclarece preco sem modificar precificacao", () => {
   assert.ok(page.includes("popcornPrice(popcornVariant.id, selected ? popcornOptionIds : [...popcornOptionIds, option.id], promotionTime)"));
   assert.ok(page.includes("const priceDifference = currentPotPrice !== null && potPriceWithOption !== null"));
   assert.ok(page.includes("Math.max(0, potPriceWithOption - currentPotPrice)"));
-  assert.ok(page.includes("currency.format(flavorPotPrice ?? potPriceWithOption)"));
+  assert.ok(page.includes("currency.format(popcornPromotionActive ? potPriceWithOption : flavorPotPrice ?? potPriceWithOption)"));
+  assert.ok(page.includes('optionCombination.includes("nutella")'));
   assert.ok(page.includes("className=\"sr-only\">Preço do pote com este sabor"));
   assert.ok(page.includes("Pote fica por ${currency.format(potPriceWithOption)}"));
   assert.ok(page.includes("Com ${option.name}, o pote fica por ${currency.format(potPriceWithOption)}"));

@@ -39,10 +39,11 @@ test("o botão flutuante vai à opção real de tamanho, sabor ou ao carrinho",(
 
 test("Leitinho não recebe selo de desconto e somente grupos especiais exibem economia",()=>{
   assert.match(page, /const regularSpecialPrice = .*option\.pricingGroup && option\.pricingGroup > 1/);
-  assert.match(page, /const savedToday = regularSpecialPrice !== null/);
+  assert.match(page, /const savedToday = !includesNutella && regularSpecialPrice !== null/);
+  assert.match(page, /optionCombination\.includes\("nutella"\)/);
   assert.match(page, /popcornPromotionActive && savedToday > 0 && available/);
   assert.match(page, /Economize \{currency\.format\(savedToday\)\}/);
-  assert.match(page, /!popcornPromotionActive && !selected && !disabled/);
+  assert.match(page, /\(!popcornPromotionActive \|\| option\.id === "nutella"\) && !selected && !disabled/);
   assert.doesNotMatch(page, /Sem adicional hoje/);
   assert.match(css, /gourmet-feriado-saving/);
 });
@@ -80,7 +81,8 @@ test("criativo da campanha conserva expiração e não governa a precificação"
   for(const size of ["500ml","750ml","1l"]){
     const item={product_id:"pipoca-gourmet",variant_id:size,option_ids:["leitinho","nutella"],quantity:1};
     assert.equal(quoteCartItems([item],end).subtotalCents,POPCORN_PRICES_CENTS[3][size]);
-    assert.equal(quoteCartItems([item],end-1).subtotalCents,POPCORN_PRICES_CENTS[1][size]);
+    assert.equal(quoteCartItems([item],end-1).subtotalCents,POPCORN_PRICES_CENTS[3][size],
+      "Nutella não participa nem combinada com Leitinho");
   }
 });
 

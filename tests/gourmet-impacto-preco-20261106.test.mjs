@@ -18,7 +18,8 @@ test("preço Gourmet continua sendo o maior grupo, nunca uma soma de sabores", (
 });
 
 test("preço de referência e total real continuam distintos", () => {
-  assert.match(page, /<strong>\{currency\.format\(flavorPotPrice \?\? potPriceWithOption\)\}<\/strong>/);
+  assert.match(page, /<strong>\{currency\.format\(popcornPromotionActive \? potPriceWithOption : flavorPotPrice \?\? potPriceWithOption\)\}<\/strong>/);
+  assert.match(page, /const includesNutella = optionCombination\.includes\("nutella"\)/);
   assert.match(page, /const currentPotPrice = popcornVariantUsable && popcornVariant/);
   assert.match(page, /const potPriceWithOption = popcornVariantUsable && popcornVariant/);
   assert.match(page, /Math\.max\(0, potPriceWithOption - currentPotPrice\)/);
@@ -36,7 +37,7 @@ test("copy depende do efeito da escolha no total, não inventa adicionais", () =
 });
 
 test("promoções e estados indisponíveis preservam o gate original", () => {
-  assert.match(page, /!popcornPromotionActive && !selected && !disabled && potPriceWithOption !== null/);
+  assert.match(page, /\(!popcornPromotionActive \|\| option\.id === "nutella"\) && !selected && !disabled && potPriceWithOption !== null/);
   assert.match(page, /popcornPromotionActive && savedToday > 0 && available/);
   assert.match(page, /const disabled = waitingForSize \|\| \(!available && !selected\) \|\| limitDisabled/);
   assert.match(page, /if \(!alreadySelected && popcornOptionIds\.length \+ 1 === popcornMaxOptions\)/);

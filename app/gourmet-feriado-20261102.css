@@ -145,3 +145,11 @@
   .storefront #configurador .gourmet-feriado-bottom { grid-column: 1 / -1; }
   .storefront #configurador .gourmet-feriado-description { grid-column: 2; grid-row: 2; }
 }
+
+/* Exceção explícita e discreta para Nutella na oferta de 07/11. */
+.storefront #configurador .gourmet-feriado-exception {
+  display: inline-flex; align-items: center; min-height: 25px; padding: 4px 8px;
+  border: 1px solid rgba(240,209,171,.32); border-radius: 100px;
+  background: rgba(80,49,30,.26); color: #fbe5c5;
+  font-size: .67rem; font-weight: 740; line-height: 1.2; white-space: nowrap;
+}

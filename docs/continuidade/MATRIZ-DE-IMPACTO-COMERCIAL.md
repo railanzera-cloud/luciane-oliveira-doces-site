@@ -113,3 +113,11 @@ Se qualquer elo estiver **sem prova**, declarar “produto integrado no frontend
 **Invariantes:** `locality_id` é obrigatório para a interface nova; o servidor verifica se a localidade existe, tem tarifa autorizada e corresponde ao `zone_id`; valor monetário vem da tabela do servidor, nunca do navegador. Taxa pendente não vira R$ 8 genéricos. Retirada mantém frete zero. IDs legados permanecem estáveis; guardas de nomes especiais no fluxo anterior não podem ser removidos durante a migração.
 
 **Rollout:** backend compatível → frontend → conferência de sessões antigas → ativação específica de `DELIVERY_REQUIRE_LOCALITY_ID`; antes de ativar o flag, não afirmar resistência absoluta a payloads legados fabricados. Exigir validação da tabela urbana e teste de Safari físico, especialmente quando teclado e dropdown abrem próximos ao rodapé do checkout.
+
+### 07/11/2026 — promoção Gourmet por tamanho, Nutella excluída
+
+Contrato temporário de negócio (sem atualizar tabelas permanentes): `POPCORN_PROMOTION` vale de 07/11 00:00 a 08/11 00:00 em `America/Belem`. Para cada pedido e SKU Gourmet, calcular grupo normal máximo validando todos os `option_ids`; **se houver Nutella em qualquer posição**, manter preço normal do grupo 3 (500ml R$33, 750ml R$48, 1L R$58). Caso contrário, durante a janela aplicar o preço-base R$25/R$39/R$49, incluindo sabores de grupos 2 e 3. Após a janela usar o preço normal do grupo mais alto. Não modificar limite de sabores, estoque, tarifas, quantidade nem identidade de SKU.
+
+**Paridade obrigatória:** catálogo cliente `app/catalog.ts` + preview do configurador + carrinho/totais + mensagem WhatsApp + `commerce-catalog.mjs` autoritativo (Edge `create-whatsapp-order`) + helper site `popcorn-quote-campaign.mjs` (não ativar modo de checkout site sem contrato backend compatível). A peça editorial e preço normal riscado devem concordar com a cotação. Excluir Nutella também da comunicação de economia. Revalidar preço na Edge imediatamente antes de persistir e rejeitar total desatualizado, nunca aceitar desconto informado pelo cliente.
+
+**Gate de publicação:** somente com versão Cloudflare adequada e Edge sincronizada, backup/rollback da Edge v29, testes da janela e exceção, captura em WebKit e verificação final em Safari/iPhone; publicar frontend isolado ou backend isolado pode provocar `409 price_changed`.
