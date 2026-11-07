@@ -50,7 +50,10 @@ test("Foto comercial realçada e aprovada está versionada em AVIF", () => {
 });
 
 
-test("Novo sabor não recebe peso genérico não confirmado", () => {
-  assert.ok(page.includes('slice.id !== "fatia-bombom-uva" && <span className="slice-weight">'));
-  assert.ok(page.includes('product.id !== "fatia-bombom-uva" && <span>{SLICE_WEIGHT_GRAMS} g por fatia</span>'));
+test("Bombom de Uva acompanha o peso informado de 380 g por fatia", () => {
+  assert.ok(front.includes("export const SLICE_WEIGHT_GRAMS = 380;"));
+  assert.ok(page.includes('<span className="slice-weight">{SLICE_WEIGHT_GRAMS} g por fatia</span>'));
+  assert.ok(page.includes('product.kind === "slice" && <span>{SLICE_WEIGHT_GRAMS} g por fatia</span>'));
+  assert.ok(!page.includes('product.id !== "fatia-bombom-uva"'));
+  assert.ok(!page.includes('slice.id !== "fatia-bombom-uva"'));
 });
