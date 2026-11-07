@@ -54,6 +54,17 @@ try {
       const errors = [];
       page.on("pageerror", error => errors.push(error.message));
       try {
+        // A home continua navegável mesmo com imagens sem callout/arraste no Safari.
+        if (slicesAvailable) {
+          await page.goto(origin + "/?utm_source=qa-fotos-home", { waitUntil: "domcontentloaded" });
+          const category = page.locator(".menu-entry.is-neutral .collection-choice").first();
+          await category.waitFor({ state: "visible" });
+          const categoryPhoto = category.locator(".collection-photo img").first();
+          assert.equal(await categoryPhoto.getAttribute("draggable"), "false");
+          assert.equal(await categoryPhoto.evaluate(img => getComputedStyle(img).pointerEvents), "none");
+          await category.tap();
+          assert.equal(await category.isVisible(), true, "Toque permanece acionável na home");
+        }
         await page.goto(origin + "/?categoria=pipocas&utm_source=qa-contextual", { waitUntil: "domcontentloaded" });
         await page.locator('label[for="size-500ml"]').waitFor({state:"visible"});
         await page.locator('label[for="size-500ml"]').tap();
@@ -63,6 +74,27 @@ try {
         await add.tap();
         const confirmation = page.locator("#recebimento .boutique-added-continuity");
         await confirmation.waitFor({state:"visible"});
+        const cartPhoto = page.locator('#carrinho .boutique-cart-image[data-gourmet="true"] img').first();
+        const addedPhoto = confirmation.locator('.boutique-added-photo[data-gourmet="true"] img');
+        for (const [img, position] of [[cartPhoto, "50% 76%"], [addedPhoto, "50% 73%"]]) {
+          await img.evaluate(el => el.decode());
+          const presentation = await img.evaluate(el => {
+            const css = getComputedStyle(el);
+            return { width: el.naturalWidth, drag: el.getAttribute("draggable"), position: css.objectPosition, pointer: css.pointerEvents };
+          });
+          assert.ok(presentation.width > 0, "A fotografia verdadeira deve carregar");
+          assert.equal(presentation.drag, "false", "Miniaturas não devem ser arrastáveis");
+          assert.equal(presentation.pointer, "none", "Imagem decorativa não intercepta gesto");
+          assert.equal(presentation.position, position, "Recorte Gourmet deve ser específico por contexto");
+        }
+        await page.locator("#carrinho .cart-item").first().screenshot({
+          path: path.join(out, "miniatura-pedido-" + width + "-" + (slicesAvailable ? "com-fatias" : "fatias-esgotadas") + ".png"),
+          animations: "disabled",
+        });
+        await confirmation.locator(".boutique-added-confirmation").screenshot({
+          path: path.join(out, "miniatura-adicionada-" + width + "-" + (slicesAvailable ? "com-fatias" : "fatias-esgotadas") + ".png"),
+          animations: "disabled",
+        });
         const choices = confirmation.locator(".boutique-complement-choice");
         assert.equal(await choices.count(), slicesAvailable ? 3 : 2, "Quantidade de categorias sugeridas deve refletir disponibilidade");
         assert.equal(await page.locator("#carrinho .cart-add-more").count(), 0,
