@@ -119,7 +119,12 @@ test("UI comunica validade, exceção, preços normais riscados e revalidação 
   assert.match(page, /StorefrontCampaignEditorial/);
   assert.match(campaign, /Sábado Gourmet · 07\/11/);
   assert.match(campaign, /Nutella é a única exceção/);
-  assert.match(campaign, /500 ml R\$ 25 · 750 ml R\$ 39 · 1 litro R\$ 49/);
+  assert.match(campaign, /Escolha seu tamanho logo abaixo/);
+  assert.doesNotMatch(campaign, /500 ml R\$ 25 · 750 ml R\$ 39 · 1 litro R\$ 49/);
+  assert.match(page, /popcornRegularCombinationPrice/);
+  assert.match(page, /popcornCombinationSavings/);
+  assert.match(page, /gourmet-combination-savings/);
+  assert.match(page, /Você economiza \{currency\.format\(popcornCombinationSavings\)\} neste pote/);
   assert.match(campaign, /Só até 23h59/);
   assert.match(page, /gourmet-feriado-regular-price/);
   assert.match(page, /gourmet-feriado-saving/);

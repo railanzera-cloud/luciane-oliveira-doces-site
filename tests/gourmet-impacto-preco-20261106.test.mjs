@@ -38,7 +38,9 @@ test("copy depende do efeito da escolha no total, não inventa adicionais", () =
 
 test("promoções e estados indisponíveis preservam o gate original", () => {
   assert.match(page, /\(!popcornPromotionActive \|\| option\.id === "nutella"\) && !selected && !disabled && potPriceWithOption !== null/);
-  assert.match(page, /popcornPromotionActive && savedToday > 0 && available/);
+  assert.match(page, /popcornPromotionActive && popcornOptionIds\.length === 0 && !selected && !disabled && savedToday > 0 && available/);
+  assert.match(page, /popcornRegularCombinationPrice/);
+  assert.match(page, /popcornCombinationSavings/);
   assert.match(page, /const disabled = waitingForSize \|\| \(!available && !selected\) \|\| limitDisabled/);
   assert.match(page, /if \(!alreadySelected && popcornOptionIds\.length \+ 1 === popcornMaxOptions\)/);
 });

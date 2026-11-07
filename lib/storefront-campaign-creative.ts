@@ -19,7 +19,7 @@ export const GOURMET_HOLIDAY_CREATIVE: StorefrontCampaignCreative = Object.freez
   kicker: "Sábado Gourmet · 07/11",
   deadline: "Só até 23h59",
   title: "Hoje, recheios especiais pelo preço-base do pote.",
-  description: "Kinder Bueno, Choco Cookies e os outros sabores disponíveis participam. Nutella é a única exceção e mantém o preço normal, mesmo em combinações.",
-  assurance: "500 ml R$ 25 · 750 ml R$ 39 · 1 litro R$ 49",
-  finePrint: "Somente 07/11, horário de Paragominas. Sujeito à disponibilidade dos sabores. Nutella não participa.",
+  description: "Kinder Bueno, Choco Cookies e outros sabores disponíveis participam. Nutella é a única exceção: mantém o preço normal, mesmo em combinações.",
+  assurance: "Escolha seu tamanho logo abaixo.",
+  finePrint: "Sujeito à disponibilidade dos sabores.",
 });

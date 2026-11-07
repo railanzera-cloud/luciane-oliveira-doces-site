@@ -41,7 +41,7 @@ test("Leitinho não recebe selo de desconto e somente grupos especiais exibem ec
   assert.match(page, /const regularSpecialPrice = .*option\.pricingGroup && option\.pricingGroup > 1/);
   assert.match(page, /const savedToday = !includesNutella && regularSpecialPrice !== null/);
   assert.match(page, /optionCombination\.includes\("nutella"\)/);
-  assert.match(page, /popcornPromotionActive && savedToday > 0 && available/);
+  assert.match(page, /popcornPromotionActive && popcornOptionIds\.length === 0 && !selected && !disabled && savedToday > 0 && available/);
   assert.match(page, /Economize \{currency\.format\(savedToday\)\}/);
   assert.match(page, /\(!popcornPromotionActive \|\| option\.id === "nutella"\) && !selected && !disabled/);
   assert.doesNotMatch(page, /Sem adicional hoje/);
@@ -58,8 +58,8 @@ test("Leitinho disponível exibe preço base, mas sem preço riscado ou falsa ec
   // Na promoção, todos os recheios disponíveis exibem preço;
   // só os grupos mais caros recebem preço riscado e 'Economize'.
   assert.match(page, /potPriceWithOption !== null && \(!popcornPromotionActive \|\| available\)/);
-  assert.match(page, /popcornPromotionActive && regularSpecialPrice !== null && savedToday > 0/);
-  assert.match(page, /popcornPromotionActive && savedToday > 0 && available/);
+  assert.match(page, /popcornPromotionActive && !selected && !disabled && regularSpecialPrice !== null && savedToday > 0/);
+  assert.match(page, /popcornPromotionActive && popcornOptionIds\.length === 0 && !selected && !disabled && savedToday > 0 && available/);
   assert.match(page, /option\.pricingGroup > 1/);
   assert.doesNotMatch(page, /Sem adicional hoje/);
   for(const size of ["500ml","750ml","1l"]){

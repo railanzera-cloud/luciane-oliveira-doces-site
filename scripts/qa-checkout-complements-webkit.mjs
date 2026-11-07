@@ -32,6 +32,7 @@ try {
         { item_key: "popcorn_size_500ml", status: "available" },
         { item_key: "popcorn_flavor_leitinho", status: "available" },
         { item_key: "popcorn_flavor_kinder_bueno", status: "available" },
+        { item_key: "popcorn_flavor_choco_cookies_branco", status: "available" },
         { item_key: "popcorn_flavor_nutella", status: "available" },
         { item_key: "slice_chocolatudo", status: slicesAvailable ? "available" : "sold_out" },
         ...stockKeys.map(item_key => ({ item_key, status: "available" })),
@@ -64,15 +65,35 @@ try {
           await banner.waitFor({ state: "visible" });
           assert.match(await banner.innerText(), /07\/11/);
           assert.match(await banner.innerText(), /Nutella é a única exceção/);
+          assert.doesNotMatch(await banner.innerText(), /500 ml R\$ 25 · 750 ml R\$ 39 · 1 litro R\$ 49/,
+            "Banner não deve duplicar os preços dos seletores");
+          assert.match(await banner.innerText(), /Escolha seu tamanho logo abaixo/);
           await banner.screenshot({ path: path.join(out, "promocao-gourmet-0711-editorial-390.png"), animations: "disabled" });
           await page.locator('label[for="size-500ml"]').tap();
+          assert.match(await page.locator('label[for="flavor-kinder-bueno"] .gourmet-feriado-saving').innerText(), /5,00/,
+            "Economia individual aparece ao explorar antes de escolher");
           await page.locator('label[for="flavor-kinder-bueno"]').tap();
           assert.match(await page.locator(".boutique-price-guide-copy strong").innerText(), /25,00/,
             "Kinder Bueno deve ter preço-base na promoção");
+          const saving = page.locator("#sabores .gourmet-combination-savings");
+          await saving.waitFor({state:"visible"});
+          assert.match(await saving.innerText(), /Preço normal do pote.*30,00/s);
+          assert.match(await saving.innerText(), /Você economiza.*5,00.*neste pote/s);
+          assert.equal(await page.locator('.flavor-card.is-selected .gourmet-feriado-saving').count(), 0,
+            "Não duplicar a economia no sabor selecionado");
+          await page.locator('label[for="flavor-choco-cookies-branco"]').tap();
+          assert.match(await saving.innerText(), /Você economiza.*5,00.*neste pote/s,
+            "Kinder e Choco Cookies juntos economizam R$5, não R$10");
+          assert.equal(await saving.count(), 1, "Uma única economia consolidada");
+          await page.locator("#sabores .gourmet-combination-review").screenshot({
+            path: path.join(out, "promocao-gourmet-0711-economia-unica-390.png"), animations: "disabled",
+          });
+          await page.locator('button[aria-label="Remover Choco Cookies Branco da combinação"]').tap();
           await page.locator('label[for="flavor-nutella"]').tap();
           assert.match(await page.locator(".boutique-price-guide-copy strong").innerText(), /33,00/,
             "Nutella em qualquer combinação deve retornar ao preço normal");
           assert.match(await page.locator(".boutique-price-guide p").innerText(), /Nutella/);
+          assert.equal(await saving.count(), 0, "Nutella zera a economia, mesmo combinada");
           assert.equal(await page.locator('label[for="flavor-nutella"] .gourmet-feriado-regular-price').count(), 0,
             "Nutella não pode ter preço riscado");
           await page.locator("#sabores .boutique-flavor-stage").screenshot({
