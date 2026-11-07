@@ -89,6 +89,7 @@ export const SLICE_ITEM_KEYS: Record<string, string> = {
   "fatia-chocolatudo": "slice_chocolatudo",
   "fatia-coco-cremoso-morango": "slice_coco_cremoso_morango",
   "fatia-chocolate-cenoura": "slice_chocolate_cenoura",
+  "fatia-bombom-uva": "slice_bombom_uva",
 };
 
 const CATEGORY_ITEMS: MenuAvailabilityItem[] = [
@@ -165,6 +166,9 @@ export function createFallbackAvailability(): AvailabilitySnapshot {
   for (const slice of SLICES) {
     statuses[SLICE_ITEM_KEYS[slice.id]] = staticStatus(Boolean(slice.available && slice.variants[0]?.available));
   }
+
+  // Novo cadastro só pode ser exibido depois que a linha remota for confirmada.
+  statuses[SLICE_ITEM_KEYS["fatia-bombom-uva"]] = "hidden";
 
   return {
     ordersOpen: STORE_CONFIG.acceptingOrders,
