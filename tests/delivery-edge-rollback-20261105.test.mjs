@@ -153,6 +153,7 @@ test("legacy Mercado Pago/site quote amounts and stock identities remain unchang
         + " " + item.variant_id + " " + item.option_ids.join(","));
   }
   assert.equal(Object.keys(v14.SLICES).length, 6);
-  assert.equal(Object.keys(candidate.SLICES).length, 7,
-    "One later slice is intentionally not available on the archived v14 site catalogue");
+  const laterSlices = Object.keys(candidate.SLICES).filter(id => !Object.hasOwn(v14.SLICES, id)).sort();
+  assert.deepEqual(laterSlices, ["fatia-bombom-uva", "fatia-coco-cremoso-morango"],
+    "Newer fatias must have independent SKUs without changing any archived v14 product");
 });
