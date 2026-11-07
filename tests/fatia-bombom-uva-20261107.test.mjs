@@ -10,7 +10,7 @@ const page = readFileSync("app/page.tsx", "utf8");
 const migration = readFileSync("supabase/migrations/20261107190000_fatia_bombom_uva.sql", "utf8");
 const productId = "fatia-bombom-uva", itemKey = "slice_bombom_uva", name = "Bombom de Uva";
 
-test("Fatia de Bombom de Uva é um SKU novo de R$ 20 com a foto aprovada", () => {
+test("Fatia de Bombom de Uva é um SKU novo de R$ 20 com referência de imagem própria", () => {
   const section = front.slice(front.indexOf('id: "' + productId + '"'), front.indexOf('id: "coca-cola-220"'));
   assert.ok(section.includes('kind: "slice"'));
   assert.ok(section.includes('name: "' + name + '"'));
@@ -42,7 +42,7 @@ test("Cadastro remoto não altera outras fatias nem cria oferta antes do release
   assert.doesNotMatch(migration, /UPDATE\s+public\.menu_availability|DELETE FROM/);
 });
 
-test("Foto comercial realçada e aprovada está versionada em AVIF", () => {
+test("Imagem de Bombom de Uva possui formato AVIF válido", () => {
   const path = "public/fatia-bombom-uva.avif";
   const img = readFileSync(path);
   assert.ok(statSync(path).size > 10000);
