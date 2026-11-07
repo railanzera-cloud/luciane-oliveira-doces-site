@@ -11,10 +11,15 @@ test("miniaturas Gourmet fazem crop contextual sem trocar fotos ou identidade co
   assert.match(catalog, /image: "\/pipoca-gourmet\.jpeg"/);
   assert.match(page, /className="boutique-cart-image" data-gourmet=\{product\.id === POPCORN\.id \|\| undefined\}/);
   assert.match(page, /className="boutique-added-photo" data-gourmet=\{justAddedProduct\?\.id === POPCORN\.id \|\| undefined\}/);
-  assert.ok(page.includes("src={product.cardImage ?? product.image}"));
+  assert.ok(page.includes('viewBox={context === "cart" ? "70 360 760 860" : "130 430 640 720"}'));
+  assert.ok(page.includes('<image href="/pipoca-gourmet.jpeg" x="0" y="0" width="900" height="1600"'));
+  assert.ok(page.includes('<GourmetCheckoutCrop context="cart" />'));
+  assert.ok(page.includes('<GourmetCheckoutCrop context="added" />'));
+  assert.ok(page.includes("src={product.cardImage ?? product.image}"), "Demais produtos conservam fotos originais");
   assert.ok(page.includes("src={justAddedProduct.cardImage ?? justAddedProduct.image}"));
-  assert.match(checkout, /\.boutique-cart-image\[data-gourmet="true"\] img\s*\{[^}]*object-position: 50% 76%/);
-  assert.match(checkout, /\.boutique-added-photo\[data-gourmet="true"\] img\s*\{[^}]*object-position: 50% 73%/);
+  assert.match(checkout, /\.gourmet-checkout-crop\s*\{[^}]*width: 100%;[^}]*height: 100%/);
+  assert.doesNotMatch(checkout, /\.boutique-cart-image\[data-gourmet="true"\] img\s*\{/);
+  assert.doesNotMatch(checkout, /\.boutique-added-photo\[data-gourmet="true"\] img\s*\{/);
   assert.doesNotMatch(checkout, /\.slice-media[^\n]*object-position:/);
 });
 

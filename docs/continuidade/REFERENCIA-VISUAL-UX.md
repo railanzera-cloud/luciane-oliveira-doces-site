@@ -236,3 +236,9 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Evidência requerida:** testes estáticos e WebKit com capturas de carrinho/confirmação em 320/375/390/430 px, toque em categoria e regressão comercial. A impressão final e o comportamento do menu no Safari físico/Instagram requerem conferência do proprietário; não afirmar publicação pelo commit.
 
 **Evidência técnica posterior — 07/11/2026:** [CI 42376137741](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42376137741) SUCCESS 4/4, 782 regressões e 8 cenários de complementos WebKit com verificações de recorte e capturas de miniaturas Gourmet em 320/375/390/430 px (artifact `13575876568`). O artefato conectado candidato é `13574958879`. **Aceite estético final em Safari físico/Instagram e publicação Cloudflare ainda pendentes**; não inferir impossibilidade de salvar uma foto por meios externos.
+
+### UX-CANDIDATA-20261107.2 — Recorte dedicado do Gourmet sem substituir a fotografia real
+- **Revisão:** prints do proprietário demonstraram fundo cinza excessivo nas duas miniaturas; autorizado refinar só a fotografia.
+- **Nova composição:** carrinho usa janela 760×860 a partir de (70,360) e confirmação uma janela mais fechada 640×720 a partir de (130,430) da foto 900×1600 original, utilizando `viewBox` SVG inline com `<image>` local. Melhor leitura do recheio sem perder identificação do pote ou inventar cenário.
+- **Engenharia:** evita dependência de arquivos derivados não versionados e mantém cache/fidelidade do asset original. Nem `object-position` nem transformações CSS resolvem sozinhas este recorte; por isso a janela dedicada.
+- **Protegidos:** demais fotografias, layout e dimensões do checkout, botões, formas de pagamento, estoque, preços, promoções e integrações. Verificar WebKit e aceite em Safari físico/Instagram antes de publicar.

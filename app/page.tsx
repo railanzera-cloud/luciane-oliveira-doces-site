@@ -482,6 +482,22 @@ function sanitizeSavedCart(value: unknown): CartItem[] {
   });
 }
 
+// Recortes específicos da mesma foto real, sem gerar nova embalagem, sabor ou fundo.
+function GourmetCheckoutCrop({ context }: { context: "cart" | "added" }) {
+  return (
+    <svg
+      className="gourmet-checkout-crop"
+      viewBox={context === "cart" ? "70 360 760 860" : "130 430 640 720"}
+      preserveAspectRatio="xMidYMid meet"
+      aria-hidden="true"
+      focusable="false"
+      onContextMenu={(event) => event.preventDefault()}
+    >
+      <image href="/pipoca-gourmet.jpeg" x="0" y="0" width="900" height="1600" preserveAspectRatio="none" />
+    </svg>
+  );
+}
+
 function CollectionChoice({ format, name, description, action, price, photo, photoWidth, fallback, disabled, onClick }: {
   format: string; name: string; description: string; action: string; photo: string; photoWidth: number;
   fallback?: string; price?: string; disabled: boolean; onClick: () => void;
@@ -2804,9 +2820,11 @@ export default function Home() {
                         <div className="cart-item-top">
                           <div className="boutique-cart-product">
                             <span className="boutique-cart-image" data-gourmet={product.id === POPCORN.id || undefined} onContextMenu={(event) => event.preventDefault()}>
-                              {product.image
-                                ? <img src={product.cardImage ?? product.image} alt="" draggable={false} width="92" height="92" loading="lazy" decoding="async" />
-                                : <CakeSlice size={24} aria-hidden="true" />}
+                              {product.id === POPCORN.id
+                                ? <GourmetCheckoutCrop context="cart" />
+                                : product.image
+                                  ? <img src={product.cardImage ?? product.image} alt="" draggable={false} width="92" height="92" loading="lazy" decoding="async" />
+                                  : <CakeSlice size={24} aria-hidden="true" />}
                             </span>
                             <div className="cart-item-info">
                             <span className="product-category">{product.category}</span>
@@ -2869,9 +2887,11 @@ export default function Home() {
                 <div className="boutique-added-continuity" aria-label="Produto adicionado ao pedido">
                   <div className="boutique-added-confirmation">
                     <span className="boutique-added-photo" data-gourmet={justAddedProduct?.id === POPCORN.id || undefined} aria-hidden="true" onContextMenu={(event) => event.preventDefault()}>
-                      {justAddedProduct?.image
-                        ? <img src={justAddedProduct.cardImage ?? justAddedProduct.image} alt="" draggable={false} width="104" height="104" loading="lazy" decoding="async" />
-                        : <ShoppingBag size={24} />}
+                      {justAddedProduct?.id === POPCORN.id
+                        ? <GourmetCheckoutCrop context="added" />
+                        : justAddedProduct?.image
+                          ? <img src={justAddedProduct.cardImage ?? justAddedProduct.image} alt="" draggable={false} width="104" height="104" loading="lazy" decoding="async" />
+                          : <ShoppingBag size={24} />}
                     </span>
                     <div className="boutique-added-message">
                       <strong role="status"><Check size={16} aria-hidden="true" /> Adicionado ao pedido</strong>

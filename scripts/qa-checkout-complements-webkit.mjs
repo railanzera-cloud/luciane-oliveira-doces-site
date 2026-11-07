@@ -74,18 +74,25 @@ try {
         await add.tap();
         const confirmation = page.locator("#recebimento .boutique-added-continuity");
         await confirmation.waitFor({state:"visible"});
-        const cartPhoto = page.locator('#carrinho .boutique-cart-image[data-gourmet="true"] img').first();
-        const addedPhoto = confirmation.locator('.boutique-added-photo[data-gourmet="true"] img');
-        for (const [img, position] of [[cartPhoto, "50% 76%"], [addedPhoto, "50% 73%"]]) {
-          await img.evaluate(el => el.decode());
-          const presentation = await img.evaluate(el => {
+        const cartPhoto = page.locator('#carrinho .boutique-cart-image[data-gourmet="true"] svg.gourmet-checkout-crop').first();
+        const addedPhoto = confirmation.locator('.boutique-added-photo[data-gourmet="true"] svg.gourmet-checkout-crop');
+        for (const [svg, viewBox] of [[cartPhoto, "70 360 760 860"], [addedPhoto, "130 430 640 720"]]) {
+          const presentation = await svg.evaluate(async el => {
             const css = getComputedStyle(el);
-            return { width: el.naturalWidth, drag: el.getAttribute("draggable"), position: css.objectPosition, pointer: css.pointerEvents };
+            const resource = el.querySelector("image")?.getAttribute("href");
+            const source = new Image();
+            source.src = resource;
+            await source.decode();
+            return {
+              width: source.naturalWidth, height: source.naturalHeight,
+              viewBox: el.getAttribute("viewBox"), pointer: css.pointerEvents, resource,
+            };
           });
-          assert.ok(presentation.width > 0, "A fotografia verdadeira deve carregar");
-          assert.equal(presentation.drag, "false", "Miniaturas não devem ser arrastáveis");
-          assert.equal(presentation.pointer, "none", "Imagem decorativa não intercepta gesto");
-          assert.equal(presentation.position, position, "Recorte Gourmet deve ser específico por contexto");
+          assert.equal(presentation.resource, "/pipoca-gourmet.jpeg", "Mesma fotografia original");
+          assert.equal(presentation.width, 900, "A fotografia verdadeira deve carregar");
+          assert.equal(presentation.height, 1600, "A proporção de origem foi preservada");
+          assert.equal(presentation.pointer, "none", "Miniatura não intercepta toque");
+          assert.equal(presentation.viewBox, viewBox, "Cada contexto tem seu recorte independente");
         }
         await page.locator("#carrinho .cart-item").first().screenshot({
           path: path.join(out, "miniatura-pedido-" + width + "-" + (slicesAvailable ? "com-fatias" : "fatias-esgotadas") + ".png"),
