@@ -63,7 +63,7 @@ try {
           assert.equal(await categoryPhoto.getAttribute("draggable"), "false");
           assert.equal(await categoryPhoto.evaluate(img => getComputedStyle(img).pointerEvents), "none");
           await category.tap();
-          assert.equal(await category.isVisible(), true, "Toque permanece acionável na home");
+          assert.equal(await page.locator(".storefront").count(), 1, "Navegação continua funcional");
         }
         await page.goto(origin + "/?categoria=pipocas&utm_source=qa-contextual", { waitUntil: "domcontentloaded" });
         await page.locator('label[for="size-500ml"]').waitFor({state:"visible"});
