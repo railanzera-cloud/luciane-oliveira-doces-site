@@ -372,3 +372,57 @@
     transform: none !important;
   }
 }
+
+/* 07/11 — miniaturas de confirmação: mesma fotografia real, recorte por contexto.
+   A regra só atua no checkout; não muda SKU, foto de vitrine ou dados do pedido. */
+.storefront #carrinho .boutique-cart-image {
+  flex: 0 0 76px;
+  width: 76px;
+  height: 86px;
+  background: linear-gradient(150deg, #eadccd, #d8bea3);
+  border-radius: 13px;
+}
+.storefront #carrinho .boutique-added-photo {
+  flex: 0 0 66px;
+  width: 66px;
+  height: 74px;
+  background: linear-gradient(155deg, #eadccd, #d8bea3);
+  border-radius: 12px;
+}
+/* Mesmo arquivo original. As coordenadas SVG recortam cada contexto sem zoom CSS. */
+.storefront #carrinho .gourmet-checkout-crop {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+/* A foto identifica a compra, não é uma ação de preview/arraste. 
+   Não aplicar a texto, botões, campos nem às fotos maiores do configurador. */
+.storefront #carrinho .boutique-cart-image,
+.storefront #carrinho .boutique-added-photo,
+.storefront #carrinho .boutique-complement-media,
+.storefront #carrinho .boutique-cart-image img,
+.storefront #carrinho .boutique-added-photo img,
+.storefront #carrinho .boutique-complement-media img {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.storefront #carrinho .boutique-cart-image img,
+.storefront #carrinho .boutique-added-photo img,
+.storefront #carrinho .boutique-complement-media img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+@media (max-width: 450px) {
+  .storefront #carrinho .boutique-cart-image { flex-basis: 69px; width: 69px; height: 80px; }
+  .storefront #carrinho .boutique-added-photo { flex-basis: 64px; width: 64px; height: 72px; }
+}
+@media (max-width: 359px) {
+  .storefront #carrinho .boutique-cart-image { flex-basis: 61px; width: 61px; height: 73px; }
+  .storefront #carrinho .boutique-added-photo { flex-basis: 56px; width: 56px; height: 64px; }
+}

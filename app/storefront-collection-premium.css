@@ -411,3 +411,17 @@
     animation: none !important;
   }
 }
+
+/* 07/11 — fotos da home são parte de botões de navegação.
+   Remover somente o menu contextual nativo da imagem, mantendo toque,
+   teclado, foco e ações da categoria preservados. */
+.storefront .menu-entry.is-neutral .collection-photo,
+.storefront .menu-entry.is-neutral .collection-photo img {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.storefront .menu-entry.is-neutral .collection-photo img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+}

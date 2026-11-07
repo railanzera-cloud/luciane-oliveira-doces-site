@@ -54,6 +54,17 @@ try {
       const errors = [];
       page.on("pageerror", error => errors.push(error.message));
       try {
+        // A home continua navegável mesmo com imagens sem callout/arraste no Safari.
+        if (slicesAvailable) {
+          await page.goto(origin + "/?utm_source=qa-fotos-home", { waitUntil: "domcontentloaded" });
+          const category = page.locator(".menu-entry.is-neutral .collection-choice").first();
+          await category.waitFor({ state: "visible" });
+          const categoryPhoto = category.locator(".collection-photo img").first();
+          assert.equal(await categoryPhoto.getAttribute("draggable"), "false");
+          assert.equal(await categoryPhoto.evaluate(img => getComputedStyle(img).pointerEvents), "none");
+          await category.tap();
+          assert.equal(await page.locator(".storefront").count(), 1, "Navegação continua funcional");
+        }
         await page.goto(origin + "/?categoria=pipocas&utm_source=qa-contextual", { waitUntil: "domcontentloaded" });
         await page.locator('label[for="size-500ml"]').waitFor({state:"visible"});
         await page.locator('label[for="size-500ml"]').tap();
@@ -63,6 +74,34 @@ try {
         await add.tap();
         const confirmation = page.locator("#recebimento .boutique-added-continuity");
         await confirmation.waitFor({state:"visible"});
+        const cartPhoto = page.locator('#carrinho .boutique-cart-image[data-gourmet="true"] svg.gourmet-checkout-crop').first();
+        const addedPhoto = confirmation.locator('.boutique-added-photo[data-gourmet="true"] svg.gourmet-checkout-crop');
+        for (const [svg, viewBox] of [[cartPhoto, "70 360 760 860"], [addedPhoto, "130 430 640 720"]]) {
+          const presentation = await svg.evaluate(async el => {
+            const css = getComputedStyle(el);
+            const resource = el.querySelector("image")?.getAttribute("href");
+            const source = new Image();
+            source.src = resource;
+            await source.decode();
+            return {
+              width: source.naturalWidth, height: source.naturalHeight,
+              viewBox: el.getAttribute("viewBox"), pointer: css.pointerEvents, resource,
+            };
+          });
+          assert.equal(presentation.resource, "/pipoca-gourmet.jpeg", "Mesma fotografia original");
+          assert.equal(presentation.width, 900, "A fotografia verdadeira deve carregar");
+          assert.equal(presentation.height, 1600, "A proporção de origem foi preservada");
+          assert.equal(presentation.pointer, "none", "Miniatura não intercepta toque");
+          assert.equal(presentation.viewBox, viewBox, "Cada contexto tem seu recorte independente");
+        }
+        await page.locator("#carrinho .cart-item").first().screenshot({
+          path: path.join(out, "miniatura-pedido-" + width + "-" + (slicesAvailable ? "com-fatias" : "fatias-esgotadas") + ".png"),
+          animations: "disabled",
+        });
+        await confirmation.locator(".boutique-added-confirmation").screenshot({
+          path: path.join(out, "miniatura-adicionada-" + width + "-" + (slicesAvailable ? "com-fatias" : "fatias-esgotadas") + ".png"),
+          animations: "disabled",
+        });
         const choices = confirmation.locator(".boutique-complement-choice");
         assert.equal(await choices.count(), slicesAvailable ? 3 : 2, "Quantidade de categorias sugeridas deve refletir disponibilidade");
         assert.equal(await page.locator("#carrinho .cart-add-more").count(), 0,
