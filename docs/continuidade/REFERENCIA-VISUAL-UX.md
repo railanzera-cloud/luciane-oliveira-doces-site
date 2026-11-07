@@ -255,3 +255,12 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Imagem escolhida:** `public/fatia-bombom-uva.avif`, AVIF 800×1000 (originado da primeira imagem gerada/aperfeiçoada a partir do arquivo da proprietária). Apresentar no cartão e detalhe da fatia, sem floreios, textos sobrepostos ou substituição por imagens de produtos diferentes.
 - **Intocáveis:** fotografias e enquadramentos previamente aprovados das demais fatias, cardápio e cabeçalhos compartilhados; preço único R$20 e status real vindo do Supabase.
 - **Prova:** escolha estética aprovada pelo proprietário; comparação de renderização real em Safari/Instagram, captura do card no site e deploy Cloudflare não foram feitos nesta decisão.
+
+
+### UX — Bombom de Uva: retorno à fotografia natural e peso confirmado (07/11/2026)
+- **Aprovação atual:** proprietário revogou a escolha da imagem aprimorada para este produto e pediu a fotografia original `Uva 01(1).jpeg`, sem alteração de brilho, contraste, textura ou composição. A foto aprimorada destoava das outras fatias naturais.
+- **Peso:** proprietário confirmou 380 g para Bombom de Uva, igual ao rótulo apresentado nas outras fatias. Corrigir cartão e carrinho; preço permanece R$ 20.
+- **Código na branch `feat/fatia-bombom-uva-20261107`:** removida a exceção que escondia `SLICE_WEIGHT_GRAMS` especificamente da nova fatia. Nenhuma mudança nas demais fatias.
+- **Imagem para publicação:** o ZIP manual corrigido substitui a imagem AVIF do produto por compressão/redimensionamento da foto original, sem retoque de luz/cor. Foto natural SHA256 `85bb251649b2467d0dfd983b87212f982ef23f15ab0b78c38b1a1df250c25278` (900×1273); bytes da foto aprovada original JPEG SHA256 `a3ec768b64a9f752847130d2906fb0807a6708d7a06fde3e739cb44f00dae05a`.
+- **Lacuna de origem:** a imagem aprimorada anterior ainda está versionada no GitHub sob `public/fatia-bombom-uva.avif`; o ZIP de distribuição foi corrigido com a imagem original sem altera-la em outros arquivos. **Não reconstruir/publicar um ZIP diretamente do HEAD sem sincronizar esse asset natural primeiro**, pois causaria regressão visual. Esta divergência é pendência técnica explícita, não considerar fonte integralmente harmonizada.
+- **Estado:** foto natural aprovada pelo proprietário; pacote corrigido e validado; sem prova de publicação do pacote corrigido em Cloudflare nem validação física posterior.
