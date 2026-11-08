@@ -44,9 +44,9 @@ test("Cones: outro sabor aparece primeiro, no mesmo conjunto de recomendações"
   assert.deepEqual(orderCheckoutComplements("cones", {}), []);
 });
 
-test("Cones não modificam as sugestões das outras três jornadas", () => {
+test("Cones disponíveis entram nas recomendações das três jornadas existentes", () => {
   const available = {...all, cones: true};
-  assert.deepEqual(orderCheckoutComplements("gourmet", available), ["trufadas","fatias","gourmet"]);
-  assert.deepEqual(orderCheckoutComplements("fatias", available), ["gourmet","trufadas","fatias"]);
-  assert.deepEqual(orderCheckoutComplements("trufadas", available), ["gourmet","fatias","trufadas"]);
+  assert.deepEqual(orderCheckoutComplements("gourmet", available), ["cones","trufadas","fatias","gourmet"]);
+  assert.deepEqual(orderCheckoutComplements("fatias", available), ["cones","gourmet","trufadas","fatias"]);
+  assert.deepEqual(orderCheckoutComplements("trufadas", available), ["cones","gourmet","fatias","trufadas"]);
 });
