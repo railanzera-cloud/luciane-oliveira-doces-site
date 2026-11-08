@@ -272,6 +272,31 @@ function scrollToGourmetControl(step: "size" | "flavor" | "quantity") {
   window.scrollTo({ top: desired, behavior: reducedMotion ? "instant" : "smooth" });
 }
 
+
+/**
+ * Entrada de categoria no iPhone/Instagram: mostrar o primeiro passo acionável
+ * com espaço de contexto acima, sem parar na navegação decorativa.
+ * Rolagens de sabores, quantidade e checkout preservam seus destinos próprios.
+ */
+function scrollToCategoryEntry(category: CategoryId) {
+  const id = category === "pipocas" ? "tamanhos" : category === "fatias" ? "fatias" : "cones-sabores";
+  const target = document.getElementById(id);
+  if (!target) return;
+  const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+  const compact = window.matchMedia("(max-width: 699px)").matches;
+  const offset = compact ? Math.min(198, Math.max(145, Math.round(viewportHeight * .24))) : 86;
+  const top = Math.max(0, window.scrollY + target.getBoundingClientRect().top - offset);
+  if (navigationByKeyboard) {
+    const heading = target.querySelector<HTMLElement>("h3");
+    heading?.setAttribute("tabindex", "-1");
+    heading?.focus({ preventScroll: true });
+  }
+  window.scrollTo({
+    top,
+    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+  });
+}
+
 // Navegação previsível entre a edição e o pedido tradicional no Safari.
 function jumpToEditorialSection(id: "tamanhos" | "edicao-crocante") {
   const target = document.getElementById(id);
@@ -545,6 +570,28 @@ export default function Home() {
   const { promotionTime, refreshPromotionTime } = usePopcornPromotion();
   const popcornPromotionActive = isPopcornPromotionActive(promotionTime);
   const [requestedCategory, setRequestedCategory] = useState<CategoryId | null>(null);
+  // Navegação secundária recolhida por padrão: produtos seguem protagonistas.
+  const [otherCategoriesOpen, setOtherCategoriesOpen] = useState(false);
+  const otherCategoriesRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!otherCategoriesOpen) return;
+    const dismissOutside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !otherCategoriesRef.current?.contains(event.target)) {
+        setOtherCategoriesOpen(false);
+      }
+    };
+    const dismissEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setOtherCategoriesOpen(false);
+      otherCategoriesRef.current?.querySelector<HTMLButtonElement>(".builder-more-toggle")?.focus();
+    };
+    document.addEventListener("pointerdown", dismissOutside);
+    document.addEventListener("keydown", dismissEscape);
+    return () => {
+      document.removeEventListener("pointerdown", dismissOutside);
+      document.removeEventListener("keydown", dismissEscape);
+    };
+  }, [otherCategoriesOpen]);
   // Edição limitada é uma experiência de descoberta, não um passo obrigatório do pedido.
   const [showLimitedCupView, setShowLimitedCupView] = useState(false);
   const [popcornVariantId, setPopcornVariantId] = useState("");
@@ -558,7 +605,10 @@ export default function Home() {
   useEffect(() => {
     if (!scrollRequest) return;
     const frame = window.requestAnimationFrame(() => {
-      if (scrollRequest.id === "gourmet-size-action") scrollToGourmetControl("size");
+      if (scrollRequest.id === "category-entry-pipocas") scrollToCategoryEntry("pipocas");
+      else if (scrollRequest.id === "category-entry-fatias") scrollToCategoryEntry("fatias");
+      else if (scrollRequest.id === "category-entry-cones") scrollToCategoryEntry("cones");
+      else if (scrollRequest.id === "gourmet-size-action") scrollToGourmetControl("size");
       else if (scrollRequest.id === "gourmet-flavor-action") scrollToGourmetControl("flavor");
       else if (scrollRequest.id === "gourmet-quantity-action") scrollToGourmetControl("quantity");
       else if (scrollRequest.editorial && (scrollRequest.id === "tamanhos" || scrollRequest.id === "edicao-crocante")) {
@@ -1352,6 +1402,7 @@ export default function Home() {
   function selectCategory(category: CategoryId, shouldScroll = true) {
     if (!categoryIsAvailable(category)) return;
     setShowLimitedCupView(false);
+    setOtherCategoriesOpen(false);
     setRequestedCategory(category);
     setEditingId(null);
     setSelectionMessage("");
@@ -1361,14 +1412,12 @@ export default function Home() {
     if (categoryFromUrl(window.location.href) !== category || trufadasFromUrl(window.location.href, historyState)) {
       window.history.pushState({ ...historyState, lucianeCrocante: false }, "", categoryUrl(window.location.href, category));
     }
-    if (shouldScroll) {
-      if (category === "pipocas") requestEditorialScroll("tamanhos");
-      else requestScroll("configurador");
-    }
+    if (shouldScroll) requestScroll(`category-entry-${category}`);
   }
 
   function openLimitedCupEdition() {
     if (!categoryIsAvailable("pipocas")) return;
+    setOtherCategoriesOpen(false);
     setShowLimitedCupView(true);
     setCupFlavorPreview(null);
     setCupSizeId(null);
@@ -1401,6 +1450,7 @@ export default function Home() {
   }
 
   function returnToCategories() {
+    setOtherCategoriesOpen(false);
     setShowLimitedCupView(false);
     setCupFlavorPreview(null);
     setCupSizeId(null);
@@ -2459,9 +2509,37 @@ export default function Home() {
               </div>
             </section>
           )}
-          {(activeCategory === "fatias" || activeCategory === "cones") && (
-            <nav className="v7-navigation v7-navigation-slices" aria-label={activeCategory === "cones" ? "Navegação dos Cones Trufados" : "Navegação das Fatias Artesanais"}>
-              <button type="button" onClick={returnToCategories}><ArrowLeft size={15} aria-hidden="true" /> Voltar às categorias</button>
+          {!showLimitedCupView && (
+            <nav className="builder-utility-nav" aria-label="Navegação do cardápio">
+              <button type="button" className="builder-nav-back" onClick={returnToCategories}>
+                <ArrowLeft size={16} aria-hidden="true" /> Voltar às categorias
+              </button>
+              {(visibleCategories.some(category => category.id !== activeCategory) || activeCategory === "pipocas") && (
+                <div className="builder-nav-more" ref={otherCategoriesRef}>
+                  <button type="button" className="builder-more-toggle" aria-expanded={otherCategoriesOpen}
+                    aria-controls="builder-more-options"
+                    onClick={() => setOtherCategoriesOpen(open => !open)}>
+                    Outros doces <ChevronDown size={15} aria-hidden="true" />
+                  </button>
+                  {otherCategoriesOpen && (
+                    <div className="builder-more-options" id="builder-more-options" role="group" aria-label="Explorar outras categorias">
+                      {visibleCategories.filter(category => category.id !== activeCategory).map(category => (
+                        <button type="button" className="builder-more-option" key={category.id}
+                          disabled={!categoryIsAvailable(category.id)} onClick={() => selectCategory(category.id)}>
+                          <span>{category.name}{!categoryIsAvailable(category.id) && " · Esgotado"}</span>
+                          <ChevronRight size={15} aria-hidden="true" />
+                        </button>
+                      ))}
+                      {activeCategory === "pipocas" && (
+                        <button type="button" className="builder-more-option" onClick={openLimitedCupEdition}>
+                          <span>Pipocas Trufadas</span>
+                          <ChevronRight size={15} aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </nav>
           )}
           <div className="section-intro" id="potes-recheados">
@@ -2470,20 +2548,7 @@ export default function Home() {
             <p>{activeCategory === "pipocas"
               ? "Um tamanho, seus sabores favoritos. Tudo do seu jeito."
               : activeCategory === "cones" ? "Um sabor por vez. Adicione quantos desejar e finalize tudo no mesmo pedido." : "Escolha sua fatia favorita. Depois, você pode adicionar outras."}</p>
-            {visibleCategories.some((category) => category.id !== activeCategory) && (
-              <nav className="category-shortcuts" aria-label="Explorar outras categorias">
-                <span className="category-shortcuts-label">Ver outras categorias</span>
-                <div className="category-shortcuts-list">
-                  {visibleCategories.filter((category) => category.id !== activeCategory).map((category) => (
-                    <button type="button" className="category-shortcut" key={category.id}
-                      disabled={!categoryIsAvailable(category.id)} onClick={() => selectCategory(category.id)}>
-                      <span>{category.name}{!categoryIsAvailable(category.id) && " · Esgotado"}</span>
-                      <ChevronRight size={15} aria-hidden="true" />
-                    </button>
-                  ))}
-                </div>
-              </nav>
-            )}
+
           </div>
 
           {((activeCategory === "pipocas" && (!pipocasAvailable || !POPCORN.available))
@@ -2500,10 +2565,7 @@ export default function Home() {
           {activeCategory === "pipocas" && pipocasVisible ? (
             <div className="builder-card">
               <section className={`step-block step-state-${popcornSizeStepState}`} id="tamanhos" aria-labelledby="step-size" aria-current={popcornSizeStepState === "active" ? "step" : undefined}>
-                <nav className="v7-navigation v7-navigation-pipocas" aria-label="Navegação das pipocas">
-                  <button type="button" onClick={returnToCategories}><ArrowLeft size={15} aria-hidden="true" /> Categorias</button>
-                  <button type="button" onClick={openLimitedCupEdition}>Conhecer Trufadas <ChevronRight size={15} aria-hidden="true" /></button>
-                </nav>
+
                 {popcornPromotionActive && pipocasAvailable && POPCORN.variants.some(variant => popcornSizeIsAvailable(variant.id)) && (
                   <StorefrontCampaignEditorial campaign={GOURMET_HOLIDAY_CREATIVE} />
                 )}
