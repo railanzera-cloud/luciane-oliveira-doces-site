@@ -1,0 +1,210 @@
+/*
+ * Luciane Oliveira Doces — UX mobile pós-inspeção real no Instagram/iPhone.
+ * Escopo estritamente de apresentação: home, navegação, escolha de calda,
+ * resumo da fatia e relação com a barra inferior.
+ * Carregado depois dos estilos aprovados; não redefine checkout ou produtos.
+ */
+
+.storefront .category-shortcuts {
+  display: grid;
+  gap: 9px;
+  margin-top: 17px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(225, 173, 113, .24);
+}
+.storefront .category-shortcuts-label {
+  color: #d9b48c;
+  font: 700 .66rem/1.35 system-ui, sans-serif;
+  letter-spacing: .105em;
+  text-transform: uppercase;
+}
+.storefront .category-shortcuts-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 8px;
+}
+.storefront .category-shortcuts .category-shortcut {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  min-height: 42px;
+  max-width: 100%;
+  padding: 9px 12px;
+  border: 1px solid rgba(218, 162, 105, .45);
+  border-radius: 12px;
+  background: rgba(87, 53, 34, .29);
+  color: #f1d0a5;
+  font: 600 .79rem/1.28 system-ui, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+.storefront .category-shortcuts .category-shortcut span {
+  overflow-wrap: anywhere;
+}
+.storefront .category-shortcuts .category-shortcut svg {
+  flex: none;
+}
+.storefront .category-shortcuts .category-shortcut:focus-visible {
+  outline: 3px solid #ffdbab;
+  outline-offset: 2px;
+}
+.storefront .category-shortcuts .category-shortcut:disabled {
+  opacity: .62;
+  cursor: not-allowed;
+}
+@media (hover: hover) and (pointer: fine) {
+  .storefront .category-shortcuts .category-shortcut:not(:disabled):hover {
+    border-color: #e8b47b;
+    background: rgba(124, 77, 49, .42);
+  }
+}
+
+@media (max-width: 699px) {
+  /* Step 2: photo and product identity are still visible without creating
+     an oversized second product card. No photometric image changes. */
+  .storefront .slice-builder .boutique-slice-preview {
+    display: grid;
+    grid-template-columns: clamp(74px, 23vw, 94px) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    min-height: 0;
+    align-items: stretch;
+    gap: 0;
+    margin-top: 1px;
+    border-radius: 15px;
+    overflow: hidden;
+  }
+  .storefront .slice-builder .boutique-slice-preview > img {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: 100%;
+    height: 100%;
+    min-height: 92px;
+    max-height: 104px;
+    object-fit: cover;
+  }
+  .storefront .slice-builder .boutique-slice-preview-info {
+    align-self: end;
+    padding: 10px 12px 2px;
+    gap: 3px;
+  }
+  .storefront .slice-builder .boutique-slice-preview-info small {
+    font-size: .61rem;
+    letter-spacing: .07em;
+  }
+  .storefront .slice-builder .boutique-slice-preview-info strong {
+    font-size: clamp(.99rem, 4vw, 1.2rem);
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+  .storefront .slice-builder .boutique-slice-preview-price {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+    align-self: end;
+    padding: 4px 12px 10px;
+    font-size: 1.06rem;
+  }
+
+  /* Preserve order, names, selection semantics and pricing.
+     Last choice spans the full row without an empty right-side card. */
+  .storefront .slice-builder .slice-sauce-choice {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+    align-items: stretch;
+  }
+  .storefront .slice-builder .slice-sauce-choice .slice-sauce-card {
+    min-width: 0;
+    min-height: 99px;
+    padding: 12px;
+    gap: 10px;
+    align-content: start;
+  }
+  .storefront .slice-builder .slice-sauce-choice .slice-sauce-card.is-without-sauce {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: nowrap;
+    align-content: center;
+    align-items: center;
+    min-height: 62px;
+    padding: 11px 15px;
+  }
+  .storefront .slice-builder .slice-sauce-choice .slice-sauce-card.is-without-sauce .slice-sauce-copy {
+    flex: 1 1 auto;
+    padding: 0;
+    min-width: 0;
+  }
+  .storefront .slice-builder .slice-sauce-choice .slice-sauce-card.is-without-sauce .slice-sauce-check {
+    position: static;
+    flex: 0 0 24px;
+    margin-left: auto;
+  }
+  .storefront .slice-builder .slice-sauce-choice .slice-sauce-card.is-without-sauce strong {
+    font-size: .91rem;
+  }
+
+  .storefront .builder-section .section-intro .category-shortcuts {
+    margin-top: 11px;
+  }
+  .storefront .category-shortcuts .category-shortcut {
+    flex: 1 1 160px;
+  }
+  .storefront #calda-fatias,
+  .storefront #quantidade-fatias,
+  .storefront #fatias,
+  .storefront #cones-quantidade,
+  .storefront #cones-sabores {
+    scroll-margin-top: max(78px, env(safe-area-inset-top, 0px));
+    scroll-margin-bottom: calc(132px + env(safe-area-inset-bottom, 0px));
+  }
+  .storefront #quantidade-fatias,
+  .storefront #cones-quantidade {
+    padding-bottom: max(34px, env(safe-area-inset-bottom, 0px));
+  }
+  /* Keep first row discoverable and second row's CTAs aligned in the carousel
+     of four categories — no changes to products, labels or image sources. */
+  .storefront .menu-entry.is-neutral .collection-choice .collection-copy {
+    min-height: 146px;
+    padding: 10px 11px 12px;
+    gap: 5px;
+  }
+  .storefront .menu-entry.is-neutral .collection-choice .collection-description {
+    max-width: 100%;
+    font-size: .71rem;
+    line-height: 1.29;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  .storefront .menu-entry.is-neutral .collection-choice .collection-price {
+    font-size: .84rem;
+  }
+  .storefront .menu-entry.is-neutral .collection-choice .collection-action {
+    min-height: 44px;
+    margin-top: auto;
+  }
+}
+
+@media (max-width: 359px) {
+  .storefront .slice-builder .slice-sauce-choice {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .storefront .slice-builder .slice-sauce-choice .slice-sauce-card {
+    min-height: 66px;
+  }
+  .storefront .slice-builder .slice-sauce-choice .slice-sauce-card.is-without-sauce {
+    grid-column: 1;
+  }
+  .storefront .category-shortcuts .category-shortcut {
+    flex-basis: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront .category-shortcuts .category-shortcut {
+    transition: none !important;
+  }
+}
