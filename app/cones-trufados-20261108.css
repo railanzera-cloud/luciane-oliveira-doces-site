@@ -178,3 +178,6 @@
 @media (prefers-reduced-motion: reduce) {
   .storefront .cone-flavor-card { transition: none !important; }
 }
+
+.storefront .cone-cross-sell { margin: 12px 0 3px; display: inline-flex; gap: 9px; align-items: center; justify-content: space-between; border: 1px solid rgba(220,161,100,.52); background: rgba(104,61,36,.16); color: #f8debd; border-radius: 11px; padding: 11px 14px; font-size: .91rem; }
+.storefront .cone-cross-sell svg { flex: none; }
