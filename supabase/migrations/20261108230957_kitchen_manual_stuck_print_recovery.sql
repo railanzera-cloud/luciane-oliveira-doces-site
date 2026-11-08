@@ -34,6 +34,13 @@ BEGIN
   IF p_job_id IS NULL OR p_action IS NULL OR p_action NOT IN ('paper_confirmed', 'retry_no_paper') THEN
     RAISE EXCEPTION USING errcode='22023', message='invalid_recovery_action';
   END IF;
+  -- A conta precisa pertencer à equipe cadastrada, além de estar logada.
+  -- SECURITY DEFINER jamais deve depender apenas de role=authenticated.
+  IF NOT EXISTS (
+    SELECT 1 FROM public.crm_staff_access s WHERE s.user_id = v_actor
+  ) THEN
+    RAISE EXCEPTION USING errcode='42501', message='staff_access_required';
+  END IF;
   v_confirmation := CASE p_action
     WHEN 'paper_confirmed' THEN 'CONFIRMO_QUE_O_PAPEL_SAIU'
     ELSE 'CONFIRMO_QUE_O_PAPEL_NAO_SAIU'
