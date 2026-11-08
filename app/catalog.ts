@@ -78,8 +78,24 @@ export const POPCORN_PRICING_GROUPS: Record<PopcornPricingGroup, Record<PopcornS
 
 export const SLICE_OPTIONS: ProductOption[] = [
   { id: "calda-chocolate", name: "Com calda de chocolate", description: "", tone: "#70452e", available: true },
+  { id: "calda-ninho", name: "Com calda de Ninho", description: "", tone: "#70452e", available: true },
   { id: "sem-calda", name: "Sem calda, por favor", description: "", tone: "#70452e", available: true },
 ];
+
+// A ordem ajuda a decidir, mas não pré-seleciona nenhuma calda nem impede combinações.
+const NINHO_FIRST_SLICE_IDS = new Set(["fatia-ninho-morango", "fatia-coco-cremoso-morango"]);
+export function sliceSauceOptions(productId: string): ProductOption[] {
+  return NINHO_FIRST_SLICE_IDS.has(productId)
+    ? [SLICE_OPTIONS[1], SLICE_OPTIONS[0], SLICE_OPTIONS[2]]
+    : SLICE_OPTIONS;
+}
+
+// Cadastro reservado para o lançamento de amanhã. Sem preço confirmado e sem foto,
+// não pertence ao catálogo vendável e nunca deve ser enviado ao checkout.
+export const SLICE_DRAFTS = [
+  { id: "fatia-abacaxi-doce-leite", itemKey: "slice_abacaxi_doce_leite",
+    name: "Abacaxi com Doce de Leite", price: null, image: null },
+] as const;
 
 // Catálogo central: preços, fotos e disponibilidade são alterados somente aqui.
 export const PRODUCTS: Product[] = [
@@ -169,8 +185,7 @@ export const PRODUCTS: Product[] = [
     id: "fatia-ninho-morango",
     kind: "slice",
     category: "Fatias Artesanais",
-    name: "Ninho com Morango",
-    subtitle: "Massa branca",
+    name: "Brigadeiro Branco com Morango",
     image: "/fatia-ninho-morango.jpeg",
     cardImage: "/fatia-ninho-morango-card.webp",
     imageAlt: "Fatia artesanal de Ninho com morango em massa branca",
@@ -218,9 +233,7 @@ export const PRODUCTS: Product[] = [
     id: "fatia-coco-cremoso-morango",
     kind: "slice",
     category: "Fatias Artesanais",
-    name: "Coco cremoso com geleia de morango na massa branca",
-    cardName: "Coco Cremoso com Morango",
-    subtitle: "Geleia de morango · Massa branca",
+    name: "Geleia de Morango com Coco Cremoso",
     image: "/fatia-coco-cremoso-morango.webp",
     cardImage: "/fatia-coco-cremoso-morango-card.webp",
     imageAlt: "Fatia artesanal de massa branca com coco cremoso e geleia de morango",

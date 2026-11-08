@@ -18,7 +18,9 @@ test("mensagens reais com sabor inequívoco geram ID canônico sem texto",()=>{
   ["Qual o preço do chocolate com maracujá?","fatia-chocolate-maracuja"],
   ["Quero duas fatias de chocolate com morango","fatia-chocolate-morango"],
   ["Tem a fatia de Ninho com morango?","fatia-ninho-morango"],
+  ["Tem a fatia de Brigadeiro Branco com Morango?","fatia-ninho-morango"],
   ["Posso pegar uma fatia de Coco Cremoso com Morango?","fatia-coco-cremoso-morango"],
+  ["Quero Geleia de Morango com Coco Cremoso","fatia-coco-cremoso-morango"],
   ["Quanto custa a fatia de chocolate com cenoura?","fatia-chocolate-cenoura"],
  ]){
   const m=extractTintimProductMention(inbound(text));

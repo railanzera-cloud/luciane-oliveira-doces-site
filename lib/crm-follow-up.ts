@@ -3,11 +3,11 @@
 // declarado, consentimento ou estoque. Sabores ambiguos ficam sem classificacao.
 const adProductRules = [
   { id: "fatia-chocolate-morango", name: "Chocolate com Morango", pattern: /\bchocolate com morango\b/ },
-  { id: "fatia-ninho-morango", name: "Ninho com Morango", pattern: /\bninho com morango\b/ },
+  { id: "fatia-ninho-morango", name: "Brigadeiro Branco com Morango", pattern: /\b(?:ninho com morango|brigadeiro branco com morango)\b/ },
   { id: "fatia-prestigio", name: "Prestígio", pattern: /\bprestigio\b/ },
   { id: "fatia-chocolate-maracuja", name: "Chocolate com Maracujá", pattern: /\bmaracuja\b/ },
   { id: "fatia-chocolatudo", name: "Chocolatudo", pattern: /\bchocolatudo\b/ },
-  { id: "fatia-coco-cremoso-morango", name: "Coco Cremoso com Morango", pattern: /\bcoco cremoso\b/ },
+  { id: "fatia-coco-cremoso-morango", name: "Geleia de Morango com Coco Cremoso", pattern: /\b(?:coco cremoso|geleia de morango com coco cremoso)\b/ },
   { id: "fatia-chocolate-cenoura", name: "Chocolate com Cenoura", pattern: /\bchocolate com cenoura\b|\bbolo de cenoura com chocolate\b/ },
 ] as const;
 
@@ -28,11 +28,11 @@ export function crmAdSliceHint(adName: string | null | undefined):
 // Os IDs são os do catálogo comercial; o corpo privado não entra no frontend.
 const mentionedNames: Record<string,string> = {
   "fatia-chocolate-morango": "Chocolate com Morango",
-  "fatia-ninho-morango": "Ninho com Morango",
+  "fatia-ninho-morango": "Brigadeiro Branco com Morango",
   "fatia-prestigio": "Prestígio",
   "fatia-chocolate-maracuja": "Chocolate com Maracujá",
   "fatia-chocolatudo": "Chocolatudo",
-  "fatia-coco-cremoso-morango": "Coco Cremoso com Morango",
+  "fatia-coco-cremoso-morango": "Geleia de Morango com Coco Cremoso",
   "fatia-chocolate-cenoura": "Chocolate com Cenoura",
 };
 export function crmMentionedProductName(id: string | null | undefined): string | null {

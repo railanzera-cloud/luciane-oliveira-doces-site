@@ -270,3 +270,13 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - **Alternativa rejeitada:** fotografia aprimorada por IA embora inicialmente escolhida, porque destoou das demais fotos naturais ao ser vista na vitrine.
 - **Proteções:** manter o produto `fatia-bombom-uva` / `slice_bombom_uva`, categoria, calda, preço, painel de disponibilidade, status atual e Edge comercial; não tocar em demais fatias.
 - **Status:** código do peso alterado e testes de regressão aprovados; foto original aplicada no ZIP corrigido, **ainda pendente versionar a imagem natural no GitHub** para evitar regressão em rebuild futuro. Publicação do ZIP corrigido não comprovada.
+
+
+## D-C16 — Fatias: nomes claros, calda de Ninho e rascunho seguro (08/11/2026)
+
+- **Fonte/decisão aprovada:** pedido da Luciane enviado pelo proprietário, incluindo nomes oficiais `Brigadeiro Branco com Morango` e `Geleia de Morango com Coco Cremoso`; remover subtítulos repetidos de massa branca; adicionar `Com calda de Ninho` grátis. Manter `Com calda de chocolate` e `Sem calda, por favor`, sem descrições por opção, sem seleção automática. Uma única informação útil: `Escolha uma opção. Sem custo adicional.`
+- **Ordem contextual:** Ninho primeiro nos IDs históricos `fatia-ninho-morango` e `fatia-coco-cremoso-morango`, chocolate primeiro nos demais. Sem bloquear combinações.
+- **Proteções:** preços R$22/R$20 inalterados, IDs e fotos originais preservados, opções antigas aceitas, nomes novos no catálogo público, cotação do backend, carrinho e cozinha via `option_names`. CRM aceita nomes anteriores e novos sem mudar IDs ou atribuir compra a sinais de interesse.
+- **Próximo sabor:** `Abacaxi com Doce de Leite` terá registro `slice_abacaxi_doce_leite` como rascunho oculto, sem preço e sem foto; não existe em `PRODUCTS` nem em `SLICES` de backend. O admin mostra a preparação e bloqueia disponibilização antes da confirmação de preço/foto.
+- **Rejeitado:** preço presumido ou R$0 vendável; opção padrão escondida; descrições ornamentais; renomear IDs e perder históricos; liberar um produto futuro apenas por virar `available` no banco.
+- **Produção:** SQL de nomenclatura e rascunho executado em `edqiwvccmboyayojvuea` com nomes conferidos, item #37 `hidden`; funções Edge e Cloudflare devem ter estado confirmado separadamente antes de declarar publicados.

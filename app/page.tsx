@@ -46,6 +46,7 @@ import {
   SLICES,
   SLICE_WEIGHT_GRAMS,
   SLICE_OPTIONS,
+  sliceSauceOptions,
   STORE_CONFIG,
   type CategoryId,
   type Product,
@@ -326,9 +327,6 @@ function productLabel(product: Product) {
   if (isTrufadaOrLegacy(product.id)) {
     return `Pipocas Trufadas — ${product.name}`;
   }
-  // A descrição editorial deste sabor já integra seu nome oficial.
-  // Não repetir "geleia de morango · massa branca" nos pedidos e no WhatsApp.
-  if (product.id === "fatia-coco-cremoso-morango") return product.name;
   return product.subtitle
     ? `${product.name} (${product.subtitle.toLowerCase()})`
     : product.name;
@@ -414,7 +412,7 @@ function cartAvailabilityIssues(
     }
 
     if (product.kind === "slice") {
-      if (item.optionIds.length !== 1 || !SLICE_OPTIONS.some(option => option.id === item.optionIds[0])) reasons.push("Escolha com calda de chocolate ou sem calda editando esta fatia.");
+      if (item.optionIds.length !== 1 || !SLICE_OPTIONS.some(option => option.id === item.optionIds[0])) reasons.push("Escolha uma opção de calda ou sem calda editando esta fatia.");
       const sliceKey = SLICE_ITEM_KEYS[product.id];
       if (sliceKey && !isItemAvailable(snapshot, sliceKey)) {
         reasons.push(unavailableReason(snapshot, sliceKey, productLabel(product)));
@@ -2692,7 +2690,7 @@ export default function Home() {
               </section>
 
               {selectedSlice && <section id="calda-fatias" className={`step-block step-state-${sliceSauceStepState}`} aria-labelledby="step-slice-sauce">
-                <div className="step-heading compact-heading"><StepMarker number={2} state={sliceSauceStepState} /><div><h3 id="step-slice-sauce">Como prefere sua fatia?</h3><p>Escolha o acabamento. Pode mudar de ideia antes de adicionar.</p></div></div>
+                <div className="step-heading compact-heading"><StepMarker number={2} state={sliceSauceStepState} /><div><h3 id="step-slice-sauce">Escolha sua calda</h3><p>Escolha uma opção. Sem custo adicional.</p></div></div>
                 <div className="boutique-slice-preview" aria-label="Fatia escolhida">
                   {selectedSlice.image && (
                     <img src={selectedSlice.cardImage ?? selectedSlice.image} alt="" width="72" height="72" loading="lazy" decoding="async" />
@@ -2706,14 +2704,13 @@ export default function Home() {
                 <RadioGroup className="slice-sauce-choice" value={sliceOptionId} onValueChange={value => {
                   setSliceOptionId(value); setSelectionMessage(""); requestScroll("quantidade-fatias");
                 }} aria-labelledby="step-slice-sauce">
-                  {SLICE_OPTIONS.map(option => {
+                  {sliceSauceOptions(selectedSlice.id).map(option => {
                     const isSelected = sliceOptionId === option.id;
                     return (
                       <label className={`slice-sauce-card ${isSelected ? "is-selected" : ""}`} key={option.id} htmlFor={`slice-${option.id}`}>
                         <RadioGroupItem id={`slice-${option.id}`} value={option.id} />
                         <span className="slice-sauce-copy">
                           <strong>{option.name}</strong>
-                          <small>{option.id === "calda-chocolate" ? "Cobertura de chocolate" : "Sem cobertura adicional"}</small>
                         </span>
                         {isSelected && <span className="slice-sauce-check" aria-hidden="true"><Check size={18} strokeWidth={2.6} /></span>}
                       </label>

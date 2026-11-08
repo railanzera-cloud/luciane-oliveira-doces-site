@@ -264,3 +264,12 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Imagem para publicação:** o ZIP manual corrigido substitui a imagem AVIF do produto por compressão/redimensionamento da foto original, sem retoque de luz/cor. Foto natural SHA256 `85bb251649b2467d0dfd983b87212f982ef23f15ab0b78c38b1a1df250c25278` (900×1273); bytes da foto aprovada original JPEG SHA256 `a3ec768b64a9f752847130d2906fb0807a6708d7a06fde3e739cb44f00dae05a`.
 - **Lacuna de origem:** a imagem aprimorada anterior ainda está versionada no GitHub sob `public/fatia-bombom-uva.avif`; o ZIP de distribuição foi corrigido com a imagem original sem altera-la em outros arquivos. **Não reconstruir/publicar um ZIP diretamente do HEAD sem sincronizar esse asset natural primeiro**, pois causaria regressão visual. Esta divergência é pendência técnica explícita, não considerar fonte integralmente harmonizada.
 - **Estado:** foto natural aprovada pelo proprietário; pacote corrigido e validado; sem prova de publicação do pacote corrigido em Cloudflare nem validação física posterior.
+
+
+## Caldas de fatias — referência aprovada 08/11/2026
+
+- Título: **Escolha sua calda**. Texto de apoio único **Escolha uma opção. Sem custo adicional.**
+- Itens exibidos como rótulos limpos, sem subtítulos individuais: **Com calda de chocolate**, **Com calda de Ninho**, **Sem calda, por favor**.
+- Ordem apenas orientadora, sem pré-seleção: massas brancas confirmadas `fatia-ninho-morango` e `fatia-coco-cremoso-morango` iniciam com Ninho; demais iniciam com chocolate. Seleção acessível e obrigatória; a escolha é persistida no pedido.
+- Vitrine: **Brigadeiro Branco com Morango** e **Geleia de Morango com Coco Cremoso** sem subtítulos redundantes; manter fotos reais, preços e proporções.
+- **Abacaxi com Doce de Leite**: rascunho somente no /admin, com aviso de foto e preço pendentes; não ocupar espaço no site público até lançamento validado. Não inventar foto, peso, data, massa ou preço.

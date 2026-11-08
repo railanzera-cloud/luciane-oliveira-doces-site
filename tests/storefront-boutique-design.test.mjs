@@ -71,7 +71,7 @@ test("calda tem contraste explícito em ambos os estados e mantém valores exist
   assert.ok(sauceStyle.includes(":focus-within"));
   assert.ok(!sauceStyle.includes(`color: ${original}`));
   assert.ok(home.includes("option.name"));
-  assert.ok(home.includes('option.id === "calda-chocolate"'));
+  assert.ok(home.includes('sliceSauceOptions(selectedSlice.id).map(option =>'));
   assert.ok(home.includes('value={sliceOptionId}'));
   assert.ok(home.includes('onValueChange={value =>'));
   assert.ok(home.includes('requestScroll("quantidade-fatias")'));
@@ -84,9 +84,10 @@ test("o interior deixa explícitas as opções e o produto selecionado, sem pass
   assert.ok(home.includes('Toque no × para remover um sabor e escolher outro.'));
   assert.ok(home.includes('className="boutique-flavor-tags gourmet-removable-tags"'));
   assert.ok(home.includes('className="gourmet-removable-tag"'), "Resumo segue com sabores acessíveis e agora editáveis");
-  assert.ok(home.includes('Sem cobertura adicional'));
-  assert.ok(home.includes('Cobertura de chocolate'));
-  assert.ok(home.includes("SLICE_OPTIONS.map(option =>"));
+  assert.ok(!home.includes('Sem cobertura adicional'));
+  assert.ok(!home.includes('Cobertura de chocolate'));
+  assert.ok(home.includes('Escolha uma opção. Sem custo adicional.'));
+  assert.ok(home.includes("sliceSauceOptions(selectedSlice.id).map(option =>"));
   assert.ok(boutique.includes(".storefront .slice-card-copy strong"));
   assert.ok(boutique.includes(".storefront .cart-item-value strong"));
   assert.ok(boutique.includes(".storefront .summary-card"));

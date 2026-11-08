@@ -1,6 +1,7 @@
 import {
   POPCORN,
   SLICES,
+  SLICE_DRAFTS,
   STORE_CONFIG,
   type CategoryId,
 } from "@/app/catalog";
@@ -15,6 +16,7 @@ export type MenuAvailabilityItem = {
   name: string;
   itemType: AvailabilityItemType;
   categoryKey: string;
+  isDraft?: boolean;
 };
 
 export type MenuAvailabilityRow = {
@@ -90,6 +92,7 @@ export const SLICE_ITEM_KEYS: Record<string, string> = {
   "fatia-coco-cremoso-morango": "slice_coco_cremoso_morango",
   "fatia-chocolate-cenoura": "slice_chocolate_cenoura",
   "fatia-bombom-uva": "slice_bombom_uva",
+  "fatia-abacaxi-doce-leite": "slice_abacaxi_doce_leite",
 };
 
 const CATEGORY_ITEMS: MenuAvailabilityItem[] = [
@@ -128,6 +131,15 @@ const SLICE_ITEMS: MenuAvailabilityItem[] = SLICES.map((slice) => ({
   categoryKey: CATEGORY_ITEM_KEYS.fatias,
 }));
 
+// Aparece no /admin como preparação, mas não no catálogo de compra.
+const SLICE_DRAFT_ITEMS: MenuAvailabilityItem[] = SLICE_DRAFTS.map(draft => ({
+  itemKey: draft.itemKey,
+  name: draft.name,
+  itemType: "slice",
+  categoryKey: CATEGORY_ITEM_KEYS.fatias,
+  isDraft: true,
+}));
+
 export const MENU_AVAILABILITY_ITEMS: MenuAvailabilityItem[] = [
   ...CATEGORY_ITEMS,
   ...Object.values(TRUFADAS_VARIANTS).flatMap((product) =>
@@ -142,6 +154,7 @@ export const MENU_AVAILABILITY_ITEMS: MenuAvailabilityItem[] = [
   ...POPCORN_SIZE_ITEMS,
   ...POPCORN_FLAVOR_ITEMS,
   ...SLICE_ITEMS,
+  ...SLICE_DRAFT_ITEMS,
 ];
 
 const KNOWN_ITEM_KEYS = new Set(MENU_AVAILABILITY_ITEMS.map((item) => item.itemKey));
@@ -169,6 +182,7 @@ export function createFallbackAvailability(): AvailabilitySnapshot {
 
   // Novo cadastro só pode ser exibido depois que a linha remota for confirmada.
   statuses[SLICE_ITEM_KEYS["fatia-bombom-uva"]] = "hidden";
+  for (const draft of SLICE_DRAFTS) statuses[draft.itemKey] = "hidden";
 
   return {
     ordersOpen: STORE_CONFIG.acceptingOrders,
@@ -197,6 +211,8 @@ export function mergeRemoteAvailability(
       statuses[row.item_key] = row.status;
     }
   }
+  // Um rascunho sem preço/foto nunca se torna vendável por um status remoto.
+  for (const draft of SLICE_DRAFTS) statuses[draft.itemKey] = "hidden";
 
   const verifiedPreorder = slicePreorder?.item_key === "slice_chocolate_morango"
     && slicePreorder.active === true && Number.isSafeInteger(slicePreorder.remaining)

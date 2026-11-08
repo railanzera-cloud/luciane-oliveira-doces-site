@@ -4,11 +4,11 @@ const simplify=value=>String(value??"").normalize("NFD").replace(/[\u0300-\u036f
  .toLowerCase().replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();
 const flavors=[
  ["fatia-chocolate-morango",/\bchocolate com morango\b/],
- ["fatia-ninho-morango",/\bninho com morango\b/],
+ ["fatia-ninho-morango",/\b(?:ninho com morango|brigadeiro branco com morango)\b/],
  ["fatia-prestigio",/\bprestigio\b/],
  ["fatia-chocolate-maracuja",/\bchocolate com maracuja\b/],
  ["fatia-chocolatudo",/\bchocolatudo\b/],
- ["fatia-coco-cremoso-morango",/\bcoco cremoso(?: com morango)?\b/],
+ ["fatia-coco-cremoso-morango",/\b(?:coco cremoso(?: com morango)?|geleia de morango com coco cremoso)\b/],
  ["fatia-chocolate-cenoura",/\bchocolate com cenoura\b|\bcenoura com chocolate\b/],
 ];
 export function extractTintimProductMention(payload){

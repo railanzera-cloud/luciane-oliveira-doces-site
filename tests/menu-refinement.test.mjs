@@ -165,7 +165,7 @@ for (const [key, category, label] of [
 }
 
 test("old slice choices are stripped while item IDs, quantities, and popcorn combinations survive", () => {
-  const old = [{ ...sliceItem, optionIds: ["calda-ninho"] }, popcornItem];
+  const old = [{ ...sliceItem, optionIds: ["calda-antiga-removida"] }, popcornItem];
   const migrated = [{ ...sliceItem, optionIds: [] }, popcornItem];
   const saved = JSON.stringify(old);
   assert.deepEqual(sanitizeSavedCart(old), migrated);
@@ -174,13 +174,13 @@ test("old slice choices are stripped while item IDs, quantities, and popcorn com
   assert.deepEqual(sanitizeSavedCart([sliceItem, { ...popcornItem, optionIds: ["unknown"] }]), [sliceItem]);
 });
 
-test("slices expose only chocolate and explicit no-sauce choices", () => {
- for (const slice of catalog.SLICES) assert.deepEqual(slice.options.map(o => o.id), ['calda-chocolate', 'sem-calda']);
- assert.match(source, /Como prefere sua fatia/);
+test("slices offer chocolate, Ninho and no-sauce choices without preselection", () => {
+ for (const slice of catalog.SLICES) assert.deepEqual(slice.options.map(o => o.id), ['calda-chocolate', 'calda-ninho', 'sem-calda']);
+ assert.match(source, /Escolha sua calda/);
  assert.match(source, /useState\(""\)/);
  assert.equal(cartAvailabilityIssues([{...sliceItem, optionIds:[]}], snapshot()).length, 1);
  assert.equal(cartAvailabilityIssues([sliceItem], snapshot()).length, 0);
- for (const id of ['sem-calda','calda-chocolate']) assert.deepEqual(sanitizeSavedCart([{...sliceItem,optionIds:[id]}])[0].optionIds,[id]);
+ for (const id of ['sem-calda','calda-chocolate','calda-ninho']) assert.deepEqual(sanitizeSavedCart([{...sliceItem,optionIds:[id]}])[0].optionIds,[id]);
 });
 
 const cart = [sliceItem, popcornItem];
@@ -616,12 +616,13 @@ test('dynamic Tintim link preserves repeated parameters and tracker cookies', ()
 
 test('slice choices reach the authoritative quote without fees and reject retired or conflicting options', async () => {
  const {quoteCartItems}=await import('../supabase/functions/_shared/commerce-catalog.mjs');
- const items=['calda-chocolate','sem-calda'].map(id=>({product_id:sliceItem.productId,variant_id:'fatia',quantity:1,option_ids:[id]}));
+ const items=['calda-chocolate','calda-ninho','sem-calda'].map(id=>({product_id:sliceItem.productId,variant_id:'fatia',quantity:1,option_ids:[id]}));
  const quote=quoteCartItems(items);
- assert.deepEqual(quote.items.map(i=>i.option_names),[['Com calda de chocolate'],['Sem calda, por favor']]);
+ assert.deepEqual(quote.items.map(i=>i.option_names),[['Com calda de chocolate'],['Com calda de Ninho'],['Sem calda, por favor']]);
  assert.equal(quote.items[0].unit_price_cents,quote.items[1].unit_price_cents);
+ assert.equal(quote.items[1].unit_price_cents,quote.items[2].unit_price_cents);
  assert.deepEqual(quote.items.map(i=>i.option_ids),items.map(i=>i.option_ids));
- for(const option_ids of [['calda-ninho'],['calda-chocolate','sem-calda'],['unknown']]) assert.throws(()=>quoteCartItems([{...items[0],option_ids}]));
+ for(const option_ids of [['calda-chocolate','sem-calda'],['calda-ninho','calda-chocolate'],['unknown']]) assert.throws(()=>quoteCartItems([{...items[0],option_ids}]));
 });
 
 test('final screen keeps WhatsApp predominant and tracking secondary for each manual payment', async()=>{
