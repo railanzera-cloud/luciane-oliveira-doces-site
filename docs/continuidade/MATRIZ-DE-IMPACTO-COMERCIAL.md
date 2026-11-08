@@ -121,3 +121,12 @@ Contrato temporário de negócio (sem atualizar tabelas permanentes): `POPCORN_P
 **Paridade obrigatória:** catálogo cliente `app/catalog.ts` + preview do configurador + carrinho/totais + mensagem WhatsApp + `commerce-catalog.mjs` autoritativo (Edge `create-whatsapp-order`) + helper site `popcorn-quote-campaign.mjs` (não ativar modo de checkout site sem contrato backend compatível). A peça editorial e preço normal riscado devem concordar com a cotação. Excluir Nutella também da comunicação de economia. Revalidar preço na Edge imediatamente antes de persistir e rejeitar total desatualizado, nunca aceitar desconto informado pelo cliente.
 
 **Gate de publicação:** somente com versão Cloudflare adequada e Edge sincronizada, backup/rollback da Edge v29, testes da janela e exceção, captura em WebKit e verificação final em Safari/iPhone; publicar frontend isolado ou backend isolado pode provocar `409 price_changed`.
+
+## Recuperação de impressão QZ (08/11/2026)
+
+- Pedido `confirmed` não garante pagamento; confirmação Pix fica independente.
+- `print_jobs.printing` com `claimed_at` há 5 min ou mais **não** é automaticamente reenviado; exibir diagnóstico, identificar número do pedido e solicitar verificação física.
+- RPC de equipe `admin_recover_stalled_print_job`: `paper_confirmed` só depois de observação de papel; `retry_no_paper` só depois de confirmar ausência de papel. Lock da tarefa, controle de concorrência, validação de pedido/estoque/fila e auditoria.
+- Ao reenviar, apenas a tarefa travada é marcada `cancelled` e uma única nova tarefa `initial` com `job_key` determinística entra em `pending`. A função de claim já existente continua impondo elegibilidade. Não recriar pedido ou alterar pagamento, não tocar pedidos saudáveis.
+- `printed` do QZ registra resposta da API, não garantia de papel. Confirmação manual deve ser diferenciada e auditada.
+- RPC produtiva aplicada em 08/11/2026 sem modificar comandas. A UI só conseguirá recuperar tarefas após atualização manual do frontend Cloudflare; ainda exige confirmação humana da saída física do papel e controle de duplicidade. Preservar assets acumulados.

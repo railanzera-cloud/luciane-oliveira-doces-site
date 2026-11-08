@@ -18,6 +18,35 @@ export type KitchenPrintIssue = {
   message: string;
 };
 
+export type StalledKitchenPrintJob = {
+  id: string;
+  order_uuid: string;
+  kind: string;
+  status: "printing";
+  claimed_at: string;
+  updated_at: string;
+  attempts: number;
+};
+
+/**
+ * Leitura independente do alerta sonoro: exibe a comanda presa mesmo se a
+ * fila estiver temporariamente pausada. Nenhuma recuperação automática.
+ */
+export async function loadStalledKitchenPrintJobs(
+  client: SupabaseClient, now = Date.now(),
+): Promise<StalledKitchenPrintJob[]> {
+  const { data, error } = await client.from("print_jobs")
+    .select("id,order_uuid,kind,status,claimed_at,updated_at,attempts")
+    .eq("status", "printing")
+    .gte("created_at", new Date(now - 24 * 60 * 60 * 1000).toISOString())
+    .lte("claimed_at", new Date(now - 5 * 60 * 1000).toISOString())
+    .order("claimed_at", { ascending: false }).limit(25);
+  if (error) throw new Error("Não foi possível conferir as comandas travadas.");
+  return (data ?? []).filter(job =>
+    job.status === "printing" && typeof job.claimed_at === "string"
+  ) as StalledKitchenPrintJob[];
+}
+
 export const KITCHEN_PRINT_DELAY_MS = 2 * 60 * 1000;
 export const KITCHEN_ERROR_ALERT_INTERVAL_MS = 30 * 1000;
 const PRINT_HEALTH_LOOKBACK_MS = 6 * 60 * 60 * 1000;
