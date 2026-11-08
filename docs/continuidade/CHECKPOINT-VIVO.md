@@ -719,3 +719,15 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - **Contrato de pedidos:** espelhar apenas este sabor no catálogo de cotação `supabase/functions/_shared/commerce-catalog.mjs`; quando for habilitado, a validação remota de disponibilidade continua obrigatória. A atualização da função Edge `create-whatsapp-order` precisa ser conferida antes da ativação.
 - **Fotos:** `fatia-abacaxi-brigadeiro-branco-20261108.jpeg` e `fatia-abacaxi-brigadeiro-branco-card-20261108.webp`. O ZIP compilado para Cloudflare precisa incluir ambas e manter byte-a-byte os assets dos sabores anteriores. Arquivos de foto podem existir apenas no ZIP manual até sincronização GitHub; não confundir código do PR com pacote completo.
 - **Não alterar:** outros produtos, preços, imagens, estoque, promoções, caldas, checkout, WhatsApp, CRM, administração além da disponibilização deste item, Supabase Gestão, Cloudflare em produção ou o restante do fluxo.
+
+## 50. Recuperação segura de comanda travada — caso #1700 (08/11/2026)
+
+**Fatos verificados antes da alteração:** #1700 passou a `printing` e ficou sem conclusão, sem reprint registrado mesmo após tentativa manual. Outra sessão de cozinha imprimiu #1701 com sucesso. O retorno QZ não prova saída física e o normal `Reimprimir` exige inicial `printed`; por isso #1700 não era recuperável por esse botão.
+
+**Implementação candidata:** branch `fix/cozinha-recuperacao-comanda-travada-20261108`, baseada no HEAD `391a7bc97f9cb387bc11a7de2036a67580bd7065` do PR #21, acumulando navegação/fatias aprovadas. Novo RPC `admin_recover_stalled_print_job` com lock, estado `printing` e idade mínima de 5 min, confirmação física inequívoca, auditoria e execução única. Quando **não saiu**: encerrar somente job original como `cancelled`, invalidar claim, criar um novo job `kind=initial` com chave idempotente `recovery:<job-id>`; `claim_print_job` conserva guardas já aprovadas. Quando **saiu**: `printed` mediante declaração humana auditada, sem reenvio. O caso `#1700` **não** é resolvido automaticamente ao migrar; somente após escolha da equipe.
+
+**UI:** lista de tarefas `printing` antigas com número do pedido, horário, tentativas, duas decisões explícitas, checkbox, confirmação final, estados de carregamento e mensagens de conflito. No cartão do pedido travado, substituir a opção de reprint convencional por ligação ao painel correto. Alerta sonoro deixa de repetir somente após o job original sair de `printing` e o novo deixar de estar pendente/atrasado. Não alterar Pix/estoque/CRM/carrinho/pedido.
+
+**Implantação separada:** migration `20261108230957_kitchen_manual_stuck_print_recovery.sql` + frontend Cloudflare devem ser homologados cada um; antes do deploy, verificar TypeScript/testes/CI e permissões da RPC. Produção não é equivalente a PR/ZIP. Fotos aprovadas continuam disponíveis no pacote manual e podem não estar no GitHub; ZIP não deve perdê-las.
+
+**Lembrete operacional:** não afirmar impressão física por `printed` do QZ. Nunca reimprimir automaticamente uma tarefa `printing` ambígua. Instruir equipe a conferir papel e fila Windows antes de tocar em recuperação.
