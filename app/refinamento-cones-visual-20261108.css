@@ -1,0 +1,141 @@
+/* Refinamento 08/11 — fluidez dos Cones, foto integral e navegação.
+   Última camada de apresentação, sem efeitos sobre preço/pedido/estoque. */
+
+/* A entrada dos Cones acompanha o reveal progressivo já usado no
+   configurador das Pipocas Trufadas. Sem animações em loop. */
+@keyframes cones-enter-softly {
+  from { opacity: .24; transform: translate3d(0, 11px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+.storefront .menu-entry[data-active-category="cones"] .entry-heading,
+.storefront #configurador[data-active-category="cones"] .section-intro,
+.storefront #configurador[data-active-category="cones"] .cone-builder {
+  animation: cones-enter-softly 390ms cubic-bezier(.2,.76,.24,1) both;
+}
+.storefront #configurador[data-active-category="cones"] .cone-builder {
+  animation-delay: 55ms;
+}
+
+/* Ícones e texto dos atalhos permanecem sutis, mas agora são superfícies
+   clicáveis reconhecíveis, com contraste adequado e retorno tátil. */
+.storefront .category-shortcuts .category-shortcut {
+  background: linear-gradient(150deg, rgba(111,67,43,.68), rgba(67,39,27,.85));
+  border-color: rgba(231,174,108,.66);
+  color: #ffe5c3;
+  box-shadow: inset 0 1px 0 rgba(255,224,176,.09), 0 3px 10px rgba(9,4,2,.12);
+  transition: background 170ms ease, border-color 170ms ease, box-shadow 170ms ease, transform 170ms ease;
+}
+.storefront .category-shortcuts .category-shortcut > svg {
+  color: #f2bc80;
+}
+.storefront .category-shortcuts .category-shortcut:focus-visible {
+  outline: 2px solid #ffdba8;
+  outline-offset: 2px;
+  border-color: #ffdba8;
+}
+.storefront .category-shortcuts .category-shortcut:active:not(:disabled) {
+  transform: scale(.985);
+  background: #6a422c;
+  border-color: #f2c38f;
+}
+@media (hover:hover) and (pointer:fine) {
+  .storefront .category-shortcuts .category-shortcut:not(:disabled):hover {
+    background: linear-gradient(150deg, #794a30, #57351f);
+    border-color: #f4ca98;
+    box-shadow: 0 6px 16px rgba(7,3,1,.2);
+  }
+}
+
+/* No cartão da categoria principal, o enquadramento horizontal editorial
+   apresenta os três sabores sem cortar os topos dos cones. */
+.storefront .menu-entry.is-neutral .collection-choice[data-launch] .collection-photo img {
+  object-fit: cover;
+  object-position: center 45%;
+}
+
+/* Prévia da fatia: imagem de produto INTEGRAL (não o cardImage recortado).
+   Duas colunas e duas linhas EXPLÍCITAS corrigem a queda do preço para a
+   esquerda que foi observada no Instagram do iPhone. */
+.storefront #configurador .slice-builder .boutique-slice-preview {
+  display: grid;
+  grid-template-columns: clamp(116px, 35%, 158px) minmax(0, 1fr);
+  grid-template-rows: minmax(0, auto) minmax(0, auto);
+  grid-template-areas: "image information" "image price";
+  gap: 0;
+  min-height: 144px;
+  max-height: none;
+  overflow: hidden;
+  align-items: center;
+  border-radius: 16px;
+}
+.storefront #configurador .slice-builder .boutique-slice-preview > img {
+  grid-area: image;
+  grid-column: 1;
+  grid-row: 1 / -1;
+  display: block;
+  width: 100%;
+  height: 150px;
+  min-height: 150px;
+  max-height: none;
+  object-fit: contain;
+  object-position: center;
+  background: #f2ece4;
+  align-self: stretch;
+}
+.storefront #configurador .slice-builder .boutique-slice-preview-info {
+  grid-area: information;
+  grid-column: 2;
+  grid-row: 1;
+  align-self: end;
+  min-width: 0;
+  padding: 14px 12px 0;
+  gap: 6px;
+}
+.storefront #configurador .slice-builder .boutique-slice-preview-info small {
+  font-size: .6rem;
+  letter-spacing: .09em;
+}
+.storefront #configurador .slice-builder .boutique-slice-preview-info strong {
+  font-size: clamp(1rem, 3.85vw, 1.27rem);
+  line-height: 1.12;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.storefront #configurador .slice-builder .boutique-slice-preview-price {
+  grid-area: price;
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: start;
+  align-self: start;
+  min-width: 0;
+  padding: 5px 12px 12px;
+  margin: 0;
+  font-size: clamp(1rem, 4vw, 1.25rem);
+}
+@media (max-width: 359px) {
+  .storefront #configurador .slice-builder .boutique-slice-preview {
+    grid-template-columns: 102px minmax(0, 1fr);
+    min-height: 130px;
+  }
+  .storefront #configurador .slice-builder .boutique-slice-preview > img {
+    height: 132px;
+    min-height: 132px;
+  }
+  .storefront #configurador .slice-builder .boutique-slice-preview-info {
+    padding: 10px 9px 0;
+  }
+  .storefront #configurador .slice-builder .boutique-slice-preview-price {
+    padding: 5px 9px 9px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront .menu-entry[data-active-category="cones"] .entry-heading,
+  .storefront #configurador[data-active-category="cones"] .section-intro,
+  .storefront #configurador[data-active-category="cones"] .cone-builder {
+    animation: none !important;
+  }
+  .storefront .category-shortcuts .category-shortcut {
+    transition: none !important;
+    transform: none !important;
+  }
+}

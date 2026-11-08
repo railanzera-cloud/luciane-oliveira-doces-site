@@ -293,3 +293,13 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **CTA fixo de fatias:** quando falta sabor, `Escolher minha fatia`; quando existe sabor mas falta calda, `Escolher calda` e scroll até essa seção; quando calda já foi escolhida, `Adicionar N fatia(s)` sem pular validação. Nunca mostrar CTA com texto extenso que ocupa toda a área de ação.
 - **Instagram no iPhone:** assegurar `scroll-margin`, safe area, foco visível, movimento reduzido e possibilidade de ver a quantidade e ação inline sem estarem escondidas pela barra fixa.
 - **Abrangência:** refino visual/navegacional; não mudar fotos já aprovadas, estrutura comercial, valores, estoque, horários de disponibilidade, cobrança ou impressão.
+
+
+## Refinamento confirmado — imagem de Prestígio, trio, prévia e categorias (08/11/2026)
+
+- **Capa dos Cones:** foto editorial com três sabores realmente ofertados, na mesma bandeja: Dois Amores esquerda (cremes branco/chocolate), Ferrero Rocher centro (chocolate/castanhas), Prestígio direita (coco/creme liso). Corte horizontal apenas para enquadrar os três topos e corpos no pequeno cartão, sem retocar produto ou iluminação. Foto é representativa, validada anteriormente pela Luciane.
+- **Prestígio interno:** utilizar a nova imagem de confeitaria com creme de coco no topo SEM bombom. Mesmo nome comercial e R$14; arquivos v2 impedem que cache mostre a foto antiga.
+- **Resumo de fatia:** foto real `product.image` integral, `object-fit: contain` e fundo neutro; nome e preço na coluna à direita, sem buraco/queda de preço para baixo da foto. Manter naturalidade do produto, jamais inventar ingredientes.
+- **Movimento:** transição de entrada dos Cones deve dialogar com a entrada suave das Pipocas Trufadas, sem efeitos contínuos; 390ms e desabilitação via preferências de movimento reduzido.
+- **Atalhos:** botão de categoria com contraste levemente maior, borda quente, feedback táctil, foco visível e texto sempre identificável.
+- **Pós-adição:** ao adicionar Pipoca Gourmet, Pipoca Trufada ou Fatia, sugerir os Cones se pelo menos um sabor e a categoria estiverem disponíveis; quando o pedido começou por Cone, usar `Escolher outro cone`. Conservar as outras recomendações e não oferecer produtos sem estoque/loja pausada.

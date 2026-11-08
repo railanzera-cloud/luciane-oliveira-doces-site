@@ -93,10 +93,10 @@ test("UX: segundo cone usa o mesmo cartão de complementos, sem botão ilegível
   const complements = read("lib/checkout-complement-order.mjs");
   assert.ok(complements.includes('cones: ["cones", "trufadas", "fatias", "gourmet"]'));
   assert.ok(page.includes('addedNotice?.category === "cones" ? "cones"'));
-  assert.ok(page.includes('cones: addedNotice?.category === "cones" && conesCanBeAdded'));
-  assert.ok(page.includes('id === "cones" ? "Escolher outro cone"'));
-  assert.ok(page.includes('id === "cones" ? "Adicionar mais um sabor"'));
-  assert.ok(page.includes('id === "cones" ? "/images/cone-trufado-ferrero-rocher-card-20261108.webp"'));
+  assert.ok(page.includes('cones: conesCanBeAdded'));
+  assert.ok(page.includes('id === "cones" ? (addedNotice?.category === "cones" ? "Escolher outro cone" : "Adicionar cone trufado")'));
+  assert.ok(page.includes('id === "cones" ? (addedNotice?.category === "cones" ? "Adicionar mais um sabor" : "Conhecer os três sabores")'));
+  assert.ok(page.includes('id === "cones" ? "/images/cones-trufados-trio-card-20261108.webp"'));
   assert.ok(page.includes('if (id === "cones") startAnother("cones")'));
   assert.ok(page.includes('className="boutique-complement-choice"'));
   assert.ok(!page.includes('className="cone-cross-sell"'));
