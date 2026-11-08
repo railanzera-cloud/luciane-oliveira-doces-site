@@ -1263,7 +1263,7 @@ export default function Home() {
     : !categoryIsAvailable(activeCategory) && builderFlowActive
       ? "Esgotado no momento"
       : activeCategory === "fatias" && selectedSlice && !sliceOptionId && builderFlowActive
-        ? "Escolher calda ou sem calda"
+        ? "Escolher calda"
       : editingId
         ? "Salvar alterações"
         : draftReady
@@ -1704,7 +1704,7 @@ export default function Home() {
       scrollToSection("fatias");
       return;
     }
-    if (!sliceReady) { setSelectionMessage("Escolha com calda de chocolate ou sem calda para continuar."); requestScroll("calda-fatias"); return; }
+    if (!sliceReady) { setSelectionMessage("Escolha uma opção de calda ou sem calda para continuar."); requestScroll("calda-fatias"); return; }
     if (selectedSlice.id === "fatia-chocolate-morango" && availability.slicePreorder?.active) {
       const original=editingId ? cart.find(item=>item.id===editingId)?.quantity ?? 0 : 0;
       const reserved=cart.filter(item=>item.productId==="fatia-chocolate-morango").reduce((sum,item)=>sum+item.quantity,0);
@@ -2075,7 +2075,11 @@ export default function Home() {
       if (!popcornVariantUsable) requestScroll("gourmet-size-action");
       else if (!popcornReady) requestScroll("gourmet-flavor-action");
       else addOrUpdatePopcorn();
-    } else if (activeCategory === "fatias") addOrUpdateSlice();
+    } else if (activeCategory === "fatias") {
+      if (!selectedSlice) requestScroll("fatias");
+      else if (!sliceOptionId) requestScroll("calda-fatias");
+      else addOrUpdateSlice();
+    }
     else if (activeCategory === "cones") addOrUpdateCone();
   }
 
@@ -2466,12 +2470,20 @@ export default function Home() {
             <p>{activeCategory === "pipocas"
               ? "Um tamanho, seus sabores favoritos. Tudo do seu jeito."
               : activeCategory === "cones" ? "Um sabor por vez. Adicione quantos desejar e finalize tudo no mesmo pedido." : "Escolha sua fatia favorita. Depois, você pode adicionar outras."}</p>
-            {visibleCategories.filter((category) => category.id !== activeCategory).map((category) => (
-              <button type="button" className="category-text-link" key={category.id}
-                disabled={!categoryIsAvailable(category.id)} onClick={() => selectCategory(category.id)}>
-                {category.name}{!categoryIsAvailable(category.id) && " — Esgotado"} <ChevronRight size={15} aria-hidden="true" />
-              </button>
-            ))}
+            {visibleCategories.some((category) => category.id !== activeCategory) && (
+              <nav className="category-shortcuts" aria-label="Explorar outras categorias">
+                <span className="category-shortcuts-label">Ver outras categorias</span>
+                <div className="category-shortcuts-list">
+                  {visibleCategories.filter((category) => category.id !== activeCategory).map((category) => (
+                    <button type="button" className="category-shortcut" key={category.id}
+                      disabled={!categoryIsAvailable(category.id)} onClick={() => selectCategory(category.id)}>
+                      <span>{category.name}{!categoryIsAvailable(category.id) && " · Esgotado"}</span>
+                      <ChevronRight size={15} aria-hidden="true" />
+                    </button>
+                  ))}
+                </div>
+              </nav>
+            )}
           </div>
 
           {((activeCategory === "pipocas" && (!pipocasAvailable || !POPCORN.available))
@@ -2868,7 +2880,7 @@ export default function Home() {
                   {sliceSauceOptions(selectedSlice.id).map(option => {
                     const isSelected = sliceOptionId === option.id;
                     return (
-                      <label className={`slice-sauce-card ${isSelected ? "is-selected" : ""}`} key={option.id} htmlFor={`slice-${option.id}`}>
+                      <label className={`slice-sauce-card ${option.id === "sem-calda" ? "is-without-sauce" : ""} ${isSelected ? "is-selected" : ""}`} key={option.id} htmlFor={`slice-${option.id}`}>
                         <RadioGroupItem id={`slice-${option.id}`} value={option.id} />
                         <span className="slice-sauce-copy">
                           <strong>{option.name}</strong>
