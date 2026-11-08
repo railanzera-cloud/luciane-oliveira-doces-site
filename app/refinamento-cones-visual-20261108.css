@@ -53,9 +53,9 @@
   object-position: center 45%;
 }
 
-/* Prévia da fatia: preservar o cardImage aprovado (recorte próprio de vitrine),
-   evitando exibir a captura integral na miniatura. A grade de nome/preço
-   aprovada continua intacta para não regredir no Instagram do iPhone. */
+/* Prévia da fatia: usar cardImage aprovado e preencher a ALTURA REAL da
+   grade com object-fit cover, sem expor faixas vazias embaixo de nomes longos.
+   Nome/preço, composição e contratos comerciais permanecem inalterados. */
 .storefront #configurador .slice-builder .boutique-slice-preview {
   display: grid;
   grid-template-columns: clamp(116px, 35%, 158px) minmax(0, 1fr);
@@ -74,8 +74,8 @@
   grid-row: 1 / -1;
   display: block;
   width: 100%;
-  height: 150px;
-  min-height: 150px;
+  height: 100%;
+  min-height: 0;
   max-height: none;
   object-fit: cover;
   object-position: center;
@@ -118,8 +118,8 @@
     min-height: 130px;
   }
   .storefront #configurador .slice-builder .boutique-slice-preview > img {
-    height: 132px;
-    min-height: 132px;
+    height: 100%;
+    min-height: 0;
   }
   .storefront #configurador .slice-builder .boutique-slice-preview-info {
     padding: 10px 9px 0;
