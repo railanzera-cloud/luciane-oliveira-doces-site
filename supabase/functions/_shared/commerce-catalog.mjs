@@ -2,7 +2,7 @@ import { deliveryLocalityById, deliveryLegacyReviewState, deliveryLegacySpecific
 import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
-export const CATALOG_VERSION = "2026-11-01.trufadas-pmg";
+export const CATALOG_VERSION = "2026-11-08.cones-trufados";
 import { TRUFADAS_VARIANTS, getTrufadaVariant } from "./trufadas-variants.mjs";
 
 // O catálogo de vendas consulta cada combinação exata: produto + tamanho.
@@ -11,6 +11,7 @@ export const CROCANTES = TRUFADAS_VARIANTS;
 export const CATEGORY_ITEM_KEYS = Object.freeze({
   pipocas: "category_pipocas",
   fatias: "category_fatias",
+  cones: "category_cones",
 });
 
 export const POPCORN_SIZES = Object.freeze({
@@ -34,6 +35,13 @@ export const POPCORN_FLAVORS = Object.freeze({
   "choco-cookies-leite": Object.freeze({ id: "choco-cookies-leite", itemKey: "popcorn_flavor_choco_cookies_leite", name: "Choco Cookies ao Leite", pricingGroup: 2 }),
   "kinder-bueno-crisp": Object.freeze({ id: "kinder-bueno-crisp", itemKey: "popcorn_flavor_kinder_bueno_crisp", name: "Crispy Bueno", pricingGroup: 3 }),
   nutella: Object.freeze({ id: "nutella", itemKey: "popcorn_flavor_nutella", name: "Nutella", pricingGroup: 3 }),
+});
+
+// Preços em centavos definidos pela Luciane; cada cone é vendido por unidade.
+export const CONES = Object.freeze({
+  "cone-trufado-prestigio": Object.freeze({ id: "cone-trufado-prestigio", itemKey: "cone_prestigio", name: "Prestígio", priceCents: 1400 }),
+  "cone-trufado-dois-amores": Object.freeze({ id: "cone-trufado-dois-amores", itemKey: "cone_dois_amores", name: "Dois Amores", priceCents: 1400 }),
+  "cone-trufado-ferrero-rocher": Object.freeze({ id: "cone-trufado-ferrero-rocher", itemKey: "cone_ferrero_rocher", name: "Ferrero Rocher", priceCents: 1600 }),
 });
 
 export const SLICES = Object.freeze({
@@ -175,6 +183,24 @@ export function quoteCartItems(rawItems, now = Date.now()) {
       };
     }
 
+    // Cones Trufados são produtos próprios, sem caldas de fatias e sem variantes
+    // de tamanho. A cotação autoritativa protege valor, SKU e disponibilidade.
+    if (Object.hasOwn(CONES, productId)) {
+      const cone = CONES[productId];
+      if (variantId !== "unidade" || optionIds.length !== 0)
+        throw new Error("Escolha um Cone Trufado válido.");
+      availabilityKeys.add(CATEGORY_ITEM_KEYS.cones);
+      availabilityKeys.add(cone.itemKey);
+      return {
+        item_key: cone.itemKey, product_id: productId,
+        category_key: CATEGORY_ITEM_KEYS.cones, item_type: "cone",
+        name: `Cone Trufado — ${cone.name}`,
+        variant_id: "unidade", variant_item_key: cone.itemKey,
+        size_label: "1 cone", option_ids: [], option_item_keys: [],
+        option_names: [], quantity, unit_price_cents: cone.priceCents,
+        line_total_cents: cone.priceCents * quantity, catalog_version: CATALOG_VERSION,
+      };
+    }
     const slice = SLICES[productId];
     const sauceNames = { "calda-chocolate": "Com calda de chocolate", "calda-ninho": "Com calda de Ninho", "sem-calda": "Sem calda, por favor" };
     if (!slice || variantId !== "fatia" || optionIds.length > 1 || optionIds.some(id => !Object.hasOwn(sauceNames, id))) throw new Error("Escolha uma fatia válida.");
