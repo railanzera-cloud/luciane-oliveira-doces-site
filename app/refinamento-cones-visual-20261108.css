@@ -53,9 +53,9 @@
   object-position: center 45%;
 }
 
-/* Prévia da fatia: imagem de produto INTEGRAL (não o cardImage recortado).
-   Duas colunas e duas linhas EXPLÍCITAS corrigem a queda do preço para a
-   esquerda que foi observada no Instagram do iPhone. */
+/* Prévia da fatia: preservar o cardImage aprovado (recorte próprio de vitrine),
+   evitando exibir a captura integral na miniatura. A grade de nome/preço
+   aprovada continua intacta para não regredir no Instagram do iPhone. */
 .storefront #configurador .slice-builder .boutique-slice-preview {
   display: grid;
   grid-template-columns: clamp(116px, 35%, 158px) minmax(0, 1fr);
@@ -77,7 +77,7 @@
   height: 150px;
   min-height: 150px;
   max-height: none;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
   background: #f2ece4;
   align-self: stretch;
