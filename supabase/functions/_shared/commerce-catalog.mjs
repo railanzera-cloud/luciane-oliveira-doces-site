@@ -38,11 +38,11 @@ export const POPCORN_FLAVORS = Object.freeze({
 
 export const SLICES = Object.freeze({
   "fatia-chocolate-morango": Object.freeze({ id: "fatia-chocolate-morango", itemKey: "slice_chocolate_morango", name: "Chocolate com Morango", priceCents: 2200 }),
-  "fatia-ninho-morango": Object.freeze({ id: "fatia-ninho-morango", itemKey: "slice_ninho_morango", name: "Ninho com Morango", subtitle: "Massa branca", priceCents: 2200 }),
+  "fatia-ninho-morango": Object.freeze({ id: "fatia-ninho-morango", itemKey: "slice_ninho_morango", name: "Brigadeiro Branco com Morango", priceCents: 2200 }),
   "fatia-prestigio": Object.freeze({ id: "fatia-prestigio", itemKey: "slice_prestigio", name: "Prestígio", priceCents: 2000 }),
   "fatia-chocolate-maracuja": Object.freeze({ id: "fatia-chocolate-maracuja", itemKey: "slice_chocolate_maracuja", name: "Chocolate com Maracujá", priceCents: 2000 }),
   "fatia-chocolatudo": Object.freeze({ id: "fatia-chocolatudo", itemKey: "slice_chocolatudo", name: "Chocolatudo", priceCents: 2000 }),
-  "fatia-coco-cremoso-morango": Object.freeze({ id: "fatia-coco-cremoso-morango", itemKey: "slice_coco_cremoso_morango", name: "Coco cremoso com geleia de morango na massa branca", priceCents: 2000 }),
+  "fatia-coco-cremoso-morango": Object.freeze({ id: "fatia-coco-cremoso-morango", itemKey: "slice_coco_cremoso_morango", name: "Geleia de Morango com Coco Cremoso", priceCents: 2000 }),
   "fatia-chocolate-cenoura": Object.freeze({ id: "fatia-chocolate-cenoura", itemKey: "slice_chocolate_cenoura", name: "Chocolate com Cenoura", priceCents: 2000 }),
   "fatia-bombom-uva": Object.freeze({ id: "fatia-bombom-uva", itemKey: "slice_bombom_uva", name: "Bombom de Uva", priceCents: 2000 }),
 });
@@ -176,7 +176,7 @@ export function quoteCartItems(rawItems, now = Date.now()) {
     }
 
     const slice = SLICES[productId];
-    const sauceNames = { "calda-chocolate": "Com calda de chocolate", "sem-calda": "Sem calda, por favor" };
+    const sauceNames = { "calda-chocolate": "Com calda de chocolate", "calda-ninho": "Com calda de Ninho", "sem-calda": "Sem calda, por favor" };
     if (!slice || variantId !== "fatia" || optionIds.length > 1 || optionIds.some(id => !Object.hasOwn(sauceNames, id))) throw new Error("Escolha uma fatia válida.");
     availabilityKeys.add(CATEGORY_ITEM_KEYS.fatias);
     availabilityKeys.add(slice.itemKey);
