@@ -47,8 +47,8 @@ test("Home premium: layout mobile preserva espaço de leitura e não impõe núm
 
 
 test("Refino premium: hierarquia consciente e duas embalagens representadas como fotos reais",()=>{
-  assert.match(page,/data-featured=\{format === "Novidade no cardápio"/);
-  assert.match(page,/data-compact=\{format === "Pacotes com zíper"/);
+  assert.match(page,/data-launch=\{format === "Novidade no cardápio"/);
+  assert.match(page,/data-packs-card=\{format === "Pacotes com zíper"/);
   assert.match(page,/className="collection-pack-secondary"/);
   assert.match(css,/\.collection-choice\[data-featured\]/);
   assert.doesNotMatch(css,/\.collection-choice:first-child/);
