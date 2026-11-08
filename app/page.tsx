@@ -2866,7 +2866,7 @@ export default function Home() {
                 <div className="step-heading compact-heading"><StepMarker number={2} state={sliceSauceStepState} /><div><h3 id="step-slice-sauce">Escolha sua calda</h3><p>Escolha uma opção. Sem custo adicional.</p></div></div>
                 <div className="boutique-slice-preview" aria-label="Fatia escolhida">
                   {selectedSlice.image && (
-                    <img src={selectedSlice.image} alt="" width="140" height="140" loading="lazy" decoding="async" />
+                    <img src={selectedSlice.cardImage ?? selectedSlice.image} alt="" width="72" height="72" loading="lazy" decoding="async" />
                   )}
                   <span className="boutique-slice-preview-info">
                     <small>Sua escolha</small>

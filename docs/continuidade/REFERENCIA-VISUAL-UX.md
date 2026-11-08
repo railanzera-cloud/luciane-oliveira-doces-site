@@ -303,3 +303,11 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Movimento:** transição de entrada dos Cones deve dialogar com a entrada suave das Pipocas Trufadas, sem efeitos contínuos; 390ms e desabilitação via preferências de movimento reduzido.
 - **Atalhos:** botão de categoria com contraste levemente maior, borda quente, feedback táctil, foco visível e texto sempre identificável.
 - **Pós-adição:** ao adicionar Pipoca Gourmet, Pipoca Trufada ou Fatia, sugerir os Cones se pelo menos um sabor e a categoria estiverem disponíveis; quando o pedido começou por Cone, usar `Escolher outro cone`. Conservar as outras recomendações e não oferecer produtos sem estoque/loja pausada.
+
+
+## Ajuste de referência — prévia de Fatias, 08/11/2026 (PR #19, candidato)
+
+- **Problema reportado pelo proprietário:** a miniatura da fatia selecionada no passo `Escolha sua calda` passou a exibir bordas, faixas de fundo e até elementos de print do arquivo original depois do incremento 46. As duas tentativas mais recentes de mostrar a imagem inteira não foram aprovadas esteticamente.
+- **Decisão aprovada:** **reverter apenas o tratamento da fotografia na prévia** ao padrão anterior (PR #17): usar `selectedSlice.cardImage ?? selectedSlice.image` e `object-fit: cover`; preservar o restante da estrutura do PR #18, incluindo nome, preço, grade à direita, caldas (Ninho/chocolate/sem calda), atalhos, Cones, complementos, navegação, rolagem e custos.
+- **Estado da evidência:** correção codificada em `fix/fatias-preview-imagem-card-aprovada-20261108`, PR #19 draft; não há comprovação visual de Safari/Instagram físico **após** este ajuste, nem deploy Cloudflare.
+- **Não fazer:** voltar a `object-fit: contain` com `selectedSlice.image` nesse resumo compacto sem nova autorização e prova visual. A foto principal do produto e os assets originais continuam inalterados.
