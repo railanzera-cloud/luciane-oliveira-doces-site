@@ -513,7 +513,7 @@ function CollectionChoice({ format, name, description, action, price, photo, pho
   fallback?: string; price?: string; disabled: boolean; onClick: () => void;
 }) {
   return (
-    <button className="collection-choice" data-featured={format === "Novidade no cardápio" || undefined} data-compact={format === "Pacotes com zíper" || undefined} type="button" disabled={disabled} onClick={onClick} aria-label={`${name} — ${action}`}>
+    <button className="collection-choice" data-launch={format === "Novidade no cardápio" || undefined} data-packs-card={format === "Pacotes com zíper" || undefined} type="button" disabled={disabled} onClick={onClick} aria-label={`${name} — ${action}`}>
       <span className="collection-photo" data-packs={format === "Pacotes com zíper" || undefined} onContextMenu={(event) => event.preventDefault()}>
         <img src={photo} srcSet={`${photo.replace(".webp", "-360.webp")} 360w, ${photo} ${photoWidth}w`} sizes="(min-width: 1152px) 374px, (min-width: 700px) 33vw, 36vw" alt="" draggable={false} decoding="async" width={640} height={480} onError={(event) => {
           const img = event.currentTarget;
@@ -1050,6 +1050,7 @@ export default function Home() {
   // Nunca assumem quantidade, alteram preço ou habilitam uma categoria indisponível.
   const checkoutComplementItems = orderCheckoutComplements(
     addedNotice && isTrufadaOrLegacy(addedNotice.productId) ? "trufadas"
+      : addedNotice?.category === "cones" ? "cones"
       : addedNotice?.category === "fatias" ? "fatias" : "gourmet",
     {
       gourmet: availability.ordersOpen && pipocasAvailable && POPCORN.available
@@ -1058,6 +1059,7 @@ export default function Home() {
         && SLICES.some((slice) => sliceIsVisible(slice.id) && slice.available
           && Boolean(slice.variants[0]?.available) && sliceIsAvailable(slice.id)),
       trufadas: cupCanBeAddedFromCheckout,
+      cones: addedNotice?.category === "cones" && conesCanBeAdded,
       bebidas: STORE_CONFIG.enabledExtras.drinks && availability.ordersOpen,
     },
   );
@@ -2262,6 +2264,15 @@ export default function Home() {
                     action={!conesAvailable ? "Esgotado" : "Escolher meu cone"}
                     disabled={!conesAvailable} onClick={() => selectCategory("cones")} />
                 )}
+                {pipocasVisible && (
+                  <CollectionChoice format="Pacotes com zíper" name="Pipocas Trufadas"
+                    photo="/images/pipocas-trufadas-ninho-20261101.webp" photoWidth={1086}
+                    fallback="/images/pipocas-trufadas-pacoca-20261101.webp"
+                    description="Ninho, Paçoca e Coco Queimado · P, M e G"
+                    price={currency.format(TRUFADA_STARTING_PRICE)}
+                    action={!pipocasAvailable || cupPhase === "sold-out" ? "Esgotado" : cupCanBeAddedFromCheckout ? "Ver sabores" : "Consultar sabores"}
+                    disabled={!pipocasAvailable || cupPhase === "sold-out"} onClick={openLimitedCupEdition} />
+                )}
                 {visibleCategories.filter(category => category.id !== "cones").map((category) => {
                   const available = categoryIsAvailable(category.id);
                   const isPot = category.id === "pipocas";
@@ -2276,15 +2287,6 @@ export default function Home() {
                       disabled={!available} onClick={() => selectCategory(category.id)} />
                   );
                 })}
-                {pipocasVisible && (
-                  <CollectionChoice format="Pacotes com zíper" name="Pipocas Trufadas"
-                    photo="/images/pipocas-trufadas-ninho-20261101.webp" photoWidth={1086}
-                    fallback="/images/pipocas-trufadas-pacoca-20261101.webp"
-                    description="Ninho, Paçoca e Coco Queimado · P, M e G"
-                    price={currency.format(TRUFADA_STARTING_PRICE)}
-                    action={!pipocasAvailable || cupPhase === "sold-out" ? "Esgotado" : cupCanBeAddedFromCheckout ? "Ver sabores" : "Consultar sabores"}
-                    disabled={!pipocasAvailable || cupPhase === "sold-out"} onClick={openLimitedCupEdition} />
-                )}
               </div>
             ) : (
               <div className="menu-empty-state" role="status">
@@ -3079,7 +3081,6 @@ export default function Home() {
                       <p>{addedNotice.description}</p>
                     </div>
                   </div>
-                  {conesCanBeAdded && <Button type="button" variant="outline" className="cone-cross-sell" onClick={() => startAnother("cones")}><ShoppingBag size={16} /> {cart.some(item => CONES.some(cone => cone.id === item.productId)) ? "Escolher outro cone" : "Conhecer os Cones Trufados"} <ChevronRight size={16} /></Button>}
                   {checkoutComplementItems.length > 0 && (
                     <div className="boutique-added-other">
                       <div className="boutique-added-other-intro">
@@ -3088,22 +3089,26 @@ export default function Home() {
                       </div>
                       <div className="boutique-complement-grid" role="group" aria-label="Outros produtos disponíveis para adicionar">
                         {checkoutComplementItems.map((id) => {
-                          const heading = id === "gourmet" ? addMoreButtonLabel("pipocas", cart)
+                          const heading = id === "cones" ? "Escolher outro cone"
+                            : id === "gourmet" ? addMoreButtonLabel("pipocas", cart)
                             : id === "fatias" ? addMoreButtonLabel("fatias", cart)
                               : id === "trufadas" ? cartContainsCrocantes ? "Outro pacote Trufado" : "Pipocas Trufadas"
                                 : "Refrigerante";
-                          const detail = id === "gourmet" ? "Montar pote Gourmet"
+                          const detail = id === "cones" ? "Adicionar mais um sabor"
+                            : id === "gourmet" ? "Montar pote Gourmet"
                             : id === "fatias" ? "Escolher sua fatia"
                               : id === "trufadas" ? "Escolher sabor e tamanho"
                                 : "Ver acompanhamentos";
-                          const photo = id === "gourmet" ? "/images/categoria-pipocas-editorial-enquadrada-v107.webp"
+                          const photo = id === "cones" ? "/images/cone-trufado-ferrero-rocher-card-20261108.webp"
+                            : id === "gourmet" ? "/images/categoria-pipocas-editorial-enquadrada-v107.webp"
                             : id === "fatias" ? "/images/categoria-fatias-editorial.webp"
                               : id === "trufadas" ? "/images/pipocas-trufadas-ninho-20261101.webp"
                                 : null;
                           return (
                             <button type="button" key={id} className="boutique-complement-choice"
                               onClick={() => {
-                                if (id === "gourmet") startAnother("pipocas");
+                                if (id === "cones") startAnother("cones");
+                                else if (id === "gourmet") startAnother("pipocas");
                                 else if (id === "fatias") startAnother("fatias");
                                 else if (id === "trufadas") startAnotherCrocantes();
                                 else scrollToSection("acompanhamentos");
