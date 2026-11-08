@@ -67,7 +67,7 @@ test("calda de Ninho é gratuita, não pré-selecionada e respeita a ordem conte
 
 test("Abacaxi com Brigadeiro Branco: preço, foto e status inicial oculto até autorização", () => {
   const slice = front.slice(front.indexOf('id: "fatia-abacaxi-doce-leite"'), front.indexOf('id: "coca-cola-220"'));
-  assert.ok(front.includes('export const SLICE_DRAFTS = [] as const;'));
+  assert.ok(front.includes('export const SLICE_DRAFTS: ReadonlyArray<'));
   assert.match(slice, /name: "Abacaxi com Brigadeiro Branco"/);
   assert.match(slice, /image: "\/fatia-abacaxi-brigadeiro-branco-20261108\.jpeg"/);
   assert.match(slice, /cardImage: "\/fatia-abacaxi-brigadeiro-branco-card-20261108\.webp"/);
