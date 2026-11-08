@@ -698,3 +698,15 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - **Diff limitado:** `app/page.tsx` volta ao asset `selectedSlice.cardImage ?? selectedSlice.image` na miniatura; `app/refinamento-cones-visual-20261108.css` volta a `object-fit: cover` no seletor específico da miniatura; teste correspondente atualizado. Mantidas a grade, nome, preço, fundo e dimensões recentes do cartão.
 - **Intocados:** calda de Ninho, controles e atalhos, home, Cones, recomendações, catálogo, valores, disponibilidade, carrinho, WhatsApp, checkout, Pix, admin, CRM, cozinha/QZ, Supabase e Edge Functions. Nenhuma foto foi editada ou substituída.
 - **Verificação/entrega:** PR e comparação de apenas três arquivos de código/teste confirmados antes das atualizações documentais; CI do novo HEAD e aceitação estética no Safari/Instagram precisam ser conferidos independentemente. Nenhum deployment Cloudflare, ZIP novo, SQL, Edge deploy ou merge foi feito. Continua válido o aviso do incremento 46 sobre imagens aprovadas presentes no ZIP e ausentes da origem GitHub.
+
+## 48. Navegação de categorias subordinada à escolha — 08/11/2026
+
+**Origem e decisão:** proprietário observou os dois CTAs grandes `Ver outras categorias` competindo com fotos, tamanhos e sabores, além de navegação redundante e scroll de entrada inconsistente no Safari/iPhone. Aprovou substituir por navegação secundária recolhida, manter retorno à vitrine e mostrar primeiro controle de produto em cada categoria.
+
+**Base de código:** `fix/fatias-preview-imagem-card-aprovada-20261108`, PR #19, HEAD base `6f5041f9f7368f8a46e447f34380f903e80fb0a9` (inclui correção da imagem de Fatias para preencher a altura real). Nova branch `feat/navegacao-categorias-discreta-20261108`, PR de refinamento visual sobre #19.
+
+**Mudanças restritas:** `app/page.tsx` para ação `Voltar às categorias` consistente, um dropdown `Outros doces` recolhido e acessível, remoção dos retângulos redundantes e do mini-cabeçalho duplicado do Gourmet, e scroll inicial contextual para `tamanhos`, `fatias`, `cones-sabores`; nova camada CSS `app/category-navigation-refinement-20261108.css` carregada por `app/layout.tsx`, testes focados de navegação e atualização de expectativas antigas.
+
+**Não alterados:** imagem de Fatias corrigida, catálogo, calda de Ninho, preços, estoque, promoções, carrinho, pagamentos, WhatsApp, cozinha/QZ, Supabase, Edge, CRM, Meta, seção de edição das Pipocas Trufadas e regras de entrega.
+
+**Homologação:** testes no SHA da branch e inspeção Safari/Instagram físico devem ser confirmados, assim como ZIP conectado com os 17 assets aprovados de entregas anteriores. **Não** confundir PR, CI ou ZIP de inspeção sem Supabase com publicação. Não fazer merge em `main` nem alterar banco por este ajuste.
