@@ -72,6 +72,37 @@ test("Vitrine, seleção, quantidade e carrinho usam fluxo de cones separado",()
   assert.ok(!page.includes('coneProductId === "fatia-prestigio"'));
 });
 
+
+test("UX: quatro categorias têm cartões visíveis e Trufadas não ficam no fim", () => {
+  const start = page.indexOf('<div className="collection-menu" role="group" aria-label="Escolha uma categoria">');
+  const menuBody = page.slice(start, page.indexOf('</div>',start));
+  const cone = menuBody.indexOf('name="Cones Trufados"');
+  const trufadas = menuBody.indexOf('name="Pipocas Trufadas"');
+  const remainder = menuBody.indexOf('visibleCategories.filter(category => category.id !== "cones")');
+  assert.ok(start >= 0 && cone > 0 && trufadas > cone && remainder > trufadas);
+  assert.ok(page.includes('data-launch={format === "Novidade no cardápio"'));
+  assert.ok(page.includes('data-packs-card={format === "Pacotes com zíper"'));
+  const css = read("app/cones-trufados-20261108.css");
+  assert.ok(css.includes('grid-template-columns: repeat(2, minmax(0, 1fr))'));
+  assert.ok(css.includes('.collection-choice[data-launch]'));
+  assert.ok(css.includes('.collection-choice[data-packs-card]'));
+  assert.ok(!css.includes('.cone-cross-sell'));
+});
+
+test("UX: segundo cone usa o mesmo cartão de complementos, sem botão ilegível avulso", () => {
+  const complements = read("lib/checkout-complement-order.mjs");
+  assert.ok(complements.includes('cones: ["cones", "trufadas", "fatias", "gourmet"]'));
+  assert.ok(page.includes('addedNotice?.category === "cones" ? "cones"'));
+  assert.ok(page.includes('cones: addedNotice?.category === "cones" && conesCanBeAdded'));
+  assert.ok(page.includes('id === "cones" ? "Escolher outro cone"'));
+  assert.ok(page.includes('id === "cones" ? "Adicionar mais um sabor"'));
+  assert.ok(page.includes('id === "cones" ? "/images/cone-trufado-ferrero-rocher-card-20261108.webp"'));
+  assert.ok(page.includes('if (id === "cones") startAnother("cones")'));
+  assert.ok(page.includes('className="boutique-complement-choice"'));
+  assert.ok(!page.includes('className="cone-cross-sell"'));
+  assert.ok(page.includes('Quer completar seu pedido?'));
+});
+
 test("Painel permite disponibilidade independente sem afetar controles anteriores",()=>{
   assert.ok(admin.includes('admin-availability-tab-cones'));
   assert.ok(admin.includes('admin-availability-panel-cones'));
