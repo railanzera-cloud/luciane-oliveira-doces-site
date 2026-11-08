@@ -4570,3 +4570,79 @@ footer {
   .whatsapp-final-card .whatsapp-final-primary { padding: 12px 10px; font-size: .9rem; }
 }
 @media (prefers-reduced-motion: reduce) { .whatsapp-final-primary { transition: none; } }
+
+
+/* Operação crítica: recovery de QZ só após comprovação humana, sem CTA destrutivo. */
+.admin-stalled-prints {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(226, 158, 96, .68);
+  border-radius: 14px;
+  background: #36241a;
+  color: #f3e3d1;
+}
+.admin-stalled-prints > strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #f9d0a1;
+  font-size: 1rem;
+}
+.admin-stalled-prints p,
+.admin-stalled-prints small {
+  margin: 0;
+  line-height: 1.48;
+}
+.admin-stalled-prints p { font-size: .85rem; }
+.admin-stalled-prints small { color: #cdb39e; font-size: .78rem; }
+.admin-stalled-print-card {
+  display: grid;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid rgba(240, 198, 153, .26);
+  border-radius: 12px;
+  background: rgba(7, 4, 3, .20);
+}
+.admin-stalled-print-card > strong { font-size: 1rem; color: #ffddb8; }
+.admin-stalled-print-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.admin-stalled-print-actions button {
+  min-height: 44px;
+  white-space: normal;
+}
+.admin-stalled-print-confirm {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  background: #221713;
+  border: 1px solid #9f7757;
+  border-radius: 10px;
+}
+.admin-stalled-print-confirm > strong { color: #f7c88f; }
+.admin-stalled-print-confirm label {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: .84rem;
+  line-height: 1.45;
+  cursor: pointer;
+}
+.admin-stalled-print-confirm input[type="checkbox"] {
+  width: 21px;
+  height: 21px;
+  flex: 0 0 auto;
+  accent-color: #dfa45e;
+}
+.admin-stalled-print-confirm button:focus-visible,
+.admin-stalled-print-card button:focus-visible {
+  outline: 2px solid #ffdc9e;
+  outline-offset: 3px;
+}
+@media (max-width: 399px) {
+  .admin-stalled-prints { padding: 12px; }
+  .admin-stalled-print-actions > button { flex: 1 1 100%; }
+}
