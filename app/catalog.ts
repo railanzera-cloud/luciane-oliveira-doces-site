@@ -104,9 +104,9 @@ export const PRODUCTS: Product[] = [
   {
     id: "cone-trufado-prestigio", kind: "cone", category: "Cones Trufados",
     name: "Prestígio", available: true,
-    image: "/images/cone-trufado-prestigio-20261108.webp",
-    cardImage: "/images/cone-trufado-prestigio-card-20261108.webp",
-    imageAlt: "Cone trufado Prestígio revestido de coco, com recheio cremoso e sem bombom no topo",
+    image: "/images/cone-trufado-prestigio-20261108-v2.webp",
+    cardImage: "/images/cone-trufado-prestigio-card-20261108-v2.webp",
+    imageAlt: "Cone trufado Prestígio coberto com coco e creme liso de coco no topo, sem bombom",
     variants: [{ id: "unidade", label: "1 cone", whatsappLabel: "1 cone", price: 14, available: true }],
     options: [],
   },
