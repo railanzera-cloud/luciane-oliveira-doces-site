@@ -513,7 +513,7 @@ function CollectionChoice({ format, name, description, action, price, photo, pho
   fallback?: string; price?: string; disabled: boolean; onClick: () => void;
 }) {
   return (
-    <button className="collection-choice" data-featured={format === "Pacotes com zíper" || undefined} type="button" disabled={disabled} onClick={onClick} aria-label={`${name} — ${action}`}>
+    <button className="collection-choice" data-featured={format === "Novidade no cardápio" || undefined} data-compact={format === "Pacotes com zíper" || undefined} type="button" disabled={disabled} onClick={onClick} aria-label={`${name} — ${action}`}>
       <span className="collection-photo" data-packs={format === "Pacotes com zíper" || undefined} onContextMenu={(event) => event.preventDefault()}>
         <img src={photo} srcSet={`${photo.replace(".webp", "-360.webp")} 360w, ${photo} ${photoWidth}w`} sizes="(min-width: 1152px) 374px, (min-width: 700px) 33vw, 36vw" alt="" draggable={false} decoding="async" width={640} height={480} onError={(event) => {
           const img = event.currentTarget;
@@ -2228,10 +2228,10 @@ export default function Home() {
           {activeCategory ? (
             <div className="entry-heading">
               <p className="eyebrow">Luciane Oliveira Doces</p>
-              <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : "Fatias Artesanais"}</h1>
+              <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : activeCategory === "cones" ? "Cones Trufados" : "Fatias Artesanais"}</h1>
               <p className="entry-copy">{activeCategory === "pipocas"
                 ? showLimitedCupView ? "Três sabores artesanais em pacotes P, M e G." : "Escolha o tamanho e combine seus sabores."
-                : "Sabores disponíveis"}</p>
+                : activeCategory === "cones" ? "Escolha seu sabor e a quantidade desejada." : "Sabores disponíveis"}</p>
               {availability.ordersOpen && visibleCategories.length > 0 && (
                 <p className="delivery-time-estimate">
                   <span className="delivery-time-copy">
@@ -2252,16 +2252,16 @@ export default function Home() {
           ) : !activeCategory && (
             visibleCategories.length > 0 ? (
               <div className="collection-menu" role="group" aria-label="Escolha uma categoria">
-                {pipocasVisible && (
-                  <CollectionChoice format="Pacotes com zíper" name="Pipocas Trufadas"
-                    photo="/images/pipocas-trufadas-ninho-20261101.webp" photoWidth={1086}
-                    fallback="/images/pipocas-trufadas-pacoca-20261101.webp"
-                    description="Ninho, Paçoca e Coco Queimado · P, M e G"
-                    price={currency.format(TRUFADA_STARTING_PRICE)}
-                    action={!pipocasAvailable || cupPhase === "sold-out" ? "Esgotado" : cupCanBeAddedFromCheckout ? "Ver sabores" : "Consultar sabores"}
-                    disabled={!pipocasAvailable || cupPhase === "sold-out"} onClick={openLimitedCupEdition} />
+                {conesVisible && (
+                  <CollectionChoice format="Novidade no cardápio" name="Cones Trufados"
+                    photo="/images/cone-trufado-ferrero-rocher-20261108.webp" photoWidth={900}
+                    fallback="/images/cone-trufado-prestigio-20261108.webp"
+                    description="Prestígio, Dois Amores e Ferrero Rocher"
+                    price={currency.format(Math.min(...CONES.map(cone => cone.variants[0].price)))}
+                    action={!conesAvailable ? "Esgotado" : "Escolher meu cone"}
+                    disabled={!conesAvailable} onClick={() => selectCategory("cones")} />
                 )}
-                {visibleCategories.map((category) => {
+                {visibleCategories.filter(category => category.id !== "cones").map((category) => {
                   const available = categoryIsAvailable(category.id);
                   const isPot = category.id === "pipocas";
                   const cover = isPot ? POPCORN : SLICES.find((slice) => sliceIsVisible(slice.id));
@@ -2275,6 +2275,15 @@ export default function Home() {
                       disabled={!available} onClick={() => selectCategory(category.id)} />
                   );
                 })}
+                {pipocasVisible && (
+                  <CollectionChoice format="Pacotes com zíper" name="Pipocas Trufadas"
+                    photo="/images/pipocas-trufadas-ninho-20261101.webp" photoWidth={1086}
+                    fallback="/images/pipocas-trufadas-pacoca-20261101.webp"
+                    description="Ninho, Paçoca e Coco Queimado · P, M e G"
+                    price={currency.format(TRUFADA_STARTING_PRICE)}
+                    action={!pipocasAvailable || cupPhase === "sold-out" ? "Esgotado" : cupCanBeAddedFromCheckout ? "Ver sabores" : "Consultar sabores"}
+                    disabled={!pipocasAvailable || cupPhase === "sold-out"} onClick={openLimitedCupEdition} />
+                )}
               </div>
             ) : (
               <div className="menu-empty-state" role="status">
