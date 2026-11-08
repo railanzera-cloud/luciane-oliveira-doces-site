@@ -1004,6 +1004,7 @@ export default function Home() {
   const cartNeedsSizeReview = cart.some((item) => PRODUCTS.find((product) => product.id === item.productId)?.variants.find((variant) => variant.id === item.variantId)?.retired);
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
   const cartContainsCrocantes = cart.some((item) => isTrufadaOrLegacy(item.productId));
+  const cartRequiresWhatsApp = cartContainsCrocantes || cart.some(item => CONES.some(cone => cone.id === item.productId));
   const cupProductId = cupFlavorPreview ?? "";
   const cupProduct = PRODUCTS.find(product => product.id === cupProductId);
   const cupVariant = cupProduct?.variants.find(variant => variant.id === cupSizeId);
@@ -1036,11 +1037,11 @@ export default function Home() {
         return Boolean(key && isItemAvailable(availability, key) && remainingForFlavor(productId, size) > 0);
       }));
   useEffect(() => {
-    if (cartContainsCrocantes && checkoutChannel !== "whatsapp") {
+    if (cartRequiresWhatsApp && checkoutChannel !== "whatsapp") {
       setCheckoutChannel("whatsapp");
       setPayment("");
     }
-  }, [cartContainsCrocantes, checkoutChannel]);
+  }, [cartRequiresWhatsApp, checkoutChannel]);
   const justAddedProduct = addedNotice
     ? PRODUCTS.find((product) => product.id === addedNotice.productId)
     : null;
@@ -1207,7 +1208,7 @@ export default function Home() {
     : cart.length > 0 && !builderFlowActive
     ? cartNeedsSizeReview ? "Revise o tamanho" : currency.format(hasEstimatedTotal ? orderTotal : cartSubtotal)
     : draftSubtotal === null
-      ? activeCategory === "pipocas" ? `A partir de ${currency.format(popcornPrice("500ml", [], promotionTime))}` : "A partir de R$20"
+      ? activeCategory === "pipocas" ? `A partir de ${currency.format(popcornPrice("500ml", [], promotionTime))}` : activeCategory === "cones" ? "A partir de R$14" : "A partir de R$20"
       : currency.format(draftSubtotal);
   const stickyPriceCaption = cupBuilderFlowActive
     ? cupFlavorPreview
@@ -1215,7 +1216,7 @@ export default function Home() {
       : "A partir de"
     : cart.length > 0 && !builderFlowActive
     ? hasEstimatedTotal ? "Total do pedido" : "Subtotal do pedido"
-    : cart.length > 0 ? "Item em montagem" : activeCategory === "pipocas" ? "Sua pipoca" : "Sua fatia";
+    : cart.length > 0 ? "Item em montagem" : activeCategory === "pipocas" ? "Sua pipoca" : activeCategory === "cones" ? "Seu cone" : "Sua fatia";
   const paymentLabel = checkoutChannel === "site" && isSitePayment(payment)
     ? sitePaymentLabel(payment, fulfillment)
     : paymentDescription(isWhatsAppPayment(payment) ? payment : "", fulfillment).replace(" (1x)", "");
@@ -1265,12 +1266,14 @@ export default function Home() {
         : draftReady
       ? activeCategory === "pipocas"
         ? `Adicionar ${popcornQuantity} ${popcornQuantity === 1 ? "pipoca" : "pipocas"}`
+        : activeCategory === "cones" ? `Adicionar ${coneQuantity} ${coneQuantity === 1 ? "cone" : "cones"}`
         : selectedSlice?.id==="fatia-chocolate-morango" && strawberryPreorder
           ? `Adicionar ${sliceQuantity} ${sliceQuantity === 1 ? "fatia" : "fatias"} à pré-reserva`
           : `Adicionar ${sliceQuantity} ${sliceQuantity === 1 ? "fatia" : "fatias"}`
       : builderFlowActive
         ? activeCategory === "pipocas"
           ? popcornVariant ? "Ir aos sabores" : "Escolher tamanho"
+          : activeCategory === "cones" ? "Escolher meu cone"
           : "Escolher minha fatia"
           : checkoutReady ? finalButtonLabel : checkoutNextActionLabel;
 
@@ -3085,7 +3088,7 @@ export default function Home() {
               {fulfillment === "retirada" && <div className="pickup-note"><MapPin size={18} /><span><strong>Retirada disponível em Paragominas.</strong>{checkoutChannel === "whatsapp" ? "O horário e o local serão confirmados no WhatsApp." : "A loja confirmará o horário e o local pelo celular informado."}</span></div>}
             </section>
 
-            {COMMERCE_CONFIG.siteOrderingEnabled && !cartContainsCrocantes && (
+            {COMMERCE_CONFIG.siteOrderingEnabled && !cartRequiresWhatsApp && (
               <section className="order-card checkout-channel-card" id="finalizacao" aria-labelledby="channel-title">
                 <div className="order-card-heading"><div><p className="eyebrow">Finalização</p><h2 id="channel-title">Como deseja concluir?</h2></div></div>
                 <RadioGroup className="choice-grid checkout-channel-options" value={checkoutChannel} onValueChange={chooseCheckoutChannel} aria-label="Canal de finalização">
