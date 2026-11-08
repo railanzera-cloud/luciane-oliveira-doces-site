@@ -129,4 +129,4 @@ Contrato temporário de negócio (sem atualizar tabelas permanentes): `POPCORN_P
 - RPC de equipe `admin_recover_stalled_print_job`: `paper_confirmed` só depois de observação de papel; `retry_no_paper` só depois de confirmar ausência de papel. Lock da tarefa, controle de concorrência, validação de pedido/estoque/fila e auditoria.
 - Ao reenviar, apenas a tarefa travada é marcada `cancelled` e uma única nova tarefa `initial` com `job_key` determinística entra em `pending`. A função de claim já existente continua impondo elegibilidade. Não recriar pedido ou alterar pagamento, não tocar pedidos saudáveis.
 - `printed` do QZ registra resposta da API, não garantia de papel. Confirmação manual deve ser diferenciada e auditada.
-- Sem SQL produtivo aplicado, a UI não consegue recuperar tarefas; sincronizar migração, frontend e os assets acumulados antes de prometer disponibilidade.
+- RPC produtiva aplicada em 08/11/2026 sem modificar comandas. A UI só conseguirá recuperar tarefas após atualização manual do frontend Cloudflare; ainda exige confirmação humana da saída física do papel e controle de duplicidade. Preservar assets acumulados.
