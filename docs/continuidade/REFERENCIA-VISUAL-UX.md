@@ -282,3 +282,14 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - Página de Cones: grade responsiva dos três sabores, foto predominante, nome comercial, preço exato e marcação clara do selecionado/esgotado. Em seguida quantidade e botão explícito **Adicionar cone(s) ao pedido**; sem opções extras ou percurso longo.
 - Tela de conclusão: carrinho compartilhado, opção de adicionar outro cone/sabor e seguir para recebimento, cliente e pagamento WhatsApp. CTA flutuante deve guiar sem se sobrepor às ações já visíveis.
 - Estados: se categoria oculta, não mostrar na home; se um sabor esgotado, somente ele fica indisponível. Não exibir valor de economia ou contagem de estoque sem dados reais.
+
+
+## Padrão mobile pós-Instagram — funil de Fatias e navegação (08/11/2026)
+
+- **Home:** manter a grade em duas colunas com Cones e Pipocas Trufadas primeiro, Gourmet e Fatias em seguida. Os 4 cartões exibem foto, categoria, preço inicial e CTA. Pequena compactação de conteúdo só para manter CTAs alinhados, sem reduzir área de toque abaixo de 44px.
+- **Navegação cruzada:** manter `Voltar às categorias` como controle principal. Quando houver outras categorias visíveis, mostrar um pequeno grupo semanticamente identificado `Ver outras categorias` com opções em botões/chips; não usar sequência de links com `>` que sugira hierarquia inexistente.
+- **Etapa da calda:** título `Escolha sua calda` e texto `Escolha uma opção. Sem custo adicional.`; duas primeiras opções (Ninho/chocolate ou chocolate/Ninho conforme a fatia) lado a lado, `Sem calda, por favor` em uma terceira alternativa horizontal de largura total. Nunca pré-selecionar, nunca cobrar acréscimo e preservar IDs do backend.
+- **Prévia da fatia selecionada:** usar imagem original de produto, nome e preço num quadro compacto e legível; não aumentar brilho, saturação ou reconstruir o alimento. Evitar segunda foto grande que empurre a etapa de quantidade.
+- **CTA fixo de fatias:** quando falta sabor, `Escolher minha fatia`; quando existe sabor mas falta calda, `Escolher calda` e scroll até essa seção; quando calda já foi escolhida, `Adicionar N fatia(s)` sem pular validação. Nunca mostrar CTA com texto extenso que ocupa toda a área de ação.
+- **Instagram no iPhone:** assegurar `scroll-margin`, safe area, foco visível, movimento reduzido e possibilidade de ver a quantidade e ação inline sem estarem escondidas pela barra fixa.
+- **Abrangência:** refino visual/navegacional; não mudar fotos já aprovadas, estrutura comercial, valores, estoque, horários de disponibilidade, cobrança ou impressão.
