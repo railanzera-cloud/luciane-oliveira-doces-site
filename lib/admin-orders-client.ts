@@ -148,6 +148,33 @@ export async function createReprint(client: SupabaseClient, orderId: string): Pr
   if (error) throw new Error(message(error, "Não foi possível criar a reimpressão."));
 }
 
+export type StalledPrintAction = "paper_confirmed" | "retry_no_paper";
+
+/**
+ * A RPC realiza comparação transacional do claim antigo: ela só opera sobre
+ * "printing" abandonado (>= 5 minutos), exige confirmação física e registra
+ * auditoria. Não registra pagamento, não muda o pedido e não dispara QZ aqui.
+ */
+export async function recoverStalledPrintJob(
+  client: SupabaseClient, jobId: string, action: StalledPrintAction,
+): Promise<{ order_number: number; result: "pending_new_job" | "confirmed_manually"; new_job_id: string | null }> {
+  const acknowledgement = action === "paper_confirmed"
+    ? "CONFIRMO_QUE_O_PAPEL_SAIU" : "CONFIRMO_QUE_O_PAPEL_NAO_SAIU";
+  const { data, error } = await client.rpc("admin_recover_stalled_print_job", {
+    p_job_id: jobId, p_action: action, p_acknowledgement: acknowledgement,
+  });
+  if (error) {
+    const messageByCode: Record<string, string> = {
+      print_job_not_stale_or_already_resolved: "A comanda já mudou de estado ou ainda está em processamento. Atualize a fila antes de agir.",
+      another_active_print_job_exists: "Já existe outra impressão pendente ou em andamento para este pedido. Nenhuma comanda foi duplicada.",
+      order_not_eligible_for_manual_recovery: "A fila não está habilitada ou o pedido já não é elegível. Confira o automático e o estado do pedido.",
+      physical_print_confirmation_required: "É obrigatório confirmar o resultado físico da impressão.",
+    };
+    throw new Error(messageByCode[error.message] ?? message(error, "Não foi possível recuperar a comanda com segurança."));
+  }
+  return data as { order_number: number; result: "pending_new_job" | "confirmed_manually"; new_job_id: string | null };
+}
+
 export type PrintClaim = {
   job: { id: string; claim_token: string; kind: "initial" | "reprint"; attempts: number };
   order: Omit<AdminOrder, "order_items">;
