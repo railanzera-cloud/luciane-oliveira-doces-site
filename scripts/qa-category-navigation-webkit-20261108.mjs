@@ -95,7 +95,7 @@ try {
       await coneCard.waitFor({ state: "visible" });
       await coneCard.tap();
       await assertEntry("cones-sabores", "Cones");
-      await page.screenshot({ path: path.join(output, "navegacao-cones-" + width + ".png" });
+      await page.screenshot({ path: path.join(output, "navegacao-cones-" + width + ".png") });
       assert.deepEqual(errors, []);
       completed++;
     } finally {
