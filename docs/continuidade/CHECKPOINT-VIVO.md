@@ -647,3 +647,24 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - **ZIP final pronto para upload manual:** `Luciane-Oliveira-Doces-Cones-Trufados-Refinamento-UX-20261108-Cloudflare.zip`, **82 arquivos**, **4.982.997 bytes**, SHA256 `3f7ff564dc19560b51bc91b73ea3e9d88a0631562e4c5f4ef135dccb23762977`. Origem do código: CI candidato conectado artifact `13609556737`, com os **12 arquivos de imagem aprovados** (9 cones + Bombom Uva natural + Maracujá prato branco full/card) copiados sem modificação do ZIP de 08/11 anterior. Verificação byte a byte garante que somente esses assets diferem do build original e todas as demais entradas vêm do CI corrigido. ZIP íntegro, scripts, páginas `/`, `/pedido`, `/admin` e conexão Supabase presentes.
 - **Lacuna persistente:** as 12 imagens aprovadas estão no ZIP, mas não na origem GitHub em sincronia, então **não publicar compilação crua da branch**. Reutilizar este ZIP de entrega e resolver a sincronização de assets em incremento posterior.
 - **Publicação:** sem deploy Cloudflare por esta sessão, sem merge dos PRs #15/#16; validar após upload em Instagram/iPhone: Cones e Trufadas visíveis logo de início, cards inteiros, botão de segundo cone legível dentro do grupo, navegação ao sabor, entrega/retirada e checkout. Estados de estoque do Supabase não foram alterados neste refinamento.
+
+
+## 45. Refinamento do funil mobile: home, navegação, caldas e botão guiado (08/11/2026)
+
+**Origem:** após inspecionar prints e vídeo no navegador interno do Instagram no iPhone, o proprietário aprovou aperfeiçoar a versão anterior antes de encerrar o ciclo. Autorizou explicitamente mudanças de apresentação e navegação, preservando cadastros, valores e integração.
+
+**Implementações em `feat/refinamento-mobile-caldas-navegacao-20261108` (PR #17 draft):**
+1. Home: 4 categorias em 2x2, com espaçamentos/alturas e CTAs alinhados sem esconder a Trufada; Cones continuam com destaque de novidade.
+2. Navegação: trocado conjunto de links com aspecto de breadcrumb por bloco `Ver outras categorias` com botões próprios, semanticamente identificado por `nav`, estados `disabled` e alvo correto; `Voltar às categorias` preservado.
+3. Caldas: mantendo IDs `calda-chocolate`, `calda-ninho`, `sem-calda`, nomes, preço zero e ordem contextual, cartão `Sem calda, por favor` na largura total da linha; Ninho/chocolate lado a lado em mobile normal; em telas estreitas, coluna única. Nenhuma pré-seleção.
+4. Prévia da fatia: cartão compacto com a foto aprovada, o nome e valor legíveis; nenhuma imagem modificada.
+5. Botão flutuante: texto `Escolher calda` mais curto; o dispatcher agora rola à fatia quando nada foi escolhido, à calda quando falta escolha, e só tenta adicionar ao pedido após calda escolhida. Mensagem de fallback também reconhece Ninho.
+6. Scroll: `scroll-margin-top/bottom` e espaçamento de quantidade ajustados para barras do Instagram e safe-area iPhone, respeitando movimento reduzido.
+7. Correções de consistência: estado de carrinho vazio e label de navegação usam Cones quando a categoria é Cones (não Fatias).
+8. Testes de regressão novos e expectativas antigas atualizadas; outras categorias, promoções, frontend de WhatsApp, QZ, preços, disponibilidade e banco sem mudanças.
+
+**CI:** commit funcional `e3559fa959ac184e01ecda2bbabc735bf551420a`, workflow [42462662484](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/42462662484) **SUCCESS**: 4 jobs aprovados, build, **806/806 testes comerciais**, sem novos erros TS (restam erros antigos fora do incremento), WebKit mobile isolado aprovado; isso **não** é teste físico no Instagram/iPhone.
+
+**Artefato conectado para publicação MANUAL:** `Luciane-Oliveira-Doces-Refinamento-Mobile-Funil-20261108-Cloudflare.zip`, **82 entradas, 4.983.755 bytes, SHA256 `a3c4a9dd3379710a48b58d2431e60cf708330f2fdce84433f66ae9bb08b107ac`**. Fonte: artifact conectado `13610039245` no workflow acima. ZIP interno de 73 arquivos combinado SOMENTE com os 12 binários fotográficos exatos do pacote anterior (9 de cones, Bombom Uva natural e Maracujá prato branco full/card); os demais 70 arquivos são byte a byte iguais ao build conectado desta branch. Arquivo ZIP conferido com `testzip()`, nomes únicos, `/`, `/admin`, `/pedido`, `_headers`, `_routes.json` e scripts com as novas mensagens.
+
+**Estado:** Sem merge, publicação Cloudflare, SQL ou Edge deploy nesse incremento. Usar o novo ZIP (não o anterior). Fazer inspeção física em Instagram/Safari após upload: duas fileiras das quatro categorias; chips de navegação; calda Ninho/chocolate e sem calda horizontal; resumo compacto; sticky sem encobrir o botão ou a quantidade; carrinho/WhatsApp e impressão reais. A divergência **das 12 fotos no GitHub** permanece; não recompilar diretamente da fonte sem sincronizar imagens aprovadas.

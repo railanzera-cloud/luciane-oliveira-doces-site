@@ -676,7 +676,8 @@ test('sauce sequence uses post-render scrolling and preserves reduced motion',()
  assert.match(source,/setSliceOptionId\(value\); setSelectionMessage\(""\); requestScroll\("quantidade-fatias"\)/);
  assert.match(source,/requestAnimationFrame/);assert.match(source,/cancelAnimationFrame/);
  assert.match(source,/prefers-reduced-motion: reduce/);
- assert.match(source,/Escolher calda ou sem calda/);
+ assert.match(source,/\? "Escolher calda"/);
+ assert.match(source,/else if \(!sliceOptionId\) requestScroll\("calda-fatias"\)/);
 });
 
 test('definitive WhatsApp composition uses the shared quote for delivery and pickup', async()=>{
