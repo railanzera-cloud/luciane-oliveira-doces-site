@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { quoteCartItems } from "../supabase/functions/_shared/commerce-catalog.mjs";
+import { sliceSauceOptions } from "../app/catalog.ts";
 
 const front = readFileSync("app/catalog.ts", "utf8");
 const backend = readFileSync("supabase/functions/_shared/commerce-catalog.mjs", "utf8");
@@ -45,6 +46,10 @@ test("checkout cotado usa novos nomes e R$22/R$20 preservados", () => {
 test("calda de Ninho é gratuita, não pré-selecionada e respeita a ordem contextual", () => {
   assert.ok(front.includes('id: "calda-ninho", name: "Com calda de Ninho"'));
   assert.ok(front.includes('const NINHO_FIRST_SLICE_IDS = new Set(["fatia-ninho-morango", "fatia-coco-cremoso-morango"])'));
+  assert.deepEqual(sliceSauceOptions("fatia-ninho-morango").map(o => o.id), ["calda-ninho","calda-chocolate","sem-calda"]);
+  assert.deepEqual(sliceSauceOptions("fatia-coco-cremoso-morango").map(o => o.id), ["calda-ninho","calda-chocolate","sem-calda"]);
+  assert.deepEqual(sliceSauceOptions("fatia-chocolate-morango").map(o => o.id), ["calda-chocolate","calda-ninho","sem-calda"]);
+  assert.deepEqual(sliceSauceOptions("fatia-bombom-uva").map(o => o.id), ["calda-chocolate","calda-ninho","sem-calda"]);
   assert.ok(page.includes('sliceSauceOptions(selectedSlice.id).map(option =>'));
   assert.ok(page.includes('value={sliceOptionId} onValueChange='));
   assert.ok(page.includes('setSliceOptionId("");'));
