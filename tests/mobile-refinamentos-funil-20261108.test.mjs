@@ -62,4 +62,6 @@ test("Resumo mais curto, área segura Instagram e redução de movimento não al
   assert.ok(page.includes("Pipocas Trufadas"));
   assert.ok(page.includes("Fatias Artesanais"));
   assert.ok(page.includes("Pipocas Gourmet"));
+  assert.ok(page.includes('aria-label={activeCategory === "cones" ? "Navegação dos Cones Trufados" : "Navegação das Fatias Artesanais"}'));
+  assert.ok(page.includes('activeCategory === "cones" ? "Escolha um cone para começar."'));
 });
