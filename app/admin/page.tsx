@@ -124,7 +124,7 @@ export default function AdminPage() {
   const [loadError, setLoadError] = useState("");
   const [pendingKeys, setPendingKeys] = useState<string[]>([]);
   const [notice, setNotice] = useState("");
-  const [availabilitySection, setAvailabilitySection] = useState<"trufadas" | "gourmet" | "fatias">("trufadas");
+  const [availabilitySection, setAvailabilitySection] = useState<"trufadas" | "gourmet" | "fatias" | "cones">("trufadas");
   const [gourmetView, setGourmetView] = useState<"sizes" | "flavors">("flavors");
   const [sliceSearch, setSliceSearch] = useState("");
   const [trufadasDirty, setTrufadasDirty] = useState(false);
@@ -135,12 +135,13 @@ export default function AdminPage() {
   const popcornFlavors = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "popcorn_flavor");
   const slices = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "slice");
   const releasedSlices = slices.filter(item => !item.isDraft);
+  const cones = MENU_AVAILABILITY_ITEMS.filter((item) => item.categoryKey === CATEGORY_ITEM_KEYS.cones && item.itemType === "product");
   const gourmetItems = [...popcornSizes, ...popcornFlavors];
   const visibleSlices = slices.filter(item => normalizeAdminSearch(item.name)
     .includes(normalizeAdminSearch(sliceSearch)));
   const countReady = (items: MenuAvailabilityItem[]) => items.filter(item => availability.statuses[item.itemKey] === "available").length;
   const controlsUnavailable = loadingMenu || availability.source !== "supabase" || Boolean(loadError);
-  function selectAvailabilitySection(next: "trufadas" | "gourmet" | "fatias") {
+  function selectAvailabilitySection(next: "trufadas" | "gourmet" | "fatias" | "cones") {
     if (next !== availabilitySection && availabilitySection === "trufadas" && trufadasDirty) {
       setAvailabilityWarning("Há alterações não salvas nas Trufadas. Salve ou descarte no editor antes de mudar de categoria.");
       return;
@@ -363,6 +364,12 @@ export default function AdminPage() {
         </section>
 
         <div className="admin-availability-nav" role="tablist" aria-label="Escolha a categoria para configurar">
+          <button type="button" role="tab" id="admin-availability-tab-cones"
+            aria-selected={availabilitySection === "cones"} aria-controls="admin-availability-panel-cones"
+            className={availabilitySection === "cones" ? "is-active" : ""}
+            onClick={() => selectAvailabilitySection("cones")}>
+            <strong>Cones</strong><small>{countReady(cones)}/{cones.length} sabores</small>
+          </button>
           <button type="button" role="tab" id="admin-availability-tab-trufadas"
             aria-selected={availabilitySection === "trufadas"} aria-controls="admin-availability-panel-trufadas"
             className={availabilitySection === "trufadas" ? "is-active" : ""}
@@ -415,6 +422,22 @@ export default function AdminPage() {
               onDirtyChange={setTrufadasDirty}
             />
           </div>
+        )}
+
+        {availabilitySection === "cones" && (
+          <section className="admin-category-section admin-category-compact" role="tabpanel" id="admin-availability-panel-cones"
+            aria-labelledby="admin-availability-tab-cones">
+            <div className="admin-category-heading"><div><p className="eyebrow">Categoria permanente</p><h2>Cones Trufados</h2></div></div>
+            <p className="admin-category-explanation">Libere a categoria em Configurações gerais e depois cada sabor produzido. Quando acabar, marque somente aquele sabor como Esgotado; os outros permanecem à venda.</p>
+            <div className="admin-group-title"><h3>Sabores dos cones</h3><span>{countReady(cones)}/{cones.length} liberados</span></div>
+            <div className="admin-compact-grid">
+              {cones.map(item => (
+                <AvailabilityControl item={item} status={categoryStatus(item.itemKey)}
+                  pending={pendingKeys.includes(item.itemKey)} disabled={controlsUnavailable}
+                  onChange={status => changeItemStatus(item, status)} key={item.itemKey}/>
+              ))}
+            </div>
+          </section>
         )}
 
         {availabilitySection === "gourmet" && (
