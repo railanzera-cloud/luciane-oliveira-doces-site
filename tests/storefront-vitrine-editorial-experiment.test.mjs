@@ -205,7 +205,7 @@ test("v8 remove foco azul programático apenas dos títulos e acomoda viewport c
   assert.ok(css.includes('height: clamp(214px, 58vw, 308px)'));
   assert.ok(css.includes('border-color: rgba(208, 149, 94, .30)'));
   assert.ok(page.includes('onClick={returnToCategories}'));
-  assert.ok(page.includes('onClick={openLimitedCupEdition}>Conhecer Trufadas'));
+  assert.ok(page.includes('className="builder-more-option" onClick={openLimitedCupEdition}'));
   assert.ok(page.includes('currency.format(variant.price)'));
 });
 
@@ -216,10 +216,10 @@ test("v7 nomeia lançamento Pipocas Trufadas e dá saída clara em todos os cami
   assert.ok(!page.includes("O lado crocante da Luciane"));
   assert.ok(page.includes('function returnToCategories()'));
   assert.ok(page.includes('onClick={returnToCategories}'));
-  assert.ok(page.includes('onClick={openLimitedCupEdition}>Conhecer Trufadas'));
+  assert.ok(page.includes('className="builder-more-option" onClick={openLimitedCupEdition}'));
   assert.ok(page.includes('aria-label="Navegação das Pipocas Trufadas"'));
-  assert.ok(page.includes('aria-label="Navegação das pipocas"'));
-  assert.ok(page.includes('aria-label={activeCategory === "cones" ? "Navegação dos Cones Trufados" : "Navegação das Fatias Artesanais"}'));
+  assert.ok(page.includes('className="builder-utility-nav" aria-label="Navegação do cardápio"'));
+  assert.ok(page.includes('className="builder-utility-nav" aria-label="Navegação do cardápio"'));
   assert.ok(page.includes('window.history.pushState'));
   assert.ok(page.includes('trufadasFromUrl(window.location.href, window.history.state)'));
   assert.ok(page.includes('window.scrollTo({ top: 0, behavior: "instant" })'));
@@ -233,8 +233,8 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes("function openLimitedCupEdition()"));
   assert.ok(page.includes('onClick={openLimitedCupEdition}'));
   assert.ok(page.includes('onClick={() => selectCategory(category.id)}'));
-  assert.ok(page.includes('setShowLimitedCupView(false);\n    setRequestedCategory(category);'));
-  assert.ok(page.includes('if (category === "pipocas") requestEditorialScroll("tamanhos")'));
+  assert.ok(page.includes('setShowLimitedCupView(false);\n    setOtherCategoriesOpen(false);\n    setRequestedCategory(category);'));
+  assert.ok(page.includes('if (shouldScroll) requestScroll(`category-entry-${category}`)'));
   assert.ok(page.includes('requestEditorialScroll("edicao-crocante")'));
   assert.ok(page.includes('activeCategory === "pipocas" && showLimitedCupView'));
   assert.ok(page.includes('showLimitedCupView ? "builder-section is-cup-discovery"'));
