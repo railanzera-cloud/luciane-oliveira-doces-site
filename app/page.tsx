@@ -2460,7 +2460,7 @@ export default function Home() {
             </section>
           )}
           {(activeCategory === "fatias" || activeCategory === "cones") && (
-            <nav className="v7-navigation v7-navigation-slices" aria-label="Navegação das fatias">
+            <nav className="v7-navigation v7-navigation-slices" aria-label={activeCategory === "cones" ? "Navegação dos Cones Trufados" : "Navegação das Fatias Artesanais"}>
               <button type="button" onClick={returnToCategories}><ArrowLeft size={15} aria-hidden="true" /> Voltar às categorias</button>
             </nav>
           )}
@@ -2992,7 +2992,7 @@ export default function Home() {
               </div>
               {cart.length === 0 ? (
                 <div className="empty-cart">
-                  <ShoppingBag size={26} strokeWidth={1.5} /><strong>Seu pedido está vazio</strong><p>{activeCategory === "pipocas" ? "Escolha uma pipoca para começar." : "Escolha uma fatia para começar."}</p>
+                  <ShoppingBag size={26} strokeWidth={1.5} /><strong>Seu pedido está vazio</strong><p>{activeCategory === "pipocas" ? "Escolha uma pipoca para começar." : activeCategory === "cones" ? "Escolha um cone para começar." : "Escolha uma fatia para começar."}</p>
                   <Button type="button" variant="outline" onClick={beginBuilding}>Escolher produtos</Button>
                 </div>
               ) : (
