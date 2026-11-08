@@ -1,6 +1,7 @@
 import {
   POPCORN,
   SLICES,
+  CONES,
   SLICE_DRAFTS,
   STORE_CONFIG,
   type CategoryId,
@@ -63,6 +64,7 @@ export function trufadaStockItemKey(productId: string, variantId: string): strin
 export const CATEGORY_ITEM_KEYS: Record<CategoryId, string> = {
   pipocas: "category_pipocas",
   fatias: "category_fatias",
+  cones: "category_cones",
 };
 
 export const POPCORN_SIZE_ITEM_KEYS: Record<string, string> = {
@@ -81,6 +83,12 @@ export const POPCORN_FLAVOR_ITEM_KEYS: Record<string, string> = {
   "choco-cookies-branco": "popcorn_flavor_choco_cookies_branco",
   "choco-cookies-leite": "popcorn_flavor_choco_cookies_leite",
   ovomaltine: "popcorn_flavor_ovomaltine",
+};
+
+export const CONE_ITEM_KEYS: Record<string, string> = {
+  "cone-trufado-prestigio": "cone_prestigio",
+  "cone-trufado-dois-amores": "cone_dois_amores",
+  "cone-trufado-ferrero-rocher": "cone_ferrero_rocher",
 };
 
 export const SLICE_ITEM_KEYS: Record<string, string> = {
@@ -108,6 +116,8 @@ const CATEGORY_ITEMS: MenuAvailabilityItem[] = [
     itemType: "category",
     categoryKey: CATEGORY_ITEM_KEYS.fatias,
   },
+  { itemKey: CATEGORY_ITEM_KEYS.cones, name: "Cones Trufados",
+    itemType: "category", categoryKey: CATEGORY_ITEM_KEYS.cones },
 ];
 
 const POPCORN_SIZE_ITEMS: MenuAvailabilityItem[] = POPCORN.variants.filter((variant) => !variant.retired).map((variant) => ({
@@ -122,6 +132,13 @@ const POPCORN_FLAVOR_ITEMS: MenuAvailabilityItem[] = POPCORN.options.map((option
   name: option.name,
   itemType: "popcorn_flavor",
   categoryKey: CATEGORY_ITEM_KEYS.pipocas,
+}));
+
+const CONE_ITEMS: MenuAvailabilityItem[] = CONES.map(cone => ({
+  itemKey: CONE_ITEM_KEYS[cone.id],
+  name: cone.name,
+  itemType: "product",
+  categoryKey: CATEGORY_ITEM_KEYS.cones,
 }));
 
 const SLICE_ITEMS: MenuAvailabilityItem[] = SLICES.map((slice) => ({
@@ -155,6 +172,7 @@ export const MENU_AVAILABILITY_ITEMS: MenuAvailabilityItem[] = [
   ...POPCORN_FLAVOR_ITEMS,
   ...SLICE_ITEMS,
   ...SLICE_DRAFT_ITEMS,
+  ...CONE_ITEMS,
 ];
 
 const KNOWN_ITEM_KEYS = new Set(MENU_AVAILABILITY_ITEMS.map((item) => item.itemKey));
@@ -167,6 +185,7 @@ export function createFallbackAvailability(): AvailabilitySnapshot {
   const statuses: Record<string, AvailabilityStatus> = {
     [CATEGORY_ITEM_KEYS.pipocas]: STORE_CONFIG.enabledCategories.pipocas ? "available" : "hidden",
     [CATEGORY_ITEM_KEYS.fatias]: STORE_CONFIG.enabledCategories.fatias ? "available" : "hidden",
+    [CATEGORY_ITEM_KEYS.cones]: "hidden", // ativação só após publicação validada
   };
 
   for (const variant of POPCORN.variants) {
@@ -183,6 +202,7 @@ export function createFallbackAvailability(): AvailabilitySnapshot {
   // Novo cadastro só pode ser exibido depois que a linha remota for confirmada.
   statuses[SLICE_ITEM_KEYS["fatia-bombom-uva"]] = "hidden";
   for (const draft of SLICE_DRAFTS) statuses[draft.itemKey] = "hidden";
+  for (const cone of CONE_ITEMS) statuses[cone.itemKey] = "hidden";
 
   return {
     ordersOpen: STORE_CONFIG.acceptingOrders,
@@ -264,5 +284,6 @@ export function categoryItemKey(category: CategoryId): string {
 }
 
 export function categoryForItem(item: MenuAvailabilityItem): CategoryId {
-  return item.categoryKey === CATEGORY_ITEM_KEYS.pipocas ? "pipocas" : "fatias";
+  return item.categoryKey === CATEGORY_ITEM_KEYS.cones ? "cones"
+    : item.categoryKey === CATEGORY_ITEM_KEYS.pipocas ? "pipocas" : "fatias";
 }
