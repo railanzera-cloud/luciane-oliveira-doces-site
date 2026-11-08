@@ -33,12 +33,14 @@ import {
 } from "@/lib/kitchen-auto-client";
 import {
   KITCHEN_ERROR_ALERT_INTERVAL_MS, loadKitchenPrintIssue,
+  loadStalledKitchenPrintJobs, type StalledKitchenPrintJob,
   type KitchenPrintIssue,
 } from "@/lib/kitchen-print-health";
 import { formatAdminOrderItem } from "@/lib/admin-order-item-display";
 import {
   confirmOfflinePayment,
   createReprint,
+  recoverStalledPrintJob, type StalledPrintAction,
   loadAdminOrders,
   loadAdminTintimTracking,
   requestOrderEffects,
@@ -172,6 +174,10 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const [alertVolume, setAlertVolume] = useState<"normal" | "alto">("alto");
   const [pendingAlertOrders, setPendingAlertOrders] = useState<KitchenAlertOrder[]>([]);
   const [printIssue, setPrintIssue] = useState<KitchenPrintIssue | null>(null);
+  const [stalledPrintJobs, setStalledPrintJobs] = useState<StalledKitchenPrintJob[]>([]);
+  const [recoveryChoice, setRecoveryChoice] = useState<{ jobId: string; action: StalledPrintAction } | null>(null);
+  const [recoveryAcknowledged, setRecoveryAcknowledged] = useState(false);
+  const [recoveringPrintId, setRecoveringPrintId] = useState("");
   const [printHealthError, setPrintHealthError] = useState("");
   const [printWarningMutedUntil, setPrintWarningMutedUntil] = useState(0);
   const [lastPrintInfo, setLastPrintInfo] = useState("");
@@ -507,6 +513,13 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
 
   // Leitura dos estados reais dos jobs, com RLS de equipe já existente.
   const refreshPrintHealth = useCallback(async () => {
+    // A tarefa travada precisa continuar visível mesmo com fila pausada:
+    // consultar sem reclamar token ou disparar impressão.
+    try {
+      setStalledPrintJobs(await loadStalledKitchenPrintJobs(client));
+    } catch {
+      setPrintHealthError("Não foi possível conferir as comandas travadas. Tente atualizar o painel.");
+    }
     if (!kitchenMode?.print_queue_enabled) {
       setPrintIssue(null);
       setPrintHealthError("");
@@ -699,6 +712,43 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     } finally { setPendingId(""); }
   }
 
+  function chooseStalledRecovery(jobId: string, action: StalledPrintAction) {
+    setRecoveryChoice({ jobId, action });
+    setRecoveryAcknowledged(false);
+    setError("");
+  }
+
+  async function confirmStalledRecovery(job: StalledKitchenPrintJob) {
+    if (!recoveryChoice || recoveryChoice.jobId !== job.id || !recoveryAcknowledged || recoveringPrintId) return;
+    const action = recoveryChoice.action;
+    const order = orders.find(item => item.id === job.order_uuid);
+    if (!order) {
+      setError("Carregue o pedido no painel antes de recuperar a comanda.");
+      return;
+    }
+    const label = action === "retry_no_paper"
+      ? "Confirma que o papel NÃO saiu e que ninguém está imprimindo este pedido agora? Uma NOVA comanda será colocada na fila; a anterior será encerrada sem mudar o pedido ou o pagamento."
+      : "Confirma que viu a comanda deste pedido sair fisicamente no papel? O aviso será encerrado SEM gerar nova impressão.";
+    if (!window.confirm(`Pedido #${order.order_number}: ${label}`)) return;
+    setRecoveringPrintId(job.id);
+    setError("");
+    try {
+      const result = await recoverStalledPrintJob(client, job.id, action);
+      setNotice(result.result === "pending_new_job"
+        ? `Pedido #${order.order_number}: criada uma nova tentativa de impressão, sem duplicar a tarefa antiga. Confira a saída no notebook da cozinha.`
+        : `Pedido #${order.order_number}: papel confirmado manualmente e alerta encerrado. Nenhuma impressão foi disparada.`);
+      setRecoveryChoice(null);
+      setRecoveryAcknowledged(false);
+      await reload(true);
+      await refreshPrintHealth();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Não foi possível recuperar a impressão. Nenhum novo trabalho foi criado.");
+      await refreshPrintHealth();
+    } finally {
+      setRecoveringPrintId("");
+    }
+  }
+
   async function reprint(order: AdminOrder) {
     // Reimpressão é uma ação excepcional: não enfileirar remotamente pelo celular
     // nem presumir papel emitido apenas porque o QZ respondeu sem erro.
@@ -833,6 +883,55 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
               Silenciar alerta por 5 minutos
             </Button>
           </div>
+        )}
+        {stalledPrintJobs.length > 0 && (
+          <section className="admin-stalled-prints" id="admin-stalled-print-jobs" aria-label="Recuperação de comandas travadas">
+            <strong><Printer size={17} /> Recuperação de comandas travadas</strong>
+            <p>Uma tarefa foi assumida por uma aba antiga, mas não recebeu confirmação. Verifique o papel e a fila do Windows antes de escolher. A recuperação nunca acontece sozinha.</p>
+            {stalledPrintJobs.map(job => {
+              const order = orders.find(item => item.id === job.order_uuid);
+              const choice = recoveryChoice?.jobId === job.id ? recoveryChoice.action : null;
+              return (
+                <div className="admin-stalled-print-card" key={job.id}>
+                  <strong>Pedido {order ? `#${order.order_number}` : "não carregado"}</strong>
+                  <small>Travada desde {new Date(job.claimed_at).toLocaleString("pt-BR", { timeZone: "America/Belem", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}. Tentativas registradas: {job.attempts}. Estado: impressão em andamento sem conclusão.</small>
+                  {order && <div className="admin-stalled-print-actions">
+                    <Button type="button" variant="outline" disabled={Boolean(recoveringPrintId)}
+                      onClick={() => chooseStalledRecovery(job.id, "retry_no_paper")}>
+                      <RotateCcw size={16} /> Não saiu — recuperar
+                    </Button>
+                    <Button type="button" variant="outline" disabled={Boolean(recoveringPrintId)}
+                      onClick={() => chooseStalledRecovery(job.id, "paper_confirmed")}>
+                      <Check size={16} /> Saiu no papel
+                    </Button>
+                  </div>}
+                  {order && choice && (
+                    <div className="admin-stalled-print-confirm">
+                      <strong>{choice === "retry_no_paper" ? "Nova impressão única" : "Encerrar alerta sem reimprimir"}</strong>
+                      <p>{choice === "retry_no_paper"
+                        ? "Use somente se conferiu que a comanda NÃO saiu, a impressora está disponível e não há impressão deste pedido em andamento. O notebook com QZ Tray processará a nova tarefa quando estiver conectado."
+                        : "Use somente se você viu esta comanda impressa no papel. A confirmação será registrada como MANUAL, não como sucesso comprovado pelo QZ."}</p>
+                      <label><input type="checkbox" checked={recoveryAcknowledged}
+                        onChange={e => setRecoveryAcknowledged(e.target.checked)} />
+                        {choice === "retry_no_paper"
+                          ? "Conferi o papel e a fila do Windows: não saiu comanda deste pedido."
+                          : "Confirmei visualmente que a comanda deste pedido saiu no papel."}
+                      </label>
+                      <div className="admin-stalled-print-actions">
+                        <Button type="button" disabled={!recoveryAcknowledged || Boolean(recoveringPrintId)}
+                          onClick={() => void confirmStalledRecovery(job)}>
+                          {recoveringPrintId === job.id ? "Registrando…" : "Confirmar decisão"}
+                        </Button>
+                        <Button type="button" variant="ghost" disabled={Boolean(recoveringPrintId)}
+                          onClick={() => { setRecoveryChoice(null); setRecoveryAcknowledged(false); }}>Voltar</Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            <small>O pedido e seu pagamento não serão modificados. Se a sessão antiga ainda estiver imprimindo, aguarde e confira o papel antes de agir.</small>
+          </section>
         )}
         {printHealthError && <p className="admin-kitchen-health-note" role="status">{printHealthError}</p>}
         <div className="admin-kitchen-automation">
@@ -1006,7 +1105,12 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
                   {order.payment_status === "pending" && (order.payment_method === "cash" || order.payment_method === "card_on_delivery" || order.payment_method === "manual_pix") && <Button type="button" variant="outline" onClick={() => void confirmPayment(order)} disabled={pending}><Check size={16} /> Confirmar pagamento</Button>}
                   {["confirmed", "preparing", "ready", "ready_for_pickup", "out_for_delivery", "completed"].includes(order.order_status)
                     && !["failed", "cancelled", "refunded"].includes(order.payment_status)
-                    && <Button type="button" variant="outline" onClick={() => void reprint(order)} disabled={pending}><RotateCcw size={16} /> Reimprimir comanda</Button>}
+                    && (stalledPrintJobs.some(job => job.order_uuid === order.id)
+                      ? <Button type="button" variant="outline"
+                          onClick={() => document.getElementById("admin-stalled-print-jobs")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+                          <AlertCircle size={16} /> Recuperar comanda travada
+                        </Button>
+                      : <Button type="button" variant="outline" onClick={() => void reprint(order)} disabled={pending}><RotateCcw size={16} /> Reimprimir comanda</Button>)}
                   {!['completed', 'cancelled'].includes(order.order_status) && <Button type="button" variant="ghost" className="admin-cancel-order" onClick={() => void runOrderAction(order, "cancelled", `Pedido #${order.order_number} cancelado.`)} disabled={pending}><X size={16} /> Cancelar</Button>}
                 </div>
               </article>
