@@ -93,7 +93,7 @@ export function sliceSauceOptions(productId: string): ProductOption[] {
 
 // Nenhuma fatia permanece como rascunho. O cadastro Abacaxi com Brigadeiro Branco
 // conserva o ID técnico histórico; a liberação depende do status remoto (inicial Oculto).
-export const SLICE_DRAFTS = [] as const;
+export const SLICE_DRAFTS: ReadonlyArray<{ id: string; itemKey: string; name: string; price: number | null; image: string | null }> = [];
 
 // Catálogo central: preços, fotos e disponibilidade são alterados somente aqui.
 export const PRODUCTS: Product[] = [
