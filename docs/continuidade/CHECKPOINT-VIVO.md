@@ -731,3 +731,10 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 **Implantação separada:** migration `20261108230957_kitchen_manual_stuck_print_recovery.sql` + frontend Cloudflare devem ser homologados cada um; antes do deploy, verificar TypeScript/testes/CI e permissões da RPC. Produção não é equivalente a PR/ZIP. Fotos aprovadas continuam disponíveis no pacote manual e podem não estar no GitHub; ZIP não deve perdê-las.
 
 **Lembrete operacional:** não afirmar impressão física por `printed` do QZ. Nunca reimprimir automaticamente uma tarefa `printing` ambígua. Instruir equipe a conferir papel e fila Windows antes de tocar em recuperação.
+
+### Validação e ativação backend do incremento #50
+
+- CI validada no SHA `eb80f3a45687515af8c4550de06bb029c36efde1`: 5 testes do fluxo, **820 testes comerciais aprovados**, zero falhas, TypeScript e build do site conectados aprovados. Run `42534343146`. O workflow de cozinha não publicou nada.
+- SQL compilada em transação com rollback e aplicada no **Supabase comercial** em 08/11/2026; verificação: RPC existe e exige autenticação, `anon` sem EXECUTE, auditoria com RLS e 0 eventos. A implantação é apenas do contrato de recuperação: **pedido #1700 segue em `printing` com 1 tentativa; nenhuma nova tarefa criada**.
+- ZIP de publicação manual: `Luciane-Oliveira-Doces-Recuperacao-Segura-Comandas-20261108-Cloudflare.zip`, derivado do build conectado da CI, com **58 imagens aprovadas preservadas** do ZIP comercial imediatamente anterior e microanimação de menu preservada. 84 entradas, integridade testada. O pacote visual completo não está sincronizado integralmente no GitHub; não publicar o ZIP bruto da CI.
+- **Cloudflare ainda não publicado nesta sessão**. Após upload de produção, conferir painel em notebook Windows, escolha humana para #1700, observação do papel e ausência de job duplicado. Não inferir sucesso físico do estado do QZ.
