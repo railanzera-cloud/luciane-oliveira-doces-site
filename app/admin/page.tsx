@@ -87,7 +87,7 @@ function AvailabilityControl({
       <div className="admin-item-heading">
         <div>
           <strong>{item.name}</strong>
-          <span>{preorderActive ? "Esgotado para pronta-entrega · pré-reserva ativa" : STATUS_LABELS[status]}</span>
+          <span>{item.isDraft ? "Em preparação · foto e preço pendentes" : preorderActive ? "Esgotado para pronta-entrega · pré-reserva ativa" : STATUS_LABELS[status]}</span>
         </div>
         {pending ? <LoaderCircle className="admin-spinner" size={18} aria-label="Salvando" /> : status === "available" ? <Check size={16} aria-hidden="true" /> : null}
       </div>
@@ -97,8 +97,8 @@ function AvailabilityControl({
             type="button"
             className={status === option.value ? "is-selected" : ""}
             aria-pressed={status === option.value}
-            disabled={pending || disabled || (preorderActive && option.value==="available")}
-            title={preorderActive && option.value==="available" ? "Encerre primeiro o lote de pré-reserva; ainda não é estoque pronto." : undefined}
+            disabled={pending || disabled || Boolean(item.isDraft) || (preorderActive && option.value==="available")}
+            title={item.isDraft ? "Aguardando foto e preço confirmado. Produto ainda não pode ser vendido." : preorderActive && option.value==="available" ? "Encerre primeiro o lote de pré-reserva; ainda não é estoque pronto." : undefined}
             onClick={() => onChange(option.value)}
             key={option.value}
           >
@@ -134,6 +134,7 @@ export default function AdminPage() {
   const popcornSizes = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "popcorn_size");
   const popcornFlavors = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "popcorn_flavor");
   const slices = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "slice");
+  const releasedSlices = slices.filter(item => !item.isDraft);
   const gourmetItems = [...popcornSizes, ...popcornFlavors];
   const visibleSlices = slices.filter(item => normalizeAdminSearch(item.name)
     .includes(normalizeAdminSearch(sliceSearch)));
@@ -378,7 +379,7 @@ export default function AdminPage() {
             aria-selected={availabilitySection === "fatias"} aria-controls="admin-availability-panel-fatias"
             className={availabilitySection === "fatias" ? "is-active" : ""}
             onClick={() => selectAvailabilitySection("fatias")}>
-            <strong>Fatias</strong><small>{countReady(slices)}/{slices.length} liberadas</small>
+            <strong>Fatias</strong><small>{countReady(releasedSlices)}/{releasedSlices.length} liberadas</small>
           </button>
         </div>
 
@@ -451,7 +452,8 @@ export default function AdminPage() {
             <div className="admin-category-heading"><div><p className="eyebrow">Sabores individuais</p><h2 id="admin-slices-title">Fatias Artesanais</h2></div></div>
             <p className="admin-category-explanation">Escolha o que está disponível hoje. A pré-reserva de Chocolate com Morango continua separada da pronta-entrega.</p>
             {supabase && <AdminStrawberryPreorder client={supabase} onChanged={reloadMenu} />}
-            <div className="admin-group-title"><h3>Fatias de pronta-entrega</h3><span>{countReady(slices)}/{slices.length} liberadas</span></div>
+            <div className="admin-group-title"><h3>Fatias de pronta-entrega</h3><span>{countReady(releasedSlices)}/{releasedSlices.length} liberadas</span></div>
+            <p className="admin-category-explanation">Sabores em preparação aparecem abaixo, mas ficam bloqueados até a confirmação da foto e do preço.</p>
             <label className="admin-availability-search" htmlFor="admin-availability-slice-search">
               Buscar sabor
               <input id="admin-availability-slice-search" type="search" value={sliceSearch}
