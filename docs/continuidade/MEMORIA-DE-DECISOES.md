@@ -280,3 +280,14 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - **Próximo sabor:** `Abacaxi com Doce de Leite` terá registro `slice_abacaxi_doce_leite` como rascunho oculto, sem preço e sem foto; não existe em `PRODUCTS` nem em `SLICES` de backend. O admin mostra a preparação e bloqueia disponibilização antes da confirmação de preço/foto.
 - **Rejeitado:** preço presumido ou R$0 vendável; opção padrão escondida; descrições ornamentais; renomear IDs e perder históricos; liberar um produto futuro apenas por virar `available` no banco.
 - **Produção:** SQL de nomenclatura e rascunho executado em `edqiwvccmboyayojvuea` com nomes conferidos, item #37 `hidden`; funções Edge e Cloudflare devem ter estado confirmado separadamente antes de declarar publicados.
+
+
+## D-C17 — Cones Trufados como categoria permanente (08/11/2026)
+
+- **Aprovação:** categoria nova **Cones Trufados**, permanente, com destaque editorial no lançamento. Home: Cones como vitrine principal, Gourmet e Fatias com seus cartões, Pipocas Trufadas ainda acessíveis de modo compacto. Não reconstruir outras jornadas.
+- **Três SKUs independentes:** `cone-trufado-prestigio` **R$14**, `cone-trufado-dois-amores` **R$14**, `cone-trufado-ferrero-rocher` **R$16**; Dois Amores é o nome oficial do sabor que havia sido citado como Casadinho.
+- **Fotografias:** imagens geradas para os três produtos foram confirmadas pela Luciane como correspondentes ao produto real. Prestígio **sem brigadeiro de coco no topo**. Usar os três arquivos exatos aprovados (sem novos retoques de iluminação) e cortes otimizados para cartão; não substituir por outras imagens.
+- **Conversão:** escolher um cone, ajustar quantidade e adicionar ao carrinho compartilhado; permitir selecionar outro sabor, com destaque discreto após adição; checkout WhatsApp, sem pagamento online inventado. Integrar preço/identidade/quantidade ao banco e à impressão; Meta AddToCart usa SKU novo.
+- **Disponibilidade:** categoria `category_cones` e sabores `cone_prestigio`, `cone_dois_amores`, `cone_ferrero_rocher` com controle independente no /admin. Começar TODOS ocultos até publicar frontend e confirmar produção. Não supor estoque, receita, peso, tamanho alternativo ou prazo específico.
+- **Proteções:** preservar disponibilidade, fotos e preços existentes. Criar `item_type=cone` autoritativo; não mascarar Cones como fatias/pipocas. Evitar promessa de esgotamento ou urgência sem quantidades reais.
+- **Limitação de origem:** binários dos 3 cones e das 3 fotos anteriormente aceitas (Bombom Uva natural; Maracujá prato branco full/card) precisam ser sincronizados com o GitHub. Enquanto não forem, somente o ZIP final validado deve ser publicado, nunca build cru do HEAD.

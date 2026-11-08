@@ -16,7 +16,7 @@ test("keeps drinks ready to reactivate while hiding them from the current menu",
   assert.match(catalog, /enabledExtras:\s*\{\s*drinks: false,/s);
   assert.match(catalog, /id: "coca-cola-220"/);
   assert.match(catalog, /export const DRINKS = PRODUCTS\.filter/);
-  assert.match(page, /if \(product\.kind === "slice"\) return isCategoryEnabled\("fatias"\);\s*return STORE_CONFIG\.enabledExtras\.drinks;/s);
+  assert.match(page, /if \(product\.kind === "slice"\) return isCategoryEnabled\("fatias"\);\s*if \(product\.kind === "cone"\) return isCategoryEnabled\("cones"\);\s*return STORE_CONFIG\.enabledExtras\.drinks;/s);
   assert.match(page, /STORE_CONFIG\.enabledExtras\.drinks && \(\s*<section className="extras-section"/s);
   assert.match(page, /STORE_CONFIG\.enabledExtras\.drinks && <Button/);
   assert.match(page, /scrollToSection\("acompanhamentos"\)/);
@@ -28,8 +28,8 @@ test("starts neutral and resolves navigation from the existing availability cont
   assert.match(page, /resolveMenuCategory\(availability, requestedCategory\)/);
   assert.match(page, /if \(!categoryIsAvailable\(category\)\) return/);
   assert.match(page, /isItemVisible\(availability, CATEGORY_ITEM_KEYS\.pipocas\)/);
-  assert.match(page, /visibleCategories\.map/);
-  assert.match(layout, /STORE_CONFIG\.enabledCategories\.pipocas/);
+  assert.match(page, /visibleCategories\.filter\(category => category\.id !== "cones"\)\.map/);
+  assert.match(layout, /Cones Trufados, Pipocas e Fatias Artesanais/);
 });
 
 test("removes statically disabled products from restored carts and hides unavailable add-more actions", () => {

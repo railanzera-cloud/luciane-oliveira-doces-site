@@ -80,7 +80,7 @@ test("current WhatsApp catalogue preserves the economic and availability contrac
   const commercialIdentity = quote => ({
     subtotalCents: quote.subtotalCents,
     availabilityKeys: quote.availabilityKeys,
-    items: quote.items.map(({ name, option_names, ...stable }) => stable),
+    items: quote.items.map(({ name, option_names, catalog_version, ...stable }) => stable),
   });
   for (const item of items) {
     assert.deepEqual(commercialIdentity(candidate.quoteCartItems([item], fixedDate)),

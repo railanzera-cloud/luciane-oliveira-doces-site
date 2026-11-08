@@ -273,3 +273,12 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - Ordem apenas orientadora, sem pré-seleção: massas brancas confirmadas `fatia-ninho-morango` e `fatia-coco-cremoso-morango` iniciam com Ninho; demais iniciam com chocolate. Seleção acessível e obrigatória; a escolha é persistida no pedido.
 - Vitrine: **Brigadeiro Branco com Morango** e **Geleia de Morango com Coco Cremoso** sem subtítulos redundantes; manter fotos reais, preços e proporções.
 - **Abacaxi com Doce de Leite**: rascunho somente no /admin, com aviso de foto e preço pendentes; não ocupar espaço no site público até lançamento validado. Não inventar foto, peso, data, massa ou preço.
+
+
+## Referência aprovada — Cones Trufados (08/11/2026)
+
+- Home: Cones Trufados com destaque editorial permanente e selo discreto **Novidade no cardápio** durante o lançamento; Pipocas Gourmet e Fatias Artesanais ainda acessíveis em 2 cartões; Pipocas Trufadas em cartão compacto, sem exclusão.
+- Imagens de produtos: três fotos 4:5 aprovadas, cone nítido em suporte transparente e fundo desfocado natural. **Prestígio sem bombom/brigadeiro sobre o creme de coco**. Não clarear/artificializar as imagens, não criar volume ou ingrediente inexistente.
+- Página de Cones: grade responsiva dos três sabores, foto predominante, nome comercial, preço exato e marcação clara do selecionado/esgotado. Em seguida quantidade e botão explícito **Adicionar cone(s) ao pedido**; sem opções extras ou percurso longo.
+- Tela de conclusão: carrinho compartilhado, opção de adicionar outro cone/sabor e seguir para recebimento, cliente e pagamento WhatsApp. CTA flutuante deve guiar sem se sobrepor às ações já visíveis.
+- Estados: se categoria oculta, não mostrar na home; se um sabor esgotado, somente ele fica indisponível. Não exibir valor de economia ou contagem de estoque sem dados reais.

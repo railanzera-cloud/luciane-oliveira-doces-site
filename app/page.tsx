@@ -40,6 +40,7 @@ import {
   DELIVERY_ZONES,
   DELIVERY_TIME_ESTIMATE,
   DRINKS,
+  CONES,
   POPCORN,
   popcornPrice,
   PRODUCTS,
@@ -55,6 +56,7 @@ import {
 } from "@/app/catalog";
 import {
   CATEGORY_ITEM_KEYS,
+  CONE_ITEM_KEYS,
   TRUFADA_STOCK_ITEM_KEYS,
   trufadaStockItemKey,
   POPCORN_FLAVOR_ITEM_KEYS,
@@ -110,6 +112,8 @@ type CartItem = {
 
 /** Rótulos de recompra devem refletir o carrinho, sem tratar Crocantes como potes Gourmet. */
 function addMoreButtonLabel(category: CategoryId, cart: CartItem[]): string {
+  if (category === "cones") return cart.some(item => CONES.some(cone => cone.id === item.productId))
+    ? "Outro cone" : "Adicionar cone";
   if (category === "pipocas") {
     return cart.some((item) => item.productId === POPCORN.id)
       ? "Outro pote recheado" : "Adicionar pote recheado";
@@ -200,6 +204,7 @@ function isCategoryEnabled(category: CategoryId) {
 function isProductEnabled(product: Product) {
   if (product.kind === "popcorn") return isCategoryEnabled("pipocas");
   if (product.kind === "slice") return isCategoryEnabled("fatias");
+  if (product.kind === "cone") return isCategoryEnabled("cones");
   return STORE_CONFIG.enabledExtras.drinks;
 }
 
@@ -327,6 +332,7 @@ function productLabel(product: Product) {
   if (isTrufadaOrLegacy(product.id)) {
     return `Pipocas Trufadas — ${product.name}`;
   }
+  if (product.kind === "cone") return `Cone Trufado — ${product.name}`;
   return product.subtitle
     ? `${product.name} (${product.subtitle.toLowerCase()})`
     : product.name;
@@ -367,7 +373,7 @@ function cartAvailabilityIssues(
       return [{ cartItemId: item.id, itemLabel: "Item do pedido", reasons: ["O item não existe mais no catálogo."] }];
     }
 
-    const category = product.kind === "popcorn" ? "pipocas" : product.kind === "slice" ? "fatias" : null;
+    const category = product.kind === "popcorn" ? "pipocas" : product.kind === "slice" ? "fatias" : product.kind === "cone" ? "cones" : null;
     const reasons: string[] = [];
 
     if (variant.retired) {
@@ -409,6 +415,13 @@ function cartAvailabilityIssues(
             : `O sabor ${option?.name ?? optionId} está indisponível.`);
         }
       }
+    }
+
+    if (product.kind === "cone") {
+      const coneKey = CONE_ITEM_KEYS[product.id];
+      if (item.optionIds.length !== 0 || variant.id !== "unidade") reasons.push("Este cone não admite personalização ou outro tamanho.");
+      if (!coneKey || !isItemAvailable(snapshot, coneKey)) reasons.push(unavailableReason(snapshot, coneKey ?? "", productLabel(product)));
+      if (snapshot.source !== "supabase") reasons.push("Não foi possível confirmar a disponibilidade dos cones.");
     }
 
     if (product.kind === "slice") {
@@ -500,7 +513,7 @@ function CollectionChoice({ format, name, description, action, price, photo, pho
   fallback?: string; price?: string; disabled: boolean; onClick: () => void;
 }) {
   return (
-    <button className="collection-choice" data-featured={format === "Pacotes com zíper" || undefined} type="button" disabled={disabled} onClick={onClick} aria-label={`${name} — ${action}`}>
+    <button className="collection-choice" data-launch={format === "Novidade no cardápio" || undefined} data-packs-card={format === "Pacotes com zíper" || undefined} type="button" disabled={disabled} onClick={onClick} aria-label={`${name} — ${action}`}>
       <span className="collection-photo" data-packs={format === "Pacotes com zíper" || undefined} onContextMenu={(event) => event.preventDefault()}>
         <img src={photo} srcSet={`${photo.replace(".webp", "-360.webp")} 360w, ${photo} ${photoWidth}w`} sizes="(min-width: 1152px) 374px, (min-width: 700px) 33vw, 36vw" alt="" draggable={false} decoding="async" width={640} height={480} onError={(event) => {
           const img = event.currentTarget;
@@ -560,6 +573,8 @@ export default function Home() {
   const [sliceProductId, setSliceProductId] = useState("");
   const [sliceOptionId, setSliceOptionId] = useState("");
   const [sliceQuantity, setSliceQuantity] = useState(1);
+  const [coneProductId, setConeProductId] = useState("");
+  const [coneQuantity, setConeQuantity] = useState(1);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectionMessage, setSelectionMessage] = useState("");
@@ -706,17 +721,22 @@ export default function Home() {
     && isItemVisible(availability, CATEGORY_ITEM_KEYS.pipocas);
   const fatiasVisible = STORE_CONFIG.enabledCategories.fatias
     && isItemVisible(availability, CATEGORY_ITEM_KEYS.fatias);
+  const conesVisible = STORE_CONFIG.enabledCategories.cones
+    && isItemVisible(availability, CATEGORY_ITEM_KEYS.cones);
   const pipocasAvailable = pipocasVisible
     && isItemAvailable(availability, CATEGORY_ITEM_KEYS.pipocas);
   const fatiasAvailable = fatiasVisible
     && isItemAvailable(availability, CATEGORY_ITEM_KEYS.fatias);
+  const conesAvailable = conesVisible
+    && isItemAvailable(availability, CATEGORY_ITEM_KEYS.cones);
+  const conesCanBeAdded = conesAvailable && availability.ordersOpen && CONES.some(cone => cone.available && cone.variants[0].available && coneIsAvailable(cone.id));
 
   function categoryIsVisible(category: CategoryId) {
-    return category === "pipocas" ? pipocasVisible : fatiasVisible;
+    return category === "pipocas" ? pipocasVisible : category === "cones" ? conesVisible : fatiasVisible;
   }
 
   function categoryIsAvailable(category: CategoryId | null) {
-    return category === "pipocas" ? pipocasAvailable : category === "fatias" && fatiasAvailable;
+    return category === "pipocas" ? pipocasAvailable : category === "cones" ? conesAvailable : category === "fatias" && fatiasAvailable;
   }
 
   function popcornSizeIsVisible(variantId: string) {
@@ -737,6 +757,15 @@ export default function Home() {
   function popcornFlavorIsAvailable(optionId: string) {
     const itemKey = POPCORN_FLAVOR_ITEM_KEYS[optionId];
     return Boolean(itemKey && isItemAvailable(availability, itemKey));
+  }
+
+  function coneIsVisible(productId: string) {
+    const key = CONE_ITEM_KEYS[productId];
+    return Boolean(key && isItemVisible(availability, key));
+  }
+  function coneIsAvailable(productId: string) {
+    const key = CONE_ITEM_KEYS[productId];
+    return Boolean(key && availability.source === "supabase" && isItemAvailable(availability, key));
   }
 
   function sliceIsVisible(productId: string) {
@@ -950,6 +979,9 @@ export default function Home() {
     && popcornRegularCombinationPrice !== null && popcornCurrentCombinationPrice !== null
     ? Math.max(0, popcornRegularCombinationPrice - popcornCurrentCombinationPrice)
     : 0;
+  const selectedCone = CONES.find((product) => product.id === coneProductId);
+  const selectedConeVariant = selectedCone?.variants[0];
+  const coneReady = Boolean(availability.ordersOpen && conesAvailable && selectedCone?.available && selectedConeVariant?.available && selectedCone && coneIsAvailable(selectedCone.id));
   const selectedSlice = SLICES.find((product) => product.id === sliceProductId);
   const selectedSliceVariant = selectedSlice?.variants[0];
   const selectedDeliveryLocality = deliveryLocalityById(deliveryLocalityId);
@@ -973,6 +1005,7 @@ export default function Home() {
   const cartNeedsSizeReview = cart.some((item) => PRODUCTS.find((product) => product.id === item.productId)?.variants.find((variant) => variant.id === item.variantId)?.retired);
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
   const cartContainsCrocantes = cart.some((item) => isTrufadaOrLegacy(item.productId));
+  const cartRequiresWhatsApp = cartContainsCrocantes || cart.some(item => CONES.some(cone => cone.id === item.productId));
   const cupProductId = cupFlavorPreview ?? "";
   const cupProduct = PRODUCTS.find(product => product.id === cupProductId);
   const cupVariant = cupProduct?.variants.find(variant => variant.id === cupSizeId);
@@ -1005,11 +1038,11 @@ export default function Home() {
         return Boolean(key && isItemAvailable(availability, key) && remainingForFlavor(productId, size) > 0);
       }));
   useEffect(() => {
-    if (cartContainsCrocantes && checkoutChannel !== "whatsapp") {
+    if (cartRequiresWhatsApp && checkoutChannel !== "whatsapp") {
       setCheckoutChannel("whatsapp");
       setPayment("");
     }
-  }, [cartContainsCrocantes, checkoutChannel]);
+  }, [cartRequiresWhatsApp, checkoutChannel]);
   const justAddedProduct = addedNotice
     ? PRODUCTS.find((product) => product.id === addedNotice.productId)
     : null;
@@ -1017,6 +1050,7 @@ export default function Home() {
   // Nunca assumem quantidade, alteram preço ou habilitam uma categoria indisponível.
   const checkoutComplementItems = orderCheckoutComplements(
     addedNotice && isTrufadaOrLegacy(addedNotice.productId) ? "trufadas"
+      : addedNotice?.category === "cones" ? "cones"
       : addedNotice?.category === "fatias" ? "fatias" : "gourmet",
     {
       gourmet: availability.ordersOpen && pipocasAvailable && POPCORN.available
@@ -1025,6 +1059,7 @@ export default function Home() {
         && SLICES.some((slice) => sliceIsVisible(slice.id) && slice.available
           && Boolean(slice.variants[0]?.available) && sliceIsAvailable(slice.id)),
       trufadas: cupCanBeAddedFromCheckout,
+      cones: addedNotice?.category === "cones" && conesCanBeAdded,
       bebidas: STORE_CONFIG.enabledExtras.drinks && availability.ordersOpen,
     },
   );
@@ -1106,10 +1141,11 @@ export default function Home() {
     && sliceIsAvailable(selectedSlice.id)
     && SLICE_OPTIONS.some(option => option.id === sliceOptionId),
   );
-  const draftReady = activeCategory === "pipocas" ? popcornReady : activeCategory === "fatias" && sliceReady;
+  const draftReady = activeCategory === "pipocas" ? popcornReady : activeCategory === "cones" ? coneReady : activeCategory === "fatias" && sliceReady;
   const popcornUnitPrice = popcornVariant && !popcornVariant.retired ? itemUnitPrice(POPCORN, popcornVariant, popcornOptionIds, promotionTime) : null;
   const draftSubtotal = activeCategory === "pipocas"
     ? popcornUnitPrice === null ? null : popcornUnitPrice * popcornQuantity
+    : activeCategory === "cones" ? selectedConeVariant ? selectedConeVariant.price * coneQuantity : null
     : selectedSliceVariant ? selectedSliceVariant.price * sliceQuantity : null;
   const addressReady = fulfillment !== "entrega"
     || Boolean(deliveryLocalityCanQuote(selectedDeliveryLocality) && selectedDeliveryZone && !deliveryZoneError
@@ -1175,7 +1211,7 @@ export default function Home() {
     : cart.length > 0 && !builderFlowActive
     ? cartNeedsSizeReview ? "Revise o tamanho" : currency.format(hasEstimatedTotal ? orderTotal : cartSubtotal)
     : draftSubtotal === null
-      ? activeCategory === "pipocas" ? `A partir de ${currency.format(popcornPrice("500ml", [], promotionTime))}` : "A partir de R$20"
+      ? activeCategory === "pipocas" ? `A partir de ${currency.format(popcornPrice("500ml", [], promotionTime))}` : activeCategory === "cones" ? "A partir de R$14" : "A partir de R$20"
       : currency.format(draftSubtotal);
   const stickyPriceCaption = cupBuilderFlowActive
     ? cupFlavorPreview
@@ -1183,7 +1219,7 @@ export default function Home() {
       : "A partir de"
     : cart.length > 0 && !builderFlowActive
     ? hasEstimatedTotal ? "Total do pedido" : "Subtotal do pedido"
-    : cart.length > 0 ? "Item em montagem" : activeCategory === "pipocas" ? "Sua pipoca" : "Sua fatia";
+    : cart.length > 0 ? "Item em montagem" : activeCategory === "pipocas" ? "Sua pipoca" : activeCategory === "cones" ? "Seu cone" : "Sua fatia";
   const paymentLabel = checkoutChannel === "site" && isSitePayment(payment)
     ? sitePaymentLabel(payment, fulfillment)
     : paymentDescription(isWhatsAppPayment(payment) ? payment : "", fulfillment).replace(" (1x)", "");
@@ -1233,12 +1269,14 @@ export default function Home() {
         : draftReady
       ? activeCategory === "pipocas"
         ? `Adicionar ${popcornQuantity} ${popcornQuantity === 1 ? "pipoca" : "pipocas"}`
+        : activeCategory === "cones" ? `Adicionar ${coneQuantity} ${coneQuantity === 1 ? "cone" : "cones"}`
         : selectedSlice?.id==="fatia-chocolate-morango" && strawberryPreorder
           ? `Adicionar ${sliceQuantity} ${sliceQuantity === 1 ? "fatia" : "fatias"} à pré-reserva`
           : `Adicionar ${sliceQuantity} ${sliceQuantity === 1 ? "fatia" : "fatias"}`
       : builderFlowActive
         ? activeCategory === "pipocas"
           ? popcornVariant ? "Ir aos sabores" : "Escolher tamanho"
+          : activeCategory === "cones" ? "Escolher meu cone"
           : "Escolher minha fatia"
           : checkoutReady ? finalButtonLabel : checkoutNextActionLabel;
 
@@ -1420,6 +1458,8 @@ export default function Home() {
     setSliceProductId("");
     setSliceOptionId("");
     setSliceQuantity(1);
+    setConeProductId("");
+    setConeQuantity(1);
     setEditingId(null);
     setSelectionMessage("");
     setBuilderEngaged(false);
@@ -1697,6 +1737,40 @@ export default function Home() {
     requestScroll(destination);
   }
 
+  function addOrUpdateCone() {
+    if (!conesVisible || !availability.ordersOpen || !conesAvailable) {
+      setSelectionMessage(availability.ordersOpen ? "Cones Trufados indisponíveis no momento." : STORE_CONFIG.closedMessage);
+      return;
+    }
+    if (!selectedCone || !selectedConeVariant || !coneReady) {
+      setSelectionMessage("Escolha um sabor disponível para continuar.");
+      requestScroll("cones-sabores");
+      return;
+    }
+    const nextItem: Omit<CartItem, "id"> = {
+      productId: selectedCone.id,
+      variantId: "unidade",
+      optionIds: [],
+      quantity: coneQuantity,
+    };
+    const wasEditing = Boolean(editingId);
+    setCheckoutAvailabilityMessage("");
+    if (wasEditing) {
+      setCart(current => current.map(item => item.id === editingId ? { ...item, ...nextItem } : item));
+    } else {
+      setCart(current => [...current, { id: makeCartId(), ...nextItem }]);
+      trackMetaEvent("AddToCart", metaProductPayload(selectedCone, selectedConeVariant, coneQuantity));
+      setAddedNotice({
+        category: "cones",
+        productId: selectedCone.id,
+        description: `${coneQuantity}x Cone Trufado — ${selectedCone.name}`,
+      });
+    }
+    clearDraft();
+    setBuilderEngaged(false);
+    requestScroll(wasEditing ? "carrinho" : "recebimento");
+  }
+
   function addDrink(product: Product) {
     if (!availability.ordersOpen || !isProductEnabled(product) || !product.available || !product.variants[0].available) return;
     setCart((current) => {
@@ -1720,7 +1794,7 @@ export default function Home() {
     const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
     if (isTrufadaOrLegacy(product.id)) return; // Quantidade é alterável no carrinho.
     if (product.kind === "drink" || !isProductEnabled(product)) return;
-    const itemCategory = product.kind === "popcorn" ? "pipocas" : "fatias";
+    const itemCategory: CategoryId = product.kind === "popcorn" ? "pipocas" : product.kind === "cone" ? "cones" : "fatias";
     if (!categoryIsAvailable(itemCategory)) {
       setCheckoutAvailabilityMessage(`${product.category} estão indisponíveis. Remova este item ou escolha outra categoria.`);
       scrollToSection("carrinho");
@@ -1732,7 +1806,11 @@ export default function Home() {
     setBuilderEngaged(true);
     setSelectionMessage("");
     setAddedNotice(null);
-    if (product.kind === "popcorn") {
+    if (product.kind === "cone") {
+      setRequestedCategory("cones");
+      setConeProductId(product.id);
+      setConeQuantity(item.quantity);
+    } else if (product.kind === "popcorn") {
       setRequestedCategory("pipocas");
       setPopcornVariantId(product.variants.find((variant) => variant.id === item.variantId)?.retired ? "" : item.variantId);
       setPopcornOptionIds([...item.optionIds]);
@@ -1784,9 +1862,9 @@ export default function Home() {
 
 
   async function finishOnSite(card?: MercadoPagoCardData) {
-    if (cart.some((item) => isTrufadaOrLegacy(item.productId))) {
+    if (cart.some((item) => isTrufadaOrLegacy(item.productId) || CONES.some(cone => cone.id === item.productId))) {
       setCheckoutChannel("whatsapp");
-      setCheckoutAvailabilityMessage("Pedidos com pacotes Trufados são concluídos pelo WhatsApp.");
+      setCheckoutAvailabilityMessage("Pedidos com Trufados são concluídos pelo WhatsApp.");
       return;
     }
     if (finalizationLockRef.current || !COMMERCE_CONFIG.siteOrderingEnabled || !isSitePayment(payment)) return;
@@ -1998,6 +2076,7 @@ export default function Home() {
       else if (!popcornReady) requestScroll("gourmet-flavor-action");
       else addOrUpdatePopcorn();
     } else if (activeCategory === "fatias") addOrUpdateSlice();
+    else if (activeCategory === "cones") addOrUpdateCone();
   }
 
   function handleCupPurchaseAction() {
@@ -2152,10 +2231,10 @@ export default function Home() {
           {activeCategory ? (
             <div className="entry-heading">
               <p className="eyebrow">Luciane Oliveira Doces</p>
-              <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : "Fatias Artesanais"}</h1>
+              <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : activeCategory === "cones" ? "Cones Trufados" : "Fatias Artesanais"}</h1>
               <p className="entry-copy">{activeCategory === "pipocas"
                 ? showLimitedCupView ? "Três sabores artesanais em pacotes P, M e G." : "Escolha o tamanho e combine seus sabores."
-                : "Sabores disponíveis"}</p>
+                : activeCategory === "cones" ? "Escolha seu sabor e a quantidade desejada." : "Sabores disponíveis"}</p>
               {availability.ordersOpen && visibleCategories.length > 0 && (
                 <p className="delivery-time-estimate">
                   <span className="delivery-time-copy">
@@ -2176,6 +2255,15 @@ export default function Home() {
           ) : !activeCategory && (
             visibleCategories.length > 0 ? (
               <div className="collection-menu" role="group" aria-label="Escolha uma categoria">
+                {conesVisible && (
+                  <CollectionChoice format="Novidade no cardápio" name="Cones Trufados"
+                    photo="/images/cone-trufado-ferrero-rocher-20261108.webp" photoWidth={900}
+                    fallback="/images/cone-trufado-prestigio-20261108.webp"
+                    description="Prestígio, Dois Amores e Ferrero Rocher"
+                    price={currency.format(Math.min(...CONES.map(cone => cone.variants[0].price)))}
+                    action={!conesAvailable ? "Esgotado" : "Escolher meu cone"}
+                    disabled={!conesAvailable} onClick={() => selectCategory("cones")} />
+                )}
                 {pipocasVisible && (
                   <CollectionChoice format="Pacotes com zíper" name="Pipocas Trufadas"
                     photo="/images/pipocas-trufadas-ninho-20261101.webp" photoWidth={1086}
@@ -2185,7 +2273,7 @@ export default function Home() {
                     action={!pipocasAvailable || cupPhase === "sold-out" ? "Esgotado" : cupCanBeAddedFromCheckout ? "Ver sabores" : "Consultar sabores"}
                     disabled={!pipocasAvailable || cupPhase === "sold-out"} onClick={openLimitedCupEdition} />
                 )}
-                {visibleCategories.map((category) => {
+                {visibleCategories.filter(category => category.id !== "cones").map((category) => {
                   const available = categoryIsAvailable(category.id);
                   const isPot = category.id === "pipocas";
                   const cover = isPot ? POPCORN : SLICES.find((slice) => sliceIsVisible(slice.id));
@@ -2367,17 +2455,17 @@ export default function Home() {
               </div>
             </section>
           )}
-          {activeCategory === "fatias" && (
+          {(activeCategory === "fatias" || activeCategory === "cones") && (
             <nav className="v7-navigation v7-navigation-slices" aria-label="Navegação das fatias">
               <button type="button" onClick={returnToCategories}><ArrowLeft size={15} aria-hidden="true" /> Voltar às categorias</button>
             </nav>
           )}
           <div className="section-intro" id="potes-recheados">
             <p className="eyebrow">Seu pedido, do seu jeito</p>
-            <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : "Sua vitrine de sabores."}</h2>
+            <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : activeCategory === "cones" ? "Escolha seu cone." : "Sua vitrine de sabores."}</h2>
             <p>{activeCategory === "pipocas"
               ? "Um tamanho, seus sabores favoritos. Tudo do seu jeito."
-              : "Escolha sua fatia favorita. Depois, você pode adicionar outras."}</p>
+              : activeCategory === "cones" ? "Um sabor por vez. Adicione quantos desejar e finalize tudo no mesmo pedido." : "Escolha sua fatia favorita. Depois, você pode adicionar outras."}</p>
             {visibleCategories.filter((category) => category.id !== activeCategory).map((category) => (
               <button type="button" className="category-text-link" key={category.id}
                 disabled={!categoryIsAvailable(category.id)} onClick={() => selectCategory(category.id)}>
@@ -2387,6 +2475,7 @@ export default function Home() {
           </div>
 
           {((activeCategory === "pipocas" && (!pipocasAvailable || !POPCORN.available))
+            || (activeCategory === "cones" && (!conesAvailable || !CONES.some(cone => coneIsAvailable(cone.id))))
             || (activeCategory === "fatias" && (!fatiasAvailable || !SLICES.some((slice) => (
               sliceIsVisible(slice.id) && sliceIsAvailable(slice.id) && slice.available && slice.variants[0]?.available
             ))))) && (
@@ -2617,6 +2706,78 @@ export default function Home() {
                       : popcornOptionIds.length === 0
                         ? "Escolha pelo menos 1 sabor"
                         : `Adicionar ${popcornQuantity} ${popcornQuantity === 1 ? "pipoca" : "pipocas"} ao pedido`}
+                </Button>
+                {editingId && <Button type="button" variant="ghost" className="cancel-edit" onClick={clearDraft}>Cancelar edição</Button>}
+              </section>
+            </div>
+          ) : activeCategory === "cones" && conesVisible ? (
+            <div className="builder-card cone-builder">
+              <section className="step-block" id="cones-sabores" aria-labelledby="cones-step-title">
+                <div className="step-heading">
+                  <StepMarker number={1} state={coneReady ? "complete" : "active"} />
+                  <div>
+                    <h3 id="cones-step-title">Escolha seu sabor</h3>
+                    <p>Três cones artesanais. Selecione um sabor para adicionar ao pedido.</p>
+                  </div>
+                </div>
+                {!CONES.some(cone => coneIsVisible(cone.id)) && <p className="selection-helper" role="status">Nenhum cone disponível no momento.</p>}
+                <RadioGroup className="cone-flavor-grid" value={coneProductId} aria-label="Sabor do Cone Trufado"
+                  onValueChange={value => {
+                    if (!conesAvailable || !coneIsAvailable(value)) return;
+                    setConeProductId(value);
+                    setConeQuantity(1);
+                    setBuilderEngaged(true);
+                    setSelectionMessage("");
+                    requestScroll("cones-quantidade");
+                  }}>
+                  {CONES.filter(cone => coneIsVisible(cone.id)).map(cone => {
+                    const selected = cone.id === coneProductId;
+                    const available = conesAvailable && cone.available && cone.variants[0].available && coneIsAvailable(cone.id);
+                    return (
+                      <label className={`cone-flavor-card ${selected ? "is-selected" : ""} ${!available ? "is-unavailable" : ""}`}
+                        htmlFor={`cone-${cone.id}`} key={cone.id}>
+                        <RadioGroupItem id={`cone-${cone.id}`} value={cone.id} disabled={!available} />
+                        <span className="cone-flavor-photo">
+                          {cone.image && <img src={cone.cardImage ?? cone.image} alt={cone.imageAlt} width="640" height="480"
+                            loading="lazy" decoding="async" draggable={false} />}
+                        </span>
+                        <span className="cone-flavor-copy">
+                          <strong>{cone.name}</strong>
+                          <b>{currency.format(cone.variants[0].price)}</b>
+                        </span>
+                        {selected && available && <span className="cone-flavor-check" aria-hidden="true"><Check size={17}/></span>}
+                        {!available && <span className="cone-flavor-status">Esgotado hoje</span>}
+                      </label>
+                    );
+                  })}
+                </RadioGroup>
+                <p className="selection-helper" aria-live="polite">
+                  {selectionMessage || (selectedCone ? `${selectedCone.name} escolhido. Confira a quantidade.` : "Escolha um cone para continuar.")}
+                </p>
+              </section>
+              <section className="step-block" id="cones-quantidade" aria-labelledby="cones-qty-title">
+                <div className="step-heading compact-heading">
+                  <StepMarker number={2} state={coneReady ? "active" : "locked"} />
+                  <div><h3 id="cones-qty-title">Quantos cones deste sabor?</h3>
+                    <p>Para misturar sabores, adicione este e escolha o próximo.</p></div>
+                </div>
+                {selectedCone && <div className="cone-current-choice">
+                  <img src={selectedCone.cardImage ?? selectedCone.image} width="66" height="66" alt="" loading="lazy" />
+                  <span><small>Sua escolha</small><strong>{selectedCone.name}</strong></span>
+                  <b>{currency.format(selectedCone.variants[0].price)}</b>
+                </div>}
+                <div className="quantity-row">
+                  <div className="quantity-control" aria-label="Quantidade de cones">
+                    <Button type="button" variant="ghost" size="icon" disabled={!coneReady || coneQuantity <= 1}
+                      onClick={() => setConeQuantity(q => Math.max(1,q-1))} aria-label="Diminuir cones"><Minus size={18}/></Button>
+                    <strong aria-live="polite">{coneQuantity}</strong>
+                    <Button type="button" variant="ghost" size="icon" disabled={!coneReady || coneQuantity >= 99}
+                      onClick={() => setConeQuantity(q => Math.min(99,q+1))} aria-label="Aumentar cones"><Plus size={18}/></Button>
+                  </div>
+                  <div className="draft-total"><small>Subtotal</small><strong>{selectedConeVariant ? currency.format(selectedConeVariant.price * coneQuantity) : "Escolha o sabor"}</strong></div>
+                </div>
+                <Button type="button" className="primary-cta add-button" onClick={addOrUpdateCone} disabled={!coneReady}>
+                  <ShoppingBag size={18}/>{editingId ? "Salvar alterações" : `Adicionar ${coneQuantity} ${coneQuantity === 1 ? "cone" : "cones"} ao pedido`}
                 </Button>
                 {editingId && <Button type="button" variant="ghost" className="cancel-edit" onClick={clearDraft}>Cancelar edição</Button>}
               </section>
@@ -2895,6 +3056,7 @@ export default function Home() {
                     <div className={`cart-add-options ${STORE_CONFIG.enabledExtras.drinks ? "" : "without-drinks"} ${cupCanBeAddedFromCheckout ? "has-crocantes-option" : ""}`}>
                       {fatiasAvailable && <Button type="button" variant="outline" onClick={() => startAnother("fatias")}><CakeSlice size={16} /> {addMoreButtonLabel("fatias", cart)}</Button>}
                       {pipocasAvailable && <Button type="button" variant="outline" onClick={() => startAnother("pipocas")}><Plus size={16} /> {addMoreButtonLabel("pipocas", cart)}</Button>}
+                      {conesCanBeAdded && <Button type="button" variant="outline" onClick={() => startAnother("cones")}><ShoppingBag size={16} /> {addMoreButtonLabel("cones", cart)}</Button>}
                       {cupCanBeAddedFromCheckout && <Button type="button" variant="outline" className="crocantes-cross-sell" onClick={startAnotherCrocantes}><ShoppingBag size={16} /> {cartContainsCrocantes ? "Adicionar outro pacote" : "Adicionar pacote Trufado"} <ChevronRight size={15} aria-hidden="true" /></Button>}
                       {STORE_CONFIG.enabledExtras.drinks && <Button type="button" variant="outline" onClick={() => scrollToSection("acompanhamentos")}><CupSoda size={16} /> Refrigerante</Button>}
                     </div>
@@ -2927,22 +3089,26 @@ export default function Home() {
                       </div>
                       <div className="boutique-complement-grid" role="group" aria-label="Outros produtos disponíveis para adicionar">
                         {checkoutComplementItems.map((id) => {
-                          const heading = id === "gourmet" ? addMoreButtonLabel("pipocas", cart)
+                          const heading = id === "cones" ? "Escolher outro cone"
+                            : id === "gourmet" ? addMoreButtonLabel("pipocas", cart)
                             : id === "fatias" ? addMoreButtonLabel("fatias", cart)
                               : id === "trufadas" ? cartContainsCrocantes ? "Outro pacote Trufado" : "Pipocas Trufadas"
                                 : "Refrigerante";
-                          const detail = id === "gourmet" ? "Montar pote Gourmet"
+                          const detail = id === "cones" ? "Adicionar mais um sabor"
+                            : id === "gourmet" ? "Montar pote Gourmet"
                             : id === "fatias" ? "Escolher sua fatia"
                               : id === "trufadas" ? "Escolher sabor e tamanho"
                                 : "Ver acompanhamentos";
-                          const photo = id === "gourmet" ? "/images/categoria-pipocas-editorial-enquadrada-v107.webp"
+                          const photo = id === "cones" ? "/images/cone-trufado-ferrero-rocher-card-20261108.webp"
+                            : id === "gourmet" ? "/images/categoria-pipocas-editorial-enquadrada-v107.webp"
                             : id === "fatias" ? "/images/categoria-fatias-editorial.webp"
                               : id === "trufadas" ? "/images/pipocas-trufadas-ninho-20261101.webp"
                                 : null;
                           return (
                             <button type="button" key={id} className="boutique-complement-choice"
                               onClick={() => {
-                                if (id === "gourmet") startAnother("pipocas");
+                                if (id === "cones") startAnother("cones");
+                                else if (id === "gourmet") startAnother("pipocas");
                                 else if (id === "fatias") startAnother("fatias");
                                 else if (id === "trufadas") startAnotherCrocantes();
                                 else scrollToSection("acompanhamentos");
@@ -3012,7 +3178,7 @@ export default function Home() {
               {fulfillment === "retirada" && <div className="pickup-note"><MapPin size={18} /><span><strong>Retirada disponível em Paragominas.</strong>{checkoutChannel === "whatsapp" ? "O horário e o local serão confirmados no WhatsApp." : "A loja confirmará o horário e o local pelo celular informado."}</span></div>}
             </section>
 
-            {COMMERCE_CONFIG.siteOrderingEnabled && !cartContainsCrocantes && (
+            {COMMERCE_CONFIG.siteOrderingEnabled && !cartRequiresWhatsApp && (
               <section className="order-card checkout-channel-card" id="finalizacao" aria-labelledby="channel-title">
                 <div className="order-card-heading"><div><p className="eyebrow">Finalização</p><h2 id="channel-title">Como deseja concluir?</h2></div></div>
                 <RadioGroup className="choice-grid checkout-channel-options" value={checkoutChannel} onValueChange={chooseCheckoutChannel} aria-label="Canal de finalização">

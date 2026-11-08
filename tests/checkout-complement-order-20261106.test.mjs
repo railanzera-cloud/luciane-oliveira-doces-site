@@ -31,3 +31,22 @@ test("Nenhuma opção repetida e qualquer estado não booleano falha fechado", (
   assert.deepEqual(choices, ["trufadas"]);
   assert.equal(new Set(choices).size, choices.length);
 });
+
+test("Cones: outro sabor aparece primeiro, no mesmo conjunto de recomendações", () => {
+  assert.deepEqual(
+    orderCheckoutComplements("cones", {cones:true,trufadas:true,fatias:true,gourmet:true,bebidas:false}),
+    ["cones", "trufadas", "fatias", "gourmet"],
+  );
+  assert.deepEqual(
+    orderCheckoutComplements("cones", {cones:false,trufadas:true,fatias:true,gourmet:false}),
+    ["trufadas", "fatias"],
+  );
+  assert.deepEqual(orderCheckoutComplements("cones", {}), []);
+});
+
+test("Cones não modificam as sugestões das outras três jornadas", () => {
+  const available = {...all, cones: true};
+  assert.deepEqual(orderCheckoutComplements("gourmet", available), ["trufadas","fatias","gourmet"]);
+  assert.deepEqual(orderCheckoutComplements("fatias", available), ["gourmet","trufadas","fatias"]);
+  assert.deepEqual(orderCheckoutComplements("trufadas", available), ["gourmet","fatias","trufadas"]);
+});
