@@ -8,14 +8,19 @@ const page = readFileSync("app/page.tsx","utf8");
 const css = readFileSync("app/mobile-refinamentos-funil-20261108.css","utf8");
 const layout = readFileSync("app/layout.tsx","utf8");
 
-test("Navegação mostra atalhos de categorias em grupo identificado, sem falso breadcrumb", () => {
-  assert.ok(page.includes('className="category-shortcuts" aria-label="Explorar outras categorias"'));
-  assert.ok(page.includes('className="category-shortcuts-label">Ver outras categorias'));
-  assert.ok(page.includes('className="category-shortcut"'));
+test("Navegação usa divulgador único e secundário, sem falsos breadcrumbs", () => {
+  assert.ok(page.includes('className="builder-utility-nav" aria-label="Navegação do cardápio"'));
+  assert.ok(page.includes('className="builder-more-toggle" aria-expanded={otherCategoriesOpen}'));
+  assert.ok(page.includes('aria-controls="builder-more-options"'));
+  assert.ok(page.includes('className="builder-more-options" id="builder-more-options"'));
+  assert.ok(page.includes('aria-label="Explorar outras categorias"'));
+  assert.ok(page.includes('className="builder-more-option"'));
   assert.ok(page.includes('onClick={() => selectCategory(category.id)}'));
   assert.ok(page.includes('disabled={!categoryIsAvailable(category.id)}'));
   assert.ok(page.includes('onClick={returnToCategories}'));
-  assert.ok(!page.includes('className="category-text-link" key={category.id}'));
+  assert.ok(page.includes('onClick={openLimitedCupEdition}'));
+  assert.ok(!page.includes('className="category-shortcuts"'));
+  assert.ok(!page.includes('className="v7-navigation v7-navigation-pipocas"'));
 });
 
 test("Duas primeiras caldas e Sem calda ocupando linha inteira sem alterar semântica", () => {
@@ -62,6 +67,6 @@ test("Resumo mais curto, área segura Instagram e redução de movimento não al
   assert.ok(page.includes("Pipocas Trufadas"));
   assert.ok(page.includes("Fatias Artesanais"));
   assert.ok(page.includes("Pipocas Gourmet"));
-  assert.ok(page.includes('aria-label={activeCategory === "cones" ? "Navegação dos Cones Trufados" : "Navegação das Fatias Artesanais"}'));
+  assert.ok(page.includes('className="builder-utility-nav" aria-label="Navegação do cardápio"'));
   assert.ok(page.includes('activeCategory === "cones" ? "Escolha um cone para começar."'));
 });
