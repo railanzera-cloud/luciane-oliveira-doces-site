@@ -1,52 +1,80 @@
-/* Cones Trufados — coleção permanente e lançamento, 08/11/2026.
-   Camada isolada: não afeta as categorias, checkout ou cozinha existentes. */
-.storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-photo img {
+/* Home revisada após QA real em iPhone/Instagram (08/11/2026).
+   Duas colunas: Cones + Pipocas Trufadas na primeira fileira;
+   Gourmet + Fatias na segunda. Nenhuma categoria fica escondida ao fim. */
+.storefront .menu-entry.is-neutral .collection-menu {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(9px, 1.7vw, 14px);
+}
+.storefront .menu-entry.is-neutral .collection-choice[data-launch] {
+  border-color: #f4c28a;
+  background: linear-gradient(153deg, #57311f 0%, #301b14 65%, #28150f 100%);
+  box-shadow: 0 13px 26px rgba(8, 3, 2, .25), inset 0 1px rgba(255, 232, 198, .21);
+}
+.storefront .menu-entry.is-neutral .collection-choice[data-launch] .collection-format {
+  color: #ffd49d;
+}
+.storefront .menu-entry.is-neutral .collection-choice[data-launch] .collection-photo img {
   object-fit: cover;
-  object-position: 50% 31%;
+  object-position: center 34%;
 }
-.storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-format {
-  color: #f5c78f;
-}
-.storefront .menu-entry.is-neutral .collection-choice[data-compact] {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: minmax(0, 33%) minmax(0, 67%);
-  min-height: 138px;
-  background: linear-gradient(135deg, #342117, #21130f);
-}
-.storefront .menu-entry.is-neutral .collection-choice[data-compact] .collection-photo {
-  height: 100%;
-  min-height: 138px;
-  overflow: hidden;
-}
-.storefront .menu-entry.is-neutral .collection-choice[data-compact] .collection-photo[data-packs] > img:first-child {
-  width: 50%;
+/* Os dois pacotes têm o mesmo espaço: o segundo não encobre o primeiro. */
+.storefront .menu-entry.is-neutral .collection-choice[data-packs-card] .collection-photo[data-packs] > img:first-child {
   left: 0;
-  height: 100%;
-  object-fit: cover;
-}
-.storefront .menu-entry.is-neutral .collection-choice[data-compact] .collection-photo[data-packs] .collection-pack-secondary {
-  left: 50%;
+  right: auto;
   width: 50%;
   height: 100%;
   object-fit: cover;
+  object-position: center 48%;
 }
-.storefront .menu-entry.is-neutral .collection-choice[data-compact] .collection-photo[data-packs]::after { content: none; }
-.storefront .menu-entry.is-neutral .collection-choice[data-compact] .collection-copy {
-  min-height: 0;
-  gap: 6px;
-  padding: 12px 16px;
+.storefront .menu-entry.is-neutral .collection-choice[data-packs-card] .collection-photo[data-packs] > img.collection-pack-secondary {
+  left: 50%;
+  right: auto;
+  width: 50%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 48%;
 }
-.storefront .menu-entry.is-neutral .collection-choice[data-compact] .collection-copy strong {
-  font-size: clamp(1.23rem, 4.2vw, 1.6rem);
+.storefront .menu-entry.is-neutral .collection-choice[data-packs-card] .collection-photo[data-packs]::after { content: none; }
+/* Evita que uma descrição longa esconda o preço e o botão no celular. */
+@media (max-width: 440px) {
+  .storefront .menu-entry.is-neutral .collection-choice .collection-photo {
+    height: clamp(112px, 32vw, 150px);
+  }
+  .storefront .menu-entry.is-neutral .collection-choice .collection-copy {
+    gap: 5px;
+    padding: 11px 10px 12px;
+    min-height: 158px;
+  }
+  .storefront .menu-entry.is-neutral .collection-choice .collection-copy strong {
+    font-size: clamp(1.08rem, 4.2vw, 1.36rem);
+    line-height: 1.08;
+  }
+  .storefront .menu-entry.is-neutral .collection-choice .collection-format {
+    font-size: clamp(.54rem, 1.65vw, .62rem);
+  }
+  .storefront .menu-entry.is-neutral .collection-choice .collection-description {
+    font-size: .71rem;
+    line-height: 1.28;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  .storefront .menu-entry.is-neutral .collection-choice .collection-action {
+    min-height: 42px;
+    font-size: .73rem;
+    padding: 9px 9px;
+  }
 }
-.storefront .menu-entry.is-neutral .collection-choice[data-compact] .collection-action {
-  width: max-content;
-  max-width: 100%;
-  min-height: 36px;
-  padding: 7px 14px;
-  margin-top: 3px;
+@media (max-width: 350px) {
+  /* Nos aparelhos estreitos, legibilidade prevalece sobre 2 colunas. */
+  .storefront .menu-entry.is-neutral .collection-menu { grid-template-columns: 1fr; }
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-featured]) {
+    grid-template-columns: 38% minmax(0, 1fr);
+  }
+  .storefront .menu-entry.is-neutral .collection-choice .collection-copy { min-height: 0; }
 }
+
 .storefront .cone-builder {
   background: linear-gradient(158deg, #352118, #251710 65%, #2b1a11);
   border: 1px solid rgba(230,178,125,.36);
@@ -179,5 +207,3 @@
   .storefront .cone-flavor-card { transition: none !important; }
 }
 
-.storefront .cone-cross-sell { margin: 12px 0 3px; display: inline-flex; gap: 9px; align-items: center; justify-content: space-between; border: 1px solid rgba(220,161,100,.52); background: rgba(104,61,36,.16); color: #f8debd; border-radius: 11px; padding: 11px 14px; font-size: .91rem; }
-.storefront .cone-cross-sell svg { flex: none; }
