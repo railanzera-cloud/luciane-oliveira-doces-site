@@ -31,7 +31,7 @@ DECLARE
   v_new public.print_jobs%rowtype;
   v_confirmation text;
 BEGIN
-  IF p_job_id IS NULL OR p_action NOT IN ('paper_confirmed', 'retry_no_paper') THEN
+  IF p_job_id IS NULL OR p_action IS NULL OR p_action NOT IN ('paper_confirmed', 'retry_no_paper') THEN
     RAISE EXCEPTION USING errcode='22023', message='invalid_recovery_action';
   END IF;
   v_confirmation := CASE p_action
