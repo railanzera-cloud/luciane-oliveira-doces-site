@@ -1,7 +1,7 @@
 import { promotionalPopcornPriceCents } from "../supabase/functions/_shared/popcorn-promotion.mjs";
 
-export type CategoryId = "pipocas" | "fatias";
-export type ProductKind = "popcorn" | "slice" | "drink";
+export type CategoryId = "pipocas" | "fatias" | "cones";
+export type ProductKind = "popcorn" | "slice" | "cone" | "drink";
 
 export type Variant = {
   id: string;
@@ -59,6 +59,7 @@ export const STORE_CONFIG = {
   enabledCategories: {
     pipocas: true,
     fatias: true,
+    cones: true,
   } satisfies Record<CategoryId, boolean>,
   enabledExtras: {
     drinks: false,
@@ -99,6 +100,35 @@ export const SLICE_DRAFTS = [
 
 // Catálogo central: preços, fotos e disponibilidade são alterados somente aqui.
 export const PRODUCTS: Product[] = [
+  // Cones Trufados: sabores permanentes, disponibilidade individual no Supabase.
+  {
+    id: "cone-trufado-prestigio", kind: "cone", category: "Cones Trufados",
+    name: "Prestígio", available: true,
+    image: "/images/cone-trufado-prestigio-20261108.webp",
+    cardImage: "/images/cone-trufado-prestigio-card-20261108.webp",
+    imageAlt: "Cone trufado Prestígio revestido de coco, com recheio cremoso e sem bombom no topo",
+    variants: [{ id: "unidade", label: "1 cone", whatsappLabel: "1 cone", price: 14, available: true }],
+    options: [],
+  },
+  {
+    id: "cone-trufado-dois-amores", kind: "cone", category: "Cones Trufados",
+    name: "Dois Amores", available: true,
+    image: "/images/cone-trufado-dois-amores-20261108.webp",
+    cardImage: "/images/cone-trufado-dois-amores-card-20261108.webp",
+    imageAlt: "Cone trufado Dois Amores com cobertura de chocolate e dois cremes",
+    variants: [{ id: "unidade", label: "1 cone", whatsappLabel: "1 cone", price: 14, available: true }],
+    options: [],
+  },
+  {
+    id: "cone-trufado-ferrero-rocher", kind: "cone", category: "Cones Trufados",
+    name: "Ferrero Rocher", available: true,
+    image: "/images/cone-trufado-ferrero-rocher-20261108.webp",
+    cardImage: "/images/cone-trufado-ferrero-rocher-card-20261108.webp",
+    imageAlt: "Cone trufado Ferrero Rocher com pedaços crocantes e creme de chocolate",
+    variants: [{ id: "unidade", label: "1 cone", whatsappLabel: "1 cone", price: 16, available: true }],
+    options: [],
+  },
+
   {
     id: "pipoca-gourmet",
     kind: "popcorn",
@@ -305,6 +335,7 @@ export const PRODUCTS: Product[] = [
 
 export const POPCORN = PRODUCTS.find((product) => product.kind === "popcorn")!;
 export const SLICES = PRODUCTS.filter((product) => product.kind === "slice");
+export const CONES = PRODUCTS.filter((product) => product.kind === "cone");
 export const DRINKS = PRODUCTS.filter((product) => product.kind === "drink");
 
 export function popcornPrice(size: string, optionIds: readonly string[] = [], now = Date.now()): number {
