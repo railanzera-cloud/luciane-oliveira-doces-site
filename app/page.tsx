@@ -729,6 +729,7 @@ export default function Home() {
     && isItemAvailable(availability, CATEGORY_ITEM_KEYS.fatias);
   const conesAvailable = conesVisible
     && isItemAvailable(availability, CATEGORY_ITEM_KEYS.cones);
+  const conesCanBeAdded = conesAvailable && availability.ordersOpen && CONES.some(cone => cone.available && cone.variants[0].available && coneIsAvailable(cone.id));
 
   function categoryIsVisible(category: CategoryId) {
     return category === "pipocas" ? pipocasVisible : category === "cones" ? conesVisible : fatiasVisible;
@@ -3053,6 +3054,7 @@ export default function Home() {
                     <div className={`cart-add-options ${STORE_CONFIG.enabledExtras.drinks ? "" : "without-drinks"} ${cupCanBeAddedFromCheckout ? "has-crocantes-option" : ""}`}>
                       {fatiasAvailable && <Button type="button" variant="outline" onClick={() => startAnother("fatias")}><CakeSlice size={16} /> {addMoreButtonLabel("fatias", cart)}</Button>}
                       {pipocasAvailable && <Button type="button" variant="outline" onClick={() => startAnother("pipocas")}><Plus size={16} /> {addMoreButtonLabel("pipocas", cart)}</Button>}
+                      {conesCanBeAdded && <Button type="button" variant="outline" onClick={() => startAnother("cones")}><ShoppingBag size={16} /> {addMoreButtonLabel("cones", cart)}</Button>}
                       {cupCanBeAddedFromCheckout && <Button type="button" variant="outline" className="crocantes-cross-sell" onClick={startAnotherCrocantes}><ShoppingBag size={16} /> {cartContainsCrocantes ? "Adicionar outro pacote" : "Adicionar pacote Trufado"} <ChevronRight size={15} aria-hidden="true" /></Button>}
                       {STORE_CONFIG.enabledExtras.drinks && <Button type="button" variant="outline" onClick={() => scrollToSection("acompanhamentos")}><CupSoda size={16} /> Refrigerante</Button>}
                     </div>
@@ -3077,6 +3079,7 @@ export default function Home() {
                       <p>{addedNotice.description}</p>
                     </div>
                   </div>
+                  {conesCanBeAdded && <Button type="button" variant="outline" className="cone-cross-sell" onClick={() => startAnother("cones")}><ShoppingBag size={16} /> {cart.some(item => CONES.some(cone => cone.id === item.productId)) ? "Escolher outro cone" : "Conhecer os Cones Trufados"} <ChevronRight size={16} /></Button>}
                   {checkoutComplementItems.length > 0 && (
                     <div className="boutique-added-other">
                       <div className="boutique-added-other-intro">
