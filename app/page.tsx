@@ -2262,7 +2262,7 @@ export default function Home() {
                 {conesVisible && (
                   <CollectionChoice format="Novidade no cardápio" name="Cones Trufados"
                     photo="/images/cones-trufados-trio-20261108.webp" photoWidth={900}
-                    fallback="/images/cone-trufado-ferrero-rocher-20261108.webp"
+                    fallback="/images/cone-trufado-prestigio-20261108-v2.webp"
                     description="Prestígio, Dois Amores e Ferrero Rocher"
                     price={currency.format(Math.min(...CONES.map(cone => cone.variants[0].price)))}
                     action={!conesAvailable ? "Esgotado" : "Escolher meu cone"}
@@ -2312,7 +2312,7 @@ export default function Home() {
       </section>
 
       {activeCategory && (
-      <section className={showLimitedCupView ? "builder-section is-cup-discovery" : "builder-section"} id="configurador">
+      <section className={showLimitedCupView ? "builder-section is-cup-discovery" : "builder-section"} data-active-category={activeCategory ?? undefined} id="configurador">
         <div className="page-shell builder-shell">
           {activeCategory === "pipocas" && showLimitedCupView && (
             <section className="limited-cup-story" id="edicao-crocante" aria-label="Pipocas Trufadas em pacotes com zíper">
@@ -3101,17 +3101,17 @@ export default function Home() {
                       </div>
                       <div className="boutique-complement-grid" role="group" aria-label="Outros produtos disponíveis para adicionar">
                         {checkoutComplementItems.map((id) => {
-                          const heading = id === "cones" ? "Escolher outro cone"
+                          const heading = id === "cones" ? (addedNotice?.category === "cones" ? "Escolher outro cone" : "Adicionar cone trufado")
                             : id === "gourmet" ? addMoreButtonLabel("pipocas", cart)
                             : id === "fatias" ? addMoreButtonLabel("fatias", cart)
                               : id === "trufadas" ? cartContainsCrocantes ? "Outro pacote Trufado" : "Pipocas Trufadas"
                                 : "Refrigerante";
-                          const detail = id === "cones" ? "Adicionar mais um sabor"
+                          const detail = id === "cones" ? (addedNotice?.category === "cones" ? "Adicionar mais um sabor" : "Conhecer os três sabores")
                             : id === "gourmet" ? "Montar pote Gourmet"
                             : id === "fatias" ? "Escolher sua fatia"
                               : id === "trufadas" ? "Escolher sabor e tamanho"
                                 : "Ver acompanhamentos";
-                          const photo = id === "cones" ? "/images/cone-trufado-ferrero-rocher-card-20261108.webp"
+                          const photo = id === "cones" ? "/images/cones-trufados-trio-card-20261108.webp"
                             : id === "gourmet" ? "/images/categoria-pipocas-editorial-enquadrada-v107.webp"
                             : id === "fatias" ? "/images/categoria-fatias-editorial.webp"
                               : id === "trufadas" ? "/images/pipocas-trufadas-ninho-20261101.webp"
