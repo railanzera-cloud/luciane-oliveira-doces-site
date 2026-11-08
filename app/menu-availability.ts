@@ -199,6 +199,9 @@ export function createFallbackAvailability(): AvailabilitySnapshot {
     statuses[SLICE_ITEM_KEYS[slice.id]] = staticStatus(Boolean(slice.available && slice.variants[0]?.available));
   }
 
+  // Lançamento Abacaxi: nunca exibir via fallback offline, apenas se a linha remota
+  // existente tiver sido explicitamente liberada no painel administrativo.
+  statuses[SLICE_ITEM_KEYS["fatia-abacaxi-doce-leite"]] = "hidden";
   // Novo cadastro só pode ser exibido depois que a linha remota for confirmada.
   statuses[SLICE_ITEM_KEYS["fatia-bombom-uva"]] = "hidden";
   for (const draft of SLICE_DRAFTS) statuses[draft.itemKey] = "hidden";
