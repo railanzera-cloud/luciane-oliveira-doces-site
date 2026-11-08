@@ -5,7 +5,7 @@ import { quoteCartItems } from "../supabase/functions/_shared/commerce-catalog.m
 const c=readFileSync("app/catalog.ts","utf8"),m=readFileSync("app/menu-availability.ts","utf8");
 const s=readFileSync("supabase/functions/_shared/commerce-catalog.mjs","utf8");
 const migrate=readFileSync("supabase/migrations/20261024153000_fatia_coco_cremoso_morango.sql","utf8");
-const pname="Coco cremoso com geleia de morango na massa branca",pid="fatia-coco-cremoso-morango",key="slice_coco_cremoso_morango";
+const pname="Geleia de Morango com Coco Cremoso",pid="fatia-coco-cremoso-morango",key="slice_coco_cremoso_morango";
 test("Fatia nova usa identificador estável, nome completo e R$ 20 nos dois catálogos",()=>{
   const section=c.slice(c.indexOf('id: "'+pid+'"'),c.indexOf('id: "fatia-chocolate-cenoura"'));
   assert.match(section,/kind: "slice"/);
