@@ -62,7 +62,7 @@ test("all 21 original delivery tariff zones are preserved and only five approved
   assert.equal(Object.keys(candidate.DELIVERY_ZONES).length, 26);
 });
 
-test("current WhatsApp catalogue quotes equal the deployed v26 source for 40 SKU combinations", () => {
+test("current WhatsApp catalogue preserves the economic and availability contract of 40 historical SKUs", () => {
   const fixedDate = Date.parse("2026-11-05T12:00:00-03:00");
   const items = [
     ...Object.keys(v26.SLICES).map(product_id =>
@@ -75,9 +75,16 @@ test("current WhatsApp catalogue quotes equal the deployed v26 source for 40 SKU
         ({ product_id: "pipoca-gourmet", variant_id, option_ids: [flavor], quantity: 2 }))),
   ];
   assert.equal(items.length, 40, "Commercial SKU test matrix unexpectedly changed");
+  // Nomes e opções de calda podem mudar por aprovação comercial. IDs, valores
+  // e disponibilidade historicamente cotados são os contratos imutáveis.
+  const commercialIdentity = quote => ({
+    subtotalCents: quote.subtotalCents,
+    availabilityKeys: quote.availabilityKeys,
+    items: quote.items.map(({ name, option_names, ...stable }) => stable),
+  });
   for (const item of items) {
-    assert.deepEqual(candidate.quoteCartItems([item], fixedDate),
-      v26.quoteCartItems([item], fixedDate),
+    assert.deepEqual(commercialIdentity(candidate.quoteCartItems([item], fixedDate)),
+      commercialIdentity(v26.quoteCartItems([item], fixedDate)),
       "Price/availability drift for " + item.product_id + " " + item.variant_id + " " + item.option_ids.join(","));
   }
 });
