@@ -1,0 +1,180 @@
+/* Cones Trufados — coleção permanente e lançamento, 08/11/2026.
+   Camada isolada: não afeta as categorias, checkout ou cozinha existentes. */
+.storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-photo img {
+  object-fit: cover;
+  object-position: 50% 31%;
+}
+.storefront .menu-entry.is-neutral .collection-choice[data-featured] .collection-format {
+  color: #f5c78f;
+}
+.storefront .menu-entry.is-neutral .collection-choice[data-compact] {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 33%) minmax(0, 67%);
+  min-height: 138px;
+  background: linear-gradient(135deg, #342117, #21130f);
+}
+.storefront .menu-entry.is-neutral .collection-choice[data-compact] .collection-photo {
+  height: 100%;
+  min-height: 138px;
+  overflow: hidden;
+}
+.storefront .menu-entry.is-neutral .collection-choice[data-compact] .collection-photo[data-packs] > img:first-child {
+  width: 50%;
+  left: 0;
+  height: 100%;
+  object-fit: cover;
+}
+.storefront .menu-entry.is-neutral .collection-choice[data-compact] .collection-photo[data-packs] .collection-pack-secondary {
+  left: 50%;
+  width: 50%;
+  height: 100%;
+  object-fit: cover;
+}
+.storefront .menu-entry.is-neutral .collection-choice[data-compact] .collection-photo[data-packs]::after { content: none; }
+.storefront .menu-entry.is-neutral .collection-choice[data-compact] .collection-copy {
+  min-height: 0;
+  gap: 6px;
+  padding: 12px 16px;
+}
+.storefront .menu-entry.is-neutral .collection-choice[data-compact] .collection-copy strong {
+  font-size: clamp(1.23rem, 4.2vw, 1.6rem);
+}
+.storefront .menu-entry.is-neutral .collection-choice[data-compact] .collection-action {
+  width: max-content;
+  max-width: 100%;
+  min-height: 36px;
+  padding: 7px 14px;
+  margin-top: 3px;
+}
+.storefront .cone-builder {
+  background: linear-gradient(158deg, #352118, #251710 65%, #2b1a11);
+  border: 1px solid rgba(230,178,125,.36);
+  box-shadow: 0 16px 42px rgba(6,3,2,.2);
+}
+.storefront .cone-flavor-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: clamp(7px,1.5vw,14px);
+  align-items: stretch;
+}
+.storefront .cone-flavor-card {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid #a27557;
+  border-radius: 17px;
+  overflow: hidden;
+  background: #362319;
+  color: #fff0df;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(7,3,1,.16);
+  transition: border-color .16s ease, transform .16s ease;
+}
+.storefront .cone-flavor-card.is-selected {
+  border-color: #f9c88d;
+  box-shadow: 0 0 0 2px rgba(249,200,141,.64), 0 9px 25px rgba(9,4,1,.3);
+}
+.storefront .cone-flavor-card.is-unavailable {
+  opacity: .56;
+  cursor: not-allowed;
+}
+.storefront .cone-flavor-card:focus-within { outline: 3px solid #f8d0a0; outline-offset: 2px; }
+.storefront .cone-flavor-card [role="radio"] {
+  position: absolute;
+  z-index: 4;
+  top: 12px;
+  right: 12px;
+}
+.storefront .cone-flavor-photo {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  display: block;
+  overflow: hidden;
+  background: #a88567;
+}
+.storefront .cone-flavor-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+}
+.storefront .cone-flavor-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 7px;
+  padding: 11px 10px 14px;
+}
+.storefront .cone-flavor-copy strong {
+  font: 500 clamp(.91rem,2.7vw,1.25rem)/1.12 Georgia,serif;
+  text-wrap: balance;
+}
+.storefront .cone-flavor-copy b {
+  margin-top: auto;
+  color: #f6c48b;
+  font: 700 clamp(.83rem,2.6vw,1.05rem)/1.25 system-ui,sans-serif;
+}
+.storefront .cone-flavor-check {
+  display: grid;
+  position: absolute;
+  z-index: 3;
+  top: 9px;
+  left: 9px;
+  place-items: center;
+  height: 28px;
+  width: 28px;
+  border-radius: 50%;
+  color: #25170f;
+  background: #f9cc90;
+}
+.storefront .cone-flavor-status {
+  position: absolute;
+  top: 37%;
+  left: 5%;
+  right: 5%;
+  border-radius: 6px;
+  padding: 6px 3px;
+  font: 700 .73rem/1.2 system-ui,sans-serif;
+  text-align: center;
+  background: rgba(38,22,16,.9);
+}
+.storefront .cone-current-choice {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid rgba(222,170,117,.33);
+  border-radius: 14px;
+  padding: 9px 12px;
+  margin-bottom: 15px;
+  color: #fff0df;
+  background: #321f16;
+}
+.storefront .cone-current-choice img {
+  display: block;
+  height: 64px;
+  width: 64px;
+  object-fit: cover;
+  border-radius: 9px;
+}
+.storefront .cone-current-choice span { display: grid; flex: 1; gap: 4px; }
+.storefront .cone-current-choice small { color: #d0b29c; }
+.storefront .cone-current-choice strong { font: 500 1.03rem Georgia,serif; }
+.storefront .cone-current-choice b { color: #f5c48a; white-space: nowrap; }
+@media (max-width: 360px) {
+  .storefront .cone-flavor-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .storefront .cone-flavor-card:last-child { grid-column: span 2; }
+  .storefront .cone-flavor-card:last-child .cone-flavor-photo { aspect-ratio: 16 / 8; }
+}
+@media (min-width: 760px) {
+  .storefront .menu-entry.is-neutral .collection-choice[data-compact] { grid-template-columns: 32% 68%; min-height: 160px; }
+  .storefront .menu-entry.is-neutral .collection-choice[data-compact] .collection-photo { min-height: 160px; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .storefront .cone-flavor-card:hover:not(.is-unavailable) { border-color: #f5c184; transform: translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront .cone-flavor-card { transition: none !important; }
+}
