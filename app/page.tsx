@@ -40,6 +40,7 @@ import {
   DELIVERY_ZONES,
   DELIVERY_TIME_ESTIMATE,
   DRINKS,
+  CONES,
   POPCORN,
   popcornPrice,
   PRODUCTS,
@@ -55,6 +56,7 @@ import {
 } from "@/app/catalog";
 import {
   CATEGORY_ITEM_KEYS,
+  CONE_ITEM_KEYS,
   TRUFADA_STOCK_ITEM_KEYS,
   trufadaStockItemKey,
   POPCORN_FLAVOR_ITEM_KEYS,
@@ -110,6 +112,8 @@ type CartItem = {
 
 /** Rótulos de recompra devem refletir o carrinho, sem tratar Crocantes como potes Gourmet. */
 function addMoreButtonLabel(category: CategoryId, cart: CartItem[]): string {
+  if (category === "cones") return cart.some(item => CONES.some(cone => cone.id === item.productId))
+    ? "Outro cone" : "Adicionar cone";
   if (category === "pipocas") {
     return cart.some((item) => item.productId === POPCORN.id)
       ? "Outro pote recheado" : "Adicionar pote recheado";
@@ -200,6 +204,7 @@ function isCategoryEnabled(category: CategoryId) {
 function isProductEnabled(product: Product) {
   if (product.kind === "popcorn") return isCategoryEnabled("pipocas");
   if (product.kind === "slice") return isCategoryEnabled("fatias");
+  if (product.kind === "cone") return isCategoryEnabled("cones");
   return STORE_CONFIG.enabledExtras.drinks;
 }
 
@@ -327,6 +332,7 @@ function productLabel(product: Product) {
   if (isTrufadaOrLegacy(product.id)) {
     return `Pipocas Trufadas — ${product.name}`;
   }
+  if (product.kind === "cone") return `Cone Trufado — ${product.name}`;
   return product.subtitle
     ? `${product.name} (${product.subtitle.toLowerCase()})`
     : product.name;
@@ -367,7 +373,7 @@ function cartAvailabilityIssues(
       return [{ cartItemId: item.id, itemLabel: "Item do pedido", reasons: ["O item não existe mais no catálogo."] }];
     }
 
-    const category = product.kind === "popcorn" ? "pipocas" : product.kind === "slice" ? "fatias" : null;
+    const category = product.kind === "popcorn" ? "pipocas" : product.kind === "slice" ? "fatias" : product.kind === "cone" ? "cones" : null;
     const reasons: string[] = [];
 
     if (variant.retired) {
@@ -409,6 +415,13 @@ function cartAvailabilityIssues(
             : `O sabor ${option?.name ?? optionId} está indisponível.`);
         }
       }
+    }
+
+    if (product.kind === "cone") {
+      const coneKey = CONE_ITEM_KEYS[product.id];
+      if (item.optionIds.length !== 0 || variant.id !== "unidade") reasons.push("Este cone não admite personalização ou outro tamanho.");
+      if (!coneKey || !isItemAvailable(snapshot, coneKey)) reasons.push(unavailableReason(snapshot, coneKey ?? "", productLabel(product)));
+      if (snapshot.source !== "supabase") reasons.push("Não foi possível confirmar a disponibilidade dos cones.");
     }
 
     if (product.kind === "slice") {
@@ -560,6 +573,8 @@ export default function Home() {
   const [sliceProductId, setSliceProductId] = useState("");
   const [sliceOptionId, setSliceOptionId] = useState("");
   const [sliceQuantity, setSliceQuantity] = useState(1);
+  const [coneProductId, setConeProductId] = useState("");
+  const [coneQuantity, setConeQuantity] = useState(1);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectionMessage, setSelectionMessage] = useState("");
@@ -706,17 +721,21 @@ export default function Home() {
     && isItemVisible(availability, CATEGORY_ITEM_KEYS.pipocas);
   const fatiasVisible = STORE_CONFIG.enabledCategories.fatias
     && isItemVisible(availability, CATEGORY_ITEM_KEYS.fatias);
+  const conesVisible = STORE_CONFIG.enabledCategories.cones
+    && isItemVisible(availability, CATEGORY_ITEM_KEYS.cones);
   const pipocasAvailable = pipocasVisible
     && isItemAvailable(availability, CATEGORY_ITEM_KEYS.pipocas);
   const fatiasAvailable = fatiasVisible
     && isItemAvailable(availability, CATEGORY_ITEM_KEYS.fatias);
+  const conesAvailable = conesVisible
+    && isItemAvailable(availability, CATEGORY_ITEM_KEYS.cones);
 
   function categoryIsVisible(category: CategoryId) {
-    return category === "pipocas" ? pipocasVisible : fatiasVisible;
+    return category === "pipocas" ? pipocasVisible : category === "cones" ? conesVisible : fatiasVisible;
   }
 
   function categoryIsAvailable(category: CategoryId | null) {
-    return category === "pipocas" ? pipocasAvailable : category === "fatias" && fatiasAvailable;
+    return category === "pipocas" ? pipocasAvailable : category === "cones" ? conesAvailable : category === "fatias" && fatiasAvailable;
   }
 
   function popcornSizeIsVisible(variantId: string) {
@@ -737,6 +756,15 @@ export default function Home() {
   function popcornFlavorIsAvailable(optionId: string) {
     const itemKey = POPCORN_FLAVOR_ITEM_KEYS[optionId];
     return Boolean(itemKey && isItemAvailable(availability, itemKey));
+  }
+
+  function coneIsVisible(productId: string) {
+    const key = CONE_ITEM_KEYS[productId];
+    return Boolean(key && isItemVisible(availability, key));
+  }
+  function coneIsAvailable(productId: string) {
+    const key = CONE_ITEM_KEYS[productId];
+    return Boolean(key && availability.source === "supabase" && isItemAvailable(availability, key));
   }
 
   function sliceIsVisible(productId: string) {
@@ -950,6 +978,9 @@ export default function Home() {
     && popcornRegularCombinationPrice !== null && popcornCurrentCombinationPrice !== null
     ? Math.max(0, popcornRegularCombinationPrice - popcornCurrentCombinationPrice)
     : 0;
+  const selectedCone = CONES.find((product) => product.id === coneProductId);
+  const selectedConeVariant = selectedCone?.variants[0];
+  const coneReady = Boolean(availability.ordersOpen && conesAvailable && selectedCone?.available && selectedConeVariant?.available && selectedCone && coneIsAvailable(selectedCone.id));
   const selectedSlice = SLICES.find((product) => product.id === sliceProductId);
   const selectedSliceVariant = selectedSlice?.variants[0];
   const selectedDeliveryLocality = deliveryLocalityById(deliveryLocalityId);
@@ -1106,10 +1137,11 @@ export default function Home() {
     && sliceIsAvailable(selectedSlice.id)
     && SLICE_OPTIONS.some(option => option.id === sliceOptionId),
   );
-  const draftReady = activeCategory === "pipocas" ? popcornReady : activeCategory === "fatias" && sliceReady;
+  const draftReady = activeCategory === "pipocas" ? popcornReady : activeCategory === "cones" ? coneReady : activeCategory === "fatias" && sliceReady;
   const popcornUnitPrice = popcornVariant && !popcornVariant.retired ? itemUnitPrice(POPCORN, popcornVariant, popcornOptionIds, promotionTime) : null;
   const draftSubtotal = activeCategory === "pipocas"
     ? popcornUnitPrice === null ? null : popcornUnitPrice * popcornQuantity
+    : activeCategory === "cones" ? selectedConeVariant ? selectedConeVariant.price * coneQuantity : null
     : selectedSliceVariant ? selectedSliceVariant.price * sliceQuantity : null;
   const addressReady = fulfillment !== "entrega"
     || Boolean(deliveryLocalityCanQuote(selectedDeliveryLocality) && selectedDeliveryZone && !deliveryZoneError
@@ -1420,6 +1452,8 @@ export default function Home() {
     setSliceProductId("");
     setSliceOptionId("");
     setSliceQuantity(1);
+    setConeProductId("");
+    setConeQuantity(1);
     setEditingId(null);
     setSelectionMessage("");
     setBuilderEngaged(false);
