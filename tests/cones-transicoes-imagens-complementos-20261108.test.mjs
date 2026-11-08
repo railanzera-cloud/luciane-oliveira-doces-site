@@ -36,7 +36,11 @@ test("Prévia da fatia usa imagem do cartão, sem exibir print integral, e mant�
   assert.ok(css.includes('object-fit: cover'));
   assert.ok(css.includes('grid-area: image'));
   assert.ok(css.includes('grid-area: price'));
-  assert.ok(css.includes('height: 150px'));
+  const imageRule = css.match(/\.boutique-slice-preview > img \{([^}]+)\}/)?.[1] ?? "";
+  assert.match(imageRule, /height: 100%;/);
+  assert.match(imageRule, /min-height: 0;/);
+  assert.doesNotMatch(css, /height: (?:150|132)px;/);
+  assert.ok(css.includes("@media (max-width: 359px)"));
   assert.ok(css.includes('background: #f2ece4'));
 });
 
