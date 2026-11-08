@@ -14,6 +14,8 @@ test("stalled recovery exige ação explícita, confirmação física e mais de 
   assert.match(sql, /'CONFIRMO_QUE_O_PAPEL_SAIU'/);
   assert.match(sql, /'CONFIRMO_QUE_O_PAPEL_NAO_SAIU'/);
   assert.match(sql, /p_acknowledgement IS DISTINCT FROM v_confirmation/);
+  assert.match(sql, /public\.crm_staff_access s WHERE s\.user_id = v_actor/);
+  assert.match(sql, /staff_access_required/);
   assert.match(sql, /SELECT \* INTO v_job FROM public\.print_jobs WHERE id=p_job_id FOR UPDATE;/);
   assert.match(sql, /v_job\.status <> 'printing'/);
   assert.match(sql, /claimed_at > now\(\) - INTERVAL '5 minutes'/);
