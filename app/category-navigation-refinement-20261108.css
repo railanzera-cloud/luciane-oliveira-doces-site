@@ -1,0 +1,143 @@
+/*
+ * Refinamento de navegação comercial — 08/11/2026.
+ * Uma única navegação secundária, sem concorrer com tamanho/sabor/fatia.
+ * Sem alterar catálogo, preços, fotografias, estados ou checkout.
+ */
+
+.storefront #configurador:not(.is-cup-discovery) .builder-utility-nav {
+  grid-column: 1 / -1;
+  display: flex;
+  position: relative;
+  z-index: 20;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin: 0 0 4px;
+}
+.storefront #configurador .builder-nav-back,
+.storefront #configurador .builder-more-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  font: 650 .77rem/1.25 system-ui, sans-serif;
+  color: #dfc3a4;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.storefront #configurador .builder-nav-back {
+  justify-content: flex-start;
+  min-width: 0;
+  padding: 7px 4px;
+  color: #efd0a9;
+}
+.storefront #configurador .builder-more-toggle {
+  padding: 7px 8px;
+  color: #cdb094;
+  white-space: nowrap;
+}
+.storefront #configurador .builder-more-toggle > svg {
+  transition: transform 170ms ease;
+}
+.storefront #configurador .builder-more-toggle[aria-expanded="true"] > svg {
+  transform: rotate(180deg);
+}
+.storefront #configurador .builder-nav-back:focus-visible,
+.storefront #configurador .builder-more-toggle:focus-visible,
+.storefront #configurador .builder-more-option:focus-visible {
+  outline: 2px solid #ffd9a4;
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .storefront #configurador .builder-nav-back:hover,
+  .storefront #configurador .builder-more-toggle:hover {
+    background: rgba(189, 122, 67, .1);
+    color: #ffe0ba;
+  }
+}
+.storefront #configurador .builder-nav-more {
+  position: relative;
+  flex: 0 0 auto;
+}
+.storefront #configurador .builder-more-options {
+  position: absolute;
+  z-index: 40;
+  right: 0;
+  top: calc(100% + 5px);
+  width: min(286px, calc(100vw - 40px));
+  padding: 6px;
+  border: 1px solid rgba(221, 168, 107, .42);
+  border-radius: 14px;
+  background: #2b1b13;
+  box-shadow: 0 14px 35px rgba(8, 3, 1, .38), inset 0 1px rgba(255, 221, 172, .06);
+}
+.storefront #configurador .builder-more-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #f4d9ba;
+  font: 550 .83rem/1.32 system-ui, sans-serif;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.storefront #configurador .builder-more-option + .builder-more-option {
+  border-top: 1px solid rgba(236, 180, 112, .10);
+}
+.storefront #configurador .builder-more-option > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.storefront #configurador .builder-more-option > svg {
+  flex: 0 0 auto;
+  color: #dbad7d;
+}
+.storefront #configurador .builder-more-option:disabled {
+  opacity: .48;
+  cursor: not-allowed;
+}
+.storefront #configurador .builder-more-option:not(:disabled):hover,
+.storefront #configurador .builder-more-option:not(:disabled):active {
+  background: rgba(188, 123, 71, .16);
+}
+@media (max-width: 699px) {
+  .storefront #configurador:not(.is-cup-discovery) .builder-utility-nav {
+    margin: -3px 0 4px;
+  }
+  .storefront #configurador:not(.is-cup-discovery) .section-intro {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+  }
+  .storefront #configurador:not(.is-cup-discovery) .section-intro > p:not(.eyebrow) {
+    margin-top: 4px;
+    line-height: 1.38;
+  }
+}
+@media (max-width: 359px) {
+  .storefront #configurador .builder-nav-back,
+  .storefront #configurador .builder-more-toggle {
+    font-size: .72rem;
+    gap: 4px;
+  }
+  .storefront #configurador .builder-more-toggle {
+    padding-inline: 5px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront #configurador .builder-more-toggle > svg {
+    transition: none !important;
+  }
+}

@@ -1102,6 +1102,7 @@ test('direct category navigation isolates the cup campaign, rejects unavailable 
   for(const allowed of [false,true]) {
    const select=pageFunction('selectCategory',{
     categoryIsAvailable:()=>allowed,setRequestedCategory:value=>selected=value,setShowLimitedCupView:value=>isCupPreview=value,
+    setOtherCategoriesOpen:()=>{},
     trufadasFromUrl:navigation.trufadasFromUrl,categoryFromUrl:navigation.categoryFromUrl,
     setEditingId:()=>{},setSelectionMessage:()=>{},setAddedNotice:()=>{},setBuilderEngaged:()=>{},
     setCart:()=>assert.fail('Category navigation must not change saved cart items'),
@@ -1112,22 +1113,22 @@ test('direct category navigation isolates the cup campaign, rejects unavailable 
    select('fatias');
    assert.equal(selected,allowed?'fatias':'pipocas');
    assert.equal(isCupPreview,!allowed);
-   assert.equal(scheduled,allowed?'configurador':null);
+   assert.equal(scheduled,allowed?'category-entry-fatias':null);
    if(allowed) {
      isCupPreview=true;scheduled=null;
      select('pipocas');
      assert.equal(isCupPreview,false);
-     assert.equal(scheduled,'tamanhos','Pipocas tradicionais must start at size');
+     assert.equal(scheduled,'category-entry-pipocas','Pipocas tradicionais must start at the size controls');
    }
   }
-  assert.match(source,/visibleCategories\.filter\(\(category\) => category.id !== activeCategory\)/);
+  assert.match(source,/visibleCategories\.filter\(category => category.id !== activeCategory\)/);
   assert.match(source,/disabled=\{!categoryIsAvailable\(category.id\)\} onClick=\{\(\) => selectCategory\(category.id\)\}/);
 });
 
 test('limited campaign opens in discovery, without altering saved cart', () => {
   let category=null,preview=false,engaged=true,scroll=null;
   const open=pageFunction('openLimitedCupEdition',{
-    categoryIsAvailable:()=>true,setShowLimitedCupView:value=>preview=value,setCupFlavorPreview:()=>{},setCupSizeId:()=>{},setCupAddedNotice:()=>{},
+    categoryIsAvailable:()=>true,setShowLimitedCupView:value=>preview=value,setOtherCategoriesOpen:()=>{},setCupFlavorPreview:()=>{},setCupSizeId:()=>{},setCupAddedNotice:()=>{},
     trufadasFromUrl:navigation.trufadasFromUrl,categoryFromUrl:navigation.categoryFromUrl,
     setRequestedCategory:value=>category=value,setEditingId:()=>{},setSelectionMessage:()=>{},setAddedNotice:()=>{},
     setBuilderEngaged:value=>engaged=value,setCart:()=>assert.fail('Preview must preserve cart'),
@@ -1143,7 +1144,7 @@ test('limited campaign opens in discovery, without altering saved cart', () => {
 test('return to categories preserves the order while restoring the launch teaser', () => {
   let category='pipocas',preview=true,engaged=true,scrollArgs=null,historyUrl='';
   const returnHome=pageFunction('returnToCategories',{
-    setShowLimitedCupView:value=>preview=value,setCupFlavorPreview:()=>{},setCupSizeId:()=>{},
+    setShowLimitedCupView:value=>preview=value,setOtherCategoriesOpen:()=>{},setCupFlavorPreview:()=>{},setCupSizeId:()=>{},
     setRequestedCategory:value=>category=value,setEditingId:()=>{},setSelectionMessage:()=>{},setAddedNotice:()=>{},
     setBuilderEngaged:value=>engaged=value,setCart:()=>assert.fail('Return must preserve cart'),
     window:{history:{state:{},pushState:(_state,_title,url)=>{historyUrl=url;}},location:{href:'https://example.test/?categoria=pipocas&utm_source=ig'},scrollTo:value=>{scrollArgs=value;}},
