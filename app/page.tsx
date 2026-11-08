@@ -1059,7 +1059,7 @@ export default function Home() {
         && SLICES.some((slice) => sliceIsVisible(slice.id) && slice.available
           && Boolean(slice.variants[0]?.available) && sliceIsAvailable(slice.id)),
       trufadas: cupCanBeAddedFromCheckout,
-      cones: addedNotice?.category === "cones" && conesCanBeAdded,
+      cones: conesCanBeAdded, // fonte real de disponibilidade, independente da categoria inicial
       bebidas: STORE_CONFIG.enabledExtras.drinks && availability.ordersOpen,
     },
   );
@@ -2224,7 +2224,7 @@ export default function Home() {
         </section>
       )}
 
-      <section className={`menu-entry ${activeCategory ? "has-category" : "is-neutral"}`} id="inicio" aria-busy={!hasResolvedAvailability}>
+      <section className={`menu-entry ${activeCategory ? "has-category" : "is-neutral"}`} data-active-category={activeCategory ?? undefined} id="inicio" aria-busy={!hasResolvedAvailability}>
         <div className="page-shell">
           {!availability.ordersOpen && (
             <div className="store-status-banner" role="status">
@@ -2261,8 +2261,8 @@ export default function Home() {
               <div className="collection-menu" role="group" aria-label="Escolha uma categoria">
                 {conesVisible && (
                   <CollectionChoice format="Novidade no cardápio" name="Cones Trufados"
-                    photo="/images/cone-trufado-ferrero-rocher-20261108.webp" photoWidth={900}
-                    fallback="/images/cone-trufado-prestigio-20261108.webp"
+                    photo="/images/cones-trufados-trio-20261108.webp" photoWidth={900}
+                    fallback="/images/cone-trufado-ferrero-rocher-20261108.webp"
                     description="Prestígio, Dois Amores e Ferrero Rocher"
                     price={currency.format(Math.min(...CONES.map(cone => cone.variants[0].price)))}
                     action={!conesAvailable ? "Esgotado" : "Escolher meu cone"}
@@ -2866,7 +2866,7 @@ export default function Home() {
                 <div className="step-heading compact-heading"><StepMarker number={2} state={sliceSauceStepState} /><div><h3 id="step-slice-sauce">Escolha sua calda</h3><p>Escolha uma opção. Sem custo adicional.</p></div></div>
                 <div className="boutique-slice-preview" aria-label="Fatia escolhida">
                   {selectedSlice.image && (
-                    <img src={selectedSlice.cardImage ?? selectedSlice.image} alt="" width="72" height="72" loading="lazy" decoding="async" />
+                    <img src={selectedSlice.image} alt="" width="140" height="140" loading="lazy" decoding="async" />
                   )}
                   <span className="boutique-slice-preview-info">
                     <small>Sua escolha</small>
