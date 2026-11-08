@@ -31,7 +31,7 @@ test("informações e regras operacionais continuam acessíveis",()=>{
   assert.ok(page.includes('className="delivery-time-main">{DELIVERY_TIME_ESTIMATE}</span>'));
   assert.ok(page.includes('className="delivery-time-detail">O prazo começa após a confirmação da loja.</span>'));
   assert.ok(page.includes("Entrega a partir de R$8 ou retirada em Paragominas"));
-  assert.ok(page.includes("visibleCategories.map((category)"));
+  assert.ok(page.includes('visibleCategories.filter(category => category.id !== "cones").map((category)'));
   assert.ok(page.includes("categoryIsAvailable(category.id)"));
   assert.ok(page.includes("cover?.cardImage ?? cover?.image"));
   assert.ok(page.includes("Esgotado"));
