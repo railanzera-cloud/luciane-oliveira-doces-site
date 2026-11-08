@@ -1731,6 +1731,40 @@ export default function Home() {
     requestScroll(destination);
   }
 
+  function addOrUpdateCone() {
+    if (!conesVisible || !availability.ordersOpen || !conesAvailable) {
+      setSelectionMessage(availability.ordersOpen ? "Cones Trufados indisponíveis no momento." : STORE_CONFIG.closedMessage);
+      return;
+    }
+    if (!selectedCone || !selectedConeVariant || !coneReady) {
+      setSelectionMessage("Escolha um sabor disponível para continuar.");
+      requestScroll("cones-sabores");
+      return;
+    }
+    const nextItem: Omit<CartItem, "id"> = {
+      productId: selectedCone.id,
+      variantId: "unidade",
+      optionIds: [],
+      quantity: coneQuantity,
+    };
+    const wasEditing = Boolean(editingId);
+    setCheckoutAvailabilityMessage("");
+    if (wasEditing) {
+      setCart(current => current.map(item => item.id === editingId ? { ...item, ...nextItem } : item));
+    } else {
+      setCart(current => [...current, { id: makeCartId(), ...nextItem }]);
+      trackMetaEvent("AddToCart", metaProductPayload(selectedCone, selectedConeVariant, coneQuantity));
+      setAddedNotice({
+        category: "cones",
+        productId: selectedCone.id,
+        description: `${coneQuantity}x Cone Trufado — ${selectedCone.name}`,
+      });
+    }
+    clearDraft();
+    setBuilderEngaged(false);
+    requestScroll(wasEditing ? "carrinho" : "recebimento");
+  }
+
   function addDrink(product: Product) {
     if (!availability.ordersOpen || !isProductEnabled(product) || !product.available || !product.variants[0].available) return;
     setCart((current) => {
@@ -1754,7 +1788,7 @@ export default function Home() {
     const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
     if (isTrufadaOrLegacy(product.id)) return; // Quantidade é alterável no carrinho.
     if (product.kind === "drink" || !isProductEnabled(product)) return;
-    const itemCategory = product.kind === "popcorn" ? "pipocas" : "fatias";
+    const itemCategory: CategoryId = product.kind === "popcorn" ? "pipocas" : product.kind === "cone" ? "cones" : "fatias";
     if (!categoryIsAvailable(itemCategory)) {
       setCheckoutAvailabilityMessage(`${product.category} estão indisponíveis. Remova este item ou escolha outra categoria.`);
       scrollToSection("carrinho");
@@ -1766,7 +1800,11 @@ export default function Home() {
     setBuilderEngaged(true);
     setSelectionMessage("");
     setAddedNotice(null);
-    if (product.kind === "popcorn") {
+    if (product.kind === "cone") {
+      setRequestedCategory("cones");
+      setConeProductId(product.id);
+      setConeQuantity(item.quantity);
+    } else if (product.kind === "popcorn") {
       setRequestedCategory("pipocas");
       setPopcornVariantId(product.variants.find((variant) => variant.id === item.variantId)?.retired ? "" : item.variantId);
       setPopcornOptionIds([...item.optionIds]);
@@ -1818,9 +1856,9 @@ export default function Home() {
 
 
   async function finishOnSite(card?: MercadoPagoCardData) {
-    if (cart.some((item) => isTrufadaOrLegacy(item.productId))) {
+    if (cart.some((item) => isTrufadaOrLegacy(item.productId) || CONES.some(cone => cone.id === item.productId))) {
       setCheckoutChannel("whatsapp");
-      setCheckoutAvailabilityMessage("Pedidos com pacotes Trufados são concluídos pelo WhatsApp.");
+      setCheckoutAvailabilityMessage("Pedidos com Trufados são concluídos pelo WhatsApp.");
       return;
     }
     if (finalizationLockRef.current || !COMMERCE_CONFIG.siteOrderingEnabled || !isSitePayment(payment)) return;
@@ -2032,6 +2070,7 @@ export default function Home() {
       else if (!popcornReady) requestScroll("gourmet-flavor-action");
       else addOrUpdatePopcorn();
     } else if (activeCategory === "fatias") addOrUpdateSlice();
+    else if (activeCategory === "cones") addOrUpdateCone();
   }
 
   function handleCupPurchaseAction() {
