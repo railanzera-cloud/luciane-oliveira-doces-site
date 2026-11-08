@@ -53,6 +53,7 @@ export const SLICES = Object.freeze({
   "fatia-coco-cremoso-morango": Object.freeze({ id: "fatia-coco-cremoso-morango", itemKey: "slice_coco_cremoso_morango", name: "Geleia de Morango com Coco Cremoso", priceCents: 2000 }),
   "fatia-chocolate-cenoura": Object.freeze({ id: "fatia-chocolate-cenoura", itemKey: "slice_chocolate_cenoura", name: "Chocolate com Cenoura", priceCents: 2000 }),
   "fatia-bombom-uva": Object.freeze({ id: "fatia-bombom-uva", itemKey: "slice_bombom_uva", name: "Bombom de Uva", priceCents: 2000 }),
+  "fatia-abacaxi-doce-leite": Object.freeze({ id: "fatia-abacaxi-doce-leite", itemKey: "slice_abacaxi_doce_leite", name: "Abacaxi com Brigadeiro Branco", priceCents: 2000 }),
 });
 
 export const DELIVERY_ZONES = Object.freeze({

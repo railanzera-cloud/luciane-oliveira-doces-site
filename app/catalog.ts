@@ -91,12 +91,9 @@ export function sliceSauceOptions(productId: string): ProductOption[] {
     : SLICE_OPTIONS;
 }
 
-// Cadastro reservado para o lançamento de amanhã. Sem preço confirmado e sem foto,
-// não pertence ao catálogo vendável e nunca deve ser enviado ao checkout.
-export const SLICE_DRAFTS = [
-  { id: "fatia-abacaxi-doce-leite", itemKey: "slice_abacaxi_doce_leite",
-    name: "Abacaxi com Doce de Leite", price: null, image: null },
-] as const;
+// Nenhuma fatia permanece como rascunho. O cadastro Abacaxi com Brigadeiro Branco
+// conserva o ID técnico histórico; a liberação depende do status remoto (inicial Oculto).
+export const SLICE_DRAFTS: ReadonlyArray<{ id: string; itemKey: string; name: string; price: number | null; image: string | null }> = [];
 
 // Catálogo central: preços, fotos e disponibilidade são alterados somente aqui.
 export const PRODUCTS: Product[] = [
@@ -291,6 +288,19 @@ export const PRODUCTS: Product[] = [
     image: "/fatia-bombom-uva.avif",
     cardImage: "/fatia-bombom-uva.avif",
     imageAlt: "Fatia artesanal de bolo de chocolate com creme e uvas verdes",
+    available: true,
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
+    options: SLICE_OPTIONS,
+  },
+  {
+    // ID técnico mantido para respeitar o cadastro remoto existente, ainda Oculto.
+    id: "fatia-abacaxi-doce-leite",
+    kind: "slice",
+    category: "Fatias Artesanais",
+    name: "Abacaxi com Brigadeiro Branco",
+    image: "/fatia-abacaxi-brigadeiro-branco-20261108.jpeg",
+    cardImage: "/fatia-abacaxi-brigadeiro-branco-card-20261108.webp",
+    imageAlt: "Fatia artesanal de massa clara com pedaços de abacaxi e brigadeiro branco",
     available: true,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
     options: SLICE_OPTIONS,

@@ -43,15 +43,17 @@ test("uses the real optimized Prestígio photo while keeping it selectable", () 
   assert.match(page, /disabled=\{!available\}/);
 });
 
-test("keeps every catalog card image present in source and production output", async () => {
-  // Os três cards de Cones são fornecidos no ZIP de Cloudflare aprovado,
-  // ainda pendente a sincronização binária dos novos assets no GitHub.
-  const cardImages = [...catalog.matchAll(/cardImage: "([^"]+)"/g)].map((match) => match[1])
+test("preserva assets do catálogo na origem e assinala o novo card exclusivo do ZIP manual", async () => {
+  // Os três cards de Cones e este novo card de Abacaxi são fornecidos no ZIP
+  // de Cloudflare aprovado; a sincronização binária com o GitHub é pendência
+  // explícita e não deve autorizar outros arquivos ausentes.
+  const packagedOnlyCard = "/fatia-abacaxi-brigadeiro-branco-card-20261108.webp";
+  const cardImages = [...catalog.matchAll(/cardImage: "([^"]+)"/g)].map(match => match[1])
     .filter(path => !path.startsWith("/images/cone-trufado-"));
-
-  assert.ok(cardImages.length > 0);
+  assert.ok(cardImages.includes(packagedOnlyCard));
+  assert.match(catalog, /image: "\/fatia-abacaxi-brigadeiro-branco-20261108\.jpeg"/);
   assert.match(catalog,/id: "cone-trufado-prestigio"/);
-  for (const cardImage of cardImages) {
+  for (const cardImage of cardImages.filter(path => path !== packagedOnlyCard)) {
     await access(new URL(`../public${cardImage}`, import.meta.url));
     await access(new URL(`../dist/client${cardImage}`, import.meta.url));
   }

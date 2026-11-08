@@ -710,3 +710,12 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 **Não alterados:** imagem de Fatias corrigida, catálogo, calda de Ninho, preços, estoque, promoções, carrinho, pagamentos, WhatsApp, cozinha/QZ, Supabase, Edge, CRM, Meta, seção de edição das Pipocas Trufadas e regras de entrega.
 
 **Homologação:** testes no SHA da branch e inspeção Safari/Instagram físico devem ser confirmados, assim como ZIP conectado com os 17 assets aprovados de entregas anteriores. **Não** confundir PR, CI ou ZIP de inspeção sem Supabase com publicação. Não fazer merge em `main` nem alterar banco por este ajuste.
+
+## 49. Abacaxi com Brigadeiro Branco — foto e preço prontos, lançamento desligado — 08/11/2026
+
+- **Solicitação aprovada:** atualizar **somente** o sabor Abacaxi já reservado para lançamento. Nome comercial `Abacaxi com Brigadeiro Branco`, preço `R$ 20,00`, foto fornecida pela loja e versão recortada para o card. Nenhuma alteração nas demais fatias.
+- **Identificador histórico preservado:** `fatia-abacaxi-doce-leite` / `slice_abacaxi_doce_leite`; o texto antigo **não** deve ser exibido. A linha existente no Supabase comercial é reutilizada, com status **hidden**. Evitar exclusão/recriação de chave, seed ou alteração de outras disponibilidades.
+- **Promoção de rascunho:** remover apenas este produto de `SLICE_DRAFTS` e incluí-lo em `PRODUCTS`, com preço R$20 e caldas já aprovadas. No painel, exibir em Fatias com os controles existentes `Disponível`, `Esgotado`, `Oculto`. Fallback offline deve permanecer oculto; o lançamento depende da liberação explícita pelo painel após a publicação.
+- **Contrato de pedidos:** espelhar apenas este sabor no catálogo de cotação `supabase/functions/_shared/commerce-catalog.mjs`; quando for habilitado, a validação remota de disponibilidade continua obrigatória. A atualização da função Edge `create-whatsapp-order` precisa ser conferida antes da ativação.
+- **Fotos:** `fatia-abacaxi-brigadeiro-branco-20261108.jpeg` e `fatia-abacaxi-brigadeiro-branco-card-20261108.webp`. O ZIP compilado para Cloudflare precisa incluir ambas e manter byte-a-byte os assets dos sabores anteriores. Arquivos de foto podem existir apenas no ZIP manual até sincronização GitHub; não confundir código do PR com pacote completo.
+- **Não alterar:** outros produtos, preços, imagens, estoque, promoções, caldas, checkout, WhatsApp, CRM, administração além da disponibilização deste item, Supabase Gestão, Cloudflare em produção ou o restante do fluxo.
