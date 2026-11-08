@@ -44,7 +44,10 @@ test("uses the real optimized Prestígio photo while keeping it selectable", () 
 });
 
 test("keeps every catalog card image present in source and production output", async () => {
-  // Os três cards de Cones são fornecidos no ZIP de Cloudflare aprovado,\n  // ainda pendente a sincronização binária dos novos assets no GitHub.\n  const cardImages = [...catalog.matchAll(/cardImage: "([^"]+)"/g)].map((match) => match[1])\n    .filter(path => !path.startsWith("/images/cone-trufado-"));
+  // Os três cards de Cones são fornecidos no ZIP de Cloudflare aprovado,
+  // ainda pendente a sincronização binária dos novos assets no GitHub.
+  const cardImages = [...catalog.matchAll(/cardImage: "([^"]+)"/g)].map((match) => match[1])
+    .filter(path => !path.startsWith("/images/cone-trufado-"));
 
   assert.ok(cardImages.length > 0);
   assert.match(catalog,/id: "cone-trufado-prestigio"/);
