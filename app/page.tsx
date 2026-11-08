@@ -2452,17 +2452,17 @@ export default function Home() {
               </div>
             </section>
           )}
-          {activeCategory === "fatias" && (
+          {(activeCategory === "fatias" || activeCategory === "cones") && (
             <nav className="v7-navigation v7-navigation-slices" aria-label="Navegação das fatias">
               <button type="button" onClick={returnToCategories}><ArrowLeft size={15} aria-hidden="true" /> Voltar às categorias</button>
             </nav>
           )}
           <div className="section-intro" id="potes-recheados">
             <p className="eyebrow">Seu pedido, do seu jeito</p>
-            <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : "Sua vitrine de sabores."}</h2>
+            <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : activeCategory === "cones" ? "Escolha seu cone." : "Sua vitrine de sabores."}</h2>
             <p>{activeCategory === "pipocas"
               ? "Um tamanho, seus sabores favoritos. Tudo do seu jeito."
-              : "Escolha sua fatia favorita. Depois, você pode adicionar outras."}</p>
+              : activeCategory === "cones" ? "Um sabor por vez. Adicione quantos desejar e finalize tudo no mesmo pedido." : "Escolha sua fatia favorita. Depois, você pode adicionar outras."}</p>
             {visibleCategories.filter((category) => category.id !== activeCategory).map((category) => (
               <button type="button" className="category-text-link" key={category.id}
                 disabled={!categoryIsAvailable(category.id)} onClick={() => selectCategory(category.id)}>
@@ -2472,6 +2472,7 @@ export default function Home() {
           </div>
 
           {((activeCategory === "pipocas" && (!pipocasAvailable || !POPCORN.available))
+            || (activeCategory === "cones" && (!conesAvailable || !CONES.some(cone => coneIsAvailable(cone.id))))
             || (activeCategory === "fatias" && (!fatiasAvailable || !SLICES.some((slice) => (
               sliceIsVisible(slice.id) && sliceIsAvailable(slice.id) && slice.available && slice.variants[0]?.available
             ))))) && (
@@ -2702,6 +2703,78 @@ export default function Home() {
                       : popcornOptionIds.length === 0
                         ? "Escolha pelo menos 1 sabor"
                         : `Adicionar ${popcornQuantity} ${popcornQuantity === 1 ? "pipoca" : "pipocas"} ao pedido`}
+                </Button>
+                {editingId && <Button type="button" variant="ghost" className="cancel-edit" onClick={clearDraft}>Cancelar edição</Button>}
+              </section>
+            </div>
+          ) : activeCategory === "cones" && conesVisible ? (
+            <div className="builder-card cone-builder">
+              <section className="step-block" id="cones-sabores" aria-labelledby="cones-step-title">
+                <div className="step-heading">
+                  <StepMarker number={1} state={coneReady ? "complete" : "active"} />
+                  <div>
+                    <h3 id="cones-step-title">Escolha seu sabor</h3>
+                    <p>Três cones artesanais. Selecione um sabor para adicionar ao pedido.</p>
+                  </div>
+                </div>
+                {!CONES.some(cone => coneIsVisible(cone.id)) && <p className="selection-helper" role="status">Nenhum cone disponível no momento.</p>}
+                <RadioGroup className="cone-flavor-grid" value={coneProductId} aria-label="Sabor do Cone Trufado"
+                  onValueChange={value => {
+                    if (!conesAvailable || !coneIsAvailable(value)) return;
+                    setConeProductId(value);
+                    setConeQuantity(1);
+                    setBuilderEngaged(true);
+                    setSelectionMessage("");
+                    requestScroll("cones-quantidade");
+                  }}>
+                  {CONES.filter(cone => coneIsVisible(cone.id)).map(cone => {
+                    const selected = cone.id === coneProductId;
+                    const available = conesAvailable && cone.available && cone.variants[0].available && coneIsAvailable(cone.id);
+                    return (
+                      <label className={`cone-flavor-card ${selected ? "is-selected" : ""} ${!available ? "is-unavailable" : ""}`}
+                        htmlFor={`cone-${cone.id}`} key={cone.id}>
+                        <RadioGroupItem id={`cone-${cone.id}`} value={cone.id} disabled={!available} />
+                        <span className="cone-flavor-photo">
+                          {cone.image && <img src={cone.cardImage ?? cone.image} alt={cone.imageAlt} width="640" height="480"
+                            loading="lazy" decoding="async" draggable={false} />}
+                        </span>
+                        <span className="cone-flavor-copy">
+                          <strong>{cone.name}</strong>
+                          <b>{currency.format(cone.variants[0].price)}</b>
+                        </span>
+                        {selected && available && <span className="cone-flavor-check" aria-hidden="true"><Check size={17}/></span>}
+                        {!available && <span className="cone-flavor-status">Esgotado hoje</span>}
+                      </label>
+                    );
+                  })}
+                </RadioGroup>
+                <p className="selection-helper" aria-live="polite">
+                  {selectionMessage || (selectedCone ? `${selectedCone.name} escolhido. Confira a quantidade.` : "Escolha um cone para continuar.")}
+                </p>
+              </section>
+              <section className="step-block" id="cones-quantidade" aria-labelledby="cones-qty-title">
+                <div className="step-heading compact-heading">
+                  <StepMarker number={2} state={coneReady ? "active" : "locked"} />
+                  <div><h3 id="cones-qty-title">Quantos cones deste sabor?</h3>
+                    <p>Para misturar sabores, adicione este e escolha o próximo.</p></div>
+                </div>
+                {selectedCone && <div className="cone-current-choice">
+                  <img src={selectedCone.cardImage ?? selectedCone.image} width="66" height="66" alt="" loading="lazy" />
+                  <span><small>Sua escolha</small><strong>{selectedCone.name}</strong></span>
+                  <b>{currency.format(selectedCone.variants[0].price)}</b>
+                </div>}
+                <div className="quantity-row">
+                  <div className="quantity-control" aria-label="Quantidade de cones">
+                    <Button type="button" variant="ghost" size="icon" disabled={!coneReady || coneQuantity <= 1}
+                      onClick={() => setConeQuantity(q => Math.max(1,q-1))} aria-label="Diminuir cones"><Minus size={18}/></Button>
+                    <strong aria-live="polite">{coneQuantity}</strong>
+                    <Button type="button" variant="ghost" size="icon" disabled={!coneReady || coneQuantity >= 99}
+                      onClick={() => setConeQuantity(q => Math.min(99,q+1))} aria-label="Aumentar cones"><Plus size={18}/></Button>
+                  </div>
+                  <div className="draft-total"><small>Subtotal</small><strong>{selectedConeVariant ? currency.format(selectedConeVariant.price * coneQuantity) : "Escolha o sabor"}</strong></div>
+                </div>
+                <Button type="button" className="primary-cta add-button" onClick={addOrUpdateCone} disabled={!coneReady}>
+                  <ShoppingBag size={18}/>{editingId ? "Salvar alterações" : `Adicionar ${coneQuantity} ${coneQuantity === 1 ? "cone" : "cones"} ao pedido`}
                 </Button>
                 {editingId && <Button type="button" variant="ghost" className="cancel-edit" onClick={clearDraft}>Cancelar edição</Button>}
               </section>
