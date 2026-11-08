@@ -28,6 +28,11 @@
 .storefront .category-shortcuts .category-shortcut > svg {
   color: #f2bc80;
 }
+.storefront .category-shortcuts .category-shortcut:focus-visible {
+  outline: 2px solid #ffdba8;
+  outline-offset: 2px;
+  border-color: #ffdba8;
+}
 .storefront .category-shortcuts .category-shortcut:active:not(:disabled) {
   transform: scale(.985);
   background: #6a422c;
