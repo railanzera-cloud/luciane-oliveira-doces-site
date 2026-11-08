@@ -288,8 +288,15 @@ function scrollToCategoryEntry(category: CategoryId) {
   const top = Math.max(0, window.scrollY + target.getBoundingClientRect().top - offset);
   if (navigationByKeyboard) {
     const heading = target.querySelector<HTMLElement>("h3");
-    heading?.setAttribute("tabindex", "-1");
-    heading?.focus({ preventScroll: true });
+    if (heading) {
+      const previousTabIndex = heading.getAttribute("tabindex");
+      heading.setAttribute("tabindex", "-1");
+      heading.addEventListener("blur", () => {
+        if (previousTabIndex === null) heading.removeAttribute("tabindex");
+        else heading.setAttribute("tabindex", previousTabIndex);
+      }, { once: true });
+      heading.focus({ preventScroll: true });
+    }
   }
   window.scrollTo({
     top,
@@ -2521,8 +2528,8 @@ export default function Home() {
                     onClick={() => setOtherCategoriesOpen(open => !open)}>
                     Outros doces <ChevronDown size={15} aria-hidden="true" />
                   </button>
-                  {otherCategoriesOpen && (
-                    <div className="builder-more-options" id="builder-more-options" role="group" aria-label="Explorar outras categorias">
+                  <div className="builder-more-options" id="builder-more-options" role="group"
+                    aria-label="Explorar outras categorias" hidden={!otherCategoriesOpen}>
                       {visibleCategories.filter(category => category.id !== activeCategory).map(category => (
                         <button type="button" className="builder-more-option" key={category.id}
                           disabled={!categoryIsAvailable(category.id)} onClick={() => selectCategory(category.id)}>
@@ -2537,7 +2544,6 @@ export default function Home() {
                         </button>
                       )}
                     </div>
-                  )}
                 </div>
               )}
             </nav>
