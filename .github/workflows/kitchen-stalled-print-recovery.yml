@@ -1,0 +1,80 @@
+name: Recuperação manual de comanda QZ — validação
+on:
+  push:
+    branches:
+      - fix/cozinha-recuperacao-comanda-travada-20261108
+  pull_request:
+    paths:
+      - 'components/admin-orders-panel.tsx'
+      - 'lib/admin-orders-client.ts'
+      - 'lib/kitchen-print-health.ts'
+      - 'app/globals.css'
+      - 'tests/kitchen-stalled-print-recovery-20261108.test.mjs'
+      - 'supabase/migrations/20261108230957_kitchen_manual_stuck_print_recovery.sql'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  commercial-regressions:
+    name: Build, tipos, regressões e isolamento da recuperação
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SITE_ORDERING_ENABLED: 'false'
+      SUPABASE_URL: 'https://edqiwvccmboyayojvuea.supabase.co'
+      SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_69flK5d9m8Oe3HHVnmKWdA_omNIuIcl'
+      MP_PUBLIC_KEY_TEST: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Checar contrato transacional e UI sem writes de impressão
+        run: node --test tests/kitchen-stalled-print-recovery-20261108.test.mjs
+      - name: TypeScript (tolerar somente os três módulos pré-existentes documentados)
+        shell: bash
+        run: |
+          set +e
+          npx tsc --noEmit > /tmp/kitchen-tsc.log 2>&1
+          code=$?
+          set -e
+          cat /tmp/kitchen-tsc.log
+          if [ "$code" -ne 0 ]; then
+            grep 'error TS' /tmp/kitchen-tsc.log | grep -Ev '^(components/admin-trufadas-stock.tsx|db/index.ts|worker/index.ts)' > /tmp/kitchen-tsc-new.log || true
+            if [ -s /tmp/kitchen-tsc-new.log ]; then
+              echo "::error::Novos erros TypeScript introduzidos pela recuperação QZ."
+              exit 1
+            fi
+          fi
+      - name: Compilar site comercial conectado
+        run: npm run build
+      - name: Todas as regressões comerciais
+        run: node --test tests/*.test.mjs
+      - name: Empacotar candidato de revisão (não implantar)
+        run: node scripts/package-cloudflare.mjs --require-supabase
+      - name: Conferir integridade de ZIP conectado
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from zipfile import ZipFile
+          from pathlib import Path
+          p=Path("outputs/luciane-oliveira-doces-cloudflare-pages.zip")
+          assert p.exists() and p.stat().st_size>100000
+          with ZipFile(p) as z:
+              assert z.testzip() is None
+              names=set(z.namelist())
+              assert {"index.html","admin/index.html","pedido/index.html","_worker.js","_routes.json"} <= names
+              js="\n".join(z.read(n).decode("utf8","replace") for n in names if n.startswith("assets/") and n.endswith(".js"))
+              assert "admin_recover_stalled_print_job" in js
+              assert "https://edqiwvccmboyayojvuea.supabase.co" in js
+              assert "CONFIRMO_QUE_O_PAPEL_NAO_SAIU" in js
+          print("Candidato conectado válido; não publicado.")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: QZ-RECUPERACAO-CANDIDATO-NAO-PUBLICAR
+          path: outputs/luciane-oliveira-doces-cloudflare-pages.zip
+          if-no-files-found: error
+          retention-days: 7
