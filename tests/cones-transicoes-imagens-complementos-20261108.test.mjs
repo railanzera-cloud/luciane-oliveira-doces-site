@@ -29,10 +29,11 @@ test("Tela de Cones anima entrada com duração e redução de movimento",()=>{
   assert.ok(layout.includes('import "./refinamento-cones-visual-20261108.css";'));
 });
 
-test("Foto selecionada usa imagem integral e corrige grade/valor no iPhone",()=>{
-  assert.ok(page.includes('<img src={selectedSlice.image} alt="" width="140" height="140"'));
+test("Prévia da fatia usa imagem do cartão, sem exibir print integral, e mantém nome/valor",()=>{
+  assert.ok(page.includes('<img src={selectedSlice.cardImage ?? selectedSlice.image} alt="" width="72" height="72"'));
+  assert.ok(!page.includes('<img src={selectedSlice.image} alt="" width="140" height="140"'));
   assert.ok(css.includes('grid-template-areas: "image information" "image price"'));
-  assert.ok(css.includes('object-fit: contain'));
+  assert.ok(css.includes('object-fit: cover'));
   assert.ok(css.includes('grid-area: image'));
   assert.ok(css.includes('grid-area: price'));
   assert.ok(css.includes('height: 150px'));
