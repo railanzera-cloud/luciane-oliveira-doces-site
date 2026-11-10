@@ -98,14 +98,23 @@ try {
       ]) {
         const card = offer.locator(`.refreshment-card[data-drink-id="${id}"]`);
         const add = card.locator(".refreshment-add");
-        await add.scrollIntoViewIfNeeded();
-        const top = await card.evaluate(el => el.getBoundingClientRect().top);
+        // Uma área fixa de finalização cobre o rodapé: centralizar o alvo ANTES
+        // da medida para não confundir scroll automático do Playwright com salto
+        // provocado pelo React quando o carrinho recebe uma nova linha.
+        await add.evaluate(el => el.scrollIntoView({ block: "center", behavior: "instant" }));
+        const before = await page.evaluate(productId => {
+          const el = document.querySelector(`.refreshment-card[data-drink-id="${productId}"]`);
+          return { top: el.getBoundingClientRect().top, scrollY: scrollY };
+        }, id);
         mobile ? await add.tap() : await add.click();
         await card.locator(".refreshment-count").waitFor({ state: "visible" });
         assert.equal((await card.locator(".refreshment-count").innerText()).trim(), String(targetCount));
-        const after = await card.evaluate(el => el.getBoundingClientRect().top);
-        assert.ok(Math.abs(after - top) <= 5,
-          `O cartão não pode saltar após adicionar bebida: ${id}, ${width}px, delta ${after-top}px`);
+        const after = await page.evaluate(productId => {
+          const el = document.querySelector(`.refreshment-card[data-drink-id="${productId}"]`);
+          return { top: el.getBoundingClientRect().top, scrollY: scrollY };
+        }, id);
+        assert.ok(Math.abs(after.top - before.top) <= 5,
+          `O cartão não pode saltar após adicionar bebida: ${id}, ${width}px, ${JSON.stringify({ before, after })}`);
       }
       assert.equal(await page.locator("#carrinho .cart-item").count(), 3, "Pote e duas bebidas mantidos no carrinho");
       assert.equal(await errors.length, 0, "Sem exceções JS: " + errors.join("; "));
