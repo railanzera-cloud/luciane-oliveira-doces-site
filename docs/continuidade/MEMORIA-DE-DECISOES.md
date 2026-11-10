@@ -291,3 +291,10 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - **Disponibilidade:** categoria `category_cones` e sabores `cone_prestigio`, `cone_dois_amores`, `cone_ferrero_rocher` com controle independente no /admin. Começar TODOS ocultos até publicar frontend e confirmar produção. Não supor estoque, receita, peso, tamanho alternativo ou prazo específico.
 - **Proteções:** preservar disponibilidade, fotos e preços existentes. Criar `item_type=cone` autoritativo; não mascarar Cones como fatias/pipocas. Evitar promessa de esgotamento ou urgência sem quantidades reais.
 - **Limitação de origem:** binários dos 3 cones e das 3 fotos anteriormente aceitas (Bombom Uva natural; Maracujá prato branco full/card) precisam ser sincronizados com o GitHub. Enquanto não forem, somente o ZIP final validado deve ser publicado, nunca build cru do HEAD.
+
+## 10/11/2026 — Diagnóstico de impressão em vez de reimpressão cega
+
+- A recuperação segura de 08/11 resolveu `printing` travado (#1700), mas não poderia resolver `pending` não assumido (casos #1736, #1737). Não alargar a RPC de `printing` para `pending`; são fases distintas e o risco de duplicar impressões seria desnecessário.
+- Exibir status concretos, número do pedido, tempo, tentativas e próximos passos no mesmo aviso. O celular só monitora a fila compartilhada, não o estado do QZ Tray instalado no notebook.
+- Para `pending`, permitir apenas reconectar o QZ local ou consumir a fila original pelo processador existente, sem inserir novo job. Para `printing` travado, preservar confirmação física obrigatória e auditoria. Para `failed`, orientar diagnóstico sem silenciar a ocorrência como solução.
+- O valor da proteção de tela do navegador não garante que o Windows não suspenda; manter diagnóstico honesto, sem prometer prevenção total.
