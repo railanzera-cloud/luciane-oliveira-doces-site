@@ -86,7 +86,7 @@ export function summarizeKitchenPrintIssues(
   const failed = relevant.filter(j => j.status === "failed");
   const category = failed.length ? failed : relevant;
   const key = category.map(j => j.id).sort().join(":");
-  const details: KitchenPrintIssueJob[] = category
+  const details: KitchenPrintIssueJob[] = relevant
     .filter((job): job is KitchenPrintJob & { status: "pending" | "printing" | "failed" } =>
       job.status === "pending" || job.status === "printing" || job.status === "failed")
     .map(job => ({
