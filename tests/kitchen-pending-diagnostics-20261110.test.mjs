@@ -81,7 +81,7 @@ test("painel mostra diagnóstico e usa apenas processamento da fila existente pa
   assert.match(panel, /Em impressão · sem conclusão/);
   assert.match(panel, /Falha registrada/);
   assert.match(panel, /Tentativas: \{job\.attempts\}/);
-  assert.match(panel, /Não crie uma reimpressão/);
+  assert.match(panel, /não crie uma reimpressão/i);
   assert.match(panel, /if \(printerReady\) void processPrints\(\)/);
   assert.match(panel, /admin-stalled-print-jobs/);
   assert.match(panel, /O automático ligado no Supabase não comprova conexão QZ/);
