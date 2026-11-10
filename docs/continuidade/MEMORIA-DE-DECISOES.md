@@ -291,3 +291,10 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - **Disponibilidade:** categoria `category_cones` e sabores `cone_prestigio`, `cone_dois_amores`, `cone_ferrero_rocher` com controle independente no /admin. Começar TODOS ocultos até publicar frontend e confirmar produção. Não supor estoque, receita, peso, tamanho alternativo ou prazo específico.
 - **Proteções:** preservar disponibilidade, fotos e preços existentes. Criar `item_type=cone` autoritativo; não mascarar Cones como fatias/pipocas. Evitar promessa de esgotamento ou urgência sem quantidades reais.
 - **Limitação de origem:** binários dos 3 cones e das 3 fotos anteriormente aceitas (Bombom Uva natural; Maracujá prato branco full/card) precisam ser sincronizados com o GitHub. Enquanto não forem, somente o ZIP final validado deve ser publicado, nunca build cru do HEAD.
+
+## D-C32 — Pausa de bebidas e âncora correta do recebimento (10/11/2026)
+
+- A pedido do proprietário, **refrigerantes pausados**. Frontend baseado na linha PR #22 com `enabledExtras.drinks=false`; quatro itens remotos `drink_*` marcados `hidden` no Supabase comercial e reconferidos. IDs e preços preservados para futura revisão.
+- **Não confundir contextos de rolagem:** adicionar um doce deve levar à confirmação e aos complementos (`#recebimento`); tocar em "Entrega ou retirada" ou reabrir o recebimento deve ir direto para as escolhas (`#recebimento-opcoes`), com margens seguras no mobile. Ao escolher entrega/retirada, seguir ao próximo dado necessário usando `nextCheckoutSection`.
+- Esta decisão de navegação **substitui qualquer comando anterior** que mandava o CTA flutuante ao início do cartão de recebimento. Não mexer em pricing, pagamentos, QZ, frete, categorias, filtros ou carrinho para alcançar esse efeito.
+- Baseline visual é o ZIP comercial anterior sem bebidas, com 29 ativos fotográficos previamente aprovados resincronizados na origem. PR #25 e `docs/CORRECAO-ROLAGEM-SEM-BEBIDAS-20261110.md` guardam evidências. Reintrodução futura de bebidas depende de novo desenho/testes e deve partir deste hotfix, não de ZIPs anteriores.
