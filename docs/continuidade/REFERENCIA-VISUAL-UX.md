@@ -320,3 +320,14 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Rolagem inicial:** Gourmet ancora o primeiro passo `tamanhos`, Fatias em `fatias`, Cones em `cones-sabores`, deixando uma pequena faixa de contexto acima; rolagens das etapas subsequentes continuam independentes. Não mover a área de compra nem simular uma ação antes da seleção.
 - **Preservação:** trufadas mantêm seu fluxo editorial independente, nenhuma foto, preço, SKU, calda (Ninho/chocolate/sem calda), estoque, checkout, sticky, admin, QZ, pixel, webhook ou conteúdo promocional alterado.
 - **Estado:** autorizado e implementado em branch candidata `feat/navegacao-categorias-discreta-20261108`; revisão técnica e publicação precisam ser comprovadas separadamente. Capturas do usuário representam a versão anterior, não prova da candidata.
+
+
+## Refrigerantes — composição candidata homologada tecnicamente (10/11/2026)
+
+- Fluxo autorizado: doce adicionado → quatro bebidas opcionais → outros doces → entrega/retirada → pagamento. Bebidas não entram na vitrine principal.
+- Grade 2×2 visível na primeira oferta; acesso posterior recolhido no carrinho. Cartões creme com contorno cappuccino, título chocolate, imagens fornecidas em moldura preta, nome/embalagem/preço separados e ação de pelo menos 44px. Nenhuma bebida pré-adicionada, sem botão obrigatório de dispensa.
+- Primeira composição inspecionada e rejeitada internamente: texto claro tinha contraste insuficiente no fundo creme; miniaturas pequenas. Corrigidos contraste, área útil das fotografias e peso dos cartões. Feedback individual indica quantidade no pedido e subtotal muda sem deslocamento forçado.
+- **Prova:** Chromium real via navegador, app real renderizado em iframes de 320/375/390/430/1280 CSS px. Sem overflow nas cinco larguras, quatro imagens carregadas, ações 44px. Adição repetida, quantidade, remoção, retorno pelo carrinho, restauração após reload e esgotado/oculto observados com fixtures locais. CSP da homologação bloqueou eventos externos.
+- Capturas entregues: `refrigerantes-primeira-composicao.png` (primeira), `refrigerantes-revisao.png` (ciclo interno, seleção diferente), `refrigerantes-final-mobile.png` (estado final com um cone + uma Coca Zero, subtotal R$18). Não são teste A/B nem prova de ganho de conversão.
+- **Limites:** larguras renderizadas em Chromium; não equivalem a Safari/iPhone/Instagram físicos, emulação de toque ou WebKit. Admin autenticado e saída física na POS-58 não foram operados; renderizadores da comanda/painel exercitados em testes isolados. Nova aprovação estética e publicação ainda pendentes.
+- Fonte de código `01afc47c3f899f632445163ee56a5e024d1b60cc`. Fotos anteriores e microanimação do menu preservadas do ZIP de 08/11; outras categorias não foram redesenhadas.
