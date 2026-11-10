@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -639,6 +639,21 @@ export default function Home() {
   const [coneProductId, setConeProductId] = useState("");
   const [coneQuantity, setConeQuantity] = useState(1);
   const [cart, setCart] = useState<CartItem[]>([]);
+  // O carrinho cresce ACIMA das ofertas. Preservar a posição do cartão tocado
+  // impede o salto visual em Safari/Instagram ao adicionar bebidas diferentes.
+  const drinkViewportAnchor = useRef<{ productId: string; top: number } | null>(null);
+  useLayoutEffect(() => {
+    const anchor = drinkViewportAnchor.current;
+    if (!anchor) return;
+    drinkViewportAnchor.current = null;
+    const card = document.querySelector<HTMLElement>(`.refreshment-card[data-drink-id="${anchor.productId}"]`);
+    if (!card) return;
+    const shift = card.getBoundingClientRect().top - anchor.top;
+    // A própria ancoragem do navegador pode já ter compensado o novo item.
+    if (Math.abs(shift) > 1) {
+      window.scrollTo({ top: Math.max(0, window.scrollY + shift), behavior: "instant" });
+    }
+  }, [cart]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectionMessage, setSelectionMessage] = useState("");
   const [drinkMessage, setDrinkMessage] = useState("");
@@ -1838,6 +1853,11 @@ export default function Home() {
     if (isFinalizing || !availability.ordersOpen || !isProductEnabled(product) || drinkStatus(availability, product.id) !== "available" || !product.available || !product.variants[0].available) return;
     const quantity = cart.filter(item => item.productId === product.id).reduce((sum, item) => sum + item.quantity, 0);
     if (quantity >= 99) { setDrinkMessage("Limite de 99 unidades por bebida. Ajuste no carrinho."); return; }
+    // Medir a posição ANTES da atualização do carrinho, sem navegar para outra etapa.
+    const selectedCard = document.querySelector<HTMLElement>(`.refreshment-card[data-drink-id="${product.id}"]`);
+    drinkViewportAnchor.current = selectedCard
+      ? { productId: product.id, top: selectedCard.getBoundingClientRect().top }
+      : null;
     setCart((current) => {
       const existing = current.find((item) => item.productId === product.id);
       if (existing) {
@@ -3144,12 +3164,11 @@ export default function Home() {
                       <p>{addedNotice.description}</p>
                     </div>
                   </div>
-                  {STORE_CONFIG.enabledExtras.drinks && <DrinkComplements availability={availability} cart={cart} onAdd={addDrink} message={drinkMessage} busy={isFinalizing} />}
                   {checkoutComplementItems.length > 0 && (
                     <div className="boutique-added-other">
                       <div className="boutique-added-other-intro">
                         <strong>Quer completar seu pedido?</strong>
-                        <p>Se preferir, escolha entrega ou retirada logo abaixo.</p>
+                        <p>Escolha outro doce, se desejar.</p>
                       </div>
                       <div className="boutique-complement-grid" role="group" aria-label="Outros produtos disponíveis para adicionar">
                         {checkoutComplementItems.map((id) => {
@@ -3193,6 +3212,7 @@ export default function Home() {
                       </div>
                     </div>
                   )}
+                  {STORE_CONFIG.enabledExtras.drinks && <DrinkComplements availability={availability} cart={cart} onAdd={addDrink} message={drinkMessage} busy={isFinalizing} />}
                 </div>
               )}
               <div className="step-heading checkout-step-heading"><StepMarker number={4} state={receivingStepState} /><div><h2 id="receiving-title">Como deseja receber?</h2><p>Escolha a opção mais conveniente.</p></div></div>
