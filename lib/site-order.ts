@@ -82,6 +82,7 @@ export type SiteOrderResult = {
 };
 
 export type CreateSiteOrderInput = {
+  expected_total?: string;
   client_order_id: string;
   customer: { name: string; phone: string; email?: string };
   items: Array<{ product_id: string; variant_id: string; option_ids: string[]; quantity: number }>;

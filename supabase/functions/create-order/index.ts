@@ -148,7 +148,10 @@ async function rest<T>(path: string, options: RequestInit = {}): Promise<T> {
     });
     const text = await result.text();
     const body = text ? JSON.parse(text) : null;
-    if (!result.ok) throw new HttpError(502, "database_error", "Não foi possível registrar o pedido.", { databaseCode: body?.code });
+    if (!result.ok) {
+      if (body?.message === "menu_changed") throw new HttpError(409, "menu_changed", "Um item ficou indisponível. Revise o carrinho.");
+      throw new HttpError(502, "database_error", "Não foi possível registrar o pedido.", { databaseCode: body?.code });
+    }
     return body as T;
   } catch (error) {
     if (error instanceof HttpError) throw error;
@@ -318,6 +321,10 @@ Deno.serve(async (request: Request) => {
     await revalidateAvailability(quote.availabilityKeys);
 
     const totalCents = quote.subtotalCents + fulfillment.delivery_fee_cents;
+    // Novo complemento exige revisão do total; preserva payloads legados sem bebidas.
+    if (quote.items.some(item => item.item_type === "drink") && parseMoneyToCents(input.expected_total) !== totalCents) {
+      throw new HttpError(409, "price_changed", "O preço mudou. Confira o total antes de continuar.");
+    }
     let cashChangeFor: string | null = null;
     if (method === "cash" && payment.change_for !== undefined && payment.change_for !== null && payment.change_for !== "") {
       const cents = parseMoneyToCents(payment.change_for);

@@ -14,6 +14,8 @@ import "./cones-trufados-20261108.css";
 import "./mobile-refinamentos-funil-20261108.css";
 import "./refinamento-cones-visual-20261108.css";
 import "./category-navigation-refinement-20261108.css";
+import "./category-navigation-packaged-20261108.css";
+import "./drink-complements-20261110.css";
 
 export const metadata: Metadata = {
   title: "Luciane Oliveira Doces | Cones Trufados, Pipocas e Fatias Artesanais",

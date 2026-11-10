@@ -130,3 +130,16 @@ Contrato temporário de negócio (sem atualizar tabelas permanentes): `POPCORN_P
 - Ao reenviar, apenas a tarefa travada é marcada `cancelled` e uma única nova tarefa `initial` com `job_key` determinística entra em `pending`. A função de claim já existente continua impondo elegibilidade. Não recriar pedido ou alterar pagamento, não tocar pedidos saudáveis.
 - `printed` do QZ registra resposta da API, não garantia de papel. Confirmação manual deve ser diferenciada e auditada.
 - RPC produtiva aplicada em 08/11/2026 sem modificar comandas. A UI só conseguirá recuperar tarefas após atualização manual do frontend Cloudflare; ainda exige confirmação humana da saída física do papel e controle de duplicidade. Preservar assets acumulados.
+
+
+## Refrigerantes como complementos (10/11/2026)
+
+- Identidade/preço/apresentação: `drinks-catalog.mjs` compartilhado por catálogo cliente e cotação autoritativa; IDs novos para Coca Zero 220, Fanta 220 e Guaraná Antarctica 200; Coca tradicional 350 conserva identidade. Antigos 220 tradicional/Fanta350 não são relançados.
+- Disponibilidade: cada chave `drink_*` usa `item_type=product`, `category_key=extras_drinks`; ausência de linha ou consulta offline mantém bebidas ocultas; `sold_out` mostra sem permitir adicionar. Nenhuma quantidade física é suposta. Loja fechada bloqueia adição.
+- Persistência: `order_items.item_type=drink` exige migration `20261110124038_refrigerantes_complementos.sql`; trigger `SECURITY INVOKER` verifica status sob lock compartilhado antes de inserir em qualquer canal. A função pública não ganha permissões de RPC; nenhuma RLS/auth existente foi alterada.
+- Pedidos: ambos os handlers usam o mesmo quote; WhatsApp v34 ainda necessita catálogo atualizado + novo módulo. `create-order` candidato também reconhece bebidas e rejeita total desatualizado quando elas existem; gateway produtivo v14 continua inalterado/desativado no pacote. Ativação online exige revisão própria, sem deploy cego da linha cumulativa.
+- Carrinho: merge por produto/variante, limite 99, remoção e quantidades existentes, subtotal e frete preservados, reconsulta antes de finalizar; teste de payload misto nos dois entrypoints reais em VM sem rede. Mensagem, admin e comanda usam nome e volume autoritativos sem inferir pagamento.
+- Release: backend autorizado antes da liberação; migration começa hidden. Somente após homologação conjunta e confirmação operacional a proprietária libera cada bebida no painel. Pré-requisito não instalado não pode ser declarado integrado em produção.
+
+### Ativação produtiva conferida — 10/11/2026
+A migration de bebidas e a complementar de permissões foram aplicadas com autorização. WhatsApp v35 ACTIVE e sete arquivos conferidos; quatro bebidas hidden. Além de PUBLIC, revogar EXECUTE explícito de anon/authenticated na função de trigger (privilégios padrão do ambiente concediam acesso). Sem mudança em RLS, autenticação ou gateway online. Não confundir instalação pronta com disponibilidade física ou validação de impressão.

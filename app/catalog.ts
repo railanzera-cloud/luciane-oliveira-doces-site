@@ -1,6 +1,8 @@
 import { promotionalPopcornPriceCents } from "../supabase/functions/_shared/popcorn-promotion.mjs";
 
 export type CategoryId = "pipocas" | "fatias" | "cones";
+import { DRINKS as DRINK_CATALOG } from "../supabase/functions/_shared/drinks-catalog.mjs";
+
 export type ProductKind = "popcorn" | "slice" | "cone" | "drink";
 
 export type Variant = {
@@ -53,7 +55,7 @@ export const DELIVERY_TIME_ESTIMATE = "Preparo e entrega: em média, 15 a 20 min
 
 // Controle geral do atendimento e das categorias exibidas no cardápio.
 // Para reativar as pipocas, altere somente `pipocas` para true.
-// Para reativar os refrigerantes, altere somente `drinks` para true.
+// Bebidas dependem também da disponibilidade remota individual; fallback oculto.
 export const STORE_CONFIG = {
   acceptingOrders: true,
   enabledCategories: {
@@ -62,7 +64,7 @@ export const STORE_CONFIG = {
     cones: true,
   } satisfies Record<CategoryId, boolean>,
   enabledExtras: {
-    drinks: false,
+    drinks: true,
   },
   closedMessage: "Pedidos encerrados por hoje.",
 };
@@ -305,48 +307,22 @@ export const PRODUCTS: Product[] = [
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
     options: SLICE_OPTIONS,
   },
-  {
-    id: "coca-cola-220",
-    kind: "drink",
-    category: "Refrigerantes",
-    name: "Coca-Cola",
-    image: "/coca-cola-220.jpeg",
-    cardImage: "/coca-cola-220-card.webp",
-    imageAlt: "Lata gelada de Coca-Cola 220 ml",
-    available: true,
-    variants: [{ id: "220ml", label: "220 ml", whatsappLabel: "220 ml", price: 5, available: true }],
-    options: [],
-  },
-  {
-    id: "coca-cola-350",
-    kind: "drink",
-    category: "Refrigerantes",
-    name: "Coca-Cola",
-    image: "/coca-cola-350.jpeg",
-    cardImage: "/coca-cola-350-card.webp",
-    imageAlt: "Lata gelada de Coca-Cola 350 ml",
-    available: true,
-    variants: [{ id: "350ml", label: "350 ml", whatsappLabel: "350 ml", price: 6, available: true }],
-    options: [],
-  },
-  {
-    id: "fanta-laranja-350",
-    kind: "drink",
-    category: "Refrigerantes",
-    name: "Fanta Laranja",
-    image: "/fanta-laranja-350.jpeg",
-    cardImage: "/fanta-laranja-350-card.webp",
-    imageAlt: "Lata gelada de Fanta Laranja 350 ml",
-    available: true,
-    variants: [{ id: "350ml", label: "350 ml", whatsappLabel: "350 ml", price: 5, available: true }],
-    options: [],
-  },
+  // Preservar IDs/variantes antigos sem disponibilizar apresentações substituídas.
+  { id: "coca-cola-220", kind: "drink", category: "Refrigerantes", name: "Coca-Cola", imageAlt: "Coca-Cola tradicional 220 ml — histórico", available: false,
+    variants: [{ id: "220ml", label: "220 ml", whatsappLabel: "220 ml", price: 5, available: false }], options: [] },
+  { id: "fanta-laranja-350", kind: "drink", category: "Refrigerantes", name: "Fanta Laranja", imageAlt: "Fanta Laranja 350 ml — histórico", available: false,
+    variants: [{ id: "350ml", label: "350 ml", whatsappLabel: "350 ml", price: 5, available: false }], options: [] },
+  ...Object.values(DRINK_CATALOG).map(drink => ({
+    id: drink.id, kind: "drink" as const, category: "Refrigerantes", name: drink.name,
+    image: drink.image, cardImage: drink.image, imageAlt: `${drink.name}, ${drink.label}`,
+    available: true, variants: [{ id: drink.variantId, label: drink.label, whatsappLabel: drink.label, price: drink.priceCents / 100, available: true }], options: [],
+  })),
 ];
 
 export const POPCORN = PRODUCTS.find((product) => product.kind === "popcorn")!;
 export const SLICES = PRODUCTS.filter((product) => product.kind === "slice");
 export const CONES = PRODUCTS.filter((product) => product.kind === "cone");
-export const DRINKS = PRODUCTS.filter((product) => product.kind === "drink");
+export const DRINKS = PRODUCTS.filter((product) => product.kind === "drink" && product.available);
 
 export function popcornPrice(size: string, optionIds: readonly string[] = [], now = Date.now()): number {
   if (!Object.hasOwn(POPCORN_PRICING_GROUPS[1], size)) throw new Error("Escolha um tamanho atual de pipoca.");

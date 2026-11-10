@@ -1,0 +1,234 @@
+[
+  {
+    "path": "coca-cola-220-card.webp",
+    "sha256": "46c0ac4d1b8ddb22ddf3dbccc682688917860c765bd943b3cf7c061b3d3ba99f"
+  },
+  {
+    "path": "coca-cola-220.jpeg",
+    "sha256": "d0f48895dd743b29e4b4b1742d7cdf90e7994fa02f42800893a8805635d4976b"
+  },
+  {
+    "path": "coca-cola-350-card.webp",
+    "sha256": "03eb3297eaa155977b3f427b49cdfaad051b9dfba0fddd56f14c6ff15da1734a"
+  },
+  {
+    "path": "coca-cola-350.jpeg",
+    "sha256": "8fa6ee449808426b28f5cbdc089502e7b8295a724363f5425fa2a1ddc685bde7"
+  },
+  {
+    "path": "fanta-laranja-350-card.webp",
+    "sha256": "24dcbe170a197817eb1c341e6970e9c5bd45e036cbbd94afde0dab96ff5dd4fe"
+  },
+  {
+    "path": "fanta-laranja-350.jpeg",
+    "sha256": "bdf73a986e9991f2002b1e98de8518035edb97164f059e78f1515b4453e52ba3"
+  },
+  {
+    "path": "fatia-abacaxi-brigadeiro-branco-20261108.jpeg",
+    "sha256": "1da6d19e5c3558a42c776c08c673613961f71268a701a26383162d7f3124b396"
+  },
+  {
+    "path": "fatia-abacaxi-brigadeiro-branco-card-20261108.webp",
+    "sha256": "68b0df0b6e46164e794e5aa40b5a5af9d6635b902abd5d8eb016ac4c48bb114f"
+  },
+  {
+    "path": "fatia-bombom-uva.avif",
+    "sha256": "85bb251649b2467d0dfd983b87212f982ef23f15ab0b78c38b1a1df250c25278"
+  },
+  {
+    "path": "fatia-chocolate-cenoura-card-6de0c35d.webp",
+    "sha256": "d16144fddea330e0b2050b5597bdd92ccac4b4471e6dfcab7d2033b29416b3cf"
+  },
+  {
+    "path": "fatia-chocolate-cenoura.jpeg",
+    "sha256": "cccdd15e9d61c20076d593be2678f6f8fc81a528dd8a44395f7fc3b63d67bd77"
+  },
+  {
+    "path": "fatia-chocolate-maracuja-card.webp",
+    "sha256": "7250b3ace5aee99ec427831933febdc2571dfb37414b03975dc1f262c0ac0931"
+  },
+  {
+    "path": "fatia-chocolate-maracuja.jpeg",
+    "sha256": "23b11358f623755b441bfa65117cdc10d34823bf1a28d22ca2e236ebe573d8db"
+  },
+  {
+    "path": "fatia-chocolate-morango-card.webp",
+    "sha256": "840bff6610f5b8f19085a214d0d3b1c51d2ca544abcec2dfd7cfca719f49ebe4"
+  },
+  {
+    "path": "fatia-chocolate-morango.jpeg",
+    "sha256": "25bf0c6079c4037cca1cbb3ff66eb83ee747777b37585d19325e690870e16d5a"
+  },
+  {
+    "path": "fatia-chocolatudo-card-518c74f4.webp",
+    "sha256": "518c74f4fe184a73660a518993a1a93c6d443fd3a4c4b6d4fd7c04308d41dc80"
+  },
+  {
+    "path": "fatia-chocolatudo.jpeg",
+    "sha256": "52595b4b772cc4da1a4a6f5f8342951f594e82e9153be3105287b82a5e459955"
+  },
+  {
+    "path": "fatia-coco-cremoso-morango-card.webp",
+    "sha256": "c58e5746873a34db3a4ac48292878a021b3533a5671903cb9bdcf52f6c345e79"
+  },
+  {
+    "path": "fatia-coco-cremoso-morango.webp",
+    "sha256": "5cfda827199b1db41ba13edf1d3dc473ecd9ec926a685785b8a52dc64ba0037b"
+  },
+  {
+    "path": "fatia-ninho-morango-card.webp",
+    "sha256": "3b8e9ec4b37baf9c72cf4a23c9fdb3871d2298600372ee0986d5a392f9186e1a"
+  },
+  {
+    "path": "fatia-ninho-morango.jpeg",
+    "sha256": "ca7641bc55cd76657e9d815d6cc404e7509e21f0f644eaf71263b3f14778811a"
+  },
+  {
+    "path": "fatia-prestigio-card.webp",
+    "sha256": "876b28cf6afc16bd5fdf782bb248b255515a417ba7100d4bfccbf187f0abe180"
+  },
+  {
+    "path": "fatia-prestigio.jpeg",
+    "sha256": "22a568ad6716750ef4c879e9bbf85a597f0dca5ddfe0e43b600ef6f88fc0e4f3"
+  },
+  {
+    "path": "favicon.svg",
+    "sha256": "e6d2e59b7b5bbb0342e0fb496dfc262decbfe4426bbb7b047aec8d467d1dc6f7"
+  },
+  {
+    "path": "file.svg",
+    "sha256": "1e0ae4d1a1ddfa36752988647b731e4abf150c414d069ec83c96fb0aaeff0307"
+  },
+  {
+    "path": "globe.svg",
+    "sha256": "d051a8c47936990a9085693d307bb7cea1bc1b6d7ed956bcbaacf674f4ec96b9"
+  },
+  {
+    "path": "images/categoria-fatias-editorial-360.webp",
+    "sha256": "8e74f25831a529a3ea42214109bbc936f0971eb4ce1c97a159e15f6950142a02"
+  },
+  {
+    "path": "images/categoria-fatias-editorial.webp",
+    "sha256": "6594ea1a24c5d78a5ece4ce836ac3669b6d6193386f7f55a1e8a9fe1a8c17d4f"
+  },
+  {
+    "path": "images/categoria-pipocas-editorial-clara.webp",
+    "sha256": "112245bd176114427b0e250f8eb359c7e96a27bbc8f7f1ff04645af79cc5cf8d"
+  },
+  {
+    "path": "images/categoria-pipocas-editorial-enquadrada-v107-360.webp",
+    "sha256": "a10254a3652b644dfdb57197bb3baeefad3c0cc6212c3ad0482a323b3ae744bf"
+  },
+  {
+    "path": "images/categoria-pipocas-editorial-enquadrada-v107.webp",
+    "sha256": "112245bd176114427b0e250f8eb359c7e96a27bbc8f7f1ff04645af79cc5cf8d"
+  },
+  {
+    "path": "images/categoria-pipocas-editorial.webp",
+    "sha256": "afd6c925dc273ffc9b5ab04713af10154cc905b1932315494608ee50e57cb8df"
+  },
+  {
+    "path": "images/cone-trufado-dois-amores-20261108-360.webp",
+    "sha256": "d35e04bd8833915e64e49294365e81ff0e904526e96b903503c9f4101595bab4"
+  },
+  {
+    "path": "images/cone-trufado-dois-amores-20261108.webp",
+    "sha256": "98e0e026652cfd3a0c259b028bfed991958b93c04d9b3ce4dc20091336698e44"
+  },
+  {
+    "path": "images/cone-trufado-dois-amores-card-20261108.webp",
+    "sha256": "5ef24bfcf89c75c91eec2df988eda390e7c9b5b37a3648000b3241bd971f750a"
+  },
+  {
+    "path": "images/cone-trufado-ferrero-rocher-20261108-360.webp",
+    "sha256": "470fec2bfb901806778acb7de1898a250bcbe1f7857b9e37d416d012ada98e29"
+  },
+  {
+    "path": "images/cone-trufado-ferrero-rocher-20261108.webp",
+    "sha256": "1e0e9f0dc1a3f9e86c683834e0e34f9ba4c5a79fde5ca4e6c12dee7d741814b2"
+  },
+  {
+    "path": "images/cone-trufado-ferrero-rocher-card-20261108.webp",
+    "sha256": "ea03530b159b78f02629b76f15ac2d1e6ed16350ff63626a8f5063133857d276"
+  },
+  {
+    "path": "images/cone-trufado-prestigio-20261108-360.webp",
+    "sha256": "cfa2b1f050de778762c121d188c4b582fa2b5ed0310f6fa322c022fead63564e"
+  },
+  {
+    "path": "images/cone-trufado-prestigio-20261108-v2-360.webp",
+    "sha256": "adbbe71802ddbdbd231431fd053fd126f4ea735bf71575d8f04aa8ca5ce58942"
+  },
+  {
+    "path": "images/cone-trufado-prestigio-20261108-v2.webp",
+    "sha256": "e4a8328d670bd3ab561560707998a5280edc0ce77b9f0db44e80512fc52a0e53"
+  },
+  {
+    "path": "images/cone-trufado-prestigio-20261108.webp",
+    "sha256": "f77e31ae53ecf3862dcc8a94c68c88d08925679494754823ad78da4c33b2b554"
+  },
+  {
+    "path": "images/cone-trufado-prestigio-card-20261108-v2.webp",
+    "sha256": "c3d9bc44af56273796a0ccbcabdef66182c1a449637e74d1d6d4a2b2d5ea0449"
+  },
+  {
+    "path": "images/cone-trufado-prestigio-card-20261108.webp",
+    "sha256": "4fb116cedcc5963b32bbf6d24165bd45bbd1f5795b7ca2e1f84f8ec1bc683d41"
+  },
+  {
+    "path": "images/cones-trufados-trio-20261108.webp",
+    "sha256": "cd3819de060d33f8364a23b8b2369521e60abdd11ea968d238e942561fe39b51"
+  },
+  {
+    "path": "images/cones-trufados-trio-card-20261108.webp",
+    "sha256": "cdafc639bbc012444c39153ed517e68f9bca5203fd6edade0774d8d58bc0c05d"
+  },
+  {
+    "path": "images/edicao-crocante-chocolate.webp",
+    "sha256": "7d789751483cdc6b4312b220152c0a235ee79d6d422ed09805511150508c38a0"
+  },
+  {
+    "path": "images/edicao-crocante-ninho.webp",
+    "sha256": "ed6375851fb1b9c67309af5d9ac9740e3a8e5b97c9e11c8e8a25aa3cf972a35a"
+  },
+  {
+    "path": "images/edicao-crocante-textura.webp",
+    "sha256": "13216c98042e5847853cf71f9b0fffacfb715d0c04b1cda1133e7247855c23c7"
+  },
+  {
+    "path": "images/pipocas-trufadas-chocolate.avif",
+    "sha256": "e6001fcf46fe292359d047902c73d9f1fd2831d3e879e2e013d502bead772df1"
+  },
+  {
+    "path": "images/pipocas-trufadas-coco-queimado-20261101.webp",
+    "sha256": "8c8a62ea8236b7eda9fb2262ac7edfbe5d8fa56f54c253c93ae208aa6abab7f1"
+  },
+  {
+    "path": "images/pipocas-trufadas-ninho-20261101-360.webp",
+    "sha256": "4da99836f00902135c09c43ecaaad91c8e1bbffe3684544ecbb1db65c4794eaf"
+  },
+  {
+    "path": "images/pipocas-trufadas-ninho-20261101.webp",
+    "sha256": "4ed1d292aa97b3238e3b8679cc2ef7ce91a47fad47889fafcb1cbd8ddfa8f0a5"
+  },
+  {
+    "path": "images/pipocas-trufadas-ninho.avif",
+    "sha256": "cba311cf564f7cf3de0779d42c240c6c7c6f86a138c55b2ff430f5239cdb235e"
+  },
+  {
+    "path": "images/pipocas-trufadas-pacoca-20261101-360.webp",
+    "sha256": "a2a2acc743ceeb14392f4474527b94ed9eaddeed3a9fa10c968f345f66f81f29"
+  },
+  {
+    "path": "images/pipocas-trufadas-pacoca-20261101.webp",
+    "sha256": "e37e22a690cfa661b0c86fb9e13cf52fc82f1d8b3884898dc38e845b9ec089b5"
+  },
+  {
+    "path": "pipoca-gourmet.jpeg",
+    "sha256": "ccadf032177d32e638e9bf1cf61d86779754fe4e17765ea16fcd1600a97ba733"
+  },
+  {
+    "path": "window.svg",
+    "sha256": "decf1cf7bb22b5c99c4857cfcd5718ce5465c4454166317589c83fc73df74b66"
+  }
+]

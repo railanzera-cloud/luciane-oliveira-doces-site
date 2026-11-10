@@ -65,6 +65,7 @@ import {
   isItemAvailable,
   isItemVisible,
   statusFor,
+  drinkStatus,
   type AvailabilitySnapshot,
 } from "@/app/menu-availability";
 import { categoryFromUrl, trufadasFromUrl, categoryUrl, publicCategories, resolveMenuCategory } from "@/app/menu-navigation";
@@ -196,6 +197,8 @@ function StepMarker({ number, state }: { number: number; state: StepState }) {
     </span>
   );
 }
+
+import { DrinkComplements } from "@/components/drink-complements";
 
 function isCategoryEnabled(category: CategoryId) {
   return STORE_CONFIG.enabledCategories[category];
@@ -449,6 +452,9 @@ function cartAvailabilityIssues(
       }
     }
 
+    if (product.kind === "drink" && drinkStatus(snapshot, product.id) !== "available") {
+      reasons.push("Este refrigerante está indisponível.");
+    }
     if (product.kind === "cone") {
       const coneKey = CONE_ITEM_KEYS[product.id];
       if (item.optionIds.length !== 0 || variant.id !== "unidade") reasons.push("Este cone não admite personalização ou outro tamanho.");
@@ -1117,7 +1123,7 @@ export default function Home() {
           && Boolean(slice.variants[0]?.available) && sliceIsAvailable(slice.id)),
       trufadas: cupCanBeAddedFromCheckout,
       cones: conesCanBeAdded, // fonte real de disponibilidade, independente da categoria inicial
-      bebidas: STORE_CONFIG.enabledExtras.drinks && availability.ordersOpen,
+      bebidas: false, // bebidas têm apresentação direta própria antes dos outros doces
     },
   );
   const cartIssues = useMemo(
@@ -1829,11 +1835,13 @@ export default function Home() {
   }
 
   function addDrink(product: Product) {
-    if (!availability.ordersOpen || !isProductEnabled(product) || !product.available || !product.variants[0].available) return;
+    if (isFinalizing || !availability.ordersOpen || !isProductEnabled(product) || drinkStatus(availability, product.id) !== "available" || !product.available || !product.variants[0].available) return;
+    const quantity = cart.filter(item => item.productId === product.id).reduce((sum, item) => sum + item.quantity, 0);
+    if (quantity >= 99) { setDrinkMessage("Limite de 99 unidades por bebida. Ajuste no carrinho."); return; }
     setCart((current) => {
       const existing = current.find((item) => item.productId === product.id);
       if (existing) {
-        return current.map((item) => item.id === existing.id ? { ...item, quantity: item.quantity + 1 } : item);
+        return current.map((item) => item.id === existing.id ? { ...item, quantity: Math.min(99, item.quantity + 1) } : item);
       }
       return [...current, {
         id: makeCartId(),
@@ -1991,6 +1999,7 @@ export default function Home() {
         ...(card.identification ? { identification: card.identification } : {}),
       } : undefined;
       const result = await createSiteOrder({
+        expected_total: orderTotal.toFixed(2),
         client_order_id: next.order_id,
         customer: {
           name: customerName.trim(),
@@ -2999,33 +3008,6 @@ export default function Home() {
 
       )}
 
-      {STORE_CONFIG.enabledExtras.drinks && (
-        <section className="extras-section" id="acompanhamentos">
-          <div className="page-shell extras-shell">
-            <div className="extras-heading"><div><p className="eyebrow">Complete seu pedido</p><h2>Refrigerantes</h2></div><p>Adicione com um toque. A quantidade pode ser ajustada no carrinho.</p></div>
-            <div className="drink-grid">
-              {DRINKS.map((drink) => {
-                const variant = drink.variants[0];
-                return (
-                  <article className={`drink-card ${!drink.available || !variant.available ? "is-unavailable" : ""}`} key={drink.id}>
-                    <span className="drink-media">
-                      {drink.image
-                        ? <img src={drink.cardImage ?? drink.image} alt={drink.imageAlt} width="256" height="256" loading="lazy" decoding="async" fetchPriority="low" sizes="58px" />
-                        : <CupSoda size={23} strokeWidth={1.6} />}
-                    </span>
-                    <div><strong>{drink.name}</strong><small>{variant.label}</small></div>
-                    <b>{currency.format(variant.price)}</b>
-                    <Button type="button" variant="outline" size="icon" onClick={() => addDrink(drink)} disabled={!availability.ordersOpen || !drink.available || !variant.available} aria-label={`Adicionar ${drink.name} ${variant.label}`}><Plus size={17} /></Button>
-                    {(!drink.available || !variant.available) && <span className="drink-status">Indisponível</span>}
-                  </article>
-                );
-              })}
-            </div>
-            <p className="drink-message" aria-live="polite">{drinkMessage}</p>
-          </div>
-        </section>
-      )}
-
       {(activeCategory || cart.length > 0) && (
       <section className={`checkout-section ${cart.length === 0 ? "is-empty-cart" : ""}`} id="carrinho">
         <div className="page-shell">
@@ -3101,7 +3083,7 @@ export default function Home() {
                             {itemIssue && (
                               <div className="cart-unavailable-note" role="status">
                                 <AlertTriangle size={16} aria-hidden="true" />
-                                <span><strong>Item indisponível</strong>{itemIssue.reasons.join(" ")} Edite ou remova para continuar.</span>
+                                <span><strong>Item indisponível</strong>{itemIssue.reasons.join(" ")} {product.kind === "drink" ? "Remova este item para continuar." : "Edite ou remova para continuar."}</span>
                               </div>
                             )}
                             </div>
@@ -3131,6 +3113,7 @@ export default function Home() {
                       <p className="cart-save-note"><Check size={14} aria-hidden="true" /> Pedido mantido somente nesta aba. Ao fechá-la, ele é limpo.</p>
                     </div>
                   </details>
+                  {!addedNotice && STORE_CONFIG.enabledExtras.drinks && <DrinkComplements compact availability={availability} cart={cart} onAdd={addDrink} message={drinkMessage} busy={isFinalizing} />}
                   {!addedNotice && <div className="cart-add-more">
                     <strong>Adicionar mais itens</strong>
                     <div className={`cart-add-options ${STORE_CONFIG.enabledExtras.drinks ? "" : "without-drinks"} ${cupCanBeAddedFromCheckout ? "has-crocantes-option" : ""}`}>
@@ -3138,7 +3121,7 @@ export default function Home() {
                       {pipocasAvailable && <Button type="button" variant="outline" onClick={() => startAnother("pipocas")}><Plus size={16} /> {addMoreButtonLabel("pipocas", cart)}</Button>}
                       {conesCanBeAdded && <Button type="button" variant="outline" onClick={() => startAnother("cones")}><ShoppingBag size={16} /> {addMoreButtonLabel("cones", cart)}</Button>}
                       {cupCanBeAddedFromCheckout && <Button type="button" variant="outline" className="crocantes-cross-sell" onClick={startAnotherCrocantes}><ShoppingBag size={16} /> {cartContainsCrocantes ? "Adicionar outro pacote" : "Adicionar pacote Trufado"} <ChevronRight size={15} aria-hidden="true" /></Button>}
-                      {STORE_CONFIG.enabledExtras.drinks && <Button type="button" variant="outline" onClick={() => scrollToSection("acompanhamentos")}><CupSoda size={16} /> Refrigerante</Button>}
+
                     </div>
                   </div>}
                 </div>
@@ -3161,6 +3144,7 @@ export default function Home() {
                       <p>{addedNotice.description}</p>
                     </div>
                   </div>
+                  {STORE_CONFIG.enabledExtras.drinks && <DrinkComplements availability={availability} cart={cart} onAdd={addDrink} message={drinkMessage} busy={isFinalizing} />}
                   {checkoutComplementItems.length > 0 && (
                     <div className="boutique-added-other">
                       <div className="boutique-added-other-intro">
