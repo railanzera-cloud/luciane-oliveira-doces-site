@@ -60,7 +60,7 @@ test("carrinho exibe foto e mantém todas as ações comerciais", () => {
 
 test("checkout só adiciona navegação visual e preserva finalização", () => {
   assert.ok(page.includes('className="boutique-checkout-progress"'));
-  for (const id of ["carrinho", "recebimento", "pagamento"])
+  for (const id of ["carrinho", "recebimento-opcoes", "pagamento"])
     assert.ok(page.includes(`scrollToSection("${id}")`));
   assert.ok(page.includes('className="boutique-final-action" ref={inlineFinalActionRef}'));
   assert.ok(page.includes('typeof IntersectionObserver === "undefined"'));
