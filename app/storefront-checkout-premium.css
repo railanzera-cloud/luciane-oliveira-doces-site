@@ -426,3 +426,15 @@
   .storefront #carrinho .boutique-cart-image { flex-basis: 61px; width: 61px; height: 73px; }
   .storefront #carrinho .boutique-added-photo { flex-basis: 56px; width: 56px; height: 64px; }
 }
+
+/* 10/11: ação "Entrega ou retirada" deve ancorar as opções reais, não
+   o topo do cartão de recebimento onde ficam os complementos opcionais.
+   A margem preserva contexto acima e não esconde os radios no Safari. */
+.storefront #carrinho #recebimento-opcoes {
+  scroll-margin-top: 88px;
+}
+@media (max-width: 699px) {
+  .storefront #carrinho #recebimento-opcoes {
+    scroll-margin-top: max(92px, calc(env(safe-area-inset-top, 0px) + 66px));
+  }
+}
