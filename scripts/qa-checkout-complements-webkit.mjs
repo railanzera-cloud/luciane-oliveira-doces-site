@@ -175,6 +175,30 @@ try {
           path: path.join(out, "complementos-" + width + "-" + (slicesAvailable ? "com-fatias" : "fatias-esgotadas") + ".png"),
           animations: "disabled",
         });
+        // O pós-adição permanece na confirmação; o botão "Entrega ou retirada"
+        // deve pular somente as recomendações opcionais, focando os dois radios.
+        const stickyCheckout = page.locator(".mobile-sticky-bar.is-checkout-flow button");
+        await stickyCheckout.waitFor({ state: "visible" });
+        assert.match(await stickyCheckout.innerText(), /Entrega ou retirada/i);
+        await stickyCheckout.tap();
+        await page.waitForFunction(() => {
+          const el = document.getElementById("recebimento-opcoes");
+          if (!el) return false;
+          const y = el.getBoundingClientRect().top;
+          return y >= 35 && y <= 180;
+        });
+        const receivingViewport = await page.locator("#recebimento-opcoes").evaluate(el => {
+          const heading = el.getBoundingClientRect();
+          const options = document.querySelector("#recebimento .choice-grid").getBoundingClientRect();
+          return { headingTop: heading.top, optionsTop: options.top, optionsBottom: options.bottom, viewport: innerHeight };
+        });
+        assert.ok(receivingViewport.optionsTop > 0
+          && receivingViewport.optionsTop < receivingViewport.viewport - 100,
+          "Escolhas de recebimento precisam aparecer acima da barra fixa: " + JSON.stringify(receivingViewport));
+        await page.screenshot({
+          path: path.join(out, "recebimento-alinhado-" + width + "-" + (slicesAvailable ? "com-fatias" : "fatias-esgotadas") + ".png"),
+          animations: "disabled",
+        });
         await page.locator('label[for="receive-pickup"]').tap();
         await confirmation.waitFor({state:"detached"});
         await page.locator("#carrinho .cart-add-more").waitFor({state:"visible"});

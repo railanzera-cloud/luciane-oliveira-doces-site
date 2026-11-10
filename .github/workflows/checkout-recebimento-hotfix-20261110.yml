@@ -1,0 +1,122 @@
+name: Hotfix checkout recebimento sem bebidas - QA e ZIP
+on:
+  push:
+    branches:
+      - fix/checkout-rolagem-recebimento-sem-bebidas-20261110
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate-package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      SITE_ORDERING_ENABLED: 'false'
+      SUPABASE_URL: https://edqiwvccmboyayojvuea.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_69flK5d9m8Oe3HHVnmKWdA_omNIuIcl
+      MP_PUBLIC_KEY_TEST: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Bloquear reativação de bebidas e outros regressos de escopo
+        run: |
+          node --test tests/checkout-rolagem-recebimento-sem-bebidas-20261110.test.mjs
+      - name: Tipagem sem regressões novas (quatro erros históricos conhecidos)
+        shell: bash
+        run: |
+          set +e
+          npx tsc --noEmit > /tmp/checkout-tsc.log 2>&1
+          code=$?
+          set -e
+          cat /tmp/checkout-tsc.log
+          if [ "$code" -ne 0 ]; then
+            grep 'error TS' /tmp/checkout-tsc.log | grep -Ev '^(components/admin-trufadas-stock.tsx|db/index.ts|worker/index.ts)' > /tmp/checkout-tsc-new.log || true
+            if [ -s /tmp/checkout-tsc-new.log ]; then
+              echo "::error::Erros novos de TypeScript; pacote bloqueado."
+              exit 1
+            fi
+            echo "::warning::TypeScript mantém somente erros históricos conhecidos."
+          fi
+      - name: Compilar e validar contratos comerciais sem envios reais
+        run: |
+          npm run build
+          node --test tests/*.test.mjs
+      - name: Preparar homologação WebKit com rede produtiva bloqueada no navegador
+        run: |
+          npm install --prefix "$RUNNER_TEMP/qa-checkout-webkit" --no-save --no-package-lock playwright@1.56.1
+          "$RUNNER_TEMP/qa-checkout-webkit/node_modules/.bin/playwright" install --with-deps webkit
+      - name: Validar o botão flutuante em 320-430px (NÃO é Safari físico)
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/check-out-evidence"
+          python3 -m http.server 8181 --bind 127.0.0.1 --directory outputs/cloudflare-pages >/tmp/lod-checkout-qa.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          # Build local de QA isolado, nunca publicar. Variáveis QA não são credenciais.
+          SUPABASE_PUBLISHABLE_KEY='qa_mock_no_credentials_20261110' npm run build
+          node scripts/package-cloudflare.mjs
+          export QA_PACKAGE="$RUNNER_TEMP/qa-checkout-webkit/package.json"
+          export QA_OUTPUT="$RUNNER_TEMP/check-out-evidence"
+          node scripts/qa-checkout-complements-webkit.mjs
+      - name: Recompilar perfil conectado oficial WhatsApp-only
+        run: |
+          npm run build
+          node scripts/package-cloudflare.mjs --require-supabase
+      - name: Verificar ZIP sem bebidas ativas e preservar todas as fotos aprovadas
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib
+          src=Path('outputs/luciane-oliveira-doces-cloudflare-pages.zip')
+          assert src.exists() and src.stat().st_size > 5_000_000, 'ZIP incompleto'
+          with ZipFile(src) as z:
+            assert z.testzip() is None
+            names=set(z.namelist())
+            required={'index.html','admin/index.html','pedido/index.html','404.html','_worker.js','_routes.json','_headers'}
+            assert required <= names, 'faltam rotas/worker de producao'
+            assert not any(n.startswith(('.env','supabase/','node_modules/')) for n in names)
+            assert 'fatia-prestigio.jpeg' in names
+            assert 'fatia-chocolate-maracuja.jpeg' in names
+            assert 'fatia-abacaxi-brigadeiro-branco-20261108.jpeg' in names
+            assert 'images/cones-trufados-trio-card-20261108.webp' in names
+            assert 'images/cone-trufado-ferrero-rocher-20261108.webp' in names
+            assets=[n for n in names if n.startswith('assets/') and n.endswith('.js')]
+            assert len(assets)>5, 'scripts comerciais ausentes'
+            js='\n'.join(z.read(n).decode('utf8','replace') for n in assets)
+            assert 'https://edqiwvccmboyayojvuea.supabase.co' in js
+            assert 'create-whatsapp-order' in js
+            assert 'recebimento-opcoes' in js, 'nova ancora nao compilada'
+            assert not any(n.startswith('images/refrigerante-') for n in names), 'bebidas novas nao devem entrar no bundle'
+            output=Path('outputs/Luciane-Oliveira-Doces-Rolagem-Corrigida-SEM-Refrigerantes-20261110.zip')
+            output.write_bytes(src.read_bytes())
+          sha=hashlib.sha256(output.read_bytes()).hexdigest()
+          print('PACOTE:',output.name,'BYTES:',output.stat().st_size,'FILES:',len(names),'SHA256:',sha)
+          Path('outputs/HOMOLOGACAO-ROLAGEM-20261110.txt').write_text(
+            f'CI={__import__("os").getenv("GITHUB_SHA")}\nZIP_SHA256={sha}\n'
+            'SEM REFRIGERANTES; PRIMEIRO TESTAR NO SAFARI/INSTAGRAM.\n'
+            'PUBLICACAO CLOUDFLARE MANUAL. BACKEND PRODUTIVO NAO ALTERADO.\n',
+            encoding='utf8')
+          PY
+      - name: Preservar capturas de QA, sem publicação
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: QA-ROLAGEM-WEBKIT-NAO-PUBLICAR
+          path: ${{ runner.temp }}/check-out-evidence/
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Entregar pacote completo conectado para publicação manual
+        uses: actions/upload-artifact@v4
+        with:
+          name: CLOUDFLARE-ROLAGEM-SEM-REFRIGERANTES-20261110
+          path: |
+            outputs/Luciane-Oliveira-Doces-Rolagem-Corrigida-SEM-Refrigerantes-20261110.zip
+            outputs/HOMOLOGACAO-ROLAGEM-20261110.txt
+          if-no-files-found: error
+          retention-days: 7

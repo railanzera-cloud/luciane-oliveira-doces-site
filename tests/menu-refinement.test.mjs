@@ -647,7 +647,7 @@ test('final screen keeps WhatsApp predominant and tracking secondary for each ma
 test('checkout navigation follows receiving, delivery fields, identification and payment without skipping', () => {
  const state={deliveryZoneError:'',fulfillment:'',selectedDeliveryZone:null,deliveryNeighborhood:'',address:'',addressNumber:'',customerNameReady:false,checkoutChannel:'whatsapp',customerPhoneReady:false,cleanWhatsAppField:checkout.cleanWhatsAppField};
  const next=(overrides={})=>pageFunction('nextCheckoutSection',{...state,...overrides})();
- assert.equal(next(),'recebimento');
+ assert.equal(next(),'recebimento-opcoes');
  assert.equal(next({fulfillment:'entrega'}),'delivery-fields');
  assert.equal(next({fulfillment:'entrega',selectedDeliveryZone:{}}),'neighborhood');
  assert.equal(next({fulfillment:'entrega',selectedDeliveryZone:{},deliveryNeighborhood:'Centro'}),'address');

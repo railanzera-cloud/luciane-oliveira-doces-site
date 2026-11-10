@@ -320,3 +320,9 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Rolagem inicial:** Gourmet ancora o primeiro passo `tamanhos`, Fatias em `fatias`, Cones em `cones-sabores`, deixando uma pequena faixa de contexto acima; rolagens das etapas subsequentes continuam independentes. Não mover a área de compra nem simular uma ação antes da seleção.
 - **Preservação:** trufadas mantêm seu fluxo editorial independente, nenhuma foto, preço, SKU, calda (Ninho/chocolate/sem calda), estoque, checkout, sticky, admin, QZ, pixel, webhook ou conteúdo promocional alterado.
 - **Estado:** autorizado e implementado em branch candidata `feat/navegacao-categorias-discreta-20261108`; revisão técnica e publicação precisam ser comprovadas separadamente. Capturas do usuário representam a versão anterior, não prova da candidata.
+
+## Navegação de recebimento após rollback de bebidas — 10/11/2026
+
+- Preservar a experiência editorial aprovada da confirmação e dos complementos; botão "Entrega ou retirada" **não** deve parar nesse bloco. Manter o foco nas duas escolhas reais de recebimento, juntas e plenamente legíveis.
+- `#recebimento` é a entrada contextual após adicionar doce. `#recebimento-opcoes` é a âncora específica do checkout para o botão flutuante e atalhos de revisão. No mobile, `scroll-margin-top` considera a barra do navegador; não criar modal nem etapa extra.
+- QA WebKit automatizado 320/375/390/430, oito casos com oferta de Fatias presente/ausente, confirmou o botão flutuante e a visualização das caixas de Entrega/Retirada. Evidências em Actions `42843218379`. Requer validação posterior em iPhone/Safari/Instagram físico. As imagens foram mantidas byte a byte do ZIP comercial já aprovado.
