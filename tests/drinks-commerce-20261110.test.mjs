@@ -93,3 +93,13 @@ test('missing, offline, hidden and sold-out drink rows never become available by
  }
  assert.equal(drinkStatus(mergeRemoteAvailability([],true),'coca-cola-220'),'hidden');
 });
+
+test('trigger permissions override explicit Supabase default client grants',async()=>{
+ const db=new PGlite();
+ try{
+  await db.exec("CREATE ROLE anon; CREATE ROLE authenticated; CREATE FUNCTION public.lod_validate_drink_on_item_insert() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RETURN NEW; END; $$; GRANT EXECUTE ON FUNCTION public.lod_validate_drink_on_item_insert() TO anon,authenticated;");
+  assert.equal((await db.query("SELECT has_function_privilege('anon','public.lod_validate_drink_on_item_insert()','EXECUTE') AS allowed")).rows[0].allowed,true);
+  await db.exec(readFileSync('supabase/migrations/20261110132522_refrigerantes_trigger_permissions.sql','utf8'));
+  for(const role of ['anon','authenticated'])assert.equal((await db.query(`SELECT has_function_privilege('${role}','public.lod_validate_drink_on_item_insert()','EXECUTE') AS allowed`)).rows[0].allowed,false);
+ }finally{await db.close();}
+});
