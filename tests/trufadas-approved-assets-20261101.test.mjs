@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 
-// Hashes Git SHA1 das imagens exatamente aprovadas, obtidos do ZIP de 01/11.
+// Hashes Git SHA1: Trufadas do ZIP de 01/11; Coco/Morango atualizado
+// aos bytes do ZIP comercial de 08/11 preservado no incremento Refrigerantes.
 // Guardam composição, identidade de marca, qualidade e conteúdo das fotos.
 // Não aceitar placeholders, uploads errados ou retestes que desativem a guarda.
 const approved = {
@@ -14,9 +15,9 @@ const approved = {
   "public/images/pipocas-trufadas-coco-queimado-20261101.webp":
     ["e231c7b0b79d173db012018018d6c43bda02ee7f",201814],
   "public/fatia-coco-cremoso-morango.webp":
-    ["18c43f8d099ae5220b2bfd65a98d14700bdcbddd",146390],
+    ["27de3b746a4658d228f2f8c160dceb93ad9dc5ee",289032],
   "public/fatia-coco-cremoso-morango-card.webp":
-    ["18c43f8d099ae5220b2bfd65a98d14700bdcbddd",146390],
+    ["93c0454a74b5a57994378bb15d7f958c4d76dded",105346],
 };
 const gitBlobSha=bytes=>createHash("sha1").update(Buffer.from(`blob ${bytes.length}\0`)).update(bytes).digest("hex");
 for (const [path,[expectedSha,expectedBytes]] of Object.entries(approved)) {

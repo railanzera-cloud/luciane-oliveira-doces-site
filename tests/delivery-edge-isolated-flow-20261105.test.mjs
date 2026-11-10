@@ -370,3 +370,42 @@ test("Both endpoints reject foreign origins before consulting store or payment",
     assert.equal(edge.calls.length, 0, slug);
   }
 });
+
+for (const slug of ["create-order", "create-whatsapp-order"]) {
+  test(`${slug}: mixed sweets and all drinks are quoted and persisted with authoritative price`, async () => {
+    const edge = await isolatedHandler(slug);
+    const payload = makeOrder(slug === "create-order" ? "cash" : "manual_pix", city(), "49.00");
+    payload.items.push(
+      { product_id: "coca-cola-zero-220", variant_id: "220ml", quantity: 2, option_ids: [], unit_price: 0.01 },
+      { product_id: "fanta-laranja-220", variant_id: "220ml", quantity: 1, option_ids: [] },
+      { product_id: "guarana-antarctica-200", variant_id: "200ml", quantity: 1, option_ids: [] },
+      { product_id: "coca-cola-350", variant_id: "350ml", quantity: 1, option_ids: [] },
+    );
+    const response = await edge.send(payload);
+    assert.equal(response.status, 201, JSON.stringify(response.json));
+    const saved = edge.rpc(slug === "create-order" ? "create_store_order" : "create_whatsapp_store_order").data;
+    assert.equal(saved.p_order.subtotal, "41.00");
+    assert.equal(saved.p_order.delivery_fee, "8.00");
+    assert.equal(saved.p_order.total, "49.00");
+    assert.deepEqual(Array.from(saved.p_items.slice(1), i=>[i.item_type,i.unit_price,i.quantity,i.size_label]), [
+      ["drink","4.00",2,"Lata 220 ml"],["drink","4.00",1,"Lata 220 ml"],
+      ["drink","3.00",1,"Garrafa 200 ml"],["drink","6.00",1,"Lata 350 ml"],
+    ]);
+    assert.ok(slug === "create-order" ? saved.p_items.some(i=>i.item_key === "drink_coca_cola_zero_220") : saved.p_availability_keys.includes("drink_coca_cola_zero_220"));
+    assert.equal(edge.calls.filter(c=>c.url===MP_URL).length,0);
+  });
+  test(`${slug}: drink availability, missing contract and stale totals reject before order creation`, async () => {
+    for (const unavailable of [true, false]) {
+      const edge = await isolatedHandler(slug, unavailable ? {unavailableKeys:["drink_fanta_laranja_220"]} : {});
+      const payload = makeOrder(slug === "create-order" ? "cash" : "manual_pix", {type:"pickup"}, unavailable ? "24.00" : "20.00");
+      payload.items.push({product_id:"fanta-laranja-220",variant_id:"220ml",quantity:1,option_ids:[]});
+      const response=await edge.send(payload);
+      assert.equal(response.status,409);
+      assert.equal(edge.wroteOrder(),false);
+    }
+    const edge=await isolatedHandler(slug,{databaseFailure:"menu_changed"});
+    const payload=makeOrder(slug === "create-order" ? "cash" : "manual_pix",{type:"pickup"},"24.00");
+    payload.items.push({product_id:"coca-cola-zero-220",variant_id:"220ml",quantity:1,option_ids:[]});
+    assert.equal((await edge.send(payload)).status,409); // RPC remains authoritative under concurrent availability change
+  });
+}

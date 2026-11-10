@@ -12,7 +12,7 @@ import { quoteCartItems, POPCORN_PRICES_CENTS, POPCORN_FLAVORS } from "../supaba
 const source = await readFile(new URL("../app/catalog.ts", import.meta.url), "utf8");
 const compiled = ts.transpileModule(source, {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
-}).outputText.replace(
+}).outputText.replace('../supabase/functions/_shared/drinks-catalog.mjs', new URL('../supabase/functions/_shared/drinks-catalog.mjs', import.meta.url).href).replace(
   "../supabase/functions/_shared/popcorn-promotion.mjs",
   new URL("../supabase/functions/_shared/popcorn-promotion.mjs", import.meta.url).href,
 );

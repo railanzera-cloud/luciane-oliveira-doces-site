@@ -2,7 +2,8 @@ import { deliveryLocalityById, deliveryLegacyReviewState, deliveryLegacySpecific
 import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
-export const CATALOG_VERSION = "2026-11-08.cones-trufados";
+export const CATALOG_VERSION = "2026-11-10.refrigerantes";
+import { DRINKS } from "./drinks-catalog.mjs";
 import { TRUFADAS_VARIANTS, getTrufadaVariant } from "./trufadas-variants.mjs";
 
 // O catálogo de vendas consulta cada combinação exata: produto + tamanho.
@@ -200,6 +201,18 @@ export function quoteCartItems(rawItems, now = Date.now()) {
         size_label: "1 cone", option_ids: [], option_item_keys: [],
         option_names: [], quantity, unit_price_cents: cone.priceCents,
         line_total_cents: cone.priceCents * quantity, catalog_version: CATALOG_VERSION,
+      };
+    }
+    if (Object.hasOwn(DRINKS, productId)) {
+      const drink = DRINKS[productId];
+      if (variantId !== drink.variantId || optionIds.length !== 0)
+        throw new Error("Escolha um refrigerante e volume válidos.");
+      availabilityKeys.add(drink.itemKey);
+      return {
+        item_key: drink.itemKey, product_id: productId, category_key: "extras_drinks", item_type: "drink",
+        name: drink.name, variant_id: drink.variantId, variant_item_key: drink.itemKey,
+        size_label: drink.label, option_ids: [], option_item_keys: [], option_names: [], quantity,
+        unit_price_cents: drink.priceCents, line_total_cents: drink.priceCents * quantity, catalog_version: CATALOG_VERSION,
       };
     }
     const slice = SLICES[productId];

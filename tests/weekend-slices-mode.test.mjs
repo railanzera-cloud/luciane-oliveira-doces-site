@@ -12,14 +12,12 @@ test("reactivates the popcorn category while keeping its catalog data", () => {
   assert.match(catalog, /export const POPCORN = PRODUCTS\.find/);
 });
 
-test("keeps drinks ready to reactivate while hiding them from the current menu", () => {
-  assert.match(catalog, /enabledExtras:\s*\{\s*drinks: false,/s);
+test("drinks remain optional complements with preserved historical IDs", () => {
+  assert.match(catalog, /drinks: true/);
   assert.match(catalog, /id: "coca-cola-220"/);
-  assert.match(catalog, /export const DRINKS = PRODUCTS\.filter/);
-  assert.match(page, /if \(product\.kind === "slice"\) return isCategoryEnabled\("fatias"\);\s*if \(product\.kind === "cone"\) return isCategoryEnabled\("cones"\);\s*return STORE_CONFIG\.enabledExtras\.drinks;/s);
-  assert.match(page, /STORE_CONFIG\.enabledExtras\.drinks && \(\s*<section className="extras-section"/s);
-  assert.match(page, /STORE_CONFIG\.enabledExtras\.drinks && <Button/);
-  assert.match(page, /scrollToSection\("acompanhamentos"\)/);
+  assert.match(page, /<DrinkComplements compact/);
+  assert.match(page, /<DrinkComplements availability/);
+  assert.doesNotMatch(page, /className="extras-section"/);
 });
 
 test("starts neutral and resolves navigation from the existing availability controls", () => {
