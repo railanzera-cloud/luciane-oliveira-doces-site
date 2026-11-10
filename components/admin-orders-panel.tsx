@@ -793,7 +793,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
         <Button type="button" variant="outline" onClick={() => void manualRefresh()} disabled={loading} aria-busy={loading}>{loading ? <LoaderCircle className="admin-spinner" size={16} /> : <RefreshCw size={16} />} {loading ? "Atualizando…" : "Atualizar"}</Button>
       </div>
 
-      <div className="admin-kitchen-tools">
+      <div className="admin-kitchen-tools" id="admin-kitchen-printer-controls">
         <Button type="button" variant={alertsEnabled ? "default" : "outline"} onClick={() => void enableAlerts()}><BellRing size={17} /> {alertsEnabled ? "Testar som da cozinha" : alertsPreferred ? "Reativar alertas" : "Ativar alertas da cozinha"}</Button>
         {alertsPreferred && <Button type="button" variant="outline" onClick={() => void pauseAlerts()}>Pausar som</Button>}
         <Button type="button" variant={printerOnline ? "default" : "outline"}
@@ -874,15 +874,71 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
         </div>
         {printerReconnectInfo && <p className="admin-kitchen-reconnect-note" role="status">{printerReconnectInfo}</p>}
         {printIssue && (
-          <div className="admin-kitchen-print-issue" role="alert">
+          <section className="admin-kitchen-print-issue" role="alert" aria-label="Diagnóstico de impressão">
             <strong><AlertCircle size={18} /> Atenção à impressão</strong>
             <p>{printIssue.message}</p>
-            <small>O alerta especial toca a cada 30 segundos até a fila voltar ao normal.
-              Verifique também papel e impressora: o QZ Tray não confirma a saída física do papel.</small>
+            <div className="admin-kitchen-issue-jobs" aria-label="Pedidos afetados">
+              {printIssue.jobs.map(job => {
+                const order = orders.find(item => item.id === job.order_uuid);
+                const isStalled = job.status === "printing" && stalledPrintJobs.some(item => item.id === job.id);
+                return (
+                  <div className="admin-kitchen-issue-job" key={job.id}>
+                    <div className="admin-kitchen-issue-job-heading">
+                      <strong>{order ? `Pedido #${order.order_number}` : "Pedido fora da lista carregada"}</strong>
+                      <span>{job.status === "pending" ? "Na fila · não assumida" : job.status === "printing" ? "Em impressão · sem conclusão" : "Falha registrada"}</span>
+                    </div>
+                    <small>{job.ageMinutes >= 1 ? `${job.ageMinutes} min nessa etapa` : "Há menos de 1 minuto"} · Tentativas: {job.attempts} ·
+                      {job.status === "pending"
+                        ? " O sistema ainda não iniciou o envio à impressora."
+                        : job.status === "printing"
+                          ? " Uma sessão assumiu a comanda, mas não confirmou a conclusão."
+                          : " Houve uma falha registrada no envio."}</small>
+                    {job.status === "pending" && (
+                      <p className="admin-kitchen-issue-guidance">
+                        Confira no notebook Windows se o Chrome/Pedidos e o QZ Tray estão abertos e se o Windows não suspendeu. A comanda já existe: <strong>não crie uma reimpressão</strong>.
+                      </p>
+                    )}
+                    {job.status === "printing" && (
+                      <p className="admin-kitchen-issue-guidance">
+                        {isStalled ? "A recuperação manual já está disponível abaixo, após conferir o papel." : "Aguarde a conclusão. Após 5 minutos sem resposta, a recuperação segura será exibida."}
+                      </p>
+                    )}
+                    {job.status === "failed" && (
+                      <p className="admin-kitchen-issue-guidance">Confira a falha, o papel e o QZ Tray no notebook. O aviso sozinho não autoriza uma segunda impressão.</p>
+                    )}
+                    {isStalled && (
+                      <Button type="button" variant="outline" onClick={() =>
+                        document.getElementById("admin-stalled-print-jobs")?.scrollIntoView({ behavior: "smooth", block: "center" })
+                      }><AlertCircle size={16} /> Ir à recuperação segura</Button>
+                    )}
+                  </div>
+                );
+              })}
+              {printIssue.count > printIssue.jobs.length && <small>Há outras comandas a conferir. Atualize a lista para visualizar o estado mais recente.</small>}
+            </div>
+            {printIssue.jobs.some(job => job.status === "pending") && (
+              <div className="admin-kitchen-issue-next-step">
+                <strong>Próxima ação: conferir a conexão no notebook</strong>
+                <p>{printerReady
+                  ? printerOnline
+                    ? "Este aparelho reconhece a impressora. Você pode solicitar a leitura da fila existente, sem criar outra comanda."
+                    : "Este aparelho já reconheceu a impressora, mas a conexão local caiu. Tente reconectar antes de processar."
+                  : "A conexão do notebook não pode ser verificada pelo celular. Abra o painel de Pedidos no Chrome do Windows com o QZ Tray ativo."}</p>
+                <Button type="button" variant="outline" disabled={printing || connectingPrinter}
+                  onClick={() => {
+                    if (printerReady) void processPrints();
+                    else document.getElementById("admin-kitchen-printer-controls")?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }}>
+                  <Printer size={16} /> {printerReady ? "Verificar e processar fila existente" : "Ir aos controles da impressora"}
+                </Button>
+                <small>O automático ligado no Supabase não comprova conexão QZ neste notebook. Nunca presuma que uma resposta do QZ confirme papel físico.</small>
+              </div>
+            )}
+            <small>O alerta especial toca a cada 30 segundos enquanto o problema continuar. Silenciar o som não altera a fila nem resolve a comanda.</small>
             <Button type="button" variant="outline" onClick={() => setPrintWarningMutedUntil(Date.now() + 5 * 60000)}>
               Silenciar alerta por 5 minutos
             </Button>
-          </div>
+          </section>
         )}
         {stalledPrintJobs.length > 0 && (
           <section className="admin-stalled-prints" id="admin-stalled-print-jobs" aria-label="Recuperação de comandas travadas">

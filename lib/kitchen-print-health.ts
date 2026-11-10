@@ -11,11 +11,23 @@ export type KitchenPrintJob = {
   attempts: number;
 };
 
+export type KitchenPrintIssueJob = {
+  id: string;
+  order_uuid: string;
+  status: "pending" | "printing" | "failed";
+  attempts: number;
+  created_at: string;
+  updated_at: string;
+  ageMinutes: number;
+};
+
 export type KitchenPrintIssue = {
   id: string;
   kind: "failed" | "delayed";
   count: number;
   message: string;
+  /** Trabalhos concretos que justificam o alarme, sem assumir que o papel saiu. */
+  jobs: KitchenPrintIssueJob[];
 };
 
 export type StalledKitchenPrintJob = {
@@ -74,15 +86,29 @@ export function summarizeKitchenPrintIssues(
   const failed = relevant.filter(j => j.status === "failed");
   const category = failed.length ? failed : relevant;
   const key = category.map(j => j.id).sort().join(":");
+  const details: KitchenPrintIssueJob[] = relevant
+    .filter((job): job is KitchenPrintJob & { status: "pending" | "printing" | "failed" } =>
+      job.status === "pending" || job.status === "printing" || job.status === "failed")
+    .map(job => ({
+      id: job.id,
+      order_uuid: job.order_uuid,
+      status: job.status,
+      attempts: job.attempts,
+      created_at: job.created_at,
+      updated_at: job.updated_at,
+      ageMinutes: Math.max(0, Math.floor((now - Date.parse(job.status === "pending" ? job.created_at : job.updated_at)) / 60000)),
+    }))
+    .sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at))
+    .slice(0, 8);
   return failed.length
     ? {
-      id: "failed:" + key, kind: "failed", count: failed.length,
+      id: "failed:" + key, kind: "failed", count: failed.length, jobs: details,
       message: failed.length === 1
         ? "Uma comanda apresentou falha de impressão. Confira a impressora e o pedido no painel."
         : `${failed.length} comandas apresentaram falha de impressão. Verifique a impressora.`,
     }
     : {
-      id: "delayed:" + key, kind: "delayed", count: relevant.length,
+      id: "delayed:" + key, kind: "delayed", count: relevant.length, jobs: details,
       message: relevant.length === 1
         ? "Uma comanda está aguardando impressão há mais de 2 minutos. Confira impressora, autorização QZ e estoque."
         : `${relevant.length} comandas aguardam impressão há mais de 2 minutos. Confira impressora, QZ e estoque.`,

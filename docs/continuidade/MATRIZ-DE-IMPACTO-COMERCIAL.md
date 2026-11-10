@@ -130,3 +130,11 @@ Contrato temporário de negócio (sem atualizar tabelas permanentes): `POPCORN_P
 - Ao reenviar, apenas a tarefa travada é marcada `cancelled` e uma única nova tarefa `initial` com `job_key` determinística entra em `pending`. A função de claim já existente continua impondo elegibilidade. Não recriar pedido ou alterar pagamento, não tocar pedidos saudáveis.
 - `printed` do QZ registra resposta da API, não garantia de papel. Confirmação manual deve ser diferenciada e auditada.
 - RPC produtiva aplicada em 08/11/2026 sem modificar comandas. A UI só conseguirá recuperar tarefas após atualização manual do frontend Cloudflare; ainda exige confirmação humana da saída física do papel e controle de duplicidade. Preservar assets acumulados.
+
+## Diagnóstico diferenciado de fila QZ (10/11/2026)
+
+- `pending` com 2+ min = **não assumido**, logo a ação é conferir o Chrome/QZ Tray/Windows no notebook e, se já conectado localmente, processar a fila existente via `claim_print_job`. Não criar `reprint` nem marcar `printed`; `attempts=0` confirma que ainda não houve claim.
+- `printing` = sessão assumiu e não concluiu; somente se estiver travada após 5+ min, oferecer recuperação humana via RPC já homologada. Não reenviar automaticamente por timeout.
+- `failed` = falha registrada, não confundir com `pending`; conferir erro, papel e QZ local antes de reimpressão.
+- Status `auto_mode_enabled` e `print_queue_enabled` do Supabase **não** comprovam QZ Tray conectado no notebook. O celular mostra o estado do servidor, não o da impressora física de outro dispositivo.
+- A alerta operacional usa leitura RLS `print_jobs`, associa a pedidos carregados, mostra idade/tentativas sem escrever banco. O CTA de pending só usa o processador normal da fila existente ou leva aos controles locais. Preservar pedido/checkout/WhatsApp/Pix/estoque e não publicar assets parciais do GitHub.
