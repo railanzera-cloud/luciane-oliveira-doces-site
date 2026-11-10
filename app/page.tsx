@@ -1602,11 +1602,13 @@ export default function Home() {
 
   function enterCheckout(sectionId: "recebimento" | "pagamento") {
     setBuilderEngaged(false);
-    requestScroll(sectionId);
+    // O cartão #recebimento começa pelos complementos opcionais.
+    // Quando a intenção é escolher entrega/retirada, focar as duas opções.
+    requestScroll(sectionId === "recebimento" ? "recebimento-opcoes" : sectionId);
   }
 
   function nextCheckoutSection(receiving: Fulfillment = fulfillment): string {
-    if (!receiving) return "recebimento";
+    if (!receiving) return "recebimento-opcoes";
     if (receiving === "entrega") {
       if (!selectedDeliveryZone || deliveryZoneError) return "delivery-fields";
       if (!cleanWhatsAppField(deliveryNeighborhood)) return "neighborhood";
@@ -3040,7 +3042,7 @@ export default function Home() {
                 <span className="boutique-progress-index"><ShoppingBag size={16} aria-hidden="true" /></span>
                 <span>Pedido</span>
               </button>
-              <button type="button" className={fulfillment && addressReady ? "is-complete" : "is-current"} aria-current={!(fulfillment && addressReady) ? "step" : undefined} onClick={() => scrollToSection("recebimento")}>
+              <button type="button" className={fulfillment && addressReady ? "is-complete" : "is-current"} aria-current={!(fulfillment && addressReady) ? "step" : undefined} onClick={() => scrollToSection("recebimento-opcoes")}>
                 <span className="boutique-progress-index">{fulfillment && addressReady ? <Check size={16} aria-hidden="true" /> : "2"}</span>
                 <span>Recebimento</span>
               </button>
@@ -3211,7 +3213,7 @@ export default function Home() {
                   )}
                 </div>
               )}
-              <div className="step-heading checkout-step-heading"><StepMarker number={4} state={receivingStepState} /><div><h2 id="receiving-title">Como deseja receber?</h2><p>Escolha a opção mais conveniente.</p></div></div>
+              <div className="step-heading checkout-step-heading" id="recebimento-opcoes"><StepMarker number={4} state={receivingStepState} /><div><h2 id="receiving-title">Como deseja receber?</h2><p>Escolha a opção mais conveniente.</p></div></div>
               <RadioGroup className="choice-grid" value={fulfillment} onValueChange={chooseFulfillment} aria-label="Forma de recebimento">
                 <label className={`choice-card ${fulfillment === "entrega" ? "is-selected" : ""}`} htmlFor="receive-delivery">
                   <RadioGroupItem id="receive-delivery" value="entrega" /><Truck size={21} /><span className="choice-copy"><strong>Entrega</strong><small>A partir de R$8</small></span>
