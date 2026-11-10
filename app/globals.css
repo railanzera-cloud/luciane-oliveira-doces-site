@@ -4646,3 +4646,44 @@ footer {
   .admin-stalled-prints { padding: 12px; }
   .admin-stalled-print-actions > button { flex: 1 1 100%; }
 }
+
+
+/* Diagnóstico de impressão: distinguir fila não assumida de trabalho travado, sem CTA duplicado. */
+.admin-kitchen-issue-jobs { display: grid; gap: 9px; margin: 12px 0; }
+.admin-kitchen-issue-job {
+  display: grid; gap: 7px;
+  padding: 12px 13px;
+  border: 1px solid rgba(251, 207, 170, .28);
+  border-radius: 12px;
+  background: rgba(24, 12, 8, .26);
+}
+.admin-kitchen-issue-job-heading {
+  display: flex; flex-wrap: wrap;
+  justify-content: space-between; align-items: baseline; gap: 5px 12px;
+}
+.admin-kitchen-issue-job-heading strong { color: #ffe1c3; font-size: .98rem; }
+.admin-kitchen-issue-job-heading span { color: #ecc2a9; font-size: .82rem; font-weight: 600; }
+.admin-kitchen-issue-job small, .admin-kitchen-print-issue > small {
+  font-size: .8rem; line-height: 1.5; color: #ead1c3;
+}
+.admin-kitchen-issue-guidance { margin: 0; font-size: .83rem; line-height: 1.5; }
+.admin-kitchen-issue-next-step {
+  display: grid; gap: 9px;
+  margin: 10px 0 13px;
+  padding: 14px;
+  border: 1px solid rgba(251, 204, 156, .55);
+  border-radius: 12px;
+  background: rgba(51, 27, 15, .55);
+}
+.admin-kitchen-issue-next-step strong { color: #f8d5a8; }
+.admin-kitchen-issue-next-step p { margin: 0; font-size: .86rem; }
+.admin-kitchen-issue-next-step button,
+.admin-kitchen-issue-job button { min-height: 44px; white-space: normal; }
+.admin-kitchen-issue-next-step button:focus-visible,
+.admin-kitchen-issue-job button:focus-visible { outline: 2px solid #ffddb5; outline-offset: 2px; }
+@media (max-width: 420px) {
+  .admin-kitchen-issue-job { padding: 11px; }
+  .admin-kitchen-issue-job-heading { flex-direction: column; }
+  .admin-kitchen-issue-next-step { padding: 11px; }
+  .admin-kitchen-issue-next-step button { width: 100%; }
+}
