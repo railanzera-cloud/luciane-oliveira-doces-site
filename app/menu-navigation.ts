@@ -15,7 +15,7 @@ export function publicCategories(snapshot: AvailabilitySnapshot) {
 export function categoryFromUrl(href: string): CategoryId | null {
   const category = new URL(href).searchParams.get("categoria");
   if (category === "trufadas") return "pipocas";
-  return category === "pipocas" || category === "fatias" || category === "cones" ? category : null;
+  return category === "pipocas" || category === "fatias" || category === "cones" || category === "natal" ? category : null;
 }
 
 // Aceita links compartilháveis e entradas de histórico das versões anteriores.
@@ -26,6 +26,7 @@ export function trufadasFromUrl(href: string, state: { lucianeCrocante?: boolean
 
 export function resolveMenuCategory(snapshot: AvailabilitySnapshot, requested: CategoryId | null): CategoryId | null {
   const visible = publicCategories(snapshot);
+  if (requested === "natal" && isItemVisible(snapshot, CATEGORY_ITEM_KEYS.natal)) return requested;
   if (requested && visible.some(({ id }) => id === requested)
     && isItemAvailable(snapshot, CATEGORY_ITEM_KEYS[requested])) return requested;
 
