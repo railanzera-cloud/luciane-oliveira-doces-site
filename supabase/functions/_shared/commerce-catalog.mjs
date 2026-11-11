@@ -2,7 +2,8 @@ import { deliveryLocalityById, deliveryLegacyReviewState, deliveryLegacySpecific
 import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
-export const CATALOG_VERSION = "2026-11-08.cones-trufados";
+export const CATALOG_VERSION = "2026-11-11.chocotones-preserva-refrigerantes";
+import { DRINKS } from "./drinks-catalog.mjs";
 import { TRUFADAS_VARIANTS, getTrufadaVariant } from "./trufadas-variants.mjs";
 
 // O catálogo de vendas consulta cada combinação exata: produto + tamanho.
@@ -12,6 +13,7 @@ export const CATEGORY_ITEM_KEYS = Object.freeze({
   pipocas: "category_pipocas",
   fatias: "category_fatias",
   cones: "category_cones",
+  natal: "category_natal",
 });
 
 export const POPCORN_SIZES = Object.freeze({
@@ -42,6 +44,14 @@ export const CONES = Object.freeze({
   "cone-trufado-prestigio": Object.freeze({ id: "cone-trufado-prestigio", itemKey: "cone_prestigio", name: "Prestígio", priceCents: 1400 }),
   "cone-trufado-dois-amores": Object.freeze({ id: "cone-trufado-dois-amores", itemKey: "cone_dois_amores", name: "Dois Amores", priceCents: 1400 }),
   "cone-trufado-ferrero-rocher": Object.freeze({ id: "cone-trufado-ferrero-rocher", itemKey: "cone_ferrero_rocher", name: "Ferrero Rocher", priceCents: 1600 }),
+});
+
+// Chocotones são porções individuais, não fatias, cones ou panetones inteiros.
+export const CHOCOTONES = Object.freeze({
+  "chocotone-ninho-nutella": Object.freeze({ id: "chocotone-ninho-nutella", itemKey: "chocotone_ninho_nutella", name: "Ninho com Nutella", priceCents: 1899 }),
+  "chocotone-ferrero-rocher": Object.freeze({ id: "chocotone-ferrero-rocher", itemKey: "chocotone_ferrero_rocher", name: "Ferrero Rocher", priceCents: 1899 }),
+  "chocotone-casadinho": Object.freeze({ id: "chocotone-casadinho", itemKey: "chocotone_casadinho", name: "Casadinho", priceCents: 1699 }),
+  "chocotone-morango-brigadeiro-branco-chocolate": Object.freeze({ id: "chocotone-morango-brigadeiro-branco-chocolate", itemKey: "chocotone_morango_brigadeiro_branco_chocolate", name: "Morango com Brigadeiro Branco e Chocolate", priceCents: 1899 }),
 });
 
 export const SLICES = Object.freeze({
@@ -202,6 +212,35 @@ export function quoteCartItems(rawItems, now = Date.now()) {
         line_total_cents: cone.priceCents * quantity, catalog_version: CATALOG_VERSION,
       };
     }
+    if (Object.hasOwn(DRINKS, productId)) {
+      const drink = DRINKS[productId];
+      if (variantId !== drink.variantId || optionIds.length !== 0)
+        throw new Error("Escolha um refrigerante e volume válidos.");
+      availabilityKeys.add(drink.itemKey);
+      return {
+        item_key: drink.itemKey, product_id: productId, category_key: "extras_drinks", item_type: "drink",
+        name: drink.name, variant_id: drink.variantId, variant_item_key: drink.itemKey,
+        size_label: drink.label, option_ids: [], option_item_keys: [], option_names: [], quantity,
+        unit_price_cents: drink.priceCents, line_total_cents: drink.priceCents * quantity, catalog_version: CATALOG_VERSION,
+      };
+    }
+    if (Object.hasOwn(CHOCOTONES, productId)) {
+      const product = CHOCOTONES[productId];
+      if (variantId !== "porcao" || optionIds.length !== 0)
+        throw new Error("Escolha uma porção individual de Chocotone válida.");
+      availabilityKeys.add(CATEGORY_ITEM_KEYS.natal);
+      availabilityKeys.add(product.itemKey);
+      return {
+        item_key: product.itemKey, product_id: productId,
+        category_key: CATEGORY_ITEM_KEYS.natal, item_type: "chocotone",
+        name: `Chocotone — ${product.name}`,
+        variant_id: "porcao", variant_item_key: product.itemKey,
+        size_label: "1 porção individual", option_ids: [], option_item_keys: [],
+        option_names: [], quantity, unit_price_cents: product.priceCents,
+        line_total_cents: product.priceCents * quantity, catalog_version: CATALOG_VERSION,
+      };
+    }
+
     const slice = SLICES[productId];
     const sauceNames = { "calda-chocolate": "Com calda de chocolate", "calda-ninho": "Com calda de Ninho", "sem-calda": "Sem calda, por favor" };
     if (!slice || variantId !== "fatia" || optionIds.length > 1 || optionIds.some(id => !Object.hasOwn(sauceNames, id))) throw new Error("Escolha uma fatia válida.");

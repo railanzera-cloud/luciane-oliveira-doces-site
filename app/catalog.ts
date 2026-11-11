@@ -1,7 +1,7 @@
 import { promotionalPopcornPriceCents } from "../supabase/functions/_shared/popcorn-promotion.mjs";
 
-export type CategoryId = "pipocas" | "fatias" | "cones";
-export type ProductKind = "popcorn" | "slice" | "cone" | "drink";
+export type CategoryId = "pipocas" | "fatias" | "cones" | "natal";
+export type ProductKind = "popcorn" | "slice" | "cone" | "drink" | "chocotone";
 
 export type Variant = {
   id: string;
@@ -60,6 +60,7 @@ export const STORE_CONFIG = {
     pipocas: true,
     fatias: true,
     cones: true,
+    natal: true, // coleção temporária: só aparece quando liberada remotamente
   } satisfies Record<CategoryId, boolean>,
   enabledExtras: {
     drinks: false,
@@ -305,6 +306,43 @@ export const PRODUCTS: Product[] = [
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
     options: SLICE_OPTIONS,
   },
+  // Edição especial de Natal: porções individuais, disponibilidade por sabor no painel.
+  {
+    id: "chocotone-ninho-nutella", kind: "chocotone", category: "Coleção de Natal",
+    name: "Ninho com Nutella", available: true, subtitle: "Ninho com creme de avelã",
+    image: "/images/chocotone-ninho-nutella-detail-2026.webp",
+    cardImage: "/images/chocotone-ninho-nutella-card-2026.webp",
+    imageAlt: "Porção individual de chocotone recheado Ninho com Nutella em prato branco com ambiente natalino",
+    variants: [{ id: "porcao", label: "1 porção individual", whatsappLabel: "1 porção individual", price: 18.99, available: true }],
+    options: [],
+  },
+  {
+    id: "chocotone-ferrero-rocher", kind: "chocotone", category: "Coleção de Natal",
+    name: "Ferrero Rocher", available: true, subtitle: "Chocolate com cobertura crocante",
+    image: "/images/chocotone-ferrero-rocher-detail-2026.webp",
+    cardImage: "/images/chocotone-ferrero-rocher-card-2026.webp",
+    imageAlt: "Porção individual de chocotone recheado Ferrero Rocher em prato branco com ambiente natalino",
+    variants: [{ id: "porcao", label: "1 porção individual", whatsappLabel: "1 porção individual", price: 18.99, available: true }],
+    options: [],
+  },
+  {
+    id: "chocotone-casadinho", kind: "chocotone", category: "Coleção de Natal",
+    name: "Casadinho", available: true, subtitle: "Creme claro e chocolate",
+    image: "/images/chocotone-casadinho-detail-2026.webp",
+    cardImage: "/images/chocotone-casadinho-card-2026.webp",
+    imageAlt: "Porção individual de chocotone recheado Casadinho em prato branco com ambiente natalino",
+    variants: [{ id: "porcao", label: "1 porção individual", whatsappLabel: "1 porção individual", price: 16.99, available: true }],
+    options: [],
+  },
+  {
+    id: "chocotone-morango-brigadeiro-branco-chocolate", kind: "chocotone", category: "Coleção de Natal",
+    name: "Morango com Brigadeiro Branco e Chocolate", available: true, subtitle: "Morango fresco, brigadeiro branco e chocolate",
+    image: "/images/chocotone-morango-brigadeiro-branco-chocolate-detail-2026.webp",
+    cardImage: "/images/chocotone-morango-brigadeiro-branco-chocolate-card-2026.webp",
+    imageAlt: "Porção individual de chocotone recheado Morango com Brigadeiro Branco e Chocolate em prato branco com ambiente natalino",
+    variants: [{ id: "porcao", label: "1 porção individual", whatsappLabel: "1 porção individual", price: 18.99, available: true }],
+    options: [],
+  },
   {
     id: "coca-cola-220",
     kind: "drink",
@@ -347,6 +385,7 @@ export const POPCORN = PRODUCTS.find((product) => product.kind === "popcorn")!;
 export const SLICES = PRODUCTS.filter((product) => product.kind === "slice");
 export const CONES = PRODUCTS.filter((product) => product.kind === "cone");
 export const DRINKS = PRODUCTS.filter((product) => product.kind === "drink");
+export const CHOCOTONES = PRODUCTS.filter((product) => product.kind === "chocotone");
 
 export function popcornPrice(size: string, optionIds: readonly string[] = [], now = Date.now()): number {
   if (!Object.hasOwn(POPCORN_PRICING_GROUPS[1], size)) throw new Error("Escolha um tamanho atual de pipoca.");

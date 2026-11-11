@@ -1,0 +1,72 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { CHOCOTONES, CATEGORY_ITEM_KEYS, quoteCartItems } from "../supabase/functions/_shared/commerce-catalog.mjs";
+
+const files = (p) => readFileSync(new URL("../"+p,import.meta.url),"utf8");
+const offers = [
+  ["chocotone-ninho-nutella", "chocotone_ninho_nutella", 1899],
+  ["chocotone-ferrero-rocher", "chocotone_ferrero_rocher", 1899],
+  ["chocotone-casadinho", "chocotone_casadinho", 1699],
+  ["chocotone-morango-brigadeiro-branco-chocolate", "chocotone_morango_brigadeiro_branco_chocolate", 1899],
+];
+
+test("Natal tem quatro SKUs próprios, valores autoritativos e tipo distinto", () => {
+  assert.equal(Object.keys(CHOCOTONES).length,4);
+  assert.equal(CATEGORY_ITEM_KEYS.natal,"category_natal");
+  for (const [id,key,cents] of offers) {
+    assert.deepEqual([CHOCOTONES[id].itemKey,CHOCOTONES[id].priceCents],[key,cents]);
+    const quote = quoteCartItems([{product_id:id,variant_id:"porcao",option_ids:[],quantity:2}],Date.UTC(2026,10,11));
+    assert.equal(quote.items[0].item_type,"chocotone");
+    assert.equal(quote.items[0].size_label,"1 porção individual");
+    assert.equal(quote.items[0].unit_price_cents,cents);
+    assert.equal(quote.items[0].line_total_cents,2*cents);
+    assert.deepEqual(quote.availabilityKeys,["category_natal",key].sort());
+  }
+});
+
+test("Natal aceita pedidos mistos e rejeita variante/opções forjadas", () => {
+  const quote=quoteCartItems([
+    {product_id:"chocotone-casadinho",variant_id:"porcao",option_ids:[],quantity:1},
+    {product_id:"cone-trufado-prestigio",variant_id:"unidade",option_ids:[],quantity:1}
+  ]);
+  assert.equal(quote.subtotalCents,1699+1400);
+  assert.deepEqual(quote.items.map(x=>x.item_type),["chocotone","cone"]);
+  assert.throws(()=>quoteCartItems([{product_id:"chocotone-casadinho",variant_id:"inteiro",quantity:1}]),/porção individual/);
+  assert.throws(()=>quoteCartItems([{product_id:"chocotone-casadinho",variant_id:"porcao",quantity:1,option_ids:["calda-chocolate"]}]),/porção individual/);
+  assert.throws(()=>quoteCartItems([{product_id:"chocotone-casadinho",variant_id:"porcao",quantity:100}]),/Quantidade inválida/);
+});
+
+test("front não deixa Natal disponível por fallback e permanece com refrigerantes desligados", () => {
+  const cat=files("app/catalog.ts");
+  const statuses=files("app/menu-availability.ts");
+  assert.match(cat,/CHOCOTONES = PRODUCTS\.filter/);
+  assert.match(cat,/drinks:\s*false/);
+  assert.match(statuses,/\[CATEGORY_ITEM_KEYS\.natal\]: "hidden"/);
+  assert.match(statuses,/for \(const chocotone of CHOCOTONE_ITEMS\) statuses\[chocotone\.itemKey\] = "hidden"/);
+  assert.match(statuses,/CHOCOTONE_ITEM_KEYS/);
+});
+
+test("entrada sazonal preserva 4 categorias e controles de quantidades 0-99", () => {
+  const home=files("app/page.tsx");
+  const component=files("components/christmas-collection.tsx");
+  const nav=files("app/menu-navigation.ts");
+  assert.match(home,/className="natal-home-ribbon"/);
+  assert.match(home,/className="collection-menu"/);
+  assert.match(nav,/requested === "natal"/);
+  assert.match(component,/CHOCOTONES\.filter/);
+  assert.match(component,/count === 0 \?/);
+  assert.match(component,/onAdjust\(product, -1\)/);
+  assert.match(home,/function adjustChristmas\(product: Product, delta: -1 \| 1\)/);
+  assert.match(home,/CHOCOTONES\.some\(p => p\.id === item\.productId\)/);
+  assert.match(home,/if \(product\.kind === "chocotone"\)/);
+});
+
+test("admin expõe os quatro sabores e permanece condicionado ao cadastro remoto", () => {
+  const admin=files("app/admin/page.tsx");
+  const c=files("app/menu-availability.ts");
+  assert.match(admin,/availabilitySection === "natal"/);
+  assert.match(admin,/natalItems\.map/);
+  assert.match(admin,/Edição Especial de Natal/);
+  assert.match(c,/\[CATEGORY_ITEM_KEYS\.natal\]/);
+});

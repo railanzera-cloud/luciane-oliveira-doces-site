@@ -41,6 +41,7 @@ import {
   DELIVERY_TIME_ESTIMATE,
   DRINKS,
   CONES,
+  CHOCOTONES,
   POPCORN,
   popcornPrice,
   PRODUCTS,
@@ -57,6 +58,7 @@ import {
 import {
   CATEGORY_ITEM_KEYS,
   CONE_ITEM_KEYS,
+  CHOCOTONE_ITEM_KEYS,
   TRUFADA_STOCK_ITEM_KEYS,
   trufadaStockItemKey,
   POPCORN_FLAVOR_ITEM_KEYS,
@@ -77,6 +79,7 @@ import { getLimitedCupPhase, type LimitedCupPhase } from "@/app/limited-cup-rele
 import { isPopcornPromotionActive, POPCORN_PROMOTION } from "@/supabase/functions/_shared/popcorn-promotion.mjs";
 import { GOURMET_HOLIDAY_CREATIVE } from "@/lib/storefront-campaign-creative";
 import { StorefrontCampaignEditorial } from "@/components/storefront-campaign-editorial";
+import { ChristmasCollection } from "@/components/christmas-collection";
 import {
   buildRegisteredOrderMessage, captureOrderAttribution, cleanWhatsAppField, formatOrderMoney, newOrderContext,
   parseCashCents, paymentDescription, restoreOrderContext,
@@ -205,6 +208,7 @@ function isProductEnabled(product: Product) {
   if (product.kind === "popcorn") return isCategoryEnabled("pipocas");
   if (product.kind === "slice") return isCategoryEnabled("fatias");
   if (product.kind === "cone") return isCategoryEnabled("cones");
+  if (product.kind === "chocotone") return isCategoryEnabled("natal");
   return STORE_CONFIG.enabledExtras.drinks;
 }
 
@@ -279,7 +283,7 @@ function scrollToGourmetControl(step: "size" | "flavor" | "quantity") {
  * Rolagens de sabores, quantidade e checkout preservam seus destinos próprios.
  */
 function scrollToCategoryEntry(category: CategoryId) {
-  const id = category === "pipocas" ? "tamanhos" : category === "fatias" ? "fatias" : "cones-sabores";
+  const id = category === "pipocas" ? "tamanhos" : category === "fatias" ? "fatias" : category === "natal" ? "natal-sabores" : "cones-sabores";
   const target = document.getElementById(id);
   if (!target) return;
   const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
@@ -365,6 +369,7 @@ function productLabel(product: Product) {
     return `Pipocas Trufadas — ${product.name}`;
   }
   if (product.kind === "cone") return `Cone Trufado — ${product.name}`;
+  if (product.kind === "chocotone") return `Chocotone — ${product.name}`;
   return product.subtitle
     ? `${product.name} (${product.subtitle.toLowerCase()})`
     : product.name;
@@ -405,7 +410,7 @@ function cartAvailabilityIssues(
       return [{ cartItemId: item.id, itemLabel: "Item do pedido", reasons: ["O item não existe mais no catálogo."] }];
     }
 
-    const category = product.kind === "popcorn" ? "pipocas" : product.kind === "slice" ? "fatias" : product.kind === "cone" ? "cones" : null;
+    const category = product.kind === "popcorn" ? "pipocas" : product.kind === "slice" ? "fatias" : product.kind === "cone" ? "cones" : product.kind === "chocotone" ? "natal" : null;
     const reasons: string[] = [];
 
     if (variant.retired) {
@@ -447,6 +452,13 @@ function cartAvailabilityIssues(
             : `O sabor ${option?.name ?? optionId} está indisponível.`);
         }
       }
+    }
+
+    if (product.kind === "chocotone") {
+      const key = CHOCOTONE_ITEM_KEYS[product.id];
+      if (variant.id !== "porcao" || item.optionIds.length) reasons.push("Este chocotone é vendido por porção individual, sem personalizações.");
+      if (!key || !isItemAvailable(snapshot, key)) reasons.push(unavailableReason(snapshot, key ?? "", productLabel(product)));
+      if (snapshot.source !== "supabase") reasons.push("Não foi possível confirmar a disponibilidade do chocotone.");
     }
 
     if (product.kind === "cone") {
@@ -780,6 +792,11 @@ export default function Home() {
     && isItemVisible(availability, CATEGORY_ITEM_KEYS.fatias);
   const conesVisible = STORE_CONFIG.enabledCategories.cones
     && isItemVisible(availability, CATEGORY_ITEM_KEYS.cones);
+  const natalVisible = STORE_CONFIG.enabledCategories.natal
+    && isItemVisible(availability, CATEGORY_ITEM_KEYS.natal);
+  const natalAvailable = natalVisible && isItemAvailable(availability, CATEGORY_ITEM_KEYS.natal);
+  const natalCanBeAdded = natalAvailable && availability.ordersOpen && availability.source === "supabase"
+    && CHOCOTONES.some(p => isItemAvailable(availability, CHOCOTONE_ITEM_KEYS[p.id]));
   const pipocasAvailable = pipocasVisible
     && isItemAvailable(availability, CATEGORY_ITEM_KEYS.pipocas);
   const fatiasAvailable = fatiasVisible
@@ -789,11 +806,11 @@ export default function Home() {
   const conesCanBeAdded = conesAvailable && availability.ordersOpen && CONES.some(cone => cone.available && cone.variants[0].available && coneIsAvailable(cone.id));
 
   function categoryIsVisible(category: CategoryId) {
-    return category === "pipocas" ? pipocasVisible : category === "cones" ? conesVisible : fatiasVisible;
+    return category === "pipocas" ? pipocasVisible : category === "cones" ? conesVisible : category === "natal" ? natalVisible : fatiasVisible;
   }
 
   function categoryIsAvailable(category: CategoryId | null) {
-    return category === "pipocas" ? pipocasAvailable : category === "cones" ? conesAvailable : category === "fatias" && fatiasAvailable;
+    return category === "pipocas" ? pipocasAvailable : category === "cones" ? conesAvailable : category === "natal" ? natalAvailable : category === "fatias" && fatiasAvailable;
   }
 
   function popcornSizeIsVisible(variantId: string) {
@@ -1062,7 +1079,7 @@ export default function Home() {
   const cartNeedsSizeReview = cart.some((item) => PRODUCTS.find((product) => product.id === item.productId)?.variants.find((variant) => variant.id === item.variantId)?.retired);
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
   const cartContainsCrocantes = cart.some((item) => isTrufadaOrLegacy(item.productId));
-  const cartRequiresWhatsApp = cartContainsCrocantes || cart.some(item => CONES.some(cone => cone.id === item.productId));
+  const cartRequiresWhatsApp = cartContainsCrocantes || cart.some(item => CONES.some(cone => cone.id === item.productId) || CHOCOTONES.some(p => p.id === item.productId));
   const cupProductId = cupFlavorPreview ?? "";
   const cupProduct = PRODUCTS.find(product => product.id === cupProductId);
   const cupVariant = cupProduct?.variants.find(variant => variant.id === cupSizeId);
@@ -1254,7 +1271,7 @@ export default function Home() {
     : paymentReady
       ? "complete"
       : "active";
-  const builderFlowActive = !showLimitedCupView && Boolean(activeCategory && (editingId || builderEngaged || draftReady || !cart.length));
+  const builderFlowActive = !showLimitedCupView && activeCategory !== "natal" && Boolean(activeCategory && (editingId || builderEngaged || draftReady || !cart.length));
   // A barra de navegação existente vira uma ação compacta somente enquanto
   // há uma escolha válida menor que o limite e a continuação não está visível.
   const gourmetContinueAvailable = builderFlowActive && activeCategory === "pipocas"
@@ -1830,6 +1847,39 @@ export default function Home() {
     requestScroll(wasEditing ? "carrinho" : "recebimento");
   }
 
+  function adjustChristmas(product: Product, delta: -1 | 1) {
+    const itemKey = CHOCOTONE_ITEM_KEYS[product.id];
+    if (product.kind !== "chocotone" || !itemKey) return;
+    const existing = cart.find(item => item.productId === product.id);
+    const already = existing?.quantity ?? 0;
+    if (delta === 1 && (already >= 99 || !availability.ordersOpen || availability.source !== "supabase"
+      || !natalAvailable || !isItemAvailable(availability, itemKey) || !product.available)) return;
+    if (delta === -1 && already <= 0) return;
+    setCart(current => {
+      const item = current.find(entry => entry.productId === product.id);
+      const quantity = item?.quantity ?? 0;
+      const next = quantity + delta;
+      if (next <= 0) return current.filter(entry => entry.productId !== product.id);
+      if (next > 99) return current;
+      if (item) return current.map(entry => entry.id === item.id ? { ...entry, quantity: next } : entry);
+      return [...current, { id: makeCartId(), productId: product.id, variantId: "porcao", optionIds: [], quantity: 1 }];
+    });
+    setCheckoutAvailabilityMessage("");
+    setBuilderEngaged(false);
+    if (delta === 1) {
+      trackMetaEvent("AddToCart", metaProductPayload(product, product.variants[0], 1));
+      setAddedNotice({
+        category: "natal",
+        productId: product.id,
+        description: `Chocotone — ${product.name} · porção individual`,
+      });
+    } else if (already === 1) {
+      setAddedNotice(null);
+    }
+    // O cliente pode misturar sabores e corrigir quantidades aqui mesmo:
+    // não rolar automaticamente após cada toque nem mover para o checkout.
+  }
+
   function addDrink(product: Product) {
     if (!availability.ordersOpen || !isProductEnabled(product) || !product.available || !product.variants[0].available) return;
     setCart((current) => {
@@ -1853,10 +1903,15 @@ export default function Home() {
     const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
     if (isTrufadaOrLegacy(product.id)) return; // Quantidade é alterável no carrinho.
     if (product.kind === "drink" || !isProductEnabled(product)) return;
-    const itemCategory: CategoryId = product.kind === "popcorn" ? "pipocas" : product.kind === "cone" ? "cones" : "fatias";
+    const itemCategory: CategoryId = product.kind === "popcorn" ? "pipocas" : product.kind === "cone" ? "cones" : product.kind === "chocotone" ? "natal" : "fatias";
     if (!categoryIsAvailable(itemCategory)) {
       setCheckoutAvailabilityMessage(`${product.category} estão indisponíveis. Remova este item ou escolha outra categoria.`);
       scrollToSection("carrinho");
+      return;
+    }
+    if (product.kind === "chocotone") {
+      // A própria coleção edita a quantidade, incluindo remoção a zero.
+      selectCategory("natal", true);
       return;
     }
     window.history.replaceState(window.history.state, "", categoryUrl(window.location.href, itemCategory));
@@ -1921,7 +1976,7 @@ export default function Home() {
 
 
   async function finishOnSite(card?: MercadoPagoCardData) {
-    if (cart.some((item) => isTrufadaOrLegacy(item.productId) || CONES.some(cone => cone.id === item.productId))) {
+    if (cart.some((item) => isTrufadaOrLegacy(item.productId) || CONES.some(cone => cone.id === item.productId) || CHOCOTONES.some(p => p.id === item.productId))) {
       setCheckoutChannel("whatsapp");
       setCheckoutAvailabilityMessage("Pedidos com Trufados são concluídos pelo WhatsApp.");
       return;
@@ -2294,10 +2349,10 @@ export default function Home() {
           {activeCategory ? (
             <div className="entry-heading">
               <p className="eyebrow">Luciane Oliveira Doces</p>
-              <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : activeCategory === "cones" ? "Cones Trufados" : "Fatias Artesanais"}</h1>
+              <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : activeCategory === "cones" ? "Cones Trufados" : activeCategory === "natal" ? "Chocotones Recheados" : "Fatias Artesanais"}</h1>
               <p className="entry-copy">{activeCategory === "pipocas"
                 ? showLimitedCupView ? "Três sabores artesanais em pacotes P, M e G." : "Escolha o tamanho e combine seus sabores."
-                : activeCategory === "cones" ? "Escolha seu sabor e a quantidade desejada." : "Sabores disponíveis"}</p>
+                : activeCategory === "cones" ? "Escolha seu sabor e a quantidade desejada." : activeCategory === "natal" ? "Edição especial de Natal · porções individuais, quatro sabores." : "Sabores disponíveis"}</p>
               {availability.ordersOpen && visibleCategories.length > 0 && (
                 <p className="delivery-time-estimate">
                   <span className="delivery-time-copy">
@@ -2312,6 +2367,21 @@ export default function Home() {
               <p className="collection-kicker">Cardápio artesanal</p>
               <h1>Escolha seu <em>doce.</em></h1>
             </div>
+          )}
+          {!activeCategory && hasResolvedAvailability && natalVisible && (
+            <button type="button" className="natal-home-ribbon" aria-label="Edição especial de Natal: conhecer os quatro chocotones recheados"
+              onClick={() => selectCategory("natal")}>
+              <span className="natal-home-copy">
+                <span className="natal-home-eyebrow">✦ Edição especial de Natal</span>
+                <strong className="natal-home-title">Chocotones recheados</strong>
+                <span className="natal-home-description">4 sabores · Porções individuais</span>
+                <span className="natal-home-action">Conhecer sabores <ChevronRight size={16} aria-hidden="true"/></span>
+              </span>
+              <span className="natal-home-image" aria-hidden="true">
+                <img src="/images/chocotone-morango-brigadeiro-branco-chocolate-card-2026.webp" alt=""
+                  width="80" height="76" decoding="async" fetchPriority="high"/>
+              </span>
+            </button>
           )}
           {!hasResolvedAvailability ? (
             <div className="collection-loading" role="status">Carregando cardápio…</div>
@@ -2523,7 +2593,7 @@ export default function Home() {
               <button type="button" className="builder-nav-back" onClick={returnToCategories}>
                 <ArrowLeft size={16} aria-hidden="true" /> Voltar às categorias
               </button>
-              {(visibleCategories.some(category => category.id !== activeCategory) || activeCategory === "pipocas") && (
+              {(visibleCategories.some(category => category.id !== activeCategory) || activeCategory === "pipocas" || (natalCanBeAdded && activeCategory !== "natal")) && (
                 <div className="builder-nav-more" ref={otherCategoriesRef}>
                   <button type="button" className="builder-more-toggle" aria-expanded={otherCategoriesOpen}
                     aria-controls="builder-more-options"
@@ -2539,6 +2609,12 @@ export default function Home() {
                           <ChevronRight size={15} aria-hidden="true" />
                         </button>
                       ))}
+                      {natalCanBeAdded && activeCategory !== "natal" && (
+                        <button type="button" className="builder-more-option" onClick={() => selectCategory("natal")}>
+                          <span>Chocotones · Edição de Natal</span>
+                          <ChevronRight size={15} aria-hidden="true" />
+                        </button>
+                      )}
                       {activeCategory === "pipocas" && (
                         <button type="button" className="builder-more-option" onClick={openLimitedCupEdition}>
                           <span>Pipocas Trufadas</span>
@@ -2552,10 +2628,10 @@ export default function Home() {
           )}
           <div className="section-intro" id="potes-recheados">
             <p className="eyebrow">Seu pedido, do seu jeito</p>
-            <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : activeCategory === "cones" ? "Escolha seu cone." : "Sua vitrine de sabores."}</h2>
+            <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : activeCategory === "cones" ? "Escolha seu cone." : activeCategory === "natal" ? "Um Natal cheio de recheio." : "Sua vitrine de sabores."}</h2>
             <p>{activeCategory === "pipocas"
               ? "Um tamanho, seus sabores favoritos. Tudo do seu jeito."
-              : activeCategory === "cones" ? "Um sabor por vez. Adicione quantos desejar e finalize tudo no mesmo pedido." : "Escolha sua fatia favorita. Depois, você pode adicionar outras."}</p>
+              : activeCategory === "cones" ? "Um sabor por vez. Adicione quantos desejar e finalize tudo no mesmo pedido." : activeCategory === "natal" ? "Escolha seus chocotones individuais. Combine sabores sem perder o pedido." : "Escolha sua fatia favorita. Depois, você pode adicionar outras."}</p>
 
           </div>
 
@@ -2570,7 +2646,11 @@ export default function Home() {
             </div>
           )}
 
-          {activeCategory === "pipocas" && pipocasVisible ? (
+          {activeCategory === "natal" && natalVisible ? (
+            <ChristmasCollection availability={availability}
+              quantities={Object.fromEntries(CHOCOTONES.map(p => [p.id, cart.filter(item => item.productId === p.id).reduce((sum,item)=>sum+item.quantity,0)]))}
+              onAdjust={adjustChristmas} onCheckout={() => scrollToSection("carrinho")} />
+          ) : activeCategory === "pipocas" && pipocasVisible ? (
             <div className="builder-card">
               <section className={`step-block step-state-${popcornSizeStepState}`} id="tamanhos" aria-labelledby="step-size" aria-current={popcornSizeStepState === "active" ? "step" : undefined}>
 
@@ -3140,6 +3220,7 @@ export default function Home() {
                       {pipocasAvailable && <Button type="button" variant="outline" onClick={() => startAnother("pipocas")}><Plus size={16} /> {addMoreButtonLabel("pipocas", cart)}</Button>}
                       {conesCanBeAdded && <Button type="button" variant="outline" onClick={() => startAnother("cones")}><ShoppingBag size={16} /> {addMoreButtonLabel("cones", cart)}</Button>}
                       {cupCanBeAddedFromCheckout && <Button type="button" variant="outline" className="crocantes-cross-sell" onClick={startAnotherCrocantes}><ShoppingBag size={16} /> {cartContainsCrocantes ? "Adicionar outro pacote" : "Adicionar pacote Trufado"} <ChevronRight size={15} aria-hidden="true" /></Button>}
+                      {natalCanBeAdded && <Button type="button" variant="outline" onClick={() => startAnother("natal")}><ShoppingBag size={16} /> Chocotones de Natal</Button>}
                       {STORE_CONFIG.enabledExtras.drinks && <Button type="button" variant="outline" onClick={() => scrollToSection("acompanhamentos")}><CupSoda size={16} /> Refrigerante</Button>}
                     </div>
                   </div>}
@@ -3443,7 +3524,7 @@ export default function Home() {
 
       <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
-      {(activeCategory || cart.length > 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen && Boolean(cupFlavorPreview && cupSizeId) && cupCanOrder)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && !(builderFlowActive && activeCategory === "pipocas" && gourmetFlavorsInView && !gourmetContinueAvailable) && (
+      {(activeCategory || cart.length > 0) && !(activeCategory === "natal" && cart.length === 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen && Boolean(cupFlavorPreview && cupSizeId) && cupCanOrder)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && !(builderFlowActive && activeCategory === "pipocas" && gourmetFlavorsInView && !gourmetContinueAvailable) && (
       <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"} ${stickyIsCheckoutReady && checkoutChannel === "whatsapp" ? "is-whatsapp" : ""} ${cupBuilderFlowActive ? "is-crocantes-step" : ""} ${stickyUsesCheckoutAction ? "is-checkout-flow" : ""} ${builderFlowActive && activeCategory === "pipocas" ? "is-gourmet-step" : ""} ${gourmetContinueAvailable ? "is-gourmet-flavor-continue" : ""}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
         <div className="mobile-sticky-price" aria-live="polite" aria-atomic="true">
           {gourmetContinueAvailable ? <><small>Sabores escolhidos</small><strong>{popcornOptionIds.length} de {popcornMaxOptions}</strong></>
