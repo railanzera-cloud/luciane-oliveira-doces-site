@@ -41,6 +41,7 @@ import {
   DELIVERY_TIME_ESTIMATE,
   DRINKS,
   CONES,
+  CHOCOTONES,
   POPCORN,
   popcornPrice,
   PRODUCTS,
@@ -57,6 +58,7 @@ import {
 import {
   CATEGORY_ITEM_KEYS,
   CONE_ITEM_KEYS,
+  CHOCOTONE_ITEM_KEYS,
   TRUFADA_STOCK_ITEM_KEYS,
   trufadaStockItemKey,
   POPCORN_FLAVOR_ITEM_KEYS,
@@ -77,6 +79,7 @@ import { getLimitedCupPhase, type LimitedCupPhase } from "@/app/limited-cup-rele
 import { isPopcornPromotionActive, POPCORN_PROMOTION } from "@/supabase/functions/_shared/popcorn-promotion.mjs";
 import { GOURMET_HOLIDAY_CREATIVE } from "@/lib/storefront-campaign-creative";
 import { StorefrontCampaignEditorial } from "@/components/storefront-campaign-editorial";
+import { ChristmasCollection } from "@/components/christmas-collection";
 import {
   buildRegisteredOrderMessage, captureOrderAttribution, cleanWhatsAppField, formatOrderMoney, newOrderContext,
   parseCashCents, paymentDescription, restoreOrderContext,
@@ -205,6 +208,7 @@ function isProductEnabled(product: Product) {
   if (product.kind === "popcorn") return isCategoryEnabled("pipocas");
   if (product.kind === "slice") return isCategoryEnabled("fatias");
   if (product.kind === "cone") return isCategoryEnabled("cones");
+  if (product.kind === "chocotone") return isCategoryEnabled("natal");
   return STORE_CONFIG.enabledExtras.drinks;
 }
 
@@ -279,7 +283,7 @@ function scrollToGourmetControl(step: "size" | "flavor" | "quantity") {
  * Rolagens de sabores, quantidade e checkout preservam seus destinos próprios.
  */
 function scrollToCategoryEntry(category: CategoryId) {
-  const id = category === "pipocas" ? "tamanhos" : category === "fatias" ? "fatias" : "cones-sabores";
+  const id = category === "pipocas" ? "tamanhos" : category === "fatias" ? "fatias" : category === "natal" ? "natal-sabores" : "cones-sabores";
   const target = document.getElementById(id);
   if (!target) return;
   const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
@@ -365,6 +369,7 @@ function productLabel(product: Product) {
     return `Pipocas Trufadas — ${product.name}`;
   }
   if (product.kind === "cone") return `Cone Trufado — ${product.name}`;
+  if (product.kind === "chocotone") return `Chocotone — ${product.name}`;
   return product.subtitle
     ? `${product.name} (${product.subtitle.toLowerCase()})`
     : product.name;
@@ -405,7 +410,7 @@ function cartAvailabilityIssues(
       return [{ cartItemId: item.id, itemLabel: "Item do pedido", reasons: ["O item não existe mais no catálogo."] }];
     }
 
-    const category = product.kind === "popcorn" ? "pipocas" : product.kind === "slice" ? "fatias" : product.kind === "cone" ? "cones" : null;
+    const category = product.kind === "popcorn" ? "pipocas" : product.kind === "slice" ? "fatias" : product.kind === "cone" ? "cones" : product.kind === "chocotone" ? "natal" : null;
     const reasons: string[] = [];
 
     if (variant.retired) {
@@ -447,6 +452,13 @@ function cartAvailabilityIssues(
             : `O sabor ${option?.name ?? optionId} está indisponível.`);
         }
       }
+    }
+
+    if (product.kind === "chocotone") {
+      const key = CHOCOTONE_ITEM_KEYS[product.id];
+      if (variant.id !== "porcao" || item.optionIds.length) reasons.push("Este chocotone é vendido por porção individual, sem personalizações.");
+      if (!key || !isItemAvailable(snapshot, key)) reasons.push(unavailableReason(snapshot, key ?? "", productLabel(product)));
+      if (snapshot.source !== "supabase") reasons.push("Não foi possível confirmar a disponibilidade do chocotone.");
     }
 
     if (product.kind === "cone") {
@@ -780,6 +792,11 @@ export default function Home() {
     && isItemVisible(availability, CATEGORY_ITEM_KEYS.fatias);
   const conesVisible = STORE_CONFIG.enabledCategories.cones
     && isItemVisible(availability, CATEGORY_ITEM_KEYS.cones);
+  const natalVisible = STORE_CONFIG.enabledCategories.natal
+    && isItemVisible(availability, CATEGORY_ITEM_KEYS.natal);
+  const natalAvailable = natalVisible && isItemAvailable(availability, CATEGORY_ITEM_KEYS.natal);
+  const natalCanBeAdded = natalAvailable && availability.ordersOpen && availability.source === "supabase"
+    && CHOCOTONES.some(p => isItemAvailable(availability, CHOCOTONE_ITEM_KEYS[p.id]));
   const pipocasAvailable = pipocasVisible
     && isItemAvailable(availability, CATEGORY_ITEM_KEYS.pipocas);
   const fatiasAvailable = fatiasVisible
@@ -789,11 +806,11 @@ export default function Home() {
   const conesCanBeAdded = conesAvailable && availability.ordersOpen && CONES.some(cone => cone.available && cone.variants[0].available && coneIsAvailable(cone.id));
 
   function categoryIsVisible(category: CategoryId) {
-    return category === "pipocas" ? pipocasVisible : category === "cones" ? conesVisible : fatiasVisible;
+    return category === "pipocas" ? pipocasVisible : category === "cones" ? conesVisible : category === "natal" ? natalVisible : fatiasVisible;
   }
 
   function categoryIsAvailable(category: CategoryId | null) {
-    return category === "pipocas" ? pipocasAvailable : category === "cones" ? conesAvailable : category === "fatias" && fatiasAvailable;
+    return category === "pipocas" ? pipocasAvailable : category === "cones" ? conesAvailable : category === "natal" ? natalAvailable : category === "fatias" && fatiasAvailable;
   }
 
   function popcornSizeIsVisible(variantId: string) {
@@ -1062,7 +1079,7 @@ export default function Home() {
   const cartNeedsSizeReview = cart.some((item) => PRODUCTS.find((product) => product.id === item.productId)?.variants.find((variant) => variant.id === item.variantId)?.retired);
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
   const cartContainsCrocantes = cart.some((item) => isTrufadaOrLegacy(item.productId));
-  const cartRequiresWhatsApp = cartContainsCrocantes || cart.some(item => CONES.some(cone => cone.id === item.productId));
+  const cartRequiresWhatsApp = cartContainsCrocantes || cart.some(item => CONES.some(cone => cone.id === item.productId) || CHOCOTONES.some(p => p.id === item.productId));
   const cupProductId = cupFlavorPreview ?? "";
   const cupProduct = PRODUCTS.find(product => product.id === cupProductId);
   const cupVariant = cupProduct?.variants.find(variant => variant.id === cupSizeId);
@@ -1254,7 +1271,7 @@ export default function Home() {
     : paymentReady
       ? "complete"
       : "active";
-  const builderFlowActive = !showLimitedCupView && Boolean(activeCategory && (editingId || builderEngaged || draftReady || !cart.length));
+  const builderFlowActive = !showLimitedCupView && activeCategory !== "natal" && Boolean(activeCategory && (editingId || builderEngaged || draftReady || !cart.length));
   // A barra de navegação existente vira uma ação compacta somente enquanto
   // há uma escolha válida menor que o limite e a continuação não está visível.
   const gourmetContinueAvailable = builderFlowActive && activeCategory === "pipocas"
@@ -1921,7 +1938,7 @@ export default function Home() {
 
 
   async function finishOnSite(card?: MercadoPagoCardData) {
-    if (cart.some((item) => isTrufadaOrLegacy(item.productId) || CONES.some(cone => cone.id === item.productId))) {
+    if (cart.some((item) => isTrufadaOrLegacy(item.productId) || CONES.some(cone => cone.id === item.productId) || CHOCOTONES.some(p => p.id === item.productId))) {
       setCheckoutChannel("whatsapp");
       setCheckoutAvailabilityMessage("Pedidos com Trufados são concluídos pelo WhatsApp.");
       return;
