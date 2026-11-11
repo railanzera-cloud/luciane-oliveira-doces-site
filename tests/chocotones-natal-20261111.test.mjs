@@ -58,6 +58,13 @@ test("entrada sazonal preserva 4 categorias e controles de quantidades 0-99", ()
   assert.match(component,/count === 0 \?/);
   assert.match(component,/onAdjust\(product, -1\)/);
   assert.match(home,/function adjustChristmas\(product: Product, delta: -1 \| 1\)/);
+  assert.match(home,/function continueChristmas\(\)/);
+  assert.match(home,/scrollRequest\.id === "category-entry-natal"/);
+  assert.match(home,/const natalPicking = activeCategory === "natal" && builderEngaged/);
+  assert.match(home,/const stickyUsesCheckoutAction = !builderFlowActive && !cupBuilderFlowActive && !natalPicking/);
+  assert.match(home,/requestScroll\("recebimento"\);/);
+  assert.match(component,/id="natal-sabores"/);
+  assert.match(component,/Continuar pedido/);
   assert.match(home,/CHOCOTONES\.some\(p => p\.id === item\.productId\)/);
   assert.match(home,/if \(product\.kind === "chocotone"\)/);
 });

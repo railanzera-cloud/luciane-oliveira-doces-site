@@ -58,12 +58,27 @@ try {
       await banner.click();
       await page.locator(".natal-product-card").first().waitFor({state:"visible"});
       assert.equal(await page.locator(".natal-product-card").count(),4,"Vitrine própria com quatro sabores");
+      await page.waitForFunction(() => {
+        const target = document.getElementById("natal-sabores");
+        const y = target?.getBoundingClientRect().top ?? -1;
+        return y >= 45 && y <= 235;
+      });
+      const entranceTop = await page.locator("#natal-sabores").evaluate(el => Math.round(el.getBoundingClientRect().top));
+      assert.ok(entranceTop >= 45 && entranceTop <= 235,"Entrada Natal tem de enquadrar os produtos: "+entranceTop);
+      if(width<700) {
+        const sticky=page.locator(".mobile-sticky-bar button");
+        await sticky.waitFor({state:"visible"});
+        assert.match(await sticky.innerText(),/Escolher chocotones/);
+      }
       await page.locator(".natal-collection").screenshot({path:path.join(out,"colecao-natal-"+width+".png"),animations:"disabled"});
       const add=page.locator(".natal-product-card").first().locator(".natal-product-add");
       const first=page.locator(".natal-product-card").first();
       await add.scrollIntoViewIfNeeded();
       const top0=await first.evaluate(el=>el.getBoundingClientRect().top);
       await add.click();
+      if(width<700) assert.match(await page.locator(".mobile-sticky-bar button").innerText(),/Continuar pedido/);
+      const topAfterAdd=await first.evaluate(el=>el.getBoundingClientRect().top);
+      assert.ok(Math.abs(topAfterAdd-top0)<12,"Adicionar chocotone não pode provocar rolagem: "+(topAfterAdd-top0));
       const q=first.locator(".natal-quantity-control");
       await q.waitFor({state:"visible"});
       assert.equal((await q.locator("span").innerText()).trim(),"1");
@@ -77,6 +92,23 @@ try {
       await page.locator(".natal-product-card").nth(1).locator(".natal-product-add").click();
       await page.locator(".natal-continue").click();
       assert.equal(await page.locator("#carrinho .cart-item").count(),2,"Pedido misto de dois chocotones");
+      await page.waitForFunction(() => {
+        const rect = document.getElementById("recebimento")?.getBoundingClientRect();
+        return rect && rect.top < 235 && rect.bottom > 240;
+      });
+      assert.equal(await page.locator(".boutique-added-continuity .boutique-added-other").count(),1,
+        "Continuar deve apresentar sugestões de outros doces antes de entrega/retirada");
+      if(width<700) {
+        const sticky=page.locator(".mobile-sticky-bar button");
+        await sticky.waitFor({state:"visible"});
+        assert.match(await sticky.innerText(),/Entrega ou retirada/);
+        await sticky.click();
+        await page.waitForFunction(() => {
+          const rect = document.getElementById("recebimento-opcoes")?.getBoundingClientRect();
+          return rect && rect.top >= 20 && rect.top <= 220;
+        });
+        assert.equal(await page.locator('#recebimento .choice-card').count(),2);
+      }
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
       assert.equal(errors.length,0,errors.join(" / "));
       console.log("Natal QA",width,"ok",JSON.stringify(dimensions));
