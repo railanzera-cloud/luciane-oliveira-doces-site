@@ -2593,7 +2593,7 @@ export default function Home() {
               <button type="button" className="builder-nav-back" onClick={returnToCategories}>
                 <ArrowLeft size={16} aria-hidden="true" /> Voltar às categorias
               </button>
-              {(visibleCategories.some(category => category.id !== activeCategory) || activeCategory === "pipocas") && (
+              {(visibleCategories.some(category => category.id !== activeCategory) || activeCategory === "pipocas" || (natalCanBeAdded && activeCategory !== "natal")) && (
                 <div className="builder-nav-more" ref={otherCategoriesRef}>
                   <button type="button" className="builder-more-toggle" aria-expanded={otherCategoriesOpen}
                     aria-controls="builder-more-options"
@@ -2609,6 +2609,12 @@ export default function Home() {
                           <ChevronRight size={15} aria-hidden="true" />
                         </button>
                       ))}
+                      {natalCanBeAdded && activeCategory !== "natal" && (
+                        <button type="button" className="builder-more-option" onClick={() => selectCategory("natal")}>
+                          <span>Chocotones · Edição de Natal</span>
+                          <ChevronRight size={15} aria-hidden="true" />
+                        </button>
+                      )}
                       {activeCategory === "pipocas" && (
                         <button type="button" className="builder-more-option" onClick={openLimitedCupEdition}>
                           <span>Pipocas Trufadas</span>
@@ -3214,6 +3220,7 @@ export default function Home() {
                       {pipocasAvailable && <Button type="button" variant="outline" onClick={() => startAnother("pipocas")}><Plus size={16} /> {addMoreButtonLabel("pipocas", cart)}</Button>}
                       {conesCanBeAdded && <Button type="button" variant="outline" onClick={() => startAnother("cones")}><ShoppingBag size={16} /> {addMoreButtonLabel("cones", cart)}</Button>}
                       {cupCanBeAddedFromCheckout && <Button type="button" variant="outline" className="crocantes-cross-sell" onClick={startAnotherCrocantes}><ShoppingBag size={16} /> {cartContainsCrocantes ? "Adicionar outro pacote" : "Adicionar pacote Trufado"} <ChevronRight size={15} aria-hidden="true" /></Button>}
+                      {natalCanBeAdded && <Button type="button" variant="outline" onClick={() => startAnother("natal")}><ShoppingBag size={16} /> Chocotones de Natal</Button>}
                       {STORE_CONFIG.enabledExtras.drinks && <Button type="button" variant="outline" onClick={() => scrollToSection("acompanhamentos")}><CupSoda size={16} /> Refrigerante</Button>}
                     </div>
                   </div>}

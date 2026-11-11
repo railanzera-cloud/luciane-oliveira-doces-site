@@ -124,7 +124,7 @@ export default function AdminPage() {
   const [loadError, setLoadError] = useState("");
   const [pendingKeys, setPendingKeys] = useState<string[]>([]);
   const [notice, setNotice] = useState("");
-  const [availabilitySection, setAvailabilitySection] = useState<"trufadas" | "gourmet" | "fatias" | "cones">("trufadas");
+  const [availabilitySection, setAvailabilitySection] = useState<"trufadas" | "gourmet" | "fatias" | "cones" | "natal">("trufadas");
   const [gourmetView, setGourmetView] = useState<"sizes" | "flavors">("flavors");
   const [sliceSearch, setSliceSearch] = useState("");
   const [trufadasDirty, setTrufadasDirty] = useState(false);
@@ -136,12 +136,13 @@ export default function AdminPage() {
   const slices = MENU_AVAILABILITY_ITEMS.filter((item) => item.itemType === "slice");
   const releasedSlices = slices.filter(item => !item.isDraft);
   const cones = MENU_AVAILABILITY_ITEMS.filter((item) => item.categoryKey === CATEGORY_ITEM_KEYS.cones && item.itemType === "product");
+  const natalItems = MENU_AVAILABILITY_ITEMS.filter((item) => item.categoryKey === CATEGORY_ITEM_KEYS.natal && item.itemType === "product");
   const gourmetItems = [...popcornSizes, ...popcornFlavors];
   const visibleSlices = slices.filter(item => normalizeAdminSearch(item.name)
     .includes(normalizeAdminSearch(sliceSearch)));
   const countReady = (items: MenuAvailabilityItem[]) => items.filter(item => availability.statuses[item.itemKey] === "available").length;
   const controlsUnavailable = loadingMenu || availability.source !== "supabase" || Boolean(loadError);
-  function selectAvailabilitySection(next: "trufadas" | "gourmet" | "fatias" | "cones") {
+  function selectAvailabilitySection(next: "trufadas" | "gourmet" | "fatias" | "cones" | "natal") {
     if (next !== availabilitySection && availabilitySection === "trufadas" && trufadasDirty) {
       setAvailabilityWarning("Há alterações não salvas nas Trufadas. Salve ou descarte no editor antes de mudar de categoria.");
       return;
@@ -382,6 +383,12 @@ export default function AdminPage() {
             onClick={() => selectAvailabilitySection("gourmet")}>
             <strong>Gourmet</strong><small>{countReady(gourmetItems)}/{gourmetItems.length} liberados</small>
           </button>
+          <button type="button" role="tab" id="admin-availability-tab-natal"
+            aria-selected={availabilitySection === "natal"} aria-controls="admin-availability-panel-natal"
+            className={availabilitySection === "natal" ? "is-active" : ""}
+            onClick={() => selectAvailabilitySection("natal")}>
+            <strong>🎄 Natal</strong><small>{countReady(natalItems)}/{natalItems.length} sabores</small>
+          </button>
           <button type="button" role="tab" id="admin-availability-tab-fatias"
             aria-selected={availabilitySection === "fatias"} aria-controls="admin-availability-panel-fatias"
             className={availabilitySection === "fatias" ? "is-active" : ""}
@@ -422,6 +429,23 @@ export default function AdminPage() {
               onDirtyChange={setTrufadasDirty}
             />
           </div>
+        )}
+
+        {availabilitySection === "natal" && (
+          <section className="admin-category-section admin-category-compact" role="tabpanel" id="admin-availability-panel-natal"
+            aria-labelledby="admin-availability-tab-natal">
+            <div className="admin-category-heading"><div><p className="eyebrow">Coleção temporária · 2026</p><h2>Chocotones Recheados</h2></div></div>
+            <p className="admin-category-explanation">
+              Primeiro libere "Edição Especial de Natal" em Configurações gerais; em seguida controle cada sabor como Disponível, Esgotado ou Oculto.
+              O botão Oculto retira a coleção do cardápio sem apagar vendas anteriores.
+            </p>
+            <div className="admin-group-title"><h3>Porções individuais</h3><span>{countReady(natalItems)}/{natalItems.length} disponíveis</span></div>
+            <div className="admin-compact-grid">
+              {natalItems.map(item => <AvailabilityControl key={item.itemKey} item={item}
+                status={categoryStatus(item.itemKey)} pending={pendingKeys.includes(item.itemKey)}
+                disabled={controlsUnavailable} onChange={status => changeItemStatus(item,status)} />)}
+            </div>
+          </section>
         )}
 
         {availabilitySection === "cones" && (

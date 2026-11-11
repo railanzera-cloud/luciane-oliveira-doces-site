@@ -15,10 +15,11 @@ import "./mobile-refinamentos-funil-20261108.css";
 import "./refinamento-cones-visual-20261108.css";
 import "./category-navigation-refinement-20261108.css";
 import "./category-navigation-packaged-20261108.css";
+import "./colecao-natal-2026.css";
 
 export const metadata: Metadata = {
-  title: "Luciane Oliveira Doces | Cones Trufados, Pipocas e Fatias Artesanais",
-  description: "Conheça Cones Trufados, Pipocas Gourmet, Pipocas Trufadas e Fatias Artesanais da Luciane Oliveira Doces. Monte seu pedido e finalize pelo WhatsApp em Paragominas.",
+  title: "Luciane Oliveira Doces | Chocotones de Natal, Cones Trufados, Pipocas e Fatias",
+  description: "Conheça os Chocotones Recheados da Edição de Natal, Cones Trufados, Pipocas e Fatias da Luciane Oliveira Doces em Paragominas. Monte seu pedido e finalize pelo WhatsApp.",
 };
 
 export const viewport: Viewport = {
