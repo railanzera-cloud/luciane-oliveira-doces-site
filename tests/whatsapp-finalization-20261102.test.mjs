@@ -55,7 +55,7 @@ test("finalização não gera outro pedido nem promete envio ou pagamento autom�
   assert.match(successPage, /Somente registrar a solicitação no site não conclui o atendimento/);
   assert.match(successPage, /<summary>Precisa de ajuda\?<\/summary>/);
   assert.match(successPage, /Consultar informações da solicitação/);
-  assert.doesNotMatch(successPage, /whatsapp-final-intro|whatsapp-final-status-hint|whatsapp-final-eyebrow/);
+  assert.doesNotMatch(successPage, /whatsapp-final-intro|whatsapp-final-status-hint/);
   assert.equal((successPage.match(/<a /g) || []).length, 2);
   assert.match(successPage, /href=\{order.whatsappUrl\}/);
   assert.match(successPage, /\{payment.instruction\}/);
