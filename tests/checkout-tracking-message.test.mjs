@@ -19,8 +19,8 @@ function functionBody(source, functionName, nextFunctionName) {
 test("keeps simplified slices and explains the explicit WhatsApp send", () => {
   assert.match(page, /Sabores disponíveis/);
   assert.match(page, /Escolha sua calda/);
-  assert.match(page, /Tudo certo! Seu pedido está pronto para ser enviado/);
-  assert.match(page, /Finalizar pedido no WhatsApp/);
+  assert.match(page, /Seu pedido será enviado à Luciane pelo WhatsApp/);
+  assert.match(page, /Abrir WhatsApp para enviar pedido/);
 });
 
 test("builds a clean payment-specific message with an order code", () => {
@@ -59,6 +59,7 @@ test("routes both checkout CTAs through the same dispatcher and keeps one WhatsA
   assert.equal((page.match(/window\.location\.assign\(/g) ?? []).length, 0);
   assert.match(finish, /await createWhatsAppOrder\(/);
   assert.match(finish, /setWhatsAppResult\(registered\)/);
+  assert.match(finish, /navigateToWhatsAppHandoff\(registered\.whatsappUrl\)/);
   assert.match(page, /className="whatsapp-button checkout-primary-button" data-ready=\{checkoutReady \? "true" : "false"\} onClick=\{handleFinalAction\}/);
   assert.match(page, /onClick=\{handleStickyAction\}/);
   assert.match(stickyAction, /if \(stickyUsesCheckoutAction\) handleFinalAction\(\)/);
