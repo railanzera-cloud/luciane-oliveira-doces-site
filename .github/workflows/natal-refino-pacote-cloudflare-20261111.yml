@@ -22,12 +22,12 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Testes regressivos completos antes de empacotar
-        run: node --test tests/*.test.mjs
       - name: Compilação conectada ao Supabase comercial
-        run: |
-          npm run build
-          node scripts/package-cloudflare.mjs --require-supabase
+        run: npm run build
+      - name: Testes regressivos completos contra o site compilado
+        run: node --test tests/*.test.mjs
+      - name: Pacote conectado com as rotas Cloudflare
+        run: node scripts/package-cloudflare.mjs --require-supabase
       - name: Validar rotas, catálogo sazonal e ausência de segredos no pacote
         run: |
           python3 - <<'PY'
