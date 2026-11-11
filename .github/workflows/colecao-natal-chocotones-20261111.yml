@@ -1,0 +1,102 @@
+name: Natal 2026 - catálogo, visual WebKit e bundle Cloudflare
+on:
+  push:
+    branches:
+      - feat/colecao-natal-chocotones-20261111
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  natal-qa-and-build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      SITE_ORDERING_ENABLED: 'false'
+      SUPABASE_URL: https://edqiwvccmboyayojvuea.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_69flK5d9m8Oe3HHVnmKWdA_omNIuIcl
+      MP_PUBLIC_KEY_TEST: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Testar contrato de chocotones no servidor
+        run: node --test tests/chocotones-natal-20261111.test.mjs
+      - name: Verificação TypeScript sem novos problemas
+        shell: bash
+        run: |
+          set +e
+          npx tsc --noEmit > /tmp/tsc-natal.log 2>&1
+          code=$?
+          set -e
+          cat /tmp/tsc-natal.log
+          if [ "$code" -ne 0 ]; then
+            grep 'error TS' /tmp/tsc-natal.log | grep -Ev '^(components/admin-trufadas-stock.tsx|db/index.ts|worker/index.ts)' > /tmp/tsc-natal-new.log || true
+            if [ -s /tmp/tsc-natal-new.log ]; then
+              echo "::error::Erros TypeScript novos"
+              exit 1
+            fi
+            echo "::warning::Somente erros históricos conhecidos"
+          fi
+      - name: Build e todos os testes comerciais
+        run: |
+          npm run build
+          node --test tests/*.test.mjs
+      - name: Instalar WebKit Playwright isolado
+        run: |
+          npm install --prefix "$RUNNER_TEMP/natal-webkit" --no-save --no-package-lock playwright@1.56.1
+          "$RUNNER_TEMP/natal-webkit/node_modules/.bin/playwright" install --with-deps webkit
+      - name: Verificar visual móvel e seleção em WebKit com fixtures
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/natal-visual"
+          SUPABASE_PUBLISHABLE_KEY='qa_mock_no_credentials_20261111' npm run build
+          node scripts/package-cloudflare.mjs
+          python3 -m http.server 8181 --bind 127.0.0.1 --directory outputs/cloudflare-pages > /tmp/natal-qa-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          export QA_PACKAGE="$RUNNER_TEMP/natal-webkit/package.json"
+          export QA_OUTPUT="$RUNNER_TEMP/natal-visual"
+          node scripts/qa-natal-20261111.mjs
+      - name: Recompilar perfil conectado a Supabase (WhatsApp only)
+        run: |
+          npm run build
+          node scripts/package-cloudflare.mjs --require-supabase
+      - name: Verificar pacote base - fotos serão anexadas no ZIP final fora do GitHub
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          src=Path('outputs/luciane-oliveira-doces-cloudflare-pages.zip')
+          assert src.exists() and src.stat().st_size>5_000_000
+          with ZipFile(src) as z:
+              assert z.testzip() is None
+              names=set(z.namelist())
+              assert {'index.html','admin/index.html','pedido/index.html','_worker.js','_routes.json','_headers'}<=names
+              assets=[x for x in names if x.startswith('assets/') and x.endswith('.js')]
+              data='\n'.join(z.read(x).decode('utf8','replace') for x in assets)
+              for value in ['chocotone-ninho-nutella','chocotone-casadinho','chocotone-ferrero-rocher',
+                            'chocotone-morango-brigadeiro-branco-chocolate','recebimento-opcoes','create-whatsapp-order']:
+                  assert value in data,value
+              assert 'https://edqiwvccmboyayojvuea.supabase.co' in data
+              assert not any(n.startswith(('supabase/','.env','node_modules/')) for n in names)
+          print('BUILDER NATAL CONECTADO CONFERIDO — imagens externas devem ser inseridas no ZIP antes de publicar')
+          PY
+      - name: Capturas visuais de QA (não são Safari físico)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: QA-NATAL-WEBKIT-20261111
+          path: ${{ runner.temp }}/natal-visual/
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Bundle compilado - exige acoplar imagens originais antes de publicar
+        uses: actions/upload-artifact@v4
+        with:
+          name: BASE-CLOUDFLARE-NATAL-IMAGENS-PENDENTES-20261111
+          path: outputs/luciane-oliveira-doces-cloudflare-pages.zip
+          if-no-files-found: error
+          retention-days: 7
