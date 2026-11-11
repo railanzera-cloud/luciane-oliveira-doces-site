@@ -18,7 +18,7 @@ test("Natal tem quatro SKUs próprios, valores autoritativos e tipo distinto", (
     assert.deepEqual([CHOCOTONES[id].itemKey,CHOCOTONES[id].priceCents],[key,cents]);
     const quote = quoteCartItems([{product_id:id,variant_id:"porcao",option_ids:[],quantity:2}],Date.UTC(2026,10,11));
     assert.equal(quote.items[0].item_type,"chocotone");
-    assert.equal(quote.items[0].size_label,"1 porção individual");
+    assert.equal(quote.items[0].size_label,"1 fatia");
     assert.equal(quote.items[0].unit_price_cents,cents);
     assert.equal(quote.items[0].line_total_cents,2*cents);
     assert.deepEqual(quote.availabilityKeys,["category_natal",key].sort());
@@ -32,8 +32,8 @@ test("Natal aceita pedidos mistos e rejeita variante/opções forjadas", () => {
   ]);
   assert.equal(quote.subtotalCents,1699+1400);
   assert.deepEqual(quote.items.map(x=>x.item_type),["chocotone","cone"]);
-  assert.throws(()=>quoteCartItems([{product_id:"chocotone-casadinho",variant_id:"inteiro",quantity:1}]),/porção individual/);
-  assert.throws(()=>quoteCartItems([{product_id:"chocotone-casadinho",variant_id:"porcao",quantity:1,option_ids:["calda-chocolate"]}]),/porção individual/);
+  assert.throws(()=>quoteCartItems([{product_id:"chocotone-casadinho",variant_id:"inteiro",quantity:1}]),/fatia individual de Chocottone/);
+  assert.throws(()=>quoteCartItems([{product_id:"chocotone-casadinho",variant_id:"porcao",quantity:1,option_ids:["calda-chocolate"]}]),/fatia individual de Chocottone/);
   assert.throws(()=>quoteCartItems([{product_id:"chocotone-casadinho",variant_id:"porcao",quantity:100}]),/Quantidade inválida/);
 });
 
@@ -84,7 +84,7 @@ test("Natal está presente nas recomendações contextuais e o CTA duplicado é 
   const css=files("app/colecao-natal-2026.css");
   assert.match(home,/addedNotice\?\.category === "natal" \? "natal"/);
   assert.match(home,/natal: natalCanBeAdded/);
-  assert.match(home,/id === "natal" \? "Chocotones de Natal"/);
+  assert.match(home,/id === "natal" \? "Fatias de Chocottone"/);
   assert.match(home,/id === "natal"\) startAnother\("natal"\)/);
   assert.match(home,/className="boutique-complement-choice" data-natal=\{id === "natal" \|\| undefined\}/);
   assert.match(home,/natalPicking && natalInlineActionVisible/);
@@ -93,4 +93,34 @@ test("Natal está presente nas recomendações contextuais e o CTA duplicado é 
   assert.match(css,/natal-home-ribbon::before/);
   assert.match(css,/natal-home-ribbon::after/);
   assert.match(css,/boutique-complement-choice\[data-natal\]/);
+});
+
+
+test("Natal V4 identifica fatias recheadas sem modificar SKUs, preços ou quantidades", () => {
+  const home = files("app/page.tsx");
+  const collection = files("components/christmas-collection.tsx");
+  const catalog = files("app/catalog.ts");
+  const admin = files("app/admin/page.tsx");
+  const css = files("app/colecao-natal-2026.css");
+  const metadata = files("app/layout.tsx");
+  assert.match(home,/Fatias de Chocottone/);
+  assert.doesNotMatch(home,/Chocotones [Rr]echeados/);
+  assert.match(collection,/Escolha suas fatias\./);
+  assert.match(collection,/por fatia/);
+  assert.match(collection,/fatia selecionada/);
+  assert.match(collection,/natal-product-heading/);
+  assert.match(css,/V4 — Fatias de Chocottone/);
+  assert.match(css,/mobile-sticky-bar\.is-natal-step/);
+  assert.match(metadata,/Fatias de Chocottone/);
+  assert.match(admin,/Fatias de Chocottone/);
+  assert.match(catalog,/label: "1 fatia", whatsappLabel: "1 fatia"/);
+  for (const [id, key, cents] of offers) {
+    const quote = quoteCartItems([{product_id:id,variant_id:"porcao",quantity:1}]);
+    assert.equal(quote.items[0].item_type,"chocotone");
+    assert.equal(quote.items[0].product_id,id);
+    assert.equal(quote.items[0].item_key,key);
+    assert.equal(quote.items[0].unit_price_cents,cents);
+    assert.equal(quote.items[0].size_label,"1 fatia");
+    assert.match(quote.items[0].name,/^Fatia de Chocottone — /);
+  }
 });
