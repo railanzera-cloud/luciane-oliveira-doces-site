@@ -7,6 +7,7 @@ on:
       - refine/natal-complementos-vitrine-cta-20261111
       - refine/natal-fatias-chocottone-editorial-v4-20261111
       - refine/natal-v4-1-resumo-textos-whatsapp-20261111
+      - refine/checkout-whatsapp-passagem-direta-20261111
   workflow_dispatch:
 permissions:
   contents: read
@@ -90,7 +91,7 @@ jobs:
           print('BUILDER NATAL CONECTADO CONFERIDO — imagens externas devem ser inseridas no ZIP antes de publicar')
           PY
       - name: Consolidar ZIP V4.1 com fotos reais aprovadas
-        run: NATAL_PACKAGE_VERSION=V4_1 python3 scripts/package-natal-v4-cloudflare.py
+        run: NATAL_PACKAGE_VERSION=V4_2 python3 scripts/package-natal-v4-cloudflare.py
       - name: Capturas visuais de QA (não são Safari físico)
         if: always()
         uses: actions/upload-artifact@v4
@@ -102,7 +103,7 @@ jobs:
       - name: Bundle compilado - exige acoplar imagens originais antes de publicar
         uses: actions/upload-artifact@v4
         with:
-          name: LUCIANE-NATAL-V4-1-QA-CLOUDFLARE
-          path: outputs/LUCIANE_NATAL_V4_1.zip
+          name: LUCIANE-COMERCIAL-V4-2-QA-CLOUDFLARE
+          path: outputs/LUCIANE_COMERCIAL_V4_2_WHATSAPP.zip
           if-no-files-found: error
           retention-days: 7
