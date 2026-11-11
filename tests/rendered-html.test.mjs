@@ -31,7 +31,7 @@ test("renders production metadata without a development preview marker", async (
   );
   const html = await response.text();
   assert.doesNotMatch(html, developmentPreviewMeta);
-  assert.match(html, /<title>Luciane Oliveira Doces \| Chocotones de Natal, Cones Trufados, Pipocas e Fatias<\/title>/);
+  assert.match(html, /<title>Luciane Oliveira Doces \| Fatias de Chocottone, Cones, Pipocas e Doces<\/title>/);
   assert.doesNotMatch(html, /refrigerantes/i);
   assert.doesNotMatch(html, /coca-cola-220/i);
   assert.match(html, /Escolha seu <em>doce/);
