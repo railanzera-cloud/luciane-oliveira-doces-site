@@ -86,10 +86,12 @@ export default function OrderTrackingPage() {
     setSavedHandoffUrl(order ? readStoredWhatsAppHandoff(token, order.order_number) : null);
   }, [order?.order_number, token]);
 
-  const needsHandoff = Boolean(order &&
+  // Registro/impresso não comprova mensagem enviada. Tampouco o site pode
+  // concluir que ela NÃO foi enviada depois de retornar do WhatsApp.
+  const needsHandoff = Boolean(order && order.sales_channel !== "site" &&
     ["manual_pix", "cash", "card_on_delivery"].includes(order.payment_method) &&
     order.payment_status === "pending" &&
-    !["completed", "cancelled"].includes(order.order_status));
+    ["payment_pending", "new", "confirmed"].includes(order.order_status));
   const paymentCopy = order ? getWhatsAppFinalizationCopy(order.payment_method, order.card_mode) : null;
   const supportMessage = order
     ? needsHandoff
@@ -104,14 +106,14 @@ export default function OrderTrackingPage() {
         <p className="eyebrow">Detalhes do pedido</p>
         {loading && !order ? <><LoaderCircle className="admin-spinner" size={24} /><h1>Consultando pedido…</h1></> : error && !order ? <><h1>Não foi possível abrir</h1><p role="alert">{error}</p></> : order && <>
           <h1>Pedido #{order.order_number}</h1>
-          <div className="tracking-current-status"><Clock3 size={19} aria-hidden="true" /><span><small>Último status informado pela loja</small><strong>{needsHandoff && order.order_status === "confirmed" ? "Recebido pela loja" : ORDER_LABELS[order.order_status]}</strong></span></div>
+          <div className="tracking-current-status"><Clock3 size={19} aria-hidden="true" /><span><small>{needsHandoff ? "Estado do registro no site" : "Último status informado pela loja"}</small><strong>{needsHandoff && order.order_status === "confirmed" ? "Registrado no sistema" : ORDER_LABELS[order.order_status]}</strong></span></div>
           {needsHandoff && <div className="tracking-handoff" aria-label="Como concluir o pedido">
-            <strong>Seu pedido está registrado. Falta enviar a mensagem.</strong>
-            <p>{savedHandoffUrl ? "Envie a mensagem original pelo WhatsApp para continuar." : "Não encontramos a mensagem original nesta sessão. Fale com a loja usando o número do pedido."}</p>
+            <strong>Confira se enviou a mensagem pelo WhatsApp</strong>
+            <p>{savedHandoffUrl ? "A solicitação foi registrada, mas o site não consegue verificar o envio da mensagem. Se ainda não enviou, use o botão abaixo." : "A solicitação foi registrada, mas não encontramos a mensagem original nesta sessão. Se ainda não enviou, fale com a loja usando o número do pedido."}</p>
             {savedHandoffUrl
-              ? <a className="whatsapp-final-primary" href={savedHandoffUrl}><MessageCircle size={19} aria-hidden="true" /> Abrir WhatsApp e enviar pedido</a>
+              ? <a className="whatsapp-final-primary" href={savedHandoffUrl}><MessageCircle size={19} aria-hidden="true" /> Abrir WhatsApp para enviar pedido</a>
               : <TintimContactLink className="whatsapp-final-primary" message={supportMessage}><MessageCircle size={19} aria-hidden="true" /> Falar com a loja para concluir</TintimContactLink>}
-            <small>{savedHandoffUrl ? paymentCopy?.instruction : "A loja poderá localizar seu pedido e orientar o próximo passo."} Se já enviou, não precisa repetir.</small>
+            <small>{savedHandoffUrl ? paymentCopy?.instruction : "A loja poderá localizar a solicitação usando seu número."} Se já enviou a mensagem, não precisa repetir.</small>
           </div>}
           <div className="tracking-details">
             <p><span>Pagamento informado</span><strong>{order.payment_status === "paid" ? "Pago" : order.payment_status === "pending" ? `Pendente — ${(order.card_mode ? order.card_mode === "credit_single" ? "Crédito à vista (1x)" : "Débito" : sitePaymentLabel(order.payment_method, order.fulfillment_type === "pickup" ? "retirada" : "entrega"))}` : order.payment_status === "refunded" ? "Devolvido" : "Não aprovado"}</strong></p>
