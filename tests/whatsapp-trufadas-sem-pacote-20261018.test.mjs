@@ -78,3 +78,46 @@ test("legado continua sem sufixo Pacote e novos IDs ficam preservados",async()=>
   assert.match(backend,/getTrufadaVariant/);
   assert.match(source,/isTrufada && item.size.trim\(\).toLowerCase\(\) === "pacote"/);
 });
+
+
+test("Natal V4.1: WhatsApp informa todos os sabores sem repetir a unidade '1 fatia'", () => {
+  const christmas = (product_id, name, price) => ({
+    ...item(product_id, `Fatia de Chocottone — ${name}`, "1 fatia", "chocotone"),
+    variant_id: "porcao", unit_price: price,
+  });
+  const selected = [
+    christmas("chocotone-casadinho","Casadinho",16.99),
+    christmas("chocotone-ferrero-rocher","Ferrero Rocher",18.99),
+    christmas("chocotone-ninho-nutella","Ninho com Nutella",18.99),
+    christmas("chocotone-morango-brigadeiro-branco-chocolate","Morango com Brigadeiro Branco e Chocolate",18.99),
+  ];
+  const checkout = {
+    ...order(selected), payment:"pix",
+    subtotal:73.96, delivery_fee:8, total:81.96,
+    card_fee:0, card_basis_points:0,
+  };
+  const message = buildRegisteredOrderMessage(checkout,1743,"",{
+    holder:"Exemplo de teste", key:"chave-de-teste", keyType:"chave",
+  },false);
+  for (const selectedItem of selected) {
+    assert.ok(message.includes(`1x ${selectedItem.name}\n`),
+      "Sabor deve permanecer identificado sem sufixo: " + selectedItem.name);
+  }
+  assert.doesNotMatch(message,/Fatia de Chocottone[^\n]* 1 fatia/);
+  assert.match(message,/Produtos: R\$ 73,96/);
+  assert.match(message,/Entrega: R\$ 8,00/);
+  assert.match(message,/Total: R\$ 81,96/);
+  assert.match(message,/PRÓXIMO PASSO — PAGAMENTO VIA PIX/);
+  assert.match(message,/\*PEDIDO #1743\*/);
+});
+
+test("Natal V4.1: várias fatias do mesmo sabor preservam o multiplicador e os outros tamanhos", () => {
+  const selected = [
+    {...item("chocotone-casadinho","Fatia de Chocottone — Casadinho","1 fatia","chocotone"), variant_id:"porcao",quantity:3},
+    item("pipoca-gourmet","Pipoca Gourmet","750 ml","popcorn"),
+  ];
+  const message = buildRegisteredOrderMessage(order(selected),1744,"",{holder:"",key:"",keyType:""},false);
+  assert.match(message,/3x Fatia de Chocottone — Casadinho\n/);
+  assert.doesNotMatch(message,/Casadinho 1 fatia/);
+  assert.match(message,/1x Pipoca Gourmet 750 ml\n/);
+});
