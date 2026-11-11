@@ -434,12 +434,12 @@ export default function AdminPage() {
         {availabilitySection === "natal" && (
           <section className="admin-category-section admin-category-compact" role="tabpanel" id="admin-availability-panel-natal"
             aria-labelledby="admin-availability-tab-natal">
-            <div className="admin-category-heading"><div><p className="eyebrow">Coleção temporária · 2026</p><h2>Chocotones Recheados</h2></div></div>
+            <div className="admin-category-heading"><div><p className="eyebrow">Coleção temporária · 2026</p><h2>Fatias de Chocottone</h2></div></div>
             <p className="admin-category-explanation">
               Primeiro libere "Edição Especial de Natal" em Configurações gerais; em seguida controle cada sabor como Disponível, Esgotado ou Oculto.
               O botão Oculto retira a coleção do cardápio sem apagar vendas anteriores.
             </p>
-            <div className="admin-group-title"><h3>Porções individuais</h3><span>{countReady(natalItems)}/{natalItems.length} disponíveis</span></div>
+            <div className="admin-group-title"><h3>Sabores vendidos por fatia</h3><span>{countReady(natalItems)}/{natalItems.length} disponíveis</span></div>
             <div className="admin-compact-grid">
               {natalItems.map(item => <AvailabilityControl key={item.itemKey} item={item}
                 status={categoryStatus(item.itemKey)} pending={pendingKeys.includes(item.itemKey)}
