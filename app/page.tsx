@@ -1124,6 +1124,21 @@ export default function Home() {
   const justAddedProduct = addedNotice
     ? PRODUCTS.find((product) => product.id === addedNotice.productId)
     : null;
+  // O aviso de Natal representa toda a seleção de fatias, não o último clique.
+  // Quantidades e sabores vêm do carrinho, inclusive em pedidos mistos.
+  const natalNoticeItems = addedNotice?.category === "natal"
+    ? cart.filter(item => CHOCOTONES.some(product => product.id === item.productId))
+    : [];
+  const natalNoticeQuantity = natalNoticeItems.reduce((total, item) => total + item.quantity, 0);
+  const natalNoticeFlavorCount = new Set(natalNoticeItems.map(item => item.productId)).size;
+  const natalNoticeSingleFlavor = natalNoticeFlavorCount === 1
+    ? CHOCOTONES.find(product => product.id === natalNoticeItems[0]?.productId)
+    : null;
+  const natalNoticeDescription = natalNoticeQuantity > 0
+    ? natalNoticeFlavorCount === 1
+      ? `${natalNoticeQuantity} ${natalNoticeQuantity === 1 ? "fatia" : "fatias"} de Chocottone — ${natalNoticeSingleFlavor?.name ?? "sabor selecionado"}`
+      : `${natalNoticeQuantity} ${natalNoticeQuantity === 1 ? "fatia" : "fatias"} de Chocottone · ${natalNoticeFlavorCount} sabores`
+    : addedNotice?.description ?? "";
   // Recomendações são apenas atalhos de navegação para produtos de fato selecionáveis.
   // Nunca assumem quantidade, alteram preço ou habilitam uma categoria indisponível.
   const checkoutComplementItems = orderCheckoutComplements(
@@ -2403,7 +2418,7 @@ export default function Home() {
               <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : activeCategory === "cones" ? "Cones Trufados" : activeCategory === "natal" ? "Fatias de Chocottone" : "Fatias Artesanais"}</h1>
               <p className="entry-copy">{activeCategory === "pipocas"
                 ? showLimitedCupView ? "Três sabores artesanais em pacotes P, M e G." : "Escolha o tamanho e combine seus sabores."
-                : activeCategory === "cones" ? "Escolha seu sabor e a quantidade desejada." : activeCategory === "natal" ? "Edição especial de Natal · quatro sabores recheados, vendidos por fatia." : "Sabores disponíveis"}</p>
+                : activeCategory === "cones" ? "Escolha seu sabor e a quantidade desejada." : activeCategory === "natal" ? "Edição especial de Natal · 4 sabores recheados." : "Sabores disponíveis"}</p>
               {availability.ordersOpen && visibleCategories.length > 0 && (
                 <p className="delivery-time-estimate">
                   <span className="delivery-time-copy">
@@ -2425,7 +2440,7 @@ export default function Home() {
               <span className="natal-home-copy">
                 <span className="natal-home-eyebrow">✦ Edição especial de Natal</span>
                 <strong className="natal-home-title">Fatias de Chocottone</strong>
-                <span className="natal-home-description">4 sabores · Vendidas por fatia</span>
+                <span className="natal-home-description">4 sabores recheados</span>
                 <span className="natal-home-action">Conhecer sabores <ChevronRight size={16} aria-hidden="true"/></span>
               </span>
               <span className="natal-home-image" aria-hidden="true">
@@ -3281,18 +3296,20 @@ export default function Home() {
 
             <section className={`order-card checkout-flow-card step-state-${receivingStepState}`} id="recebimento" aria-labelledby="receiving-title" aria-current={receivingStepState === "active" ? "step" : undefined}>
               {addedNotice && (
-                <div className="boutique-added-continuity" aria-label="Produto adicionado ao pedido">
+                <div className="boutique-added-continuity" aria-label={addedNotice.category === "natal" && natalNoticeFlavorCount > 1 ? "Seleção adicionada ao pedido" : "Produto adicionado ao pedido"}>
                   <div className="boutique-added-confirmation">
                     <span className="boutique-added-photo" data-gourmet={justAddedProduct?.id === POPCORN.id || undefined} aria-hidden="true" onContextMenu={(event) => event.preventDefault()}>
-                      {justAddedProduct?.id === POPCORN.id
-                        ? <GourmetCheckoutCrop context="added" />
+                      {addedNotice.category === "natal" && natalNoticeFlavorCount > 1
+                        ? <ShoppingBag size={24} aria-hidden="true" />
+                        : justAddedProduct?.id === POPCORN.id
+                          ? <GourmetCheckoutCrop context="added" />
                         : justAddedProduct?.image
                           ? <img src={justAddedProduct.cardImage ?? justAddedProduct.image} alt="" draggable={false} width="104" height="104" loading="lazy" decoding="async" />
                           : <ShoppingBag size={24} />}
                     </span>
                     <div className="boutique-added-message">
-                      <strong role="status"><Check size={16} aria-hidden="true" /> Adicionado ao pedido</strong>
-                      <p>{addedNotice.description}</p>
+                      <strong role="status"><Check size={16} aria-hidden="true" /> {addedNotice.category === "natal" && natalNoticeFlavorCount > 1 ? "Seleção adicionada ao pedido" : "Adicionado ao pedido"}</strong>
+                      <p>{addedNotice.category === "natal" ? natalNoticeDescription : addedNotice.description}</p>
                     </div>
                   </div>
                   {checkoutComplementItems.length > 0 && (
@@ -3305,13 +3322,13 @@ export default function Home() {
                         {checkoutComplementItems.map((id) => {
                           const heading = id === "cones" ? (addedNotice?.category === "cones" ? "Escolher outro cone" : "Adicionar cone trufado")
                             : id === "gourmet" ? addMoreButtonLabel("pipocas", cart)
-                            : id === "fatias" ? addMoreButtonLabel("fatias", cart)
+                            : id === "fatias" ? (addedNotice?.category === "natal" ? "Adicionar fatia artesanal" : addMoreButtonLabel("fatias", cart))
                               : id === "trufadas" ? cartContainsCrocantes ? "Outro pacote Trufado" : "Pipocas Trufadas"
                               : id === "natal" ? "Fatias de Chocottone"
                                 : "Refrigerante";
                           const detail = id === "cones" ? (addedNotice?.category === "cones" ? "Adicionar mais um sabor" : "Conhecer os três sabores")
                             : id === "gourmet" ? "Montar pote Gourmet"
-                            : id === "fatias" ? "Escolher sua fatia"
+                            : id === "fatias" ? (addedNotice?.category === "natal" ? "Conhecer sabores artesanais" : "Escolher sua fatia")
                               : id === "trufadas" ? "Escolher sabor e tamanho"
                               : id === "natal" ? "Fatias recheadas · 4 sabores"
                                 : "Ver acompanhamentos";
