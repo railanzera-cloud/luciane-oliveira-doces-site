@@ -58,7 +58,8 @@ test("finalização não gera outro pedido nem promete envio ou pagamento autom�
   assert.doesNotMatch(successPage, /whatsapp-final-intro|whatsapp-final-status-hint/);
   assert.equal((successPage.match(/<a /g) || []).length, 2);
   assert.match(successPage, /href=\{order.whatsappUrl\}/);
-  assert.match(successPage, /\{payment.instruction\}/);
+  assert.match(successPage, /\{paymentDetail\}/);
+  assert.match(successPage, /payment.instruction.replace/);
   assert.doesNotMatch(successPage, /createWhatsAppOrder|paid_at|trackMetaEvent/);
 });
 
