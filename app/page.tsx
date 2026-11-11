@@ -1929,13 +1929,13 @@ export default function Home() {
       setAddedNotice({
         category: "natal",
         productId: product.id,
-        description: `Fatia de Chocottone — ${product.name} · vendida por fatia`,
+        description: `Fatia de Chocottone — ${product.name}`,
       });
     } else if (already === 1 && addedNotice?.productId === product.id) {
       const remaining = cart.find(item => item.productId !== product.id && CHOCOTONES.some(p => p.id === item.productId));
       const alternate = CHOCOTONES.find(p => p.id === remaining?.productId);
       setAddedNotice(alternate
-        ? { category: "natal", productId: alternate.id, description: `Fatia de Chocottone — ${alternate.name} · vendida por fatia` }
+        ? { category: "natal", productId: alternate.id, description: `Fatia de Chocottone — ${alternate.name}` }
         : null);
     }
     // Quantidades permanecem livres nesta etapa, sem salto automático;
