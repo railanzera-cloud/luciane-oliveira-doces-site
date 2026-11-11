@@ -291,7 +291,9 @@ function scrollToCategoryEntry(category: CategoryId) {
   const offset = compact ? Math.min(198, Math.max(145, Math.round(viewportHeight * .24))) : 86;
   const top = Math.max(0, window.scrollY + target.getBoundingClientRect().top - offset);
   if (navigationByKeyboard) {
-    const heading = target.querySelector<HTMLElement>("h3");
+    const heading = category === "natal"
+      ? target.closest(".natal-collection")?.querySelector<HTMLElement>("h3")
+      : target.querySelector<HTMLElement>("h3");
     if (heading) {
       const previousTabIndex = heading.getAttribute("tabindex");
       heading.setAttribute("tabindex", "-1");
