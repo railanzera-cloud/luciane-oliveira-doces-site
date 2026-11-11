@@ -2,7 +2,7 @@ import { deliveryLocalityById, deliveryLegacyReviewState, deliveryLegacySpecific
 import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
-export const CATALOG_VERSION = "2026-11-11.chocotones-preserva-refrigerantes";
+export const CATALOG_VERSION = "2026-11-11.fatias-chocottone-v4";
 import { DRINKS } from "./drinks-catalog.mjs";
 import { TRUFADAS_VARIANTS, getTrufadaVariant } from "./trufadas-variants.mjs";
 
@@ -46,7 +46,7 @@ export const CONES = Object.freeze({
   "cone-trufado-ferrero-rocher": Object.freeze({ id: "cone-trufado-ferrero-rocher", itemKey: "cone_ferrero_rocher", name: "Ferrero Rocher", priceCents: 1600 }),
 });
 
-// Chocotones são porções individuais, não fatias, cones ou panetones inteiros.
+// Chocottones permanecem com item_type e IDs históricos, mas o produto físico vendido é uma fatia recheada.
 export const CHOCOTONES = Object.freeze({
   "chocotone-ninho-nutella": Object.freeze({ id: "chocotone-ninho-nutella", itemKey: "chocotone_ninho_nutella", name: "Ninho com Nutella", priceCents: 1899 }),
   "chocotone-ferrero-rocher": Object.freeze({ id: "chocotone-ferrero-rocher", itemKey: "chocotone_ferrero_rocher", name: "Ferrero Rocher", priceCents: 1899 }),
@@ -227,15 +227,15 @@ export function quoteCartItems(rawItems, now = Date.now()) {
     if (Object.hasOwn(CHOCOTONES, productId)) {
       const product = CHOCOTONES[productId];
       if (variantId !== "porcao" || optionIds.length !== 0)
-        throw new Error("Escolha uma porção individual de Chocotone válida.");
+        throw new Error("Escolha uma fatia individual de Chocottone válida.");
       availabilityKeys.add(CATEGORY_ITEM_KEYS.natal);
       availabilityKeys.add(product.itemKey);
       return {
         item_key: product.itemKey, product_id: productId,
         category_key: CATEGORY_ITEM_KEYS.natal, item_type: "chocotone",
-        name: `Chocotone — ${product.name}`,
+        name: `Fatia de Chocottone — ${product.name}`,
         variant_id: "porcao", variant_item_key: product.itemKey,
-        size_label: "1 porção individual", option_ids: [], option_item_keys: [],
+        size_label: "1 fatia", option_ids: [], option_item_keys: [],
         option_names: [], quantity, unit_price_cents: product.priceCents,
         line_total_cents: product.priceCents * quantity, catalog_version: CATALOG_VERSION,
       };
