@@ -371,7 +371,7 @@ function productLabel(product: Product) {
     return `Pipocas Trufadas — ${product.name}`;
   }
   if (product.kind === "cone") return `Cone Trufado — ${product.name}`;
-  if (product.kind === "chocotone") return `Chocotone — ${product.name}`;
+  if (product.kind === "chocotone") return `Fatia de Chocottone — ${product.name}`;
   return product.subtitle
     ? `${product.name} (${product.subtitle.toLowerCase()})`
     : product.name;
@@ -458,9 +458,9 @@ function cartAvailabilityIssues(
 
     if (product.kind === "chocotone") {
       const key = CHOCOTONE_ITEM_KEYS[product.id];
-      if (variant.id !== "porcao" || item.optionIds.length) reasons.push("Este chocotone é vendido por porção individual, sem personalizações.");
+      if (variant.id !== "porcao" || item.optionIds.length) reasons.push("Esta fatia de Chocottone é vendida individualmente, sem personalizações.");
       if (!key || !isItemAvailable(snapshot, key)) reasons.push(unavailableReason(snapshot, key ?? "", productLabel(product)));
-      if (snapshot.source !== "supabase") reasons.push("Não foi possível confirmar a disponibilidade do chocotone.");
+      if (snapshot.source !== "supabase") reasons.push("Não foi possível confirmar a disponibilidade da fatia de Chocottone.");
     }
 
     if (product.kind === "cone") {
@@ -1319,7 +1319,7 @@ export default function Home() {
       ? activeCategory === "pipocas" ? `A partir de ${currency.format(popcornPrice("500ml", [], promotionTime))}` : activeCategory === "cones" ? "A partir de R$14" : "A partir de R$20"
       : currency.format(draftSubtotal);
   const stickyPriceCaption = natalPicking
-    ? natalSelectedCount > 0 ? `${natalSelectedCount} ${natalSelectedCount === 1 ? "porção" : "porções"} · subtotal` : "Coleção especial de Natal"
+    ? natalSelectedCount > 0 ? `${natalSelectedCount} ${natalSelectedCount === 1 ? "fatia selecionada" : "fatias selecionadas"}` : "Coleção especial de Natal"
     : cupBuilderFlowActive
     ? cupFlavorPreview
       ? `${cupProduct?.name ?? "Trufadas"}${cupSizeId ? ` · Pacote ${cupSizeId.toUpperCase()}` : ""} · ${cupQuantity} ${cupQuantity === 1 ? "pacote" : "pacotes"}`
@@ -1364,7 +1364,7 @@ export default function Home() {
           ? finalButtonLabel
           : checkoutNextActionLabel;
   const stickyButtonLabel = natalPicking
-    ? natalSelectedCount > 0 ? "Continuar pedido" : "Escolher chocotones"
+    ? natalSelectedCount > 0 ? "Continuar pedido" : "Escolher fatias"
     : typeof cupBuilderFlowActive !== "undefined" && cupBuilderFlowActive
     ? cupActionLabel
     : isFinalizing ? finalButtonLabel : !availability.ordersOpen
@@ -1914,13 +1914,13 @@ export default function Home() {
       setAddedNotice({
         category: "natal",
         productId: product.id,
-        description: `Chocotone — ${product.name} · porção individual`,
+        description: `Fatia de Chocottone — ${product.name} · vendida por fatia`,
       });
     } else if (already === 1 && addedNotice?.productId === product.id) {
       const remaining = cart.find(item => item.productId !== product.id && CHOCOTONES.some(p => p.id === item.productId));
       const alternate = CHOCOTONES.find(p => p.id === remaining?.productId);
       setAddedNotice(alternate
-        ? { category: "natal", productId: alternate.id, description: `Chocotone — ${alternate.name} · porção individual` }
+        ? { category: "natal", productId: alternate.id, description: `Fatia de Chocottone — ${alternate.name} · vendida por fatia` }
         : null);
     }
     // Quantidades permanecem livres nesta etapa, sem salto automático;
@@ -2400,10 +2400,10 @@ export default function Home() {
           {activeCategory ? (
             <div className="entry-heading">
               <p className="eyebrow">Luciane Oliveira Doces</p>
-              <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : activeCategory === "cones" ? "Cones Trufados" : activeCategory === "natal" ? "Chocotones Recheados" : "Fatias Artesanais"}</h1>
+              <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : activeCategory === "cones" ? "Cones Trufados" : activeCategory === "natal" ? "Fatias de Chocottone" : "Fatias Artesanais"}</h1>
               <p className="entry-copy">{activeCategory === "pipocas"
                 ? showLimitedCupView ? "Três sabores artesanais em pacotes P, M e G." : "Escolha o tamanho e combine seus sabores."
-                : activeCategory === "cones" ? "Escolha seu sabor e a quantidade desejada." : activeCategory === "natal" ? "Edição especial de Natal · porções individuais, quatro sabores." : "Sabores disponíveis"}</p>
+                : activeCategory === "cones" ? "Escolha seu sabor e a quantidade desejada." : activeCategory === "natal" ? "Edição especial de Natal · quatro sabores recheados, vendidos por fatia." : "Sabores disponíveis"}</p>
               {availability.ordersOpen && visibleCategories.length > 0 && (
                 <p className="delivery-time-estimate">
                   <span className="delivery-time-copy">
@@ -2420,12 +2420,12 @@ export default function Home() {
             </div>
           )}
           {!activeCategory && hasResolvedAvailability && natalVisible && (
-            <button type="button" className="natal-home-ribbon" aria-label="Edição especial de Natal: conhecer os quatro chocotones recheados"
+            <button type="button" className="natal-home-ribbon" aria-label="Edição especial de Natal: conhecer as fatias recheadas de Chocottone em quatro sabores"
               onClick={() => selectCategory("natal")}>
               <span className="natal-home-copy">
                 <span className="natal-home-eyebrow">✦ Edição especial de Natal</span>
-                <strong className="natal-home-title">Chocotones recheados</strong>
-                <span className="natal-home-description">4 sabores · Porções individuais</span>
+                <strong className="natal-home-title">Fatias de Chocottone</strong>
+                <span className="natal-home-description">4 sabores · Vendidas por fatia</span>
                 <span className="natal-home-action">Conhecer sabores <ChevronRight size={16} aria-hidden="true"/></span>
               </span>
               <span className="natal-home-image" aria-hidden="true">
@@ -2662,7 +2662,7 @@ export default function Home() {
                       ))}
                       {natalCanBeAdded && activeCategory !== "natal" && (
                         <button type="button" className="builder-more-option" onClick={() => selectCategory("natal")}>
-                          <span>Chocotones · Edição de Natal</span>
+                          <span>Fatias de Chocottone · Natal</span>
                           <ChevronRight size={15} aria-hidden="true" />
                         </button>
                       )}
@@ -3271,7 +3271,7 @@ export default function Home() {
                       {pipocasAvailable && <Button type="button" variant="outline" onClick={() => startAnother("pipocas")}><Plus size={16} /> {addMoreButtonLabel("pipocas", cart)}</Button>}
                       {conesCanBeAdded && <Button type="button" variant="outline" onClick={() => startAnother("cones")}><ShoppingBag size={16} /> {addMoreButtonLabel("cones", cart)}</Button>}
                       {cupCanBeAddedFromCheckout && <Button type="button" variant="outline" className="crocantes-cross-sell" onClick={startAnotherCrocantes}><ShoppingBag size={16} /> {cartContainsCrocantes ? "Adicionar outro pacote" : "Adicionar pacote Trufado"} <ChevronRight size={15} aria-hidden="true" /></Button>}
-                      {natalCanBeAdded && <Button type="button" variant="outline" onClick={() => startAnother("natal")}><ShoppingBag size={16} /> Chocotones de Natal</Button>}
+                      {natalCanBeAdded && <Button type="button" variant="outline" onClick={() => startAnother("natal")}><ShoppingBag size={16} /> Fatias de Chocottone</Button>}
                       {STORE_CONFIG.enabledExtras.drinks && <Button type="button" variant="outline" onClick={() => scrollToSection("acompanhamentos")}><CupSoda size={16} /> Refrigerante</Button>}
                     </div>
                   </div>}
@@ -3307,13 +3307,13 @@ export default function Home() {
                             : id === "gourmet" ? addMoreButtonLabel("pipocas", cart)
                             : id === "fatias" ? addMoreButtonLabel("fatias", cart)
                               : id === "trufadas" ? cartContainsCrocantes ? "Outro pacote Trufado" : "Pipocas Trufadas"
-                              : id === "natal" ? "Chocotones de Natal"
+                              : id === "natal" ? "Fatias de Chocottone"
                                 : "Refrigerante";
                           const detail = id === "cones" ? (addedNotice?.category === "cones" ? "Adicionar mais um sabor" : "Conhecer os três sabores")
                             : id === "gourmet" ? "Montar pote Gourmet"
                             : id === "fatias" ? "Escolher sua fatia"
                               : id === "trufadas" ? "Escolher sabor e tamanho"
-                              : id === "natal" ? "Edição especial · 4 sabores"
+                              : id === "natal" ? "Fatias recheadas · 4 sabores"
                                 : "Ver acompanhamentos";
                           const photo = id === "cones" ? "/images/cones-trufados-trio-card-20261108.webp"
                             : id === "gourmet" ? "/images/categoria-pipocas-editorial-enquadrada-v107.webp"
@@ -3580,7 +3580,7 @@ export default function Home() {
       <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
       {(activeCategory || cart.length > 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen && Boolean(cupFlavorPreview && cupSizeId) && cupCanOrder)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && !(natalPicking && natalInlineActionVisible) && !(builderFlowActive && activeCategory === "pipocas" && gourmetFlavorsInView && !gourmetContinueAvailable) && (
-      <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"} ${stickyIsCheckoutReady && checkoutChannel === "whatsapp" ? "is-whatsapp" : ""} ${cupBuilderFlowActive ? "is-crocantes-step" : ""} ${stickyUsesCheckoutAction ? "is-checkout-flow" : ""} ${builderFlowActive && activeCategory === "pipocas" ? "is-gourmet-step" : ""} ${gourmetContinueAvailable ? "is-gourmet-flavor-continue" : ""}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
+      <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"} ${stickyIsCheckoutReady && checkoutChannel === "whatsapp" ? "is-whatsapp" : ""} ${cupBuilderFlowActive ? "is-crocantes-step" : ""} ${stickyUsesCheckoutAction ? "is-checkout-flow" : ""} ${natalPicking ? "is-natal-step" : ""} ${builderFlowActive && activeCategory === "pipocas" ? "is-gourmet-step" : ""} ${gourmetContinueAvailable ? "is-gourmet-flavor-continue" : ""}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
         <div className="mobile-sticky-price" aria-live="polite" aria-atomic="true">
           {gourmetContinueAvailable ? <><small>Sabores escolhidos</small><strong>{popcornOptionIds.length} de {popcornMaxOptions}</strong></>
             : <><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></>}
