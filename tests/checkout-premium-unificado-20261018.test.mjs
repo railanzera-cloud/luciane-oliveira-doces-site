@@ -9,7 +9,8 @@ const checkout = readFileSync("app/order-checkout.ts", "utf8");
 test("Trufadas: mensagem curta conserva sabor e regras estruturais", () => {
   assert.ok(page.includes('description: `${product.name} · ${variant.label} · ${qty}'));
   assert.ok(!page.includes("description: `${qty}x Pipocas Trufadas · ${product.name} · pacote com zíper`,"));
-  assert.ok(page.includes("<p>{addedNotice.description}</p>"));
+  assert.ok(page.includes('<p>{addedNotice.category === "natal" ? natalNoticeDescription : addedNotice.description}</p>'));
+  // Pedidos das Trufadas ainda mostram a descrição específica anterior.
   assert.ok(page.includes("qty + alreadyInCart > confirmedStock"));
   assert.ok(page.includes("createWhatsAppOrder({"));
   assert.ok(checkout.includes('item.product_id === "crocante-ninho"'));
