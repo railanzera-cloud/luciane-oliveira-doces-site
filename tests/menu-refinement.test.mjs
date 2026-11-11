@@ -992,7 +992,7 @@ test('fixing a delivery mismatch or changing to pickup clears only validation, p
  }
  assert.equal(deliveryPolicy.quoteFulfillment({...deliveryAddress,type:'pickup'}).delivery_fee_cents,0);
  const pickup=deliveryState('cidade','Acaizal','retirada');
- assert.equal(checkoutFeedback(pickup).checkoutHint,'Tudo certo! Seu pedido está pronto para ser enviado.');
+ assert.equal(checkoutFeedback(pickup).checkoutHint,'Seu pedido será enviado à Luciane pelo WhatsApp. Ao abrir a conversa, toque em Enviar para solicitar a confirmação.');
  const next=pageFunction('nextCheckoutSection',{...pickup,customerNameReady:true,checkoutChannel:'whatsapp'});
  assert.equal(next('entrega'),'delivery-fields');
 });
