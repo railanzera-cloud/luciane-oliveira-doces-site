@@ -50,9 +50,11 @@ test("reabre somente a mensagem original do mesmo pedido e por link Tintim váli
 
 test("finalização não gera outro pedido nem promete envio ou pagamento automático", () => {
   assert.match(successPage, /getWhatsAppFinalizationCopy\(order.result.payment.method, order.result.order.card_mode\)/);
-  assert.match(successPage, /Enviar pedido pelo WhatsApp/);
-  assert.match(successPage, /Agora, envie a mensagem com seu pedido para a Luciane pelo WhatsApp/);
-  assert.match(successPage, /Consultar detalhes do pedido/);
+  assert.match(successPage, /Abrir WhatsApp para enviar pedido/);
+  assert.match(successPage, /Falta UMA ETAPA|FALTA UMA ETAPA/);
+  assert.match(successPage, /Somente registrar a solicitação no site não conclui o atendimento/);
+  assert.match(successPage, /<summary>Precisa de ajuda\?<\/summary>/);
+  assert.match(successPage, /Consultar informações da solicitação/);
   assert.doesNotMatch(successPage, /whatsapp-final-intro|whatsapp-final-status-hint|whatsapp-final-eyebrow/);
   assert.equal((successPage.match(/<a /g) || []).length, 2);
   assert.match(successPage, /href=\{order.whatsappUrl\}/);
@@ -64,9 +66,11 @@ test("refinamento mantém hierarquia enxuta e consulta secundária", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(css, /\.whatsapp-final-card h1 \{/);
   assert.match(css, /\.whatsapp-final-card \.whatsapp-final-summary/);
-  assert.match(css, /\.whatsapp-final-card \.whatsapp-final-secondary a/);
+  assert.match(css, /\.whatsapp-final-next-step \{/);
+  assert.match(css, /\.whatsapp-final-help \{/);
   assert.match(css, /@media \(max-width: 360px\)/);
-  assert.match(successPage, /<h1 id="whatsapp-final-title">Pedido #/);
+  assert.match(successPage, /<h1 id="whatsapp-final-title">Envie seu pedido pelo WhatsApp<\/h1>/);
+  assert.doesNotMatch(successPage, /Pedido #\{order\.result\.order\.order_number\} registrado!/);
   assert.doesNotMatch(successPage, /Se entrar nos detalhes/);
 });
 
@@ -76,5 +80,7 @@ test("acompanhamento recupera a sessão ou oferece assistência e preserva a op�
   assert.match(trackingPage, /Voltar à finalização/);
   assert.match(trackingPage, /Fazer outro pedido/);
   assert.match(trackingPage, /needsHandoff && order.order_status === "confirmed"/);
+  assert.match(trackingPage, /Registrado no sistema/);
+  assert.doesNotMatch(trackingPage, /"Recebido pela loja"/);
   assert.doesNotMatch(trackingPage, /createWhatsAppOrder\(/);
 });
