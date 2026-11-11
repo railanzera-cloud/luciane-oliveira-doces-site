@@ -77,3 +77,20 @@ test("admin expõe os quatro sabores e permanece condicionado ao cadastro remoto
   assert.match(admin,/Edição Especial de Natal/);
   assert.match(c,/\[CATEGORY_ITEM_KEYS\.natal\]/);
 });
+
+// A vitrine sazonal também deve ser descoberta após um pedido iniciado em outro anúncio.
+test("Natal está presente nas recomendações contextuais e o CTA duplicado é suprimido", () => {
+  const home=files("app/page.tsx");
+  const css=files("app/colecao-natal-2026.css");
+  assert.match(home,/addedNotice\?\.category === "natal" \? "natal"/);
+  assert.match(home,/natal: natalCanBeAdded/);
+  assert.match(home,/id === "natal" \? "Chocotones de Natal"/);
+  assert.match(home,/id === "natal"\) startAnother\("natal"\)/);
+  assert.match(home,/className="boutique-complement-choice" data-natal=\{id === "natal" \|\| undefined\}/);
+  assert.match(home,/natalPicking && natalInlineActionVisible/);
+  assert.match(home,/setNatalInlineActionVisible\(Boolean\(entry\?\.isIntersecting\)\)/);
+  assert.match(home,/document\.querySelector<HTMLElement>\("\.storefront \.natal-continue"\)/);
+  assert.match(css,/natal-home-ribbon::before/);
+  assert.match(css,/natal-home-ribbon::after/);
+  assert.match(css,/boutique-complement-choice\[data-natal\]/);
+});

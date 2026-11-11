@@ -4,6 +4,7 @@ on:
     branches:
       - feat/colecao-natal-chocotones-20261111
       - refine/natal-ux-fluxo-fotos-20261111
+      - refine/natal-complementos-vitrine-cta-20261111
   workflow_dispatch:
 permissions:
   contents: read
