@@ -68,7 +68,7 @@ try {
       if(width<700) {
         const sticky=page.locator(".mobile-sticky-bar button");
         await sticky.waitFor({state:"visible"});
-        assert.match(await sticky.innerText(),/Escolher chocotones/);
+        assert.match(await sticky.innerText(),/Escolher fatias/);
       }
       await page.locator(".natal-collection").screenshot({path:path.join(out,"colecao-natal-"+width+".png"),animations:"disabled"});
       const add=page.locator(".natal-product-card").first().locator(".natal-product-add");
