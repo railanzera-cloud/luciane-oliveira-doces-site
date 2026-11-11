@@ -26,8 +26,8 @@ export function WhatsAppOrderResultView({ order }: { order: RegisteredWhatsAppOr
         <p className="whatsapp-final-eyebrow">FALTA UMA ETAPA</p>
         <h1 id="whatsapp-final-title">Envie seu pedido pelo WhatsApp</h1>
         <p className="whatsapp-final-guide">
-          Sua solicitação #{order.result.order.order_number} foi registrada no site,
-          mas a Luciane ainda precisa receber sua mensagem para confirmar o atendimento.
+          Sua solicitação #{order.result.order.order_number} foi registrada no site.
+          Para a Luciane confirmar o atendimento, envie a mensagem no WhatsApp se ainda não enviou.
         </p>
         <div className="whatsapp-final-next-step">
           <strong>Abra o WhatsApp e toque em Enviar.</strong>
@@ -36,7 +36,7 @@ export function WhatsAppOrderResultView({ order }: { order: RegisteredWhatsAppOr
         <a className="whatsapp-final-primary" href={order.whatsappUrl}>
           <MessageCircle size={21} aria-hidden="true" /> Abrir WhatsApp para enviar pedido
         </a>
-        <p className="whatsapp-final-instruction">{paymentDetail}</p>
+        <p className="whatsapp-final-instruction">{paymentDetail} Se já enviou a mensagem, não precisa repetir.</p>
         <dl className="whatsapp-final-summary" aria-label="Resumo da solicitação registrada">
           <div><dt>Total</dt><dd>{formatOrderMoney(Number(order.result.order.total))}</dd></div>
           <div><dt>Pagamento</dt><dd>{payment.label}</dd></div>
