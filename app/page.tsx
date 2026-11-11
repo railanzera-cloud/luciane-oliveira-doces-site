@@ -1847,6 +1847,39 @@ export default function Home() {
     requestScroll(wasEditing ? "carrinho" : "recebimento");
   }
 
+  function adjustChristmas(product: Product, delta: -1 | 1) {
+    const itemKey = CHOCOTONE_ITEM_KEYS[product.id];
+    if (product.kind !== "chocotone" || !itemKey) return;
+    const existing = cart.find(item => item.productId === product.id);
+    const already = existing?.quantity ?? 0;
+    if (delta === 1 && (already >= 99 || !availability.ordersOpen || availability.source !== "supabase"
+      || !natalAvailable || !isItemAvailable(availability, itemKey) || !product.available)) return;
+    if (delta === -1 && already <= 0) return;
+    setCart(current => {
+      const item = current.find(entry => entry.productId === product.id);
+      const quantity = item?.quantity ?? 0;
+      const next = quantity + delta;
+      if (next <= 0) return current.filter(entry => entry.productId !== product.id);
+      if (next > 99) return current;
+      if (item) return current.map(entry => entry.id === item.id ? { ...entry, quantity: next } : entry);
+      return [...current, { id: makeCartId(), productId: product.id, variantId: "porcao", optionIds: [], quantity: 1 }];
+    });
+    setCheckoutAvailabilityMessage("");
+    setBuilderEngaged(false);
+    if (delta === 1) {
+      trackMetaEvent("AddToCart", metaProductPayload(product, product.variants[0], 1));
+      setAddedNotice({
+        category: "natal",
+        productId: product.id,
+        description: `Chocotone — ${product.name} · porção individual`,
+      });
+    } else if (already === 1) {
+      setAddedNotice(null);
+    }
+    // O cliente pode misturar sabores e corrigir quantidades aqui mesmo:
+    // não rolar automaticamente após cada toque nem mover para o checkout.
+  }
+
   function addDrink(product: Product) {
     if (!availability.ordersOpen || !isProductEnabled(product) || !product.available || !product.variants[0].available) return;
     setCart((current) => {
@@ -1870,10 +1903,15 @@ export default function Home() {
     const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
     if (isTrufadaOrLegacy(product.id)) return; // Quantidade é alterável no carrinho.
     if (product.kind === "drink" || !isProductEnabled(product)) return;
-    const itemCategory: CategoryId = product.kind === "popcorn" ? "pipocas" : product.kind === "cone" ? "cones" : "fatias";
+    const itemCategory: CategoryId = product.kind === "popcorn" ? "pipocas" : product.kind === "cone" ? "cones" : product.kind === "chocotone" ? "natal" : "fatias";
     if (!categoryIsAvailable(itemCategory)) {
       setCheckoutAvailabilityMessage(`${product.category} estão indisponíveis. Remova este item ou escolha outra categoria.`);
       scrollToSection("carrinho");
+      return;
+    }
+    if (product.kind === "chocotone") {
+      // A própria coleção edita a quantidade, incluindo remoção a zero.
+      selectCategory("natal", true);
       return;
     }
     window.history.replaceState(window.history.state, "", categoryUrl(window.location.href, itemCategory));
@@ -3460,7 +3498,7 @@ export default function Home() {
 
       <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
-      {(activeCategory || cart.length > 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen && Boolean(cupFlavorPreview && cupSizeId) && cupCanOrder)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && !(builderFlowActive && activeCategory === "pipocas" && gourmetFlavorsInView && !gourmetContinueAvailable) && (
+      {(activeCategory || cart.length > 0) && !(activeCategory === "natal" && cart.length === 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen && Boolean(cupFlavorPreview && cupSizeId) && cupCanOrder)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && !(builderFlowActive && activeCategory === "pipocas" && gourmetFlavorsInView && !gourmetContinueAvailable) && (
       <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"} ${stickyIsCheckoutReady && checkoutChannel === "whatsapp" ? "is-whatsapp" : ""} ${cupBuilderFlowActive ? "is-crocantes-step" : ""} ${stickyUsesCheckoutAction ? "is-checkout-flow" : ""} ${builderFlowActive && activeCategory === "pipocas" ? "is-gourmet-step" : ""} ${gourmetContinueAvailable ? "is-gourmet-flavor-continue" : ""}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
         <div className="mobile-sticky-price" aria-live="polite" aria-atomic="true">
           {gourmetContinueAvailable ? <><small>Sabores escolhidos</small><strong>{popcornOptionIds.length} de {popcornMaxOptions}</strong></>
