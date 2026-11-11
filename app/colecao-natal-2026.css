@@ -142,16 +142,16 @@
 @media (prefers-reduced-motion:reduce) { .storefront .natal-home-ribbon {transition:none;} }
 
 /* O Natal é um convite entre categorias, não uma categoria gigante de checkout. */
-.storefront .boutique-complement-choice.is-natal {
+.storefront .boutique-complement-choice[data-natal] {
   border-color: rgba(216,160,99,.65);
   background: radial-gradient(ellipse at 100% 0%, rgba(119,40,58,.14), transparent 78%),
               linear-gradient(120deg,rgba(65,32,37,.46),rgba(39,26,22,.38));
 }
-.storefront .boutique-complement-choice.is-natal .boutique-complement-media {
+.storefront .boutique-complement-choice[data-natal] .boutique-complement-media {
   border: 1px solid rgba(235,192,125,.42);
   border-radius: 10px; overflow: hidden;
 }
-.storefront .boutique-complement-choice.is-natal .boutique-complement-copy small {
+.storefront .boutique-complement-choice[data-natal] .boutique-complement-copy small {
   color: #ebc998;
 }
 @media (prefers-reduced-motion:reduce) {

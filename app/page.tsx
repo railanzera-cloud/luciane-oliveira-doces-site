@@ -3322,7 +3322,7 @@ export default function Home() {
                               : id === "natal" ? "/images/chocotone-morango-brigadeiro-branco-chocolate-card-2026.webp"
                                 : null;
                           return (
-                            <button type="button" key={id} className={`boutique-complement-choice${id === "natal" ? " is-natal" : ""}`}
+                            <button type="button" key={id} className="boutique-complement-choice" data-natal={id === "natal" || undefined}
                               onClick={() => {
                                 if (id === "cones") startAnother("cones");
                                 else if (id === "gourmet") startAnother("pipocas");

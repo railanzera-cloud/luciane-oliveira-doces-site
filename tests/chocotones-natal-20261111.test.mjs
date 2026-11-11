@@ -86,7 +86,7 @@ test("Natal está presente nas recomendações contextuais e o CTA duplicado é 
   assert.match(home,/natal: natalCanBeAdded/);
   assert.match(home,/id === "natal" \? "Chocotones de Natal"/);
   assert.match(home,/id === "natal"\) startAnother\("natal"\)/);
-  assert.match(home,/className=\{\`boutique-complement-choice/);
+  assert.match(home,/className="boutique-complement-choice" data-natal=\{id === "natal" \|\| undefined\}/);
   assert.match(home,/natalPicking && natalInlineActionVisible/);
   assert.match(home,/setNatalInlineActionVisible\(Boolean\(entry\?\.isIntersecting\)\)/);
   assert.match(home,/document\.querySelector<HTMLElement>\("\.storefront \.natal-continue"\)/);
