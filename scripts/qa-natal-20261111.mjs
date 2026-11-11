@@ -94,6 +94,12 @@ try {
       await add.waitFor({state:"visible"});
       await add.click();
       await page.locator(".natal-product-card").nth(1).locator(".natal-product-add").click();
+      // 390px reproduz o relato: uma fatia de cada um dos quatro sabores.
+      if(width===390) {
+        await page.locator(".natal-product-card").nth(2).locator(".natal-product-add").click();
+        await page.locator(".natal-product-card").nth(3).locator(".natal-product-add").click();
+      }
+      const expectedSelected=width===390?4:2;
       const inline=page.locator(".natal-continue");
       if(width<700) {
         // O botão inline assume a continuação quando está legível acima da barra do navegador.
@@ -115,7 +121,7 @@ try {
         await page.waitForFunction(() => !!document.querySelector(".mobile-sticky-bar"));
       }
       await inline.click();
-      assert.equal(await page.locator("#carrinho .cart-item").count(),2,"Pedido misto de dois chocotones");
+      assert.equal(await page.locator("#carrinho .cart-item").count(),expectedSelected,"Carrinho deve preservar todos os sabores selecionados");
       await page.waitForFunction(() => {
         const rect = document.getElementById("recebimento")?.getBoundingClientRect();
         return rect && rect.top < 235 && rect.bottom > 240;
@@ -124,7 +130,7 @@ try {
         "Continuar deve apresentar sugestões de outros doces antes de entrega/retirada");
        const confirmation = page.locator(".boutique-added-confirmation");
        assert.match(await confirmation.innerText(),/Seleção adicionada ao pedido/);
-       assert.match(await confirmation.innerText(),/2 fatias de Chocottone · 2 sabores/);
+       assert.match(await confirmation.innerText(),new RegExp(`${expectedSelected} fatias de Chocottone · ${expectedSelected} sabores`));
        assert.doesNotMatch(await confirmation.innerText(),/vendida por fatia/i);
        assert.equal(await page.locator(".boutique-added-continuity").getAttribute("aria-label"),"Seleção adicionada ao pedido");
        assert.equal(await confirmation.locator("img").count(),0,"Não ilustrar duas fatias diferentes com foto de apenas um sabor");
