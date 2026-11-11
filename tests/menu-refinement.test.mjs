@@ -783,7 +783,8 @@ function checkoutCopy(name, values) {
  }
  visit(ast);
  assert.ok(expression);
- return new Function(...Object.keys(values),`return ${expression}`)(...Object.values(values));
+ const scope = { natalPicking: false, ...values }; // Testes do checkout comum não estão escolhendo sabores natalinos.
+ return new Function(...Object.keys(scope),`return ${expression}`)(...Object.values(scope));
 }
 
 for(const payment of ['pix','dinheiro','credito','debito']) test(`final CTA and temporary failure recovery — ${payment}`, async () => {
