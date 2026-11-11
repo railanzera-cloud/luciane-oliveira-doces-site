@@ -32,7 +32,7 @@ test("Troca de categoria e retorno fecham opções, com Escape e toque externo",
 
 test("Primeira rolagem aponta ao passo acionável sem alterar etapas posteriores", () => {
   assert.ok(page.includes('function scrollToCategoryEntry(category: CategoryId)'));
-  assert.ok(page.includes('category === "pipocas" ? "tamanhos" : category === "fatias" ? "fatias" : "cones-sabores"'));
+  assert.ok(page.includes('category === "pipocas" ? "tamanhos" : category === "fatias" ? "fatias" : category === "natal" ? "natal-sabores" : "cones-sabores"'));
   for (const category of ["pipocas", "fatias", "cones"]) {
     assert.ok(page.includes(`scrollRequest.id === "category-entry-${category}"`));
   }
