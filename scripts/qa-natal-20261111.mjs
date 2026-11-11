@@ -50,6 +50,8 @@ try {
       await page.goto(origin+"/?utm_source=qa-natal",{waitUntil:"domcontentloaded"});
       const banner=page.locator(".natal-home-ribbon");
       await banner.waitFor({state:"visible"});
+       assert.match(await banner.innerText(),/4 sabores recheados/);
+       assert.doesNotMatch(await banner.innerText(),/Vendidas por fatia/i);
       assert.equal(await page.locator(".collection-choice").count(),4,"As quatro categorias permanentes devem continuar na home");
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,"Sem overflow horizontal");
       const dimensions=await banner.evaluate(el=>({height:el.getBoundingClientRect().height,width:el.getBoundingClientRect().width}));
@@ -57,6 +59,8 @@ try {
       await page.screenshot({path:path.join(out,"home-natal-"+width+".png"),animations:"disabled"});
       await banner.click();
       await page.locator(".natal-product-card").first().waitFor({state:"visible"});
+       assert.match(await page.locator(".entry-copy").innerText(),/Edição especial de Natal · 4 sabores recheados/);
+       assert.doesNotMatch(await page.locator(".entry-copy").innerText(),/vendidos por fatia/i);
       assert.equal(await page.locator(".natal-product-card").count(),4,"Vitrine própria com quatro sabores");
       await page.waitForFunction(() => {
         const target = document.getElementById("natal-sabores");
@@ -118,6 +122,15 @@ try {
       });
       assert.equal(await page.locator(".boutique-added-continuity .boutique-added-other").count(),1,
         "Continuar deve apresentar sugestões de outros doces antes de entrega/retirada");
+       const confirmation = page.locator(".boutique-added-confirmation");
+       assert.match(await confirmation.innerText(),/Seleção adicionada ao pedido/);
+       assert.match(await confirmation.innerText(),/2 fatias de Chocottone · 2 sabores/);
+       assert.doesNotMatch(await confirmation.innerText(),/vendida por fatia/i);
+       assert.equal(await page.locator(".boutique-added-continuity").getAttribute("aria-label"),"Seleção adicionada ao pedido");
+       assert.equal(await confirmation.locator("img").count(),0,"Não ilustrar duas fatias diferentes com foto de apenas um sabor");
+       const artisan = page.locator(".boutique-complement-choice",{hasText:"Adicionar fatia artesanal"});
+       assert.equal(await artisan.count(),1,"Complemento deve distinguir Fatias Artesanais do Natal");
+       assert.match(await artisan.innerText(),/Conhecer sabores artesanais/);
       if(width<700) {
         const sticky=page.locator(".mobile-sticky-bar button");
         await sticky.waitFor({state:"visible"});
