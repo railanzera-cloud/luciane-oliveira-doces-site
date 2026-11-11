@@ -345,3 +345,13 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Feedback e CTA:** cada cartão reserva uma pequena linha de retorno de seleção para reduzir deslocamento de layout; barra flutuante usa a unidade “fatia selecionada”, acabamento mais leve em Natal e continua sumindo quando o CTA inline está visível. Não rolar no incremento; escolha livre até 99 por sabor.
 - **Protegidos:** fotos WebP bit a bit aprovadas no `LUCIANE_NATAL_V3.zip`, categorias, frete, pagamento, WhatsApp, complementos até quatro, estoque, indisponibilidade, admin, cozinha, integração Meta/Tintim e estados de pedidos. A nomenclatura do backend deve ser implantada separadamente do frontend.
 - **Verificações pendentes:** build/regressão no SHA final, WebKit 320/375/390/430/1280, pacote com oito WebPs fiéis (SHA-256), Safari/Instagram físico e confirmação de compatibilidade do backend real no corte. Implementação autorizada ≠ homologação estética ou deploy.
+
+
+## Natal V4.1 — textos e aviso de seleção (11/11/2026)
+
+- **Texto principal:** “Fatias de Chocottone”, com dois T. Subtexto compacto “Edição especial de Natal · 4 sabores recheados.”, sem “vendidos por fatia”. Faixa na home: “4 sabores recheados”. Na introdução interna: “Combine seus favoritos e escolha quantas fatias quiser de cada sabor.” Continua “por fatia” junto ao preço.
+- **Após continuar:** quando há sabores distintos, “Seleção adicionada ao pedido” e “N fatias de Chocottone · S sabores”, com ícone neutro. Para um sabor, mostrar a quantidade e o nome desse sabor. A mensagem não substitui nem aumenta o resumo detalhado de itens do checkout.
+- **Complemento iniciado no Natal:** “Adicionar fatia artesanal”, subtítulo “Conhecer sabores artesanais”. Evita confundir duas categorias de fatias; não altera produto, foto ou interação.
+- **WhatsApp:** item “1x Fatia de Chocottone — Casadinho” em vez de “1x ... Casadinho 1 fatia”. A quantidade continua expressa em Nx e na cotação autoritativa. Não tocar na atribuição Tintim.
+- **Fora do escopo:** endereço de retirada na Promissão II, dimensões/posições da grade 2×2, fotografias, cores, preços, cartão, pagamentos ou qualquer mudança de backend produtivo.
+- **Critério visual no navegador:** confirmar 1 sabor, 2 sabores e 4 sabores em 390px; a confirmação deve refletir a seleção completa e não mostrar a foto de um único sabor para uma cesta de vários. Conferir Safari/Instagram físico após publicação manual.

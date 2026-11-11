@@ -105,7 +105,7 @@ test("additional category labels use actual items in cart, not the last added ca
   assert.match(page, /\{addMoreButtonLabel\("pipocas", cart\)\}/);
   // O novo módulo usa o MESMO helper do carrinho para não inventar "outro".
   assert.match(page, /id === "gourmet" \? addMoreButtonLabel\("pipocas", cart\)/);
-  assert.match(page, /id === "fatias" \? addMoreButtonLabel\("fatias", cart\)/);
+  assert.match(page, /id === "fatias" \? \(addedNotice\?\.category === "natal" \? "Adicionar fatia artesanal" : addMoreButtonLabel\("fatias", cart\)\)/);
   // O atalho de Trufadas permanece, com apresentação contextual quando recém-adicionado.
   assert.equal((page.match(/cartContainsCrocantes \? "Adicionar outro pacote" : "Adicionar pacote Trufado"/g) ?? []).length, 1);
   assert.match(page, /cartContainsCrocantes \? "Outro pacote Trufado" : "Pipocas Trufadas"/);

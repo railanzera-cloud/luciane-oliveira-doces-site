@@ -228,9 +228,10 @@ export function buildRegisteredOrderMessage(order: CheckoutDetails, number: numb
   for (const item of order.items) {
     // As duas Pipocas Trufadas já são identificadas pelo sabor.
     // Ocultar apenas o sufixo "Pacote" no texto enviado pelo WhatsApp.
+    // Fatias artesanais e de Chocottone já identificam a unidade no nome.
     // O rótulo no catálogo e os dados do pedido/estoque permanecem intactos.
     const isTrufada = item.product_id === "crocante-ninho" || item.product_id === "crocante-chocolate";
-    const showSize = item.kind !== "slice" && !(isTrufada && item.size.trim().toLowerCase() === "pacote");
+    const showSize = item.kind !== "slice" && item.kind !== "chocotone" && !(isTrufada && item.size.trim().toLowerCase() === "pacote");
     lines.push(`${item.quantity}x ${item.name}${showSize ? ` ${item.size}` : ""}`);
     if (item.options.length) lines.push(item.options.join(" + "));
     lines.push("");

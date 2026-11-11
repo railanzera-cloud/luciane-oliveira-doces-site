@@ -4,6 +4,7 @@ on:
     branches:
       - refine/natal-complementos-vitrine-cta-20261111
       - refine/natal-fatias-chocottone-editorial-v4-20261111
+      - refine/natal-v4-1-resumo-textos-whatsapp-20261111
   workflow_dispatch:
 permissions:
   contents: read
@@ -44,6 +45,9 @@ jobs:
               assert 'chocotone-ninho-nutella' in scripts
               assert 'natal-continue' in scripts
               assert 'Fatias de Chocottone' in scripts
+              assert '4 sabores recheados' in scripts
+              assert 'Seleção adicionada ao pedido' in scripts
+              assert 'Adicionar fatia artesanal' in scripts
               assert 'recebimento-opcoes' in scripts
               assert 'create-whatsapp-order' in scripts
               assert 'https://edqiwvccmboyayojvuea.supabase.co' in scripts
@@ -51,12 +55,12 @@ jobs:
               assert not any(n.startswith('images/refrigerante-') for n in names)
           print('Pacote conectado validado; inserir 8 fotos aprovadas antes de publicar')
           PY
-      - name: Acoplar fotografias V3 por SHA-256 e validar ZIP V4
-        run: python3 scripts/package-natal-v4-cloudflare.py
+      - name: Acoplar fotografias V3 por SHA-256 e validar ZIP V4.1
+        run: NATAL_PACKAGE_VERSION=V4_1 python3 scripts/package-natal-v4-cloudflare.py
       - name: Entregar pacote final completo para upload manual
         uses: actions/upload-artifact@v4
         with:
-          name: LUCIANE-NATAL-V4-CLOUDFLARE
-          path: outputs/LUCIANE_NATAL_V4.zip
+          name: LUCIANE-NATAL-V4-1-CLOUDFLARE
+          path: outputs/LUCIANE_NATAL_V4_1.zip
           if-no-files-found: error
           retention-days: 7

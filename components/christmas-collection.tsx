@@ -22,7 +22,7 @@ export function ChristmasCollection({ availability, quantities, onAdjust, onChec
       <div className="natal-collection-intro">
         <span className="natal-collection-eyebrow">✦ Coleção especial · Natal 2026</span>
         <h3>Escolha suas fatias.</h3>
-        <p>Quatro sabores recheados. Combine seus favoritos e escolha quantas fatias quiser de cada um.</p>
+        <p>Combine seus favoritos e escolha quantas fatias quiser de cada sabor.</p>
       </div>
       <div className="natal-product-grid" id="natal-sabores" role="group" aria-label="Escolha as fatias de Chocottone da coleção de Natal">
         {visible.map(product => {

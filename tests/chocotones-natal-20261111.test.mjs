@@ -124,3 +124,30 @@ test("Natal V4 identifica fatias recheadas sem modificar SKUs, preços ou quanti
     assert.match(quote.items[0].name,/^Fatia de Chocottone — /);
   }
 });
+
+
+test("Natal V4.1 remove redundância e exibe total da seleção, não apenas o último sabor", () => {
+  const home = files("app/page.tsx");
+  const collection = files("components/christmas-collection.tsx");
+  const message = files("app/order-checkout.ts");
+  assert.match(home,/className="natal-home-description">4 sabores recheados/);
+  assert.match(home,/activeCategory === "natal" \? "Edição especial de Natal · 4 sabores recheados\."/);
+  assert.doesNotMatch(home,/vendid[oa]s? por fatia/i);
+  assert.match(collection,/Combine seus favoritos e escolha quantas fatias quiser de cada sabor/);
+  assert.match(collection,/natal-product-unit">por fatia/);
+  assert.match(home,/const natalNoticeItems = addedNotice\?\.category === "natal"/);
+  assert.match(home,/cart\.filter\(item => CHOCOTONES\.some/);
+  assert.match(home,/const natalNoticeQuantity = natalNoticeItems\.reduce/);
+  assert.match(home,/new Set\(natalNoticeItems\.map\(item => item\.productId\)\)\.size/);
+  assert.match(home,/Seleção adicionada ao pedido/);
+  assert.match(home,/\$\{natalNoticeFlavorCount\} sabores/);
+  assert.match(home,/addedNotice\.category === "natal" \? natalNoticeDescription : addedNotice\.description/);
+  assert.match(home,/addedNotice\.category === "natal" && natalNoticeFlavorCount > 1[\s\S]{0,130}<ShoppingBag/);
+  assert.match(home,/Adicionar fatia artesanal/);
+  assert.match(home,/Conhecer sabores artesanais/);
+  assert.match(message,/item\.kind !== "slice" && item\.kind !== "chocotone"/);
+  assert.match(home,/Como deseja receber\?/);
+  assert.match(home,/A partir de R\$8/);
+  assert.match(home,/Em Paragominas/);
+  assert.match(files("app/catalog.ts"),/drinks:\s*false/);
+});
