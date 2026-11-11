@@ -256,7 +256,9 @@ function checkoutHarness(latest, overrides = {}) {
     PIX_DETAILS: {holder:"Luciane Galvão de Oliveira",key:"03611974200",keyType:"CPF"},
     buildRegisteredOrderMessage: checkout.buildRegisteredOrderMessage, rememberOrder: () => {}, setLastToken: () => {},
     createWhatsAppOrder: async () => ({order:{order_number:1047,tracking_token:"a".repeat(48),total:73},payment:{method:"manual_pix"}}),
-    setWhatsAppResult: value => actions.push(value.whatsappUrl),
+    setWhatsAppResult: () => {},
+     // O registro é separado da navegação. Capturar uma única passagem ao Tintim.
+     navigateToWhatsAppHandoff: url => actions.push(url),
     availability: snapshot(), cart, checkoutFormReady: true, finalizationLockRef: lock, navigationPendingRef: navigationPending,
     STORE_CONFIG: catalog.STORE_CONFIG, cartAvailabilityIssues,
     // O checkout isolado roda após a janela promocional; no componente real esses valores vêm do hook.
@@ -634,11 +636,11 @@ test('final screen keeps WhatsApp predominant and tracking secondary for each ma
   ['card_on_delivery','debit','Débito','cartão de débito, no recebimento'],
  ]) {
   const html=renderToStaticMarkup(React.createElement(WhatsAppOrderResultView,{order:{customerName:'Maria Oliveira',result:{order:{order_number:1004,total:48,card_mode},payment:{method}},trackingUrl:'/pedido?token=abc',whatsappUrl:'https://tintim.link/fixture'}}));
-  assert.match(html,/Pedido #1004 registrado/);assert.ok(html.includes(label));assert.ok(html.includes(phrase));
-  assert.match(html,/whatsapp-final-primary/);assert.match(html,/Enviar pedido pelo WhatsApp/);
-  assert.match(html,/Agora, envie a mensagem com seu pedido/);
-  assert.match(html,/Ao abrir o WhatsApp, toque em Enviar/);
-  assert.match(html,/Consultar detalhes do pedido/);assert.equal((html.match(/<a /g)||[]).length,2);
+  assert.match(html,/Sua solicitação #1004/);assert.ok(html.includes(label));assert.ok(html.includes(phrase));
+  assert.match(html,/whatsapp-final-primary/);assert.match(html,/Abrir WhatsApp para enviar pedido/);
+  assert.match(html,/Envie seu pedido pelo WhatsApp/);
+  assert.match(html,/Abra o WhatsApp e toque em Enviar/);
+  assert.match(html,/Consultar informações da solicitação/);assert.equal((html.match(/<a /g)||[]).length,2);
   assert.doesNotMatch(html,/Falta só uma etapa|Se entrar nos detalhes|não confirma o pagamento/);
   assert.doesNotMatch(html,/Copiar chave|Fazer novo pedido|03611974200/);
  }
@@ -801,7 +803,7 @@ for(const payment of ['pix','dinheiro','credito','debito']) test(`final CTA and 
    return {order:{order_number:1047,tracking_token:'a'.repeat(48),total:73},payment:{method:payment==='pix'?'manual_pix':payment==='dinheiro'?'cash':'card_on_delivery'}};
   },
  });
- assert.equal(label(),'Finalizar pedido no WhatsApp'); assert.equal(sticky(),label());
+ assert.equal(label(),'Abrir WhatsApp para enviar pedido'); assert.equal(sticky(),label());
  await h.finish();
  assert.equal(registrations,0); assert.equal(h.actions.length,0);
  assert.equal(h.messages.at(-1),'Não conseguimos concluir seu pedido agora. Tente novamente.');
@@ -811,7 +813,7 @@ for(const payment of ['pix','dinheiro','credito','debito']) test(`final CTA and 
  resume({snapshot:snapshot(),usedFallback:false}); await next;
  assert.equal(registrations,1); assert.equal(h.actions.length,1);
  assert.equal(h.messages.at(-1),''); assert.equal(retry,false);
- assert.equal(label(),'Finalizar pedido no WhatsApp');
+ assert.equal(label(),'Abrir WhatsApp para enviar pedido');
  assert.equal(h.writes.at(-1).value.whatsappResult.result.order.order_number,1047);
 });
 
@@ -838,7 +840,7 @@ function renderCheckoutFeedback(state) {
 }
 for(const payment of ['pix','dinheiro','credito','debito']) test(`checkout feedback follows incomplete, ready, processing and failed states — ${payment}`, () => {
  const warning='Complete as informações acima para continuar.';
- const ready='Tudo certo! Seu pedido está pronto para ser enviado.';
+ const ready='Seu pedido será enviado à Luciane pelo WhatsApp. Ao abrir a conversa, toque em Enviar para solicitar a confirmação.';
  const failure='Não conseguimos concluir seu pedido agora. Tente novamente.';
  for(const [missing,hint] of [
   [{fulfillment:''},'Escolha entrega ou retirada para continuar.'],
