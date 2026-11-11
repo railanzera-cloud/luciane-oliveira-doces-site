@@ -1,0 +1,59 @@
+name: Natal refinado - build e pacote conectado (sem homologação visual)
+on:
+  push:
+    branches:
+      - refine/natal-complementos-vitrine-cta-20261111
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SITE_ORDERING_ENABLED: 'false'
+      SUPABASE_URL: https://edqiwvccmboyayojvuea.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_69flK5d9m8Oe3HHVnmKWdA_omNIuIcl
+      MP_PUBLIC_KEY_TEST: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Testes regressivos completos antes de empacotar
+        run: node --test tests/*.test.mjs
+      - name: Compilação conectada ao Supabase comercial
+        run: |
+          npm run build
+          node scripts/package-cloudflare.mjs --require-supabase
+      - name: Validar rotas, catálogo sazonal e ausência de segredos no pacote
+        run: |
+          python3 - <<'PY'
+          from zipfile import ZipFile
+          from pathlib import Path
+          p=Path('outputs/luciane-oliveira-doces-cloudflare-pages.zip')
+          assert p.exists() and p.stat().st_size>5_000_000
+          with ZipFile(p) as z:
+              assert z.testzip() is None
+              names=set(z.namelist())
+              assert {'index.html','admin/index.html','pedido/index.html','_worker.js','_routes.json','_headers'} <= names
+              scripts='\n'.join(z.read(name).decode('utf8','replace') for name in names if name.startswith('assets/') and name.endswith('.js'))
+              assert 'chocotone-ninho-nutella' in scripts
+              assert 'natal-continue' in scripts
+              assert 'Chocotones de Natal' in scripts
+              assert 'recebimento-opcoes' in scripts
+              assert 'create-whatsapp-order' in scripts
+              assert 'https://edqiwvccmboyayojvuea.supabase.co' in scripts
+              assert not any(n.startswith(('.env','node_modules/','supabase/')) for n in names)
+              assert not any(n.startswith('images/refrigerante-') for n in names)
+          print('Pacote conectado validado; inserir 8 fotos aprovadas antes de publicar')
+          PY
+      - name: Entregar base compilada (fotos WebP acopladas fora do GitHub)
+        uses: actions/upload-artifact@v4
+        with:
+          name: NATAL-REFINO-BASE-CLOUDFLARE-20261111
+          path: outputs/luciane-oliveira-doces-cloudflare-pages.zip
+          if-no-files-found: error
+          retention-days: 7
