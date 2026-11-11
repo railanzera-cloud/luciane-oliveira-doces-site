@@ -153,7 +153,7 @@ const CONE_ITEMS: MenuAvailabilityItem[] = CONES.map(cone => ({
 }));
 
 const CHOCOTONE_ITEMS: MenuAvailabilityItem[] = CHOCOTONES.map((product) => ({
-  itemKey: CHOCOTONE_ITEM_KEYS[product.id], name: `Chocotone — ${product.name}`,
+  itemKey: CHOCOTONE_ITEM_KEYS[product.id], name: `Fatia de Chocottone — ${product.name}`,
   itemType: "product", categoryKey: CATEGORY_ITEM_KEYS.natal,
 }));
 
