@@ -18,8 +18,8 @@ import "./category-navigation-packaged-20261108.css";
 import "./colecao-natal-2026.css";
 
 export const metadata: Metadata = {
-  title: "Luciane Oliveira Doces | Chocotones de Natal, Cones Trufados, Pipocas e Fatias",
-  description: "Conheça os Chocotones Recheados da Edição de Natal, Cones Trufados, Pipocas e Fatias da Luciane Oliveira Doces em Paragominas. Monte seu pedido e finalize pelo WhatsApp.",
+  title: "Luciane Oliveira Doces | Fatias de Chocottone, Cones, Pipocas e Doces",
+  description: "Conheça as Fatias de Chocottone recheadas da Edição de Natal, além de Cones Trufados, Pipocas e Fatias Artesanais da Luciane Oliveira Doces em Paragominas. Monte seu pedido e finalize pelo WhatsApp.",
 };
 
 export const viewport: Viewport = {
