@@ -6,12 +6,16 @@ indisponível ou se o SHA-256 divergir do artefato V3 aprovado, NÃO gera o ZIP.
 Não modifica o site público, Supabase ou dados de pedidos.
 """
 from hashlib import sha256
+from os import environ
 from pathlib import Path
 from urllib.request import Request, urlopen
 from zipfile import ZIP_DEFLATED, ZipFile
 
 BASE = Path("outputs/luciane-oliveira-doces-cloudflare-pages.zip")
-FINAL = Path("outputs/LUCIANE_NATAL_V4.zip")
+RELEASE = environ.get("NATAL_PACKAGE_VERSION", "V4")
+if RELEASE not in {"V4", "V4_1"}:
+    raise SystemExit("Versão não autorizada de pacote Natal")
+FINAL = Path(f"outputs/LUCIANE_NATAL_{RELEASE}.zip")
 URL = "https://lucianeoliveiradoces.pages.dev"
 # SHA-256 medidos nos oito binários de LUCIANE_NATAL_V3.zip, 11/11/2026.
 APPROVED = {
@@ -58,7 +62,5 @@ with ZipFile(FINAL) as final:
             "_worker.js", "_routes.json", "_headers"}.issubset(names)
     for path, approved_sha in APPROVED.items():
         assert sha256(final.read(path)).hexdigest() == approved_sha, path
-    for path in original.namelist() if False else []:
-        pass
     assert not any(x.startswith((".env", "supabase/", "node_modules/")) for x in names)
-    print(f"LUCIANE_NATAL_V4 íntegro: {len(names)} arquivos, {FINAL.stat().st_size} bytes, SHA256 {sha256(FINAL.read_bytes()).hexdigest()}")
+    print(f"LUCIANE_NATAL_{RELEASE} íntegro: {len(names)} arquivos, {FINAL.stat().st_size} bytes, SHA256 {sha256(FINAL.read_bytes()).hexdigest()}")
