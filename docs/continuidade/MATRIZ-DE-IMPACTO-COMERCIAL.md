@@ -130,3 +130,12 @@ Contrato temporário de negócio (sem atualizar tabelas permanentes): `POPCORN_P
 - Ao reenviar, apenas a tarefa travada é marcada `cancelled` e uma única nova tarefa `initial` com `job_key` determinística entra em `pending`. A função de claim já existente continua impondo elegibilidade. Não recriar pedido ou alterar pagamento, não tocar pedidos saudáveis.
 - `printed` do QZ registra resposta da API, não garantia de papel. Confirmação manual deve ser diferenciada e auditada.
 - RPC produtiva aplicada em 08/11/2026 sem modificar comandas. A UI só conseguirá recuperar tarefas após atualização manual do frontend Cloudflare; ainda exige confirmação humana da saída física do papel e controle de duplicidade. Preservar assets acumulados.
+
+## Nova categoria de negócio `chocotone` — contrato sazonal (11/11/2026)
+
+- SKU/variante: `chocotone-<sabor>` + `porcao`, `option_ids=[]`, `quantity=1..99`, reais R$18,99/R$16,99; tipo `chocotone` diferente de `slice/cone`. Valor final sempre calculado pelo catálogo autoritativo `commerce-catalog.mjs`.
+- Validação remota: `category_natal` + `chocotone_*` devem estar `available` para inclusão/finalização. Estado fallback e cadastro inicial `hidden`, não utilizar status de produto ausente como disponibilidade comprovada.
+- `public.order_items` precisa aceitar `item_type='chocotone'` sem remover enum antigo `popcorn/slice/cone/drink`; migração aplicada 11/11/2026. Pedidos Natal usam o canal WhatsApp, mantendo a função v36, QZ/administrativo existentes e sem ativar pagamento online.
+- Integração: um carrinho misto, etiqueta `Chocotone — Sabor`, descrição "1 porção individual", quantidade ajustável e subtotal. Meta `AddToCart` dispara só na adição; `Purchase` depende de venda legítima. Sem modificar frete/pagamento/CRM.
+- Operacional: primeiro deploy de backend compatível e inserção SQL com cinco linhas `hidden`, depois ZIP manual Cloudflare, homologar fotos e pedidos mistos no Safari/Instagram, somente então liberar categoria e sabores no `/admin`. Para encerrar temporada, ocultar a categoria (preserva venda histórica).
+- Verificações: QA comercial, cotação forjada/mista, build, tipos sem novas regressões, WebKit 5 larguras, assets ZIP SHA/rotas. Não substituir fotos de categorias existentes nem tornar as bebidas ocultas novamente vendáveis.
