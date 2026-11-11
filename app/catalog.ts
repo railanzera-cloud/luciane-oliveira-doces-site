@@ -306,14 +306,14 @@ export const PRODUCTS: Product[] = [
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
     options: SLICE_OPTIONS,
   },
-  // Edição especial de Natal: porções individuais, disponibilidade por sabor no painel.
+  // Edição especial de Natal: fatias recheadas vendidas individualmente, disponibilidade por sabor no painel.
   {
     id: "chocotone-ninho-nutella", kind: "chocotone", category: "Coleção de Natal",
     name: "Ninho com Nutella", available: true, subtitle: "Ninho com creme de avelã",
     image: "/images/chocotone-ninho-nutella-detail-2026.webp",
     cardImage: "/images/chocotone-ninho-nutella-card-2026.webp",
-    imageAlt: "Porção individual de chocotone recheado Ninho com Nutella em prato branco com ambiente natalino",
-    variants: [{ id: "porcao", label: "1 porção individual", whatsappLabel: "1 porção individual", price: 18.99, available: true }],
+    imageAlt: "Fatia recheada de Chocottone Ninho com Nutella em prato branco com ambiente natalino",
+    variants: [{ id: "porcao", label: "1 fatia", whatsappLabel: "1 fatia", price: 18.99, available: true }],
     options: [],
   },
   {
@@ -321,8 +321,8 @@ export const PRODUCTS: Product[] = [
     name: "Ferrero Rocher", available: true, subtitle: "Chocolate com cobertura crocante",
     image: "/images/chocotone-ferrero-rocher-detail-2026.webp",
     cardImage: "/images/chocotone-ferrero-rocher-card-2026.webp",
-    imageAlt: "Porção individual de chocotone recheado Ferrero Rocher em prato branco com ambiente natalino",
-    variants: [{ id: "porcao", label: "1 porção individual", whatsappLabel: "1 porção individual", price: 18.99, available: true }],
+    imageAlt: "Fatia recheada de Chocottone Ferrero Rocher em prato branco com ambiente natalino",
+    variants: [{ id: "porcao", label: "1 fatia", whatsappLabel: "1 fatia", price: 18.99, available: true }],
     options: [],
   },
   {
@@ -330,8 +330,8 @@ export const PRODUCTS: Product[] = [
     name: "Casadinho", available: true, subtitle: "Creme claro e chocolate",
     image: "/images/chocotone-casadinho-detail-2026.webp",
     cardImage: "/images/chocotone-casadinho-card-2026.webp",
-    imageAlt: "Porção individual de chocotone recheado Casadinho em prato branco com ambiente natalino",
-    variants: [{ id: "porcao", label: "1 porção individual", whatsappLabel: "1 porção individual", price: 16.99, available: true }],
+    imageAlt: "Fatia recheada de Chocottone Casadinho em prato branco com ambiente natalino",
+    variants: [{ id: "porcao", label: "1 fatia", whatsappLabel: "1 fatia", price: 16.99, available: true }],
     options: [],
   },
   {
@@ -339,8 +339,8 @@ export const PRODUCTS: Product[] = [
     name: "Morango com Brigadeiro Branco e Chocolate", available: true, subtitle: "Morango fresco, brigadeiro branco e chocolate",
     image: "/images/chocotone-morango-brigadeiro-branco-chocolate-detail-2026.webp",
     cardImage: "/images/chocotone-morango-brigadeiro-branco-chocolate-card-2026.webp",
-    imageAlt: "Porção individual de chocotone recheado Morango com Brigadeiro Branco e Chocolate em prato branco com ambiente natalino",
-    variants: [{ id: "porcao", label: "1 porção individual", whatsappLabel: "1 porção individual", price: 18.99, available: true }],
+    imageAlt: "Fatia recheada de Chocottone Morango com Brigadeiro Branco e Chocolate em prato branco com ambiente natalino",
+    variants: [{ id: "porcao", label: "1 fatia", whatsappLabel: "1 fatia", price: 18.99, available: true }],
     options: [],
   },
   {

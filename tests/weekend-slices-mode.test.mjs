@@ -29,7 +29,7 @@ test("starts neutral and resolves navigation from the existing availability cont
   assert.match(page, /if \(!categoryIsAvailable\(category\)\) return/);
   assert.match(page, /isItemVisible\(availability, CATEGORY_ITEM_KEYS\.pipocas\)/);
   assert.match(page, /visibleCategories\.filter\(category => category\.id !== "cones"\)\.map/);
-  assert.match(layout, /Chocotones de Natal, Cones Trufados, Pipocas e Fatias/);
+  assert.match(layout, /Fatias de Chocottone, Cones Trufados, Pipocas e Fatias/);
 });
 
 test("removes statically disabled products from restored carts and hides unavailable add-more actions", () => {

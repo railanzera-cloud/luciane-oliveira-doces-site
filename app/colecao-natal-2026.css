@@ -159,3 +159,97 @@
   .storefront .natal-home-image img,
   .storefront .natal-home-action svg {transition:none;}
 }
+
+
+/* V4 — Fatias de Chocottone: identidade editorial sem aumentar o destaque sazonal.
+   A grade, fotos, alvos de toque e scroll contextual permanecem intactos. */
+.storefront .menu-entry.is-neutral .natal-home-ribbon {
+  border-color: rgba(225,184,131,.54);
+  background:
+    radial-gradient(ellipse 67% 100% at 100% 0%,rgba(173,112,87,.20),transparent 76%),
+    linear-gradient(110deg,#371e27 0%,#552834 55%,#302021 100%);
+  box-shadow:0 7px 18px rgba(24,9,8,.20),inset 0 1px rgba(255,233,197,.14);
+}
+.storefront .natal-home-ribbon::before {
+  inset:6px; border:0; border-bottom:1px solid rgba(242,210,166,.16); border-radius:0;
+}
+.storefront .natal-home-ribbon::after {
+  top:23px; bottom:23px; width:1px;
+  background:linear-gradient(to bottom,transparent,rgba(235,199,145,.68),transparent);
+}
+.storefront .natal-home-copy {gap:3px;}
+.storefront .natal-home-title {
+  font-size:clamp(16px,4.2vw,20px); letter-spacing:-.026em;
+  text-shadow:none;
+}
+.storefront .natal-home-description {color:#eed7c6; font-size:11px;}
+.storefront .natal-home-action {color:#f6d29d;}
+.storefront .natal-home-image {
+  flex-basis:90px; width:90px; height:80px; border-radius:9px;
+  -webkit-mask-image:linear-gradient(90deg,transparent,rgba(0,0,0,.8) 24%,#000 46%);
+  mask-image:linear-gradient(90deg,transparent,rgba(0,0,0,.8) 24%,#000 46%);
+}
+.storefront .natal-collection {gap:10px;}
+.storefront .natal-collection-intro {
+  padding:7px 6px 8px 13px; margin-bottom:2px;
+  border:0; border-left:2px solid rgba(229,184,120,.72); border-radius:2px;
+  background:linear-gradient(90deg,rgba(190,127,89,.065),transparent 78%);
+  box-shadow:none;
+}
+.storefront .natal-collection-eyebrow {
+  letter-spacing:.13em; font-size:10px; color:#e5c58f;
+}
+.storefront .natal-collection-intro h3 {margin:5px 0 4px;font-size:clamp(21px,4.8vw,27px);}
+.storefront .natal-collection-intro p {max-width:41em;line-height:1.45;color:#e1cbb8;}
+.storefront .natal-product-grid {gap:10px;}
+.storefront .natal-product-card {
+  border-color:rgba(220,177,129,.39);
+  background:linear-gradient(170deg,#40251f,#291915);
+  box-shadow:0 7px 19px rgba(10,4,3,.17);
+}
+.storefront .natal-product-card[data-selected] {
+  border-color:rgba(239,199,142,.76);
+  box-shadow:0 0 0 1px rgba(241,203,150,.11),0 8px 20px rgba(10,4,3,.20);
+}
+.storefront .natal-product-info {padding:10px 10px 11px;gap:6px;}
+.storefront .natal-product-heading {
+  display:flex;flex-direction:column;gap:3px;min-height:57px;
+}
+.storefront .natal-product-info h4 {min-height:0;line-height:1.21;letter-spacing:-.016em;}
+.storefront .natal-product-note {font-size:11px;color:#e4c8ae;}
+.storefront .natal-product-price-row {
+  display:flex;align-items:baseline;flex-wrap:wrap;column-gap:6px;row-gap:1px;
+}
+.storefront .natal-product-price {font-size:16px;line-height:1.2;color:#f8d6ab;}
+.storefront .natal-product-unit {font:500 10px/1.2 system-ui,sans-serif;color:#d7bba4;white-space:nowrap;}
+.storefront .natal-product-control {margin-top:auto;}
+.storefront .natal-quantity-control {background:rgba(28,17,14,.70);}
+.storefront .natal-in-cart {
+  display:block;min-height:13px;font:600 10px/1.25 system-ui,sans-serif;
+  color:#e4c9a5;
+}
+.storefront .natal-continue {
+  min-height:48px;border-color:rgba(242,201,152,.84);
+  background:linear-gradient(180deg,#f4d7a8,#e7b77b);
+  box-shadow:0 6px 15px rgba(17,8,5,.18);
+}
+.storefront .mobile-sticky-bar.is-natal-step {
+  border-color:rgba(227,179,124,.48);background:rgba(36,23,20,.96);
+  box-shadow:0 11px 27px rgba(0,0,0,.26),inset 0 1px rgba(255,235,202,.09);
+}
+.storefront .mobile-sticky-bar.is-natal-step button:not(:disabled) {
+  border-color:#e6b779;border-radius:12px;
+  background:linear-gradient(115deg,#f2d3a3,#dba366);
+  color:#38251b;box-shadow:inset 0 1px rgba(255,240,213,.38);
+}
+@media (max-width:359px) {
+  .storefront .natal-home-title {font-size:15px;}
+  .storefront .natal-home-image {flex-basis:67px;width:67px;height:69px;}
+  .storefront .natal-product-grid {gap:8px;}
+  .storefront .natal-product-heading {min-height:60px;}
+  .storefront .natal-quantity-control button {min-width:44px;min-height:44px;}
+}
+@media (min-width:700px) {
+  .storefront .natal-product-grid {gap:14px;}
+  .storefront .natal-product-heading {min-height:65px;}
+}
