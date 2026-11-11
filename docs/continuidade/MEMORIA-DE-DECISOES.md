@@ -317,3 +317,13 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - **Rejeitado:** mudar preços, tornar a campanha quinta categoria permanente, refazer fotografias, ampliar o banner, tratar Chocottone como `slice` no contrato técnico ou reativar refrigerantes.
 - **Integração:** a edição dos textos da função autoritativa `commerce-catalog.mjs` é código candidato; **não** representa Edge publicada. A aplicação produtiva de nomenclatura no pedido requer autorização e verificação de versão separadas. Cloudflare manual, sem merge em `main`.
 - **Branch:** `refine/natal-fatias-chocottone-editorial-v4-20261111`, derivada de PR #29 / SHA `34ca0b9a0a6e3f9ba860c56864bd43760ed68fef`. Resultado final, CI, ZIP e publicação devem ser comprovados no PR e checkpoint após a última alteração, não presumidos.
+
+
+## D-C35 — Natal V4.1: comunicação sem redundância e confirmação por seleção (11/11/2026)
+
+- **Decisão autorizada:** após revisão visual real no Instagram/Safari e observação da proprietária, remover “vendidos por fatia” dos textos introdutórios da coleção; preservar “por fatia” ao lado do preço dos quatro sabores. Retirada em endereço específico fica **fora do escopo**.
+- **A confirmação após “Continuar pedido” no Natal** deixa de repetir a última fatia clicada como se fosse toda a compra. Calcula, a partir do carrinho existente, total de fatias e número de sabores distintos. Um sabor mostra nome e quantidade; múltiplos sabores mostram por exemplo “4 fatias de Chocottone · 4 sabores”, com ícone neutro em lugar da foto de um único sabor. Não replica a lista de itens; o carrinho/checkout continuam responsáveis pelo detalhamento e pelo subtotal.
+- **Complementos:** para compras iniciadas no Natal, a sugestão de categoria usa “Adicionar fatia artesanal” / “Conhecer sabores artesanais” e preserva o destino anterior. Outras origens continuam com o texto e fluxo legados.
+- **Mensagem WhatsApp registrada:** quando `kind=chocotone`, suprimir apenas o sufixo textual redundante “1 fatia” após o nome do produto. Preservar `1x`/`Nx`, quatro sabores, total, pagamento Pix, outras variantes, etiquetas de tamanhos das pipocas, Tintim e strings invisíveis de atribuição. Sem mudança na Edge publicada ou valores calculados pelo backend.
+- **Preservado:** fotos WebP aprovadas byte a byte, quantidades livres, botão contextual/scroll, quatro categorias permanentes, complementos opcionais, disponibilidade remota, entrega/retirada, admin/cozinha, refrigerantes desligados e rastreamento.
+- **Branch:** `refine/natal-v4-1-resumo-textos-whatsapp-20261111` a partir do V4 `5b70a545`. Não usar main como base. CI, SHA final e ZIP `LUCIANE_NATAL_V4_1.zip` devem ser verificados antes da publicação manual.
