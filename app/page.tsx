@@ -2656,10 +2656,10 @@ export default function Home() {
           )}
           {activeCategory !== "natal" && <div className="section-intro" id="potes-recheados">
             <p className="eyebrow">Seu pedido, do seu jeito</p>
-            <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : activeCategory === "cones" ? "Escolha seu cone." : activeCategory === "natal" ? "Um Natal cheio de recheio." : "Sua vitrine de sabores."}</h2>
+            <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : activeCategory === "cones" ? "Escolha seu cone." : "Sua vitrine de sabores."}</h2>
             <p>{activeCategory === "pipocas"
               ? "Um tamanho, seus sabores favoritos. Tudo do seu jeito."
-              : activeCategory === "cones" ? "Um sabor por vez. Adicione quantos desejar e finalize tudo no mesmo pedido." : activeCategory === "natal" ? "Escolha seus chocotones individuais. Combine sabores sem perder o pedido." : "Escolha sua fatia favorita. Depois, você pode adicionar outras."}</p>
+              : activeCategory === "cones" ? "Um sabor por vez. Adicione quantos desejar e finalize tudo no mesmo pedido." : "Escolha sua fatia favorita. Depois, você pode adicionar outras."}</p>
 
           </div>}
 
