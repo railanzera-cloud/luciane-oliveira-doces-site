@@ -18,28 +18,31 @@ export function ChristmasCollection({ availability, quantities, onAdjust, onChec
   const canQuote = availability.source === "supabase" && availability.ordersOpen;
   const selectedCount = CHOCOTONES.reduce((sum,p) => sum + (quantities[p.id] ?? 0), 0);
   return (
-    <div className="natal-collection" id="natal-sabores">
+    <div className="natal-collection">
       <div className="natal-collection-intro">
-        <span className="natal-collection-eyebrow">✦ Coleção de Natal 2026 · Edição especial</span>
-        <h3>Quatro sabores para celebrar.</h3>
-        <p>Porções individuais de chocotone recheado, preparadas com carinho. Escolha um ou combine diferentes sabores no mesmo pedido.</p>
+        <span className="natal-collection-eyebrow">✦ Edição especial de Natal 2026</span>
+        <h3>Escolha seus sabores.</h3>
+        <p>Porções individuais · Combine até quatro sabores no mesmo pedido.</p>
       </div>
-      <div className="natal-product-grid" role="group" aria-label="Escolha os chocotones da coleção de Natal">
+      <div className="natal-product-grid" id="natal-sabores" role="group" aria-label="Escolha os chocotones da coleção de Natal">
         {visible.map(product => {
           const count = quantities[product.id] ?? 0;
           const available = canQuote && product.available && product.variants[0]?.available && isItemAvailable(availability, CHOCOTONE_ITEM_KEYS[product.id]);
           const isSoldOut = !isItemAvailable(availability, CHOCOTONE_ITEM_KEYS[product.id]);
           const full = count >= 99;
+          const morango = product.id === "chocotone-morango-brigadeiro-branco-chocolate";
           return (
             <article className="natal-product-card" data-selected={count > 0 || undefined} data-unavailable={isSoldOut || undefined} key={product.id}>
-              <div className="natal-product-photo">
-                <img src={product.cardImage ?? product.image} alt={product.imageAlt}
-                  loading="lazy" decoding="async" width="320" height="427" draggable={false} />
+              <button type="button" className="natal-product-photo"
+                aria-label={`Adicionar ${product.name} ao pedido`}
+                onClick={() => onAdjust(product, 1)} disabled={!available || full}>
+                <img src={product.cardImage ?? product.image} alt="" loading="lazy"
+                  decoding="async" width="840" height="910" draggable={false} />
                 {isSoldOut && <span className="natal-sold-out">Esgotado</span>}
-              </div>
+              </button>
               <div className="natal-product-info">
-                <span className="natal-product-overline">Porção individual</span>
-                <h4>{product.name}</h4>
+                <h4>{morango ? "Morango com Chocolate" : product.name}</h4>
+                {morango && <span className="natal-product-note">Brigadeiro branco</span>}
                 <strong className="natal-product-price">{money.format(product.variants[0].price)}</strong>
                 <div className="natal-product-control">
                   {count === 0 ? (
@@ -66,7 +69,7 @@ export function ChristmasCollection({ availability, quantities, onAdjust, onChec
       {selectedCount > 0 && (
         <button type="button" className="natal-continue" onClick={onCheckout}>
           <ShoppingBag size={18} aria-hidden="true" />
-          <span>Ver meu pedido · {selectedCount} {selectedCount === 1 ? "porção" : "porções"}</span>
+          <span>Continuar pedido · {selectedCount} {selectedCount === 1 ? "porção" : "porções"}</span>
           <span aria-hidden="true">›</span>
         </button>
       )}

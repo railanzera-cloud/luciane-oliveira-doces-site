@@ -783,7 +783,8 @@ function checkoutCopy(name, values) {
  }
  visit(ast);
  assert.ok(expression);
- return new Function(...Object.keys(values),`return ${expression}`)(...Object.values(values));
+ const scope = { natalPicking: false, ...values }; // Testes do checkout comum não estão escolhendo sabores natalinos.
+ return new Function(...Object.keys(scope),`return ${expression}`)(...Object.values(scope));
 }
 
 for(const payment of ['pix','dinheiro','credito','debito']) test(`final CTA and temporary failure recovery — ${payment}`, async () => {
@@ -1183,7 +1184,7 @@ test('a mismatched locality blocks registration and guides both checkout and sti
  // Both existing checkout actions continue to use the same pending-section function.
  const finalAction=pageFunction('handleFinalAction',{checkoutFormReady:false,cart,nextCheckoutSection:next,
   setBuilderEngaged:()=>{},setCheckoutAvailabilityMessage:()=>{},requestScroll:id=>destination=id});
- const sticky=pageFunction('handleStickyAction',{stickyUsesCheckoutAction:true,handleFinalAction:finalAction});
+ const sticky=pageFunction('handleStickyAction',{natalPicking:false,stickyUsesCheckoutAction:true,handleFinalAction:finalAction});
  destination=null;sticky();assert.equal(destination,'delivery-fields');
 });
 
