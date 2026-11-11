@@ -92,5 +92,5 @@ test("Natal está presente nas recomendações contextuais e o CTA duplicado é 
   assert.match(home,/document\.querySelector<HTMLElement>\("\.storefront \.natal-continue"\)/);
   assert.match(css,/natal-home-ribbon::before/);
   assert.match(css,/natal-home-ribbon::after/);
-  assert.match(css,/boutique-complement-choice\.is-natal/);
+  assert.match(css,/boutique-complement-choice\[data-natal\]/);
 });
