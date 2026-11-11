@@ -1184,7 +1184,7 @@ test('a mismatched locality blocks registration and guides both checkout and sti
  // Both existing checkout actions continue to use the same pending-section function.
  const finalAction=pageFunction('handleFinalAction',{checkoutFormReady:false,cart,nextCheckoutSection:next,
   setBuilderEngaged:()=>{},setCheckoutAvailabilityMessage:()=>{},requestScroll:id=>destination=id});
- const sticky=pageFunction('handleStickyAction',{stickyUsesCheckoutAction:true,handleFinalAction:finalAction});
+ const sticky=pageFunction('handleStickyAction',{natalPicking:false,stickyUsesCheckoutAction:true,handleFinalAction:finalAction});
  destination=null;sticky();assert.equal(destination,'delivery-fields');
 });
 
