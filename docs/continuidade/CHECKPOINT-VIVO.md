@@ -774,3 +774,13 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - **QA:** duas expectativas de título SEO antigo nos testes `rendered-html` e `weekend-slices-mode` foram identificadas pela CI inicial e corrigidas em código. Consultar workflows de build/WebKit e pacote no **HEAD final**; os primeiros runs de SHA intermediário que falharam não comprovam regressão funcional. Não declarar passagem de CI antes de obter o resultado.
 - **Segurança:** sem alterações em SQL produtivo, Edge deployment, estoque, frete, meios de pagamento, abertura de pedidos, Cloudflare, `main` ou Luciane Gestão. WebKit automatizado, pacote gerado e publicação são provas independentes. Safari/Instagram físico e WhatsApp real ainda exigem homologação controlada.
 - **Próximo passo:** conferir CI do último commit e integridade do pacote; disponibilizar artefato apenas se todos os hashes/contratos forem válidos; após publicação manual autorizada, revisar faixas, grade e CTA no iPhone antes de liberar vendas.
+
+
+## 57. Natal V4.1 — copy, seleção consolidada e mensagem WhatsApp (11/11/2026)
+
+- **Autorização recebida:** quatro refinamentos pontuais sobre V4 após análise dos prints e da mensagem do pedido. **Não** implementar sugestão de novo endereço de retirada.
+- **Base:** `refine/natal-fatias-chocottone-editorial-v4-20261111` @ `5b70a545e81c6ba5cb44cf48920ca7a274457c62`. Incremento isolado `refine/natal-v4-1-resumo-textos-whatsapp-20261111`.
+- **Implementações:** remover frase redundante “vendidos por fatia” da home e do cabeçalho da categoria; abreviar intro interna. Confirmar seleção Natal via dados do carrinho (total + número de sabores, nome quando só houver um), não via último `addedNotice.productId`. Não ilustrar múltiplos sabores com foto única. Identificar complemento como fatia artesanal. Ocultar apenas o sufixo “1 fatia” da mensagem WhatsApp registrada de `kind=chocotone`.
+- **Regressões:** cobertura em testes de mensagem para 4 sabores e produtos mistos; WebKit com fixtures 320/375/390/430/1280 e cenário real 4 sabores em 390px; verificações comerciais e de build existentes. Conferir **resultado no HEAD final** antes de declarar aprovado.
+- **Entrega:** GitHub Actions recompila perfil conectado ao Supabase e anexa 8 WebP idênticos aos do V3 por SHA-256. Novo artefato `LUCIANE-NATAL-V4-1-CLOUDFLARE`, contendo `LUCIANE_NATAL_V4_1.zip`, sem implantação automática. Arquivos devem manter rotas Cloudflare, sem `.env` e sem imagens de refrigerantes.
+- **Proteções:** sem mudança de preço/estoque, política de pagamento, frete, checkout, Pub/Sub, QZ, schema SQL, Edge de produção, Cloudflare publicado, nomes internos dos SKUs ou Luciane Gestão. Teste automatizado não substitui conferência física Safari e Instagram.
