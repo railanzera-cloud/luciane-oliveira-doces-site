@@ -2349,10 +2349,10 @@ export default function Home() {
           {activeCategory ? (
             <div className="entry-heading">
               <p className="eyebrow">Luciane Oliveira Doces</p>
-              <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : activeCategory === "cones" ? "Cones Trufados" : "Fatias Artesanais"}</h1>
+              <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : activeCategory === "cones" ? "Cones Trufados" : activeCategory === "natal" ? "Chocotones Recheados" : "Fatias Artesanais"}</h1>
               <p className="entry-copy">{activeCategory === "pipocas"
                 ? showLimitedCupView ? "Três sabores artesanais em pacotes P, M e G." : "Escolha o tamanho e combine seus sabores."
-                : activeCategory === "cones" ? "Escolha seu sabor e a quantidade desejada." : "Sabores disponíveis"}</p>
+                : activeCategory === "cones" ? "Escolha seu sabor e a quantidade desejada." : activeCategory === "natal" ? "Edição especial de Natal · porções individuais, quatro sabores." : "Sabores disponíveis"}</p>
               {availability.ordersOpen && visibleCategories.length > 0 && (
                 <p className="delivery-time-estimate">
                   <span className="delivery-time-copy">
@@ -2367,6 +2367,21 @@ export default function Home() {
               <p className="collection-kicker">Cardápio artesanal</p>
               <h1>Escolha seu <em>doce.</em></h1>
             </div>
+          )}
+          {!activeCategory && hasResolvedAvailability && natalVisible && (
+            <button type="button" className="natal-home-ribbon" aria-label="Edição especial de Natal: conhecer os quatro chocotones recheados"
+              onClick={() => selectCategory("natal")}>
+              <span className="natal-home-copy">
+                <span className="natal-home-eyebrow">✦ Edição especial de Natal</span>
+                <strong className="natal-home-title">Chocotones recheados</strong>
+                <span className="natal-home-description">4 sabores · Porções individuais</span>
+                <span className="natal-home-action">Conhecer sabores <ChevronRight size={16} aria-hidden="true"/></span>
+              </span>
+              <span className="natal-home-image" aria-hidden="true">
+                <img src="/images/chocotone-morango-brigadeiro-branco-chocolate-card-2026.webp" alt=""
+                  width="80" height="76" decoding="async" fetchPriority="high"/>
+              </span>
+            </button>
           )}
           {!hasResolvedAvailability ? (
             <div className="collection-loading" role="status">Carregando cardápio…</div>
@@ -2607,10 +2622,10 @@ export default function Home() {
           )}
           <div className="section-intro" id="potes-recheados">
             <p className="eyebrow">Seu pedido, do seu jeito</p>
-            <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : activeCategory === "cones" ? "Escolha seu cone." : "Sua vitrine de sabores."}</h2>
+            <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : activeCategory === "cones" ? "Escolha seu cone." : activeCategory === "natal" ? "Um Natal cheio de recheio." : "Sua vitrine de sabores."}</h2>
             <p>{activeCategory === "pipocas"
               ? "Um tamanho, seus sabores favoritos. Tudo do seu jeito."
-              : activeCategory === "cones" ? "Um sabor por vez. Adicione quantos desejar e finalize tudo no mesmo pedido." : "Escolha sua fatia favorita. Depois, você pode adicionar outras."}</p>
+              : activeCategory === "cones" ? "Um sabor por vez. Adicione quantos desejar e finalize tudo no mesmo pedido." : activeCategory === "natal" ? "Escolha seus chocotones individuais. Combine sabores sem perder o pedido." : "Escolha sua fatia favorita. Depois, você pode adicionar outras."}</p>
 
           </div>
 
@@ -2625,7 +2640,11 @@ export default function Home() {
             </div>
           )}
 
-          {activeCategory === "pipocas" && pipocasVisible ? (
+          {activeCategory === "natal" && natalVisible ? (
+            <ChristmasCollection availability={availability}
+              quantities={Object.fromEntries(CHOCOTONES.map(p => [p.id, cart.filter(item => item.productId === p.id).reduce((sum,item)=>sum+item.quantity,0)]))}
+              onAdjust={adjustChristmas} onCheckout={() => scrollToSection("carrinho")} />
+          ) : activeCategory === "pipocas" && pipocasVisible ? (
             <div className="builder-card">
               <section className={`step-block step-state-${popcornSizeStepState}`} id="tamanhos" aria-labelledby="step-size" aria-current={popcornSizeStepState === "active" ? "step" : undefined}>
 
