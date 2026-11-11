@@ -89,6 +89,7 @@ import { mergeMarketingInteractions } from "@/app/attribution-history";
 import { MercadoPagoCardForm } from "@/components/mercado-pago-card-form";
 import { WhatsAppOrderResultView, type RegisteredWhatsAppOrder } from "@/components/whatsapp-order-result";
 import { tintimWhatsAppUrl } from "@/lib/tintim";
+import { navigateToWhatsAppHandoff } from "@/lib/whatsapp-handoff-navigation";
 import { TintimContactLink } from "@/components/tintim-contact-link";
 import { HomeLastOrderLink } from "@/components/home-last-order";
 import { SiteOrderResultView } from "@/components/site-order-result";
@@ -1351,7 +1352,7 @@ export default function Home() {
       ? payment === "mercado_pago_pix" ? "Gerar Pix e confirmar pedido"
         : payment === "mercado_pago_card" ? "Preencher e pagar com cartão"
           : "Confirmar pedido"
-      : whatsAppRetryAvailable ? "Tentar novamente" : typeof cartHasStrawberryPreorder !== "undefined" && cartHasStrawberryPreorder ? "Finalizar pré-reserva no WhatsApp" : "Finalizar pedido no WhatsApp";
+      : whatsAppRetryAvailable ? "Tentar novamente" : typeof cartHasStrawberryPreorder !== "undefined" && cartHasStrawberryPreorder ? "Abrir WhatsApp para enviar pré-reserva" : "Abrir WhatsApp para enviar pedido";
   // A ação flutuante informa exatamente o que ainda falta preencher.
   // Não muda a função acionada: checkout incompleto continua rolando para o próximo campo.
   const checkoutNextActionLabel = !fulfillment
@@ -2238,6 +2239,9 @@ export default function Home() {
       try { window.sessionStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify({ ...savedOrder, order: next, whatsappResult: registered })); } catch { /* Copy-link remains available. */ }
       setCheckoutAvailabilityMessage("");
       window.scrollTo({ top: 0, behavior: "instant" });
+      // Tentativa de passagem imediata, apenas após o registro e a persistência do link.
+      // Se bloqueada pelo navegador interno, a recuperação mostra um único CTA.
+      navigateToWhatsAppHandoff(registered.whatsappUrl);
     } catch (error) {
       setWhatsAppRetryAvailable(true);
       const temporaryFailure = !(error instanceof Error) || error instanceof TypeError || error.name === "AbortError"
@@ -2365,7 +2369,7 @@ export default function Home() {
                       : payment === "mercado_pago_card"
                         ? "Preencha o formulário seguro do cartão para concluir."
                         : `Ao confirmar, o pedido entra na cozinha e o pagamento será feito na ${fulfillment === "retirada" ? "retirada" : "entrega"}.`
-                    : "Tudo certo! Seu pedido está pronto para ser enviado.");
+                    : "Seu pedido será enviado à Luciane pelo WhatsApp. Ao abrir a conversa, toque em Enviar para solicitar a confirmação.");
 
   if (whatsappResult) return <WhatsAppOrderResultView order={whatsappResult} />;
 
@@ -3479,7 +3483,7 @@ export default function Home() {
                       <RadioGroupItem id={`payment-${value}`} value={value} />
                       {value === "pix" ? <QrCode size={20} aria-hidden="true" /> : value === "dinheiro" ? <Banknote size={20} aria-hidden="true" /> : <CreditCard size={20} aria-hidden="true" />}
                       <span className="boutique-payment-method"><strong>{label}</strong><small>{
-                        value === "pix" ? "Chave enviada no WhatsApp após finalizar"
+                        value === "pix" ? "A chave Pix estará na mensagem que você deverá enviar pelo WhatsApp"
                           : value === "dinheiro"
                             ? fulfillment === "retirada" ? "Pague em dinheiro na retirada" : fulfillment === "entrega" ? "Pague em dinheiro na entrega" : "Pague em dinheiro na entrega ou retirada"
                             : fulfillment === "retirada" ? "Na maquininha, na retirada" : fulfillment === "entrega" ? "Na maquininha, na entrega" : "Na maquininha, na entrega ou retirada"
