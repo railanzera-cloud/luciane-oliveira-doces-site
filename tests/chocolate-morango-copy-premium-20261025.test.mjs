@@ -10,8 +10,8 @@ test("Mensagem do novo lote é convidativa, mas não promete estoque pronto",()=
   assert.match(page,/preparando uma nova fornada/);
   assert.match(page,/entrega ou retirada <b>ainda hoje<\/b>/i);
   assert.match(page,/Produção limitada para hoje · R\$ 22 por fatia/);
-  assert.match(page,/Finalizar pré-reserva no WhatsApp/);
-  assert.match(page,/Finalizar pedido no WhatsApp/);
+  assert.match(page,/Abrir WhatsApp para enviar pré-reserva/);
+  assert.match(page,/Abrir WhatsApp para enviar pedido/);
 });
 test("WhatsApp identifica pré-reserva registrada, sem confundir com pagamento",()=>{
   assert.match(checkout,/PRÉ-RESERVA PARA HOJE — CHOCOLATE COM MORANGO/);

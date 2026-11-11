@@ -43,7 +43,7 @@ for(const [payment_method,card_mode,amount] of [['manual_pix',null,30],['cash',n
    assert.match(html,/Chocolate com Morango/); assert.match(html,/Com calda de chocolate/);
    assert.match(html,/Pagamento informado/); assert.ok(html.includes(fulfillment_type==='pickup'?'Retirada':'Entrega'));
    assert.ok(html.includes(new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(amount)));
-   assert.match(html,/Último status informado pela loja/); assert.match(html,/Atualização registrada/);
+   assert.match(html,/Estado do registro no site/); assert.match(html,/Atualização registrada/);
    assert.match(html,/Para confirmar ou saber o andamento do pedido, fale com a loja pelo WhatsApp/);
    assert.match(html,/Falar com a loja/); assert.match(html,/Copiar link do pedido/); assert.match(html,/Atualizar detalhes/);
    assert.ok(html.includes(`/pedido?token=${token}`));

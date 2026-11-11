@@ -4646,3 +4646,85 @@ footer {
   .admin-stalled-prints { padding: 12px; }
   .admin-stalled-print-actions > button { flex: 1 1 100%; }
 }
+
+
+/* 11/11/2026 — Checkout WhatsApp: recuperação sem sucesso prematuro.
+   Uma única ação principal; informações auxiliares só quando solicitadas. */
+.whatsapp-final-card.is-handoff-pending {
+  max-width: 520px;
+  text-align: center;
+}
+.whatsapp-final-card.is-handoff-pending .tracking-icon {
+  margin: 0 auto 14px;
+  background: #70503d;
+}
+.whatsapp-final-eyebrow {
+  margin: 0 0 9px;
+  font: 750 .68rem/1.3 system-ui,sans-serif;
+  letter-spacing: .15em;
+  color: #79533a;
+}
+.whatsapp-final-card.is-handoff-pending h1 {
+  max-width: 19ch;
+  margin: 0 auto 14px;
+  font-size: clamp(1.58rem, 5.7vw, 2rem);
+  line-height: 1.18;
+}
+.whatsapp-final-card.is-handoff-pending .whatsapp-final-guide {
+  max-width: 38ch;
+  font-size: .96rem;
+  line-height: 1.55;
+}
+.whatsapp-final-next-step {
+  display: grid;
+  gap: 5px;
+  margin: 20px 0 0;
+  padding: 14px 15px;
+  border: 1px solid #dfcdbd;
+  border-radius: 12px;
+  background: #f7efe7;
+  color: #3d2c21;
+}
+.whatsapp-final-next-step strong {font-size: .96rem;line-height:1.45;}
+.whatsapp-final-next-step span {font-size: .82rem;line-height:1.45;color:#665344;}
+.whatsapp-final-card.is-handoff-pending .whatsapp-final-primary {
+  margin-top: 16px;
+  min-height: 58px;
+  padding: 14px;
+  font-size: .97rem;
+}
+.whatsapp-final-card.is-handoff-pending .whatsapp-final-instruction {
+  max-width: 39ch;
+  font-size: .8rem;
+}
+.whatsapp-final-card.is-handoff-pending .whatsapp-final-summary {
+  margin: 18px 0 0;
+  padding: 10px 14px;
+  text-align: left;
+  background: #f7f0e8;
+}
+.whatsapp-final-card.is-handoff-pending .whatsapp-final-summary dt {font-size:.86rem;color:#69574a;}
+.whatsapp-final-help {
+  margin-top: 18px;
+  padding-top: 15px;
+  border-top: 1px solid #dac9b9;
+  text-align: left;
+  font-size: .86rem;
+  color: #644935;
+}
+.whatsapp-final-help summary {
+  min-height: 44px;
+  display: list-item;
+  align-content: center;
+  cursor: pointer;
+  font-weight: 600;
+}
+.whatsapp-final-help summary:focus-visible {outline: 2px solid #795036; outline-offset: 3px;}
+.whatsapp-final-help p {margin: 6px 0 9px;line-height:1.5;}
+.whatsapp-final-help a {color:#66442f;text-underline-offset:3px;font-weight:600;}
+.tracking-handoff .whatsapp-final-primary {min-height:54px;}
+@media (max-width:359px) {
+  .whatsapp-final-card.is-handoff-pending {padding:20px 15px;}
+  .whatsapp-final-card.is-handoff-pending .whatsapp-final-primary {font-size:.87rem;}
+  .whatsapp-final-card.is-handoff-pending h1 {font-size:1.52rem;}
+}

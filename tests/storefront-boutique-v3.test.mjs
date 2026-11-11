@@ -126,7 +126,7 @@ test("acabamento 3.1 permanece só no storefront e respeita tamanho/toque/movime
 
 test("Boutique 3.2 usa fontes originais e exige novo build, sem reaproveitar assets compilados", () => {
   assert.ok(css.includes("Boutique 3.2 — acabamento"));
-  assert.ok(page.includes("Chave enviada no WhatsApp após finalizar"));
+  assert.ok(page.includes("A chave Pix estará na mensagem que você deverá enviar pelo WhatsApp"));
   assert.ok(!page.includes("Pagamento combinado com a loja"));
   assert.ok(!page.includes("Combine o pagamento com a loja"));
   assert.ok(page.includes("Na maquininha, na retirada"));

@@ -355,3 +355,12 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **WhatsApp:** item “1x Fatia de Chocottone — Casadinho” em vez de “1x ... Casadinho 1 fatia”. A quantidade continua expressa em Nx e na cotação autoritativa. Não tocar na atribuição Tintim.
 - **Fora do escopo:** endereço de retirada na Promissão II, dimensões/posições da grade 2×2, fotografias, cores, preços, cartão, pagamentos ou qualquer mudança de backend produtivo.
 - **Critério visual no navegador:** confirmar 1 sabor, 2 sabores e 4 sabores em 390px; a confirmação deve refletir a seleção completa e não mostrar a foto de um único sabor para uma cesta de vários. Conferir Safari/Instagram físico após publicação manual.
+
+
+## Finalização WhatsApp V4.2 — intenção antes de confirmação (11/11/2026)
+
+- **CTA no checkout:** “Abrir WhatsApp para enviar pedido” com texto contextual: ao abrir a conversa, tocar em Enviar. O botão do checkout e o botão flutuante compartilham o mesmo handler; não aparecem concorrentes.
+- **Fluxo normal:** o site registra e guarda token/link/quantidades/idempotência; tenta abrir a conversa Tintim diretamente. Não mostrar “Pedido registrado!” nem ícone de sucesso antes da mensagem como próxima etapa obrigatória.
+- **Fallback após retorno/bloqueio:** cartão editorial compacto, mas com **uma única ação principal** verde, “Abrir WhatsApp para enviar pedido”. Título “Envie seu pedido pelo WhatsApp”, marcador “Falta uma etapa”, instrução simples. Resumo de valor e pagamento secundários. “Precisa de ajuda?” é `details` fechado, não segundo botão de WhatsApp; o link de acompanhamento fica lá dentro.
+- **Cuidado de linguagem:** como não há telemetria conclusiva do envio, nunca afirmar “você não enviou” sem prova; informar “se já enviou, não precisa repetir”. Na consulta, registro interno não se chama “recebido pela loja” quando é uma transação de handoff pendente.
+- **Testes:** mobile 320, 375, 390, 430 e WebKit simulado; manual obrigatório no Safari e navegador interno do Instagram, incluindo bloqueio e retorno. Verificar pedido único, mensagem com itens/total/Pix e tracking Tintim. O fluxo de pagamento integrado ao site não muda.
