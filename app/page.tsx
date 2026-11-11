@@ -627,6 +627,7 @@ export default function Home() {
       if (scrollRequest.id === "category-entry-pipocas") scrollToCategoryEntry("pipocas");
       else if (scrollRequest.id === "category-entry-fatias") scrollToCategoryEntry("fatias");
       else if (scrollRequest.id === "category-entry-cones") scrollToCategoryEntry("cones");
+      else if (scrollRequest.id === "category-entry-natal") scrollToCategoryEntry("natal");
       else if (scrollRequest.id === "gourmet-size-action") scrollToGourmetControl("size");
       else if (scrollRequest.id === "gourmet-flavor-action") scrollToGourmetControl("flavor");
       else if (scrollRequest.id === "gourmet-quantity-action") scrollToGourmetControl("quantity");
@@ -1271,6 +1272,11 @@ export default function Home() {
     : paymentReady
       ? "complete"
       : "active";
+  // Natal permite combinar quantidades antes de iniciar o fluxo de complementos.
+  // A etapa se encerra apenas por uma ação explícita "Continuar pedido".
+  const natalSelectedCount = cart.reduce((count,item) =>
+    count + (CHOCOTONES.some(p => p.id === item.productId) ? item.quantity : 0), 0);
+  const natalPicking = activeCategory === "natal" && builderEngaged;
   const builderFlowActive = !showLimitedCupView && activeCategory !== "natal" && Boolean(activeCategory && (editingId || builderEngaged || draftReady || !cart.length));
   // A barra de navegação existente vira uma ação compacta somente enquanto
   // há uma escolha válida menor que o limite e a continuação não está visível.
@@ -1278,16 +1284,20 @@ export default function Home() {
     && popcornReady && popcornOptionIds.length < popcornMaxOptions
     && gourmetFlavorsInView && !gourmetNextStepInlineVisible && !inlineBuilderActionVisible;
   const cupBuilderFlowActive = showLimitedCupView && cupSalesEnabled;
-  const stickyUsesCheckoutAction = !builderFlowActive && !cupBuilderFlowActive;
+  const stickyUsesCheckoutAction = !builderFlowActive && !cupBuilderFlowActive && !natalPicking;
   const stickyIsCheckoutReady = stickyUsesCheckoutAction && checkoutReady;
-  const stickyPriceLabel = cupBuilderFlowActive
+  const stickyPriceLabel = natalPicking
+    ? natalSelectedCount > 0 ? currency.format(cartSubtotal) : "4 sabores"
+    : cupBuilderFlowActive
     ? currency.format((cupVariant?.price ?? cupStartingPrice) * (cupSizeId ? cupQuantity : 1))
     : cart.length > 0 && !builderFlowActive
     ? cartNeedsSizeReview ? "Revise o tamanho" : currency.format(hasEstimatedTotal ? orderTotal : cartSubtotal)
     : draftSubtotal === null
       ? activeCategory === "pipocas" ? `A partir de ${currency.format(popcornPrice("500ml", [], promotionTime))}` : activeCategory === "cones" ? "A partir de R$14" : "A partir de R$20"
       : currency.format(draftSubtotal);
-  const stickyPriceCaption = cupBuilderFlowActive
+  const stickyPriceCaption = natalPicking
+    ? natalSelectedCount > 0 ? `${natalSelectedCount} ${natalSelectedCount === 1 ? "porção" : "porções"} · subtotal` : "Coleção especial de Natal"
+    : cupBuilderFlowActive
     ? cupFlavorPreview
       ? `${cupProduct?.name ?? "Trufadas"}${cupSizeId ? ` · Pacote ${cupSizeId.toUpperCase()}` : ""} · ${cupQuantity} ${cupQuantity === 1 ? "pacote" : "pacotes"}`
       : "A partir de"
@@ -1330,7 +1340,9 @@ export default function Home() {
         : checkoutReady
           ? finalButtonLabel
           : checkoutNextActionLabel;
-  const stickyButtonLabel = typeof cupBuilderFlowActive !== "undefined" && cupBuilderFlowActive
+  const stickyButtonLabel = natalPicking
+    ? natalSelectedCount > 0 ? "Continuar pedido" : "Escolher chocotones"
+    : typeof cupBuilderFlowActive !== "undefined" && cupBuilderFlowActive
     ? cupActionLabel
     : isFinalizing ? finalButtonLabel : !availability.ordersOpen
     ? "Pedidos fechados"
@@ -1847,6 +1859,15 @@ export default function Home() {
     requestScroll(wasEditing ? "carrinho" : "recebimento");
   }
 
+  function continueChristmas() {
+    if (natalSelectedCount <= 0) {
+      requestScroll("category-entry-natal");
+      return;
+    }
+    setBuilderEngaged(false);
+    requestScroll("recebimento");
+  }
+
   function adjustChristmas(product: Product, delta: -1 | 1) {
     const itemKey = CHOCOTONE_ITEM_KEYS[product.id];
     if (product.kind !== "chocotone" || !itemKey) return;
@@ -1865,7 +1886,6 @@ export default function Home() {
       return [...current, { id: makeCartId(), productId: product.id, variantId: "porcao", optionIds: [], quantity: 1 }];
     });
     setCheckoutAvailabilityMessage("");
-    setBuilderEngaged(false);
     if (delta === 1) {
       trackMetaEvent("AddToCart", metaProductPayload(product, product.variants[0], 1));
       setAddedNotice({
@@ -1873,11 +1893,15 @@ export default function Home() {
         productId: product.id,
         description: `Chocotone — ${product.name} · porção individual`,
       });
-    } else if (already === 1) {
-      setAddedNotice(null);
+    } else if (already === 1 && addedNotice?.productId === product.id) {
+      const remaining = cart.find(item => item.productId !== product.id && CHOCOTONES.some(p => p.id === item.productId));
+      const alternate = CHOCOTONES.find(p => p.id === remaining?.productId);
+      setAddedNotice(alternate
+        ? { category: "natal", productId: alternate.id, description: `Chocotone — ${alternate.name} · porção individual` }
+        : null);
     }
-    // O cliente pode misturar sabores e corrigir quantidades aqui mesmo:
-    // não rolar automaticamente após cada toque nem mover para o checkout.
+    // Quantidades permanecem livres nesta etapa, sem salto automático;
+    // a ação explícita Continuar pedido mostra os complementos.
   }
 
   function addDrink(product: Product) {
@@ -2214,6 +2238,10 @@ export default function Home() {
   }
 
   function handleStickyAction() {
+    if (natalPicking) {
+      continueChristmas();
+      return;
+    }
     // Mantém o dispatcher central de navegação; o caso Gourmet contextual
     // apenas leva à quantidade, sem adicionar item nem pular etapas.
     if (typeof gourmetContinueAvailable !== "undefined" && gourmetContinueAvailable) {
@@ -2626,14 +2654,14 @@ export default function Home() {
               )}
             </nav>
           )}
-          <div className="section-intro" id="potes-recheados">
+          {activeCategory !== "natal" && <div className="section-intro" id="potes-recheados">
             <p className="eyebrow">Seu pedido, do seu jeito</p>
             <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : activeCategory === "cones" ? "Escolha seu cone." : activeCategory === "natal" ? "Um Natal cheio de recheio." : "Sua vitrine de sabores."}</h2>
             <p>{activeCategory === "pipocas"
               ? "Um tamanho, seus sabores favoritos. Tudo do seu jeito."
               : activeCategory === "cones" ? "Um sabor por vez. Adicione quantos desejar e finalize tudo no mesmo pedido." : activeCategory === "natal" ? "Escolha seus chocotones individuais. Combine sabores sem perder o pedido." : "Escolha sua fatia favorita. Depois, você pode adicionar outras."}</p>
 
-          </div>
+          </div>}
 
           {((activeCategory === "pipocas" && (!pipocasAvailable || !POPCORN.available))
             || (activeCategory === "cones" && (!conesAvailable || !CONES.some(cone => coneIsAvailable(cone.id))))
@@ -2649,7 +2677,7 @@ export default function Home() {
           {activeCategory === "natal" && natalVisible ? (
             <ChristmasCollection availability={availability}
               quantities={Object.fromEntries(CHOCOTONES.map(p => [p.id, cart.filter(item => item.productId === p.id).reduce((sum,item)=>sum+item.quantity,0)]))}
-              onAdjust={adjustChristmas} onCheckout={() => scrollToSection("carrinho")} />
+              onAdjust={adjustChristmas} onCheckout={continueChristmas} />
           ) : activeCategory === "pipocas" && pipocasVisible ? (
             <div className="builder-card">
               <section className={`step-block step-state-${popcornSizeStepState}`} id="tamanhos" aria-labelledby="step-size" aria-current={popcornSizeStepState === "active" ? "step" : undefined}>
@@ -3524,7 +3552,7 @@ export default function Home() {
 
       <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
 
-      {(activeCategory || cart.length > 0) && !(activeCategory === "natal" && cart.length === 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen && Boolean(cupFlavorPreview && cupSizeId) && cupCanOrder)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && !(builderFlowActive && activeCategory === "pipocas" && gourmetFlavorsInView && !gourmetContinueAvailable) && (
+      {(activeCategory || cart.length > 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen && Boolean(cupFlavorPreview && cupSizeId) && cupCanOrder)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && !(builderFlowActive && activeCategory === "pipocas" && gourmetFlavorsInView && !gourmetContinueAvailable) && (
       <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"} ${stickyIsCheckoutReady && checkoutChannel === "whatsapp" ? "is-whatsapp" : ""} ${cupBuilderFlowActive ? "is-crocantes-step" : ""} ${stickyUsesCheckoutAction ? "is-checkout-flow" : ""} ${builderFlowActive && activeCategory === "pipocas" ? "is-gourmet-step" : ""} ${gourmetContinueAvailable ? "is-gourmet-flavor-continue" : ""}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
         <div className="mobile-sticky-price" aria-live="polite" aria-atomic="true">
           {gourmetContinueAvailable ? <><small>Sabores escolhidos</small><strong>{popcornOptionIds.length} de {popcornMaxOptions}</strong></>
