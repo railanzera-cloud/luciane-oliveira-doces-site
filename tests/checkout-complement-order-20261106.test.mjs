@@ -50,3 +50,29 @@ test("Cones disponíveis entram nas recomendações das três jornadas existente
   assert.deepEqual(orderCheckoutComplements("fatias", available), ["cones","gourmet","trufadas","fatias"]);
   assert.deepEqual(orderCheckoutComplements("trufadas", available), ["cones","gourmet","fatias","trufadas"]);
 });
+
+// Natal não cria uma quinta etapa obrigatória: ocupa um dos quatro convites,
+// substituindo a repetição da categoria de origem quando está realmente disponível.
+test("Natal aparece como complemento nas quatro categorias habituais, sem ampliar o bloco", () => {
+  const ready = { gourmet:true, trufadas:true, fatias:true, cones:true, natal:true, bebidas:false };
+  assert.deepEqual(orderCheckoutComplements("gourmet", ready), ["natal","cones","trufadas","fatias"]);
+  assert.deepEqual(orderCheckoutComplements("trufadas", ready), ["natal","cones","gourmet","fatias"]);
+  assert.deepEqual(orderCheckoutComplements("fatias", ready), ["natal","cones","gourmet","trufadas"]);
+  assert.deepEqual(orderCheckoutComplements("cones", ready), ["natal","trufadas","fatias","gourmet"]);
+  assert.deepEqual(orderCheckoutComplements("natal", ready), ["cones","trufadas","fatias","gourmet"]);
+  for (const origin of ["gourmet","trufadas","fatias","cones","natal"]) {
+    assert.equal(orderCheckoutComplements(origin, ready).length, 4);
+  }
+});
+
+test("Coleção oculta/esgotada não aparece e a ordem legada permanece intacta", () => {
+  const base = { gourmet:true, trufadas:true, fatias:true, cones:true, bebidas:false };
+  for (const natal of [false, undefined, "true", "hidden"]) {
+    const result = orderCheckoutComplements("fatias", {...base,natal});
+    assert.deepEqual(result, ["cones","gourmet","trufadas","fatias"]);
+  }
+  assert.deepEqual(
+    orderCheckoutComplements("cones",{...base,natal:true,cones:true,fatias:false,trufadas:false}),
+    ["natal","gourmet"]
+  );
+});

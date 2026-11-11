@@ -90,7 +90,27 @@ try {
       await add.waitFor({state:"visible"});
       await add.click();
       await page.locator(".natal-product-card").nth(1).locator(".natal-product-add").click();
-      await page.locator(".natal-continue").click();
+      const inline=page.locator(".natal-continue");
+      if(width<700) {
+        // O botão inline assume a continuação quando está legível acima da barra do navegador.
+        await page.evaluate(() => {
+          const el=document.querySelector(".natal-continue");
+          if (!el) throw new Error("Ação inline de Natal ausente");
+          window.scrollTo(0, window.scrollY+el.getBoundingClientRect().top-145);
+        });
+        await page.waitForFunction(() => {
+          const el=document.querySelector(".natal-continue");
+          return !!el && el.getBoundingClientRect().top >= 40
+            && el.getBoundingClientRect().bottom < innerHeight-90
+            && !document.querySelector(".mobile-sticky-bar");
+        });
+        await page.evaluate(() => {
+          const el=document.getElementById("natal-sabores");
+          if(el) window.scrollTo(0,window.scrollY+el.getBoundingClientRect().top-140);
+        });
+        await page.waitForFunction(() => !!document.querySelector(".mobile-sticky-bar"));
+      }
+      await inline.click();
       assert.equal(await page.locator("#carrinho .cart-item").count(),2,"Pedido misto de dois chocotones");
       await page.waitForFunction(() => {
         const rect = document.getElementById("recebimento")?.getBoundingClientRect();
