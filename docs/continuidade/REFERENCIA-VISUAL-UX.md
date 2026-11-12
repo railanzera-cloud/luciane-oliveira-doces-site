@@ -369,7 +369,7 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 ## 12/11/2026 — Cascão Trufado: expansão de 3 para 6 sabores (candidata)
 
 - A nomenclatura da categoria passa a “Cascão Trufado”; foto de vitrine com trio clássico permanece até eventual decisão visual específica.
-- Três **fotos reais enviadas pelo proprietário**, na ordem: Kinder Bueno (bombom em pedaços no topo), Ninho com Morango (morangos visíveis), Ninho com Nutella e Chocotone (pedaços de chocotone e creme de chocolate). Fundo quente desfocado e suporte transparente originais. **Não retocar** chocolate, cor, recheios ou formato. Recortar apenas tecnicamente: 900×1125 detalhe integral, 640×480 cartão com topo preservado.
+- Três **fotos reais enviadas pelo proprietário**, na ordem: Kinder Bueno (bombom em pedaços no topo), Ninho com Morango (morangos visíveis), Ninho com Nutella e Chocottone (pedaços de chocotone e creme de chocolate). Fundo quente desfocado e suporte transparente originais. **Não retocar** chocolate, cor, recheios ou formato. Recortar apenas tecnicamente: 900×1125 detalhe integral, 640×480 cartão com topo preservado.
 - No configurador, grade 2 colunas até 599px, preço alinhado ao rodapé do cartão. Com seis itens, evitar aplicar o cartão duplo que era usado para três itens em largura muito estreita.
 - Categoria antiga continua com seus três produtos, preços e imagens; novas variantes têm R$20. Quatro Fatias de Chocottone com fotografias originais intocadas e preços R$22.
 - **Status da prova:** apenas código e arquivos de imagem técnica, aguardando CI/ZIP e homologação física Safari/Instagram. Metadados, nomes e fotos finais devem corresponder ao corte autorizado; não presumir que passaram à produção.
