@@ -12,6 +12,15 @@
 
 **Depois** consulte `ESTADO_ATUAL_VITRINE.md`, `docs/ESTADO_INTEGRADO_COMERCIAL.md` e demais documentos históricos **somente da área afetada**. A prioridade operacional é a **tarefa atual do usuário**. Não escolher por conta própria produto, categoria ou refinamento. Não exigir que o proprietário reenvie conversas arquivadas quando o estado já está documentado.
 
+## Base de desenvolvimento, publicação e release (12/11/2026)
+
+- **Leitura adicional obrigatória:** [Protocolo de Integração e Release](docs/continuidade/PROTOCOLO-DE-INTEGRACAO-E-RELEASE.md) e [Estado Estruturado de Release](docs/continuidade/ESTADO-DE-RELEASE.json). O JSON é um **snapshot datado**; nunca inferir situação ao vivo sem nova leitura.
+- **Linha candidata atual (sem deploy):** `work/integracao-comercial-controlada-20261112` foi criada da V4.4 validada (`8df271026c11100afa726c9e4e276ee94d526f45`). Este SHA é referência de **código**, não de publicação. Um PR #34 paralelo de Cascões divergiu, por isso não fazer merge cego, rebase destrutivo ou cherry-pick em massa.
+- **Contrato de prova:** registrar branch/HEAD, PR e CI; pacote final/hash/fotos; Edge/SQL/SKUs reais; deployment Cloudflare com ID/SHA; somente então decidir release. `main`, SHA mais novo, CI aprovada, ZIP e Cloudflare não são intercambiáveis.
+- **Bloqueio produtivo conhecido:** no último snapshot, Edge comercial v36 mantém preços antigos do Natal e não reconhece novos Cascões, embora as chaves estejam disponíveis; não implementar novas melhorias sobre a suposição de paridade. Não alterar dados/Edge sem janela coordenada, rollback e autorização operacional específica.
+- **Gate local:** `node scripts/check-commercial-release.mjs --preflight` verifica documentação; `--release` deve falhar enquanto existirem bloqueios. Este script é somente leitura e não substitui homologação física.
+- Para novas conversas, ler os cinco documentos habituais **mais** os dois arquivos acima. Não promover a branch candidata à base de produção antes de conciliar Cloudflare, pacote e backend. Não recriar longos relatórios quando apenas um escopo mudou.
+
 ## Regras de engenharia, design e verdade
 
 - **Comece pelo GitHub real:** HEADs/ancestry/PRs/diffs de branches relevantes. Compare implementações aprovadas não integradas. Verifique CI do SHA exato e versão de produção independente quando necessário. Não chamar `main`, a branch mais nova ou um ZIP antigo de versão publicada sem prova.
