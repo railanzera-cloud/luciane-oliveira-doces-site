@@ -890,7 +890,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
                   : job.stage === "awaiting_retry"
                   ? "Pendente após tentativa anterior"
                   : job.stage === "unconfirmed"
-                  ? "Assumida pelo QZ, sem confirmação de conclusão"
+                  ? "Assumida pela estação, sem confirmação de conclusão"
                   : "Falha registrada no processamento da comanda";
                 return <li key={job.id}>
                   <strong>{related ? `Pedido #${related.order_number}` : "Pedido não carregado na lista"}</strong>
