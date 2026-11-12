@@ -191,10 +191,11 @@
 .storefront .cone-current-choice small { color: #d0b29c; }
 .storefront .cone-current-choice strong { font: 500 1.03rem Georgia,serif; }
 .storefront .cone-current-choice b { color: #f5c48a; white-space: nowrap; }
-@media (max-width: 360px) {
+@media (max-width: 599px) {
+  /* Seis sabores legíveis em 2×3 no celular; a última opção só amplia em lista ímpar. */
   .storefront .cone-flavor-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .storefront .cone-flavor-card:last-child { grid-column: span 2; }
-  .storefront .cone-flavor-card:last-child .cone-flavor-photo { aspect-ratio: 16 / 8; }
+  .storefront .cone-flavor-card:last-child:nth-child(odd) { grid-column: span 2; }
+  .storefront .cone-flavor-card:last-child:nth-child(odd) .cone-flavor-photo { aspect-ratio: 16 / 8; }
 }
 @media (min-width: 760px) {
   .storefront .menu-entry.is-neutral .collection-choice[data-compact] { grid-template-columns: 32% 68%; min-height: 160px; }
