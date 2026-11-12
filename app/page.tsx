@@ -3322,19 +3322,19 @@ export default function Home() {
                         <strong>Quer completar seu pedido?</strong>
                         <p>Se preferir, escolha entrega ou retirada logo abaixo.</p>
                       </div>
-                      <div className="boutique-complement-grid" role="group" aria-label="Outros produtos disponíveis para adicionar">
+                      <div className="boutique-complement-grid" role="group" aria-label="Produtos disponíveis para adicionar">
                         {checkoutComplementItems.map((id) => {
                           const heading = id === "cones" ? (addedNotice?.category === "cones" ? "Escolher outro cascão" : "Adicionar cascão trufado")
                             : id === "gourmet" ? addMoreButtonLabel("pipocas", cart)
                             : id === "fatias" ? (addedNotice?.category === "natal" ? "Adicionar fatia artesanal" : addMoreButtonLabel("fatias", cart))
                               : id === "trufadas" ? cartContainsCrocantes ? "Outro pacote Trufado" : "Pipocas Trufadas"
-                              : id === "natal" ? "Fatias de Chocottone"
+                              : id === "natal" ? (addedNotice?.category === "natal" ? "Adicionar mais fatias de Chocottone" : "Fatias de Chocottone")
                                 : "Refrigerante";
                           const detail = id === "cones" ? (addedNotice?.category === "cones" ? "Adicionar mais um sabor" : "Conhecer sabores")
                             : id === "gourmet" ? "Montar pote Gourmet"
                             : id === "fatias" ? (addedNotice?.category === "natal" ? "Conhecer sabores artesanais" : "Escolher sua fatia")
                               : id === "trufadas" ? "Escolher sabor e tamanho"
-                              : id === "natal" ? "Fatias recheadas · 4 sabores"
+                              : id === "natal" ? (addedNotice?.category === "natal" ? "Escolher mais sabores" : "Fatias recheadas · 4 sabores")
                                 : "Ver acompanhamentos";
                           const photo = id === "cones" ? (coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-kinder-bueno-card-20261112-v44.webp" : "/images/cones-trufados-trio-card-20261108.webp")
                             : id === "gourmet" ? "/images/categoria-pipocas-editorial-enquadrada-v107.webp"

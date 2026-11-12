@@ -15,9 +15,9 @@ test("Catálogo permanente preserva três sabores antigos e adiciona três casc�
   assert.equal(CONES.length, 6);
   assert.equal(STORE_CONFIG.enabledCategories.cones,true);
   assert.deepEqual(CONES.map(p=>[p.id,p.kind,p.name,p.variants[0].id,p.variants[0].price]),[
-    ["cone-trufado-prestigio","cone","Prestígio","unidade",14],
-    ["cone-trufado-dois-amores","cone","Dois Amores","unidade",14],
-    ["cone-trufado-ferrero-rocher","cone","Ferrero Rocher","unidade",16],
+    ["cone-trufado-prestigio","cone","Prestígio","unidade",18],
+    ["cone-trufado-dois-amores","cone","Dois Amores","unidade",18],
+    ["cone-trufado-ferrero-rocher","cone","Ferrero Rocher","unidade",20],
     ["cascao-trufado-kinder-bueno","cone","Kinder Bueno","unidade",20],
     ["cascao-trufado-ninho-morango","cone","Ninho com Morango","unidade",20],
     ["cascao-trufado-ninho-nutella-chocotone","cone","Ninho Nutella e Chocotone","unidade",20],
@@ -27,9 +27,9 @@ test("Catálogo permanente preserva três sabores antigos e adiciona três casc�
 
 test("Cotação autoritativa reconhece os cones e cobra o preço correto", () => {
   const cases=[
-    ["cone-trufado-prestigio","cone_prestigio",1400],
-    ["cone-trufado-dois-amores","cone_dois_amores",1400],
-    ["cone-trufado-ferrero-rocher","cone_ferrero_rocher",1600],
+    ["cone-trufado-prestigio","cone_prestigio",1800],
+    ["cone-trufado-dois-amores","cone_dois_amores",1800],
+    ["cone-trufado-ferrero-rocher","cone_ferrero_rocher",2000],
     ["cascao-trufado-kinder-bueno","cascao_kinder_bueno",2000],
     ["cascao-trufado-ninho-morango","cascao_ninho_morango",2000],
     ["cascao-trufado-ninho-nutella-chocotone","cascao_ninho_nutella_chocotone",2000],

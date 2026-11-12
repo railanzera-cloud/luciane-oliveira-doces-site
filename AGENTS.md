@@ -14,10 +14,14 @@
 
 ## Base de desenvolvimento, publicação e release (12/11/2026)
 
+> **Atualização de retomada (12/11):** a linha **mais completa de código candidato** é o PR #37 `fix/cascao-precos-paridade-20261112`, sobre PR #36. O ZIP de código funcional V4.6 (856 testes comerciais, WebKit) foi criado, **não publicado**. Edge v37 ACTIVE aceita SKUs novos e Natal 22, mas usa provisoriamente preços legados 14/14/16; frontend V4.6 espera 18/18/20. O ID real do deployment Cloudflare continua desconhecido; o gate deve permanecer `blocked`. Não publicar ZIP nem Edge isolados. Uma suíte antiga de navegação que usava “Cones Trufados” foi corrigida para “Cascão Trufado”; confirmar CI do HEAD antes do corte. Os refrigerantes tiveram **direção UX aprovada** em D-C42, mas **não devem ser implementados antes de concluir este corte**. Não restaurar PRs #23/#24 automaticamente.
+
+
+
 - **Leitura adicional obrigatória:** [Protocolo de Integração e Release](docs/continuidade/PROTOCOLO-DE-INTEGRACAO-E-RELEASE.md) e [Estado Estruturado de Release](docs/continuidade/ESTADO-DE-RELEASE.json). O JSON é um **snapshot datado**; nunca inferir situação ao vivo sem nova leitura.
 - **Linha candidata atual (sem deploy):** `work/integracao-comercial-controlada-20261112` foi criada da V4.4 validada (`8df271026c11100afa726c9e4e276ee94d526f45`). Este SHA é referência de **código**, não de publicação. Um PR #34 paralelo de Cascões divergiu, por isso não fazer merge cego, rebase destrutivo ou cherry-pick em massa.
 - **Contrato de prova:** registrar branch/HEAD, PR e CI; pacote final/hash/fotos; Edge/SQL/SKUs reais; deployment Cloudflare com ID/SHA; somente então decidir release. `main`, SHA mais novo, CI aprovada, ZIP e Cloudflare não são intercambiáveis.
-- **Bloqueio produtivo conhecido:** no último snapshot, Edge comercial v36 mantém preços antigos do Natal e não reconhece novos Cascões, embora as chaves estejam disponíveis; não implementar novas melhorias sobre a suposição de paridade. Não alterar dados/Edge sem janela coordenada, rollback e autorização operacional específica.
+- **Estado operacional atualizado em 12/11:** a Edge comercial foi atualizada de v36 para **v37** após confronto de todas as 7 fontes com o rollback GitHub `d44fcec0` e verificação da nova versão. A v37 aceita os três Cascões novos e os quatro Chocottones R$22, mas **mantém provisoriamente** valores legados R$14/R$14/R$16. A nova tabela R$18/R$18/R$20 é candidata de frontend/Edge e **não está publicada**. Cloudflare segue sem deployment comprovado; não promover release sem paridade, janela coordenada e rollback.
 - **Gate local:** `node scripts/check-commercial-release.mjs --preflight` verifica documentação; `--release` deve falhar enquanto existirem bloqueios. Este script é somente leitura e não substitui homologação física.
 - Para novas conversas, ler os cinco documentos habituais **mais** os dois arquivos acima. Não promover a branch candidata à base de produção antes de conciliar Cloudflare, pacote e backend. Não recriar longos relatórios quando apenas um escopo mudou.
 

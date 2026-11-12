@@ -2,7 +2,7 @@ import { deliveryLocalityById, deliveryLegacyReviewState, deliveryLegacySpecific
 import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
-export const CATALOG_VERSION = "2026-11-12.cascao-natal-v43";
+export const CATALOG_VERSION = "2026-11-12.cascao-tabela-nova";
 import { DRINKS } from "./drinks-catalog.mjs";
 import { TRUFADAS_VARIANTS, getTrufadaVariant } from "./trufadas-variants.mjs";
 
@@ -39,11 +39,11 @@ export const POPCORN_FLAVORS = Object.freeze({
   nutella: Object.freeze({ id: "nutella", itemKey: "popcorn_flavor_nutella", name: "Nutella", pricingGroup: 3 }),
 });
 
-// Cascões vendidos por unidade. Preservar preços/IDs históricos; novos sabores a R$ 20.
+// Cascões vendidos por unidade. Preservar IDs históricos; preços atuais homologados em 12/11.
 export const CONES = Object.freeze({
-  "cone-trufado-prestigio": Object.freeze({ id: "cone-trufado-prestigio", itemKey: "cone_prestigio", name: "Prestígio", priceCents: 1400 }),
-  "cone-trufado-dois-amores": Object.freeze({ id: "cone-trufado-dois-amores", itemKey: "cone_dois_amores", name: "Dois Amores", priceCents: 1400 }),
-  "cone-trufado-ferrero-rocher": Object.freeze({ id: "cone-trufado-ferrero-rocher", itemKey: "cone_ferrero_rocher", name: "Ferrero Rocher", priceCents: 1600 }),
+  "cone-trufado-prestigio": Object.freeze({ id: "cone-trufado-prestigio", itemKey: "cone_prestigio", name: "Prestígio", priceCents: 1800 }),
+  "cone-trufado-dois-amores": Object.freeze({ id: "cone-trufado-dois-amores", itemKey: "cone_dois_amores", name: "Dois Amores", priceCents: 1800 }),
+  "cone-trufado-ferrero-rocher": Object.freeze({ id: "cone-trufado-ferrero-rocher", itemKey: "cone_ferrero_rocher", name: "Ferrero Rocher", priceCents: 2000 }),
   "cascao-trufado-kinder-bueno": Object.freeze({ id: "cascao-trufado-kinder-bueno", itemKey: "cascao_kinder_bueno", name: "Kinder Bueno", priceCents: 2000 }),
   "cascao-trufado-ninho-morango": Object.freeze({ id: "cascao-trufado-ninho-morango", itemKey: "cascao_ninho_morango", name: "Ninho com Morango", priceCents: 2000 }),
   "cascao-trufado-ninho-nutella-chocotone": Object.freeze({ id: "cascao-trufado-ninho-nutella-chocotone", itemKey: "cascao_ninho_nutella_chocotone", name: "Ninho Nutella e Chocotone", priceCents: 2000 }),

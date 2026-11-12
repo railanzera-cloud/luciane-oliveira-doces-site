@@ -11,7 +11,12 @@
     "validated_code_reference_sha": "8df271026c11100afa726c9e4e276ee94d526f45",
     "production_branch": null,
     "production_code_sha": null,
-    "do_not_equate_main_with_production": true
+    "do_not_equate_main_with_production": true,
+    "price_change_candidate_branch": "fix/cascao-precos-paridade-20261112",
+    "price_change_compiled_sha": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f",
+    "release_candidate_branch": "fix/cascao-precos-paridade-20261112",
+    "release_candidate_version": "V4.6",
+    "release_candidate_compiled_sha": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f"
   },
   "deployments": {
     "cloudflare": {
@@ -25,17 +30,23 @@
     "supabase_commercial": {
       "project_ref": "edqiwvccmboyayojvuea",
       "edge_function": "create-whatsapp-order",
-      "observed_edge_version": 36,
+      "observed_edge_version": 37,
       "observation_date": "2026-11-12",
       "observed_natal_price_centavos": [
-        1899,
-        1899,
-        1699,
-        1899
+        2200,
+        2200,
+        2200,
+        2200
       ],
-      "observed_new_cascao_supported_by_edge": false,
+      "observed_new_cascao_supported_by_edge": true,
       "observed_new_cascao_availability": "available",
-      "production_contract_consistency": "mismatch_with_v44_candidate"
+      "production_contract_consistency": "compatible_with_v44_only_new_legacy_cascao_prices_pending_cloudflare_cut",
+      "observed_legacy_cascao_prices_centavos": [
+        1400,
+        1400,
+        1600
+      ],
+      "observed_edge_ezbr_sha256": "f9ce3b6dca1884143475302e26e80263f1b73c765b6a28e754ac31241debf2c5"
     }
   },
   "validated_artifacts": [
@@ -52,6 +63,52 @@
       ],
       "contains_unversioned_approved_photos": true,
       "deployed": "not_verified"
+    },
+    {
+      "release": "V4.5 - candidato de novos preços dos Cascões",
+      "filename": "LUCIANE_COMERCIAL_V4_5_CASCAO_PRECOS_AGUARDANDO_CORTE.zip",
+      "sha256": "86e38b6179cf5b6a986f2dd63862ea4515b251f5126093eb9d2c2f5a3583a4a9",
+      "files": 117,
+      "compiled_from_sha": "3f49daef10ad0e63e25f9971af89aee7d81dd385",
+      "ci_commercial_tests": 855,
+      "ci_workflows": [
+        43221683902,
+        43221683714
+      ],
+      "contains_unversioned_approved_photos": true,
+      "deployed": "not_verified",
+      "source_assets_reference_v44_sha256": "475c8854d8279e372cffec7d61a9a48b72f1ef7f1d76a35ebb4965f55381dd1f",
+      "frontend_price_contract": "prestigio=1800;dois_amores=1800;ferrero_rocher=2000;new_three=2000;natal_four=2200",
+      "critical": "Cloudflare não publicado; Edge v37 ativa mantém preços antigos dos três Cascões legados e precisa de corte coordenado antes de upload",
+      "superseded_by": "LUCIANE_COMERCIAL_V4_6_CASCAO_COMPLEMENTOS_E_PRECOS_AGUARDANDO_CORTE.zip"
+    },
+    {
+      "release": "V4.6 - Cascão (repetição disponível), catálogo completo de complementos e preços",
+      "filename": "LUCIANE_COMERCIAL_V4_6_CASCAO_COMPLEMENTOS_E_PRECOS_AGUARDANDO_CORTE.zip",
+      "sha256": "ce9eb18cd8a63dc7be9aa4af4fac2cf4d91a7c1f04df76d20f3a4e1c42883fad",
+      "files": 117,
+      "compiled_from_sha": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f",
+      "ci_commercial_tests": 856,
+      "ci_workflows": [
+        43224471401,
+        43224471050
+      ],
+      "ui_webkit_viewports": [
+        320,
+        375,
+        390,
+        430,
+        1280
+      ],
+      "preserves_all_available_category_complements": true,
+      "preserves_own_category_when_natal_available": true,
+      "contains_unversioned_approved_photos": true,
+      "approved_cascao_photos_recovered": 20,
+      "approved_v44_static_assets_identical": 71,
+      "source_assets_reference_v44_sha256": "475c8854d8279e372cffec7d61a9a48b72f1ef7f1d76a35ebb4965f55381dd1f",
+      "frontend_price_contract": "prestigio=1800;dois_amores=1800;ferrero_rocher=2000;new_three=2000;natal_four=2200",
+      "deployed": "not_verified",
+      "critical": "Somente pacote candidato; não publicar Cloudflare sem atualizar Edge v37 para nova tabela R$18/R$18/R$20 e plano de rollback"
     }
   ],
   "pending_divergent_work": [
@@ -78,13 +135,33 @@
   "release_readiness": {
     "status": "blocked",
     "known_blockers": [
-      "Cloudflare: deployment/package/commit não comprovados",
-      "Supabase Edge v36 não aceita três SKUs de Cascão e mantém valores antigos do Natal",
-      "Supabase: SKUs novos figuram disponíveis; falta compatibilizar backend e versão publicada",
-      "V4.4: imagens WebP finais são adicionadas no ZIP e não estão no GitHub",
-      "Safari/Instagram e checkout real ainda exigem homologação coordenada"
+      "Cloudflare deployment ID/origem/ZIP ativos continuam sem verificação; backup/rollback precisam ser identificados antes do corte.",
+      "Edge v37 ACTIVE suporta novos Cascões e quatro Fatias de Chocottone a R$22, porém usa R$14/R$14/R$16 nos três Cascões legados; frontend V4.6 candidato usa R$18/R$18/R$20.",
+      "V4.6 ZIP de 117 arquivos e fotografias aprovadas já montado e validado, mas não publicado e sem paridade de preços com Edge ativa.",
+      "Fechar o CI integral do HEAD, incluindo teste de navegação corrigido de Cones Trufados para Cascão Trufado; evitar declarar pronta a release apenas com suite parcial verde.",
+      "Coordenar corte manual do Cloudflare e Edge com rollback, homologar checkout real/WhatsApp e Safari/Instagram, registrar ID de deploy e SHA de pacote."
     ],
     "requires_explicit_release_authorization": true,
     "do_not_auto_deploy": true
+  },
+  "future_feature_decision": {
+    "feature": "refrigerantes",
+    "decision_ref": "D-C42",
+    "status": "approved_concept_only_not_implemented",
+    "follow_after": "V4.6 Cloudflare/Edge cut coordinated and real checkout validated",
+    "ui": "compact collapsed-by-default expandable after sweet suggestions before receiving",
+    "behavior": "same SKU +/-; mix flavors; no auto-scroll on add; floating CTA targets recebimento-opcoes",
+    "price_cents": [
+      400,
+      400,
+      300,
+      600
+    ],
+    "remote_availability": "hidden_as_observed_2026-11-12",
+    "historical_prs": [
+      23,
+      24
+    ],
+    "warning": "Do not cherry-pick or enable until separate authorization after V4.6 release."
   }
 }

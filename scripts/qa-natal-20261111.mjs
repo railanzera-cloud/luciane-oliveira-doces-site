@@ -165,9 +165,39 @@ try {
         for (const flavor of ["Kinder Bueno", "Ninho com Morango", "Ninho Nutella e Chocotone"]) {
           assert.ok(cardText.includes(flavor), "Novo sabor ausente: " + flavor);
         }
-        assert.equal(await cascaoPage.locator(".cone-flavor-card").filter({hasText:"R$ 20,00"}).count(), 3, "Três novos sabores a R$20");
+        // Ferrero passou para R$20, assim como os três sabores novos.
+        for (const [flavor, price] of [
+          ["Prestígio", "R$ 18,00"], ["Dois Amores", "R$ 18,00"],
+          ["Ferrero Rocher", "R$ 20,00"], ["Kinder Bueno", "R$ 20,00"],
+          ["Ninho com Morango", "R$ 20,00"], ["Ninho Nutella e Chocotone", "R$ 20,00"],
+        ]) {
+          const card = cascaoPage.locator(".cone-flavor-card").filter({hasText: flavor});
+          assert.equal(await card.count(), 1, "Cartão único do sabor: " + flavor);
+          const actualText = (await card.innerText()).replace(/\s+/g, " "); // Intl.Formatter usa NBSP em moeda.
+          assert.ok(actualText.includes(price), "Preço do sabor divergente: " + flavor + " / " + price + " / exibido: " + actualText);
+        }
         assert.equal(await cascaoPage.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, "Cascão sem overflow horizontal");
         await cascaoPage.screenshot({path:path.join(out,"cascao-v43-"+width+".png"),animations:"disabled"});
+        // Regressão real: depois de Ninho com Morango, Natal não pode suprimir "outro cascão".
+        await cascaoPage.locator('label[for="cone-cascao-trufado-ninho-morango"]').click();
+        await cascaoPage.locator("#cones-quantidade .add-button").click();
+        const repeatOffers = cascaoPage.locator("#recebimento .boutique-added-continuity .boutique-complement-choice");
+        await repeatOffers.first().waitFor({state:"visible"});
+        assert.equal(await repeatOffers.count(), 4, "Cascão + Natal + Gourmet + Fatias; Trufadas indisponíveis");
+        assert.match(await repeatOffers.first().innerText(), /Escolher outro cascão/);
+        assert.equal(await repeatOffers.filter({hasText:"Fatias de Chocottone"}).count(),1);
+        assert.equal(await repeatOffers.filter({hasText:"Adicionar fatia"}).count(),1);
+        assert.equal(await cascaoPage.locator("#carrinho .cart-item").count(),1,"Primeiro cascão preservado");
+        await cascaoPage.screenshot({path:path.join(out,"cascao-complementos-"+width+".png"),animations:"disabled"});
+        await repeatOffers.first().click();
+        await cascaoPage.locator('label[for="cone-cone-trufado-prestigio"]').waitFor({state:"visible"});
+        assert.equal(await cascaoPage.locator("#carrinho .cart-item").count(),1,"Voltar ao configurador não limpa carrinho");
+        await cascaoPage.locator('label[for="cone-cone-trufado-prestigio"]').click();
+        await cascaoPage.locator("#cones-quantidade .add-button").click();
+        assert.equal(await cascaoPage.locator("#carrinho .cart-item").count(),2,"Dois sabores separados no mesmo pedido");
+        const subtotal = (await cascaoPage.locator("#carrinho .cart-subtotal strong").innerText()).replace(/\s+/g," ");
+        assert.match(subtotal,/38,00/,"Ninho com Morango R$20 + Prestígio R$18");
+        assert.equal(await cascaoPage.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),false,"Complementos sem overflow");
       } finally { await cascaoPage.close(); }
       console.log("Natal e Cascão V4.3 QA",width,"ok",JSON.stringify(dimensions));
     } finally {
