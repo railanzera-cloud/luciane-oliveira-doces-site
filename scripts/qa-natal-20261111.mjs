@@ -173,7 +173,8 @@ try {
         ]) {
           const card = cascaoPage.locator(".cone-flavor-card").filter({hasText: flavor});
           assert.equal(await card.count(), 1, "Cartão único do sabor: " + flavor);
-          assert.ok((await card.innerText()).includes(price), "Preço do sabor divergente: " + flavor + " / " + price);
+          const actualText = (await card.innerText()).replace(/\s+/g, " "); // Intl.Formatter usa NBSP em moeda.
+          assert.ok(actualText.includes(price), "Preço do sabor divergente: " + flavor + " / " + price + " / exibido: " + actualText);
         }
         assert.equal(await cascaoPage.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, "Cascão sem overflow horizontal");
         await cascaoPage.screenshot({path:path.join(out,"cascao-v43-"+width+".png"),animations:"disabled"});
