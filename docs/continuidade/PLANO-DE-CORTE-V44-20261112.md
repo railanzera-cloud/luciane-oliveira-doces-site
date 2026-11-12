@@ -1,6 +1,9 @@
 # Plano de corte comercial coordenado — V4.4 e próximos incrementos
 
-**Preparado em 12/11/2026; NÃO EXECUTADO.** Destinado à loja Luciane Oliveira Doces (Supabase `edqiwvccmboyayojvuea`, Cloudflare Pages `lucianeoliveiradoces.pages.dev`). Documento operacional, não autorização para publicar, mudar disponibilidade ou criar pedido de teste. Não se aplica à Luciane Gestão.
+**Preparado em 12/11/2026; NÃO EXECUTADO.**
+
+> **ATUALIZAÇÃO OPERACIONAL — V4.6 (12/11/2026):** este documento foi escrito na fase de diagnóstico da V4.4 e contém **v36/1699/1899 como histórico**, não instrução para restaurar esse estado. A Edge atual está **v37 ACTIVE** e reconhece novos Cascões R$20 e Natal R$22; permanece com preços antigos R$14/R$14/R$16 dos três Cascões legados. O pacote de publicação candidato agora é **V4.6**, 117 arquivos, frontend com R$18/R$18/R$20. **Não publicá-lo sozinho.** O ID de implantação Cloudflare e o ZIP efetivamente ativo são desconhecidos. Preservar rollback da Edge v37, não apenas da v36; conferir catálogo comercial atual antes de qualquer deploy. CI no HEAD PR #37 precisa estar verde (teste de navegação atualizado para “Cascão Trufado”). A ativação comercial e a publicação exigem coordenação específica com o responsável e teste de pedido real/WhatsApp, inclusive Safari/Instagram. Enquanto isso, o plano permanece **NÃO EXECUTADO**.
+ Destinado à loja Luciane Oliveira Doces (Supabase `edqiwvccmboyayojvuea`, Cloudflare Pages `lucianeoliveiradoces.pages.dev`). Documento operacional, não autorização para publicar, mudar disponibilidade ou criar pedido de teste. Não se aplica à Luciane Gestão.
 
 ## Por que há bloqueio
 
