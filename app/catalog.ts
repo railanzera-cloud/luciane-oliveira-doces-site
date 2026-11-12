@@ -149,7 +149,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: "cascao-trufado-ninho-nutella-chocotone", kind: "cone", category: "Cascão Trufado",
-    name: "Ninho com Nutella e Chocotone", available: true,
+    name: "Ninho com Nutella e Chocottone", available: true,
     image: "/images/cascao-ninho-nutella-chocotone-detail-20261112.webp",
     cardImage: "/images/cascao-ninho-nutella-chocotone-card-20261112.webp",
     imageAlt: "Cascão trufado com creme de Ninho, creme de avelã e pedaços de Chocotone",
