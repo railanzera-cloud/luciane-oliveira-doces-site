@@ -24,6 +24,12 @@
 - Depois de um release validado, atualizar `main` ou branch estável designada como baseline **mediante merge revisado**, compatibilidade com outros projetos e validação do SHA final. Branches históricas permanecem consultáveis e PRs obsoletos são classificados antes de fechar.
 - Não manter duas linhas de implementação para a mesma feature indefinidamente. Reconciliar diferenças de arquivos e decisões visuais antes de adotar uma.
 
+### Complementos de reconciliação e operação (12/11/2026)
+
+- [Mapa verificável de branches e PRs concorrentes](RECONCILIACAO-PRs-20261112.md): identifica divergência de PR #34, PRs #23/#24 e mudanças exclusivas a tratar sem merge cego.
+- [Plano de corte comercial coordenado V4.4](PLANO-DE-CORTE-V44-20261112.md): checklist antes de qualquer Edge/SQL/Cloudflare, plano de backup, etapas operacionais e rollback. **Preparado, não executado.**
+- A leitura pública da URL não fornece ID/SHAs de deployment; se o Cloudflare não estiver conectado, registrar **produção desconhecida** em vez de procurar evidências inválidas no GitHub.
+
 ## 3. Reconciliação verificada em 12/11/2026
 
 | Linha | Situação e decisão |
