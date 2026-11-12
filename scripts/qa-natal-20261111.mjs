@@ -195,7 +195,7 @@ try {
         await cascaoPage.locator('label[for="cone-cone-trufado-prestigio"]').click();
         await cascaoPage.locator("#cones-quantidade .add-button").click();
         assert.equal(await cascaoPage.locator("#carrinho .cart-item").count(),2,"Dois sabores separados no mesmo pedido");
-        const subtotal = (await cascaoPage.locator("#carrinho .cart-subtotal strong").innerText()).replace(/\\s+/g," ");
+        const subtotal = (await cascaoPage.locator("#carrinho .cart-subtotal strong").innerText()).replace(/\s+/g," ");
         assert.match(subtotal,/38,00/,"Ninho com Morango R$20 + Prestígio R$18");
         assert.equal(await cascaoPage.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),false,"Complementos sem overflow");
       } finally { await cascaoPage.close(); }
