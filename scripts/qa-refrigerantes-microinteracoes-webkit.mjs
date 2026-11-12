@@ -86,7 +86,8 @@ try {
           }
           if (window.__drinkMotionSamples.length < 65) requestAnimationFrame(watch);
         };
-        requestAnimationFrame(watch);
+        document.querySelector("#acompanhamentos > summary")
+          .addEventListener("click", () => requestAnimationFrame(watch), {once:true, capture:true});
       });
       await summary.click();
       await page.waitForTimeout(335);
