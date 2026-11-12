@@ -63,7 +63,7 @@ test("UX: bloco único recolhido depois dos doces, antes do recebimento; CTA man
  assert.ok(pos>page.indexOf('checkoutComplementItems.map((id) => {'));
  assert.ok(pos<page.indexOf('id="recebimento-opcoes"'));
  assert.equal((page.match(/<DrinkComplements availability/g)||[]).length,1);
- assert.match(component,/<details className="refreshment-later"/);
+ assert.match(component,/<details ref=\{offerRef\} className="refreshment-later"/);
  assert.match(component,/<summary /);
  assert.match(component,/adjust\(drink,-1\)/);
  assert.match(component,/adjust\(drink,1\)/);
