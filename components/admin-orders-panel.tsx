@@ -193,6 +193,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const [printing, setPrinting] = useState(false);
   const [connectingPrinter, setConnectingPrinter] = useState(false);
   const [printerOnline, setPrinterOnline] = useState(false);
+  const [printerLastVerifiedAt, setPrinterLastVerifiedAt] = useState<number | null>(null);
   const [printerReconnectInfo, setPrinterReconnectInfo] = useState("");
   const [keepScreenAwake, setKeepScreenAwake] = useState(true);
   const [screenAwakeStatus, setScreenAwakeStatus] = useState<"on" | "off" | "blocked">("off");
@@ -574,6 +575,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       setPrinterName(printer);
       setPrinterReady(true);
       setPrinterOnline(true);
+      setPrinterLastVerifiedAt(Date.now());
       setPrinterReconnectInfo("");
       setPrinterConnectError("");
       lastReconnectAttemptRef.current = 0;
@@ -583,6 +585,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       const explanation = cause instanceof Error ? cause.message : "Não foi possível conectar ao QZ Tray.";
       setPrinterOnline(false);
       setPrinterReady(false);
+      setPrinterLastVerifiedAt(Date.now());
       try {
         const { getDiscoveredKitchenPrinters } = await import("@/lib/qz-print-client");
         const found = getDiscoveredKitchenPrinters();
@@ -618,13 +621,14 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       try {
         const { isKitchenPrinterOnline } = await import("@/lib/qz-print-client");
         if (!active) return;
-        if (await isKitchenPrinterOnline()) {
-          if (!active) return;
+        const online = await isKitchenPrinterOnline();
+        if (!active) return;
+        setPrinterLastVerifiedAt(Date.now());
+        if (online) {
           setPrinterOnline(true);
           setPrinterReconnectInfo("");
           return;
         }
-        if (!active) return;
         setPrinterOnline(false);
         const now = Date.now();
         if (now - lastReconnectAttemptRef.current < PRINTER_RETRY_INTERVAL_MS) return;
@@ -846,8 +850,9 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
           <span><span className={kitchenMode?.enabled ? "admin-status-dot is-online" : "admin-status-dot"} />
             Automático: <strong>{kitchenMode?.enabled ? "Ligado" : "Desligado"}</strong></span>
           <span><Printer size={15} /> Impressora neste dispositivo: <strong>{printerOnline ? printerName : printerReady ? "Desconectada — tentando recuperar" : "Não conectada"}</strong></span>
-          <span>Última tentativa neste aparelho: <strong>{connectingPrinter ? "Conectando QZ…" : printerConnectError ? "Falhou — conferir diagnóstico acima" : printerOnline ? "Conexão ativa" : "Aguardando conexão"}</strong></span>
-          <span><Check size={15} /> Fila: <strong>{printing ? "Processando em segundo plano" : printIssue ? "Comanda pendente ou com falha — confira o aviso" : "Sem envio ativo — monitorando pedidos"}</strong></span>
+          <span>Diagnóstico neste aparelho: <strong>{connectingPrinter ? "Conectando QZ…" : printerConnectError ? "Falhou — conferir diagnóstico acima" : printerReady && printerOnline ? "QZ e impressora detectados" : printerReady ? "Conexão local perdida — conferir notebook" : "Sem impressora conectada neste aparelho"}</strong></span>
+          {printerLastVerifiedAt !== null && <span>Última verificação local: <strong>{new Date(printerLastVerifiedAt).toLocaleTimeString("pt-BR", { timeZone: "America/Belem", hour: "2-digit", minute: "2-digit" })}</strong></span>}
+          <span><Check size={15} /> Fila: <strong>{printing ? "Processando em segundo plano" : printIssue ? "Há pendência de impressão — veja os pedidos abaixo" : "Sem envio ativo — monitorando pedidos"}</strong></span>
           <span><BellRing size={15} /> Aviso normal: <strong>2 toques e silêncio</strong></span>
           {lastPrintInfo && <span><Check size={15} /> {lastPrintInfo}</span>}
         </div>
@@ -877,8 +882,30 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
           <div className="admin-kitchen-print-issue" role="alert">
             <strong><AlertCircle size={18} /> Atenção à impressão</strong>
             <p>{printIssue.message}</p>
-            <small>O alerta especial toca a cada 30 segundos até a fila voltar ao normal.
-              Verifique também papel e impressora: o QZ Tray não confirma a saída física do papel.</small>
+            <ul className="admin-kitchen-issue-list" aria-label="Pedidos e etapas de impressão">
+              {printIssue.details.slice(0, 8).map(job => {
+                const related = orders.find(order => order.id === job.order_uuid);
+                const stage = job.stage === "not_claimed"
+                  ? "Ainda não assumida pelo notebook (0 tentativas)"
+                  : job.stage === "awaiting_retry"
+                  ? "Pendente após tentativa anterior"
+                  : job.stage === "unconfirmed"
+                  ? "Assumida pelo QZ, sem confirmação de conclusão"
+                  : "Falha registrada no processamento da comanda";
+                return <li key={job.id}>
+                  <strong>{related ? `Pedido #${related.order_number}` : "Pedido não carregado na lista"}</strong>
+                  <span>{stage}</span>
+                </li>;
+              })}
+              {printIssue.details.length > 8 && <li>Mais {printIssue.details.length - 8} pendências na consulta.</li>}
+            </ul>
+            <small>{printerReady
+              ? printerOnline
+                ? "QZ reconhecido neste aparelho. Isso não prova que o papel saiu. Confira a POS-58 antes de reimprimir."
+                : "A conexão local com o QZ não está ativa. Confira o notebook, o Chrome e a POS-58."
+              : "Este aparelho não é uma estação de impressão conectada. No celular, isso é esperado; o estado do notebook não é monitorado remotamente."}
+            </small>
+            <small>O alerta especial toca a cada 30 segundos enquanto houver pendência elegível. Não reimprima sem conferir o papel.</small>
             <Button type="button" variant="outline" onClick={() => setPrintWarningMutedUntil(Date.now() + 5 * 60000)}>
               Silenciar alerta por 5 minutos
             </Button>
