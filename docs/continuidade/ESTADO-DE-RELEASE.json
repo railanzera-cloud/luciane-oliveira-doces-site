@@ -13,7 +13,10 @@
     "production_code_sha": null,
     "do_not_equate_main_with_production": true,
     "price_change_candidate_branch": "fix/cascao-precos-paridade-20261112",
-    "price_change_compiled_sha": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f"
+    "price_change_compiled_sha": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f",
+    "release_candidate_branch": "fix/cascao-precos-paridade-20261112",
+    "release_candidate_version": "V4.6",
+    "release_candidate_compiled_sha": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f"
   },
   "deployments": {
     "cloudflare": {
@@ -132,13 +135,33 @@
   "release_readiness": {
     "status": "blocked",
     "known_blockers": [
-      "Cloudflare: deployment ID e versão efetivamente publicada não comprovados",
-      "Edge create-whatsapp-order v37 ativa reconhece 3 novos Cascões e Natal R$22, mas mantém preços antigos dos Cascões legados R$14/R$14/R$16",
-      "V4.6 com complementos e preços R$18/R$18/R$20 somente compilada e testada no CI, não publicada no Cloudflare nem na Edge",
-      "Corte coordenado Cloudflare + Edge exige rollback verificado e testes de pedido real/WhatsApp no iPhone/Safari/Instagram",
-      "Sem deploy da correção, loja publicada ainda pode suprimir repetição de Cascão quando Natal está disponível"
+      "Cloudflare deployment ID/origem/ZIP ativos continuam sem verificação; backup/rollback precisam ser identificados antes do corte.",
+      "Edge v37 ACTIVE suporta novos Cascões e quatro Fatias de Chocottone a R$22, porém usa R$14/R$14/R$16 nos três Cascões legados; frontend V4.6 candidato usa R$18/R$18/R$20.",
+      "V4.6 ZIP de 117 arquivos e fotografias aprovadas já montado e validado, mas não publicado e sem paridade de preços com Edge ativa.",
+      "Fechar o CI integral do HEAD, incluindo teste de navegação corrigido de Cones Trufados para Cascão Trufado; evitar declarar pronta a release apenas com suite parcial verde.",
+      "Coordenar corte manual do Cloudflare e Edge com rollback, homologar checkout real/WhatsApp e Safari/Instagram, registrar ID de deploy e SHA de pacote."
     ],
     "requires_explicit_release_authorization": true,
     "do_not_auto_deploy": true
+  },
+  "future_feature_decision": {
+    "feature": "refrigerantes",
+    "decision_ref": "D-C42",
+    "status": "approved_concept_only_not_implemented",
+    "follow_after": "V4.6 Cloudflare/Edge cut coordinated and real checkout validated",
+    "ui": "compact collapsed-by-default expandable after sweet suggestions before receiving",
+    "behavior": "same SKU +/-; mix flavors; no auto-scroll on add; floating CTA targets recebimento-opcoes",
+    "price_cents": [
+      400,
+      400,
+      300,
+      600
+    ],
+    "remote_availability": "hidden_as_observed_2026-11-12",
+    "historical_prs": [
+      23,
+      24
+    ],
+    "warning": "Do not cherry-pick or enable until separate authorization after V4.6 release."
   }
 }
