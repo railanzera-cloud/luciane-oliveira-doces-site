@@ -112,7 +112,10 @@ try {
       await summary.click();
       await page.waitForTimeout(40);
       await summary.click();
-      await page.waitForTimeout(295);
+      await page.waitForFunction(() => {
+        const el = document.getElementById("acompanhamentos");
+        return !!el?.open && (el.querySelector(".refreshment-reveal")?.getBoundingClientRect().height ?? 0) > 200;
+      }, null, { timeout: 1500 });
       assert.equal(await drink.getAttribute("open"), "", "Inversão do fechamento mantém aberto");
       const expandedHeight = await drink.evaluate(el => el.querySelector(".refreshment-reveal").getBoundingClientRect().height);
       assert.ok(expandedHeight > 200, "Conteúdo inteiro deve reaparecer sem corte: " + expandedHeight);
