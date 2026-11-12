@@ -91,6 +91,9 @@ export const CONE_ITEM_KEYS: Record<string, string> = {
   "cone-trufado-prestigio": "cone_prestigio",
   "cone-trufado-dois-amores": "cone_dois_amores",
   "cone-trufado-ferrero-rocher": "cone_ferrero_rocher",
+  "cascao-trufado-kinder-bueno": "cascao_kinder_bueno",
+  "cascao-trufado-ninho-morango": "cascao_ninho_morango",
+  "cascao-trufado-ninho-nutella-chocotone": "cascao_ninho_nutella_chocotone",
 };
 
 export const CHOCOTONE_ITEM_KEYS: Record<string, string> = {
@@ -125,7 +128,7 @@ const CATEGORY_ITEMS: MenuAvailabilityItem[] = [
     itemType: "category",
     categoryKey: CATEGORY_ITEM_KEYS.fatias,
   },
-  { itemKey: CATEGORY_ITEM_KEYS.cones, name: "Cones Trufados",
+  { itemKey: CATEGORY_ITEM_KEYS.cones, name: "Cascão Trufado",
     itemType: "category", categoryKey: CATEGORY_ITEM_KEYS.cones },
   { itemKey: CATEGORY_ITEM_KEYS.natal, name: "Edição Especial de Natal",
     itemType: "category", categoryKey: CATEGORY_ITEM_KEYS.natal },
