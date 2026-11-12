@@ -25,17 +25,23 @@
     "supabase_commercial": {
       "project_ref": "edqiwvccmboyayojvuea",
       "edge_function": "create-whatsapp-order",
-      "observed_edge_version": 36,
+      "observed_edge_version": 37,
       "observation_date": "2026-11-12",
       "observed_natal_price_centavos": [
-        1899,
-        1899,
-        1699,
-        1899
+        2200,
+        2200,
+        2200,
+        2200
       ],
-      "observed_new_cascao_supported_by_edge": false,
+      "observed_new_cascao_supported_by_edge": true,
       "observed_new_cascao_availability": "available",
-      "production_contract_consistency": "mismatch_with_v44_candidate"
+      "production_contract_consistency": "compatible_with_v44_only_new_legacy_cascao_prices_pending_cloudflare_cut",
+      "observed_legacy_cascao_prices_centavos": [
+        1400,
+        1400,
+        1600
+      ],
+      "observed_edge_ezbr_sha256": "f9ce3b6dca1884143475302e26e80263f1b73c765b6a28e754ac31241debf2c5"
     }
   },
   "validated_artifacts": [
@@ -78,11 +84,11 @@
   "release_readiness": {
     "status": "blocked",
     "known_blockers": [
-      "Cloudflare: deployment/package/commit não comprovados",
-      "Supabase Edge v36 não aceita três SKUs de Cascão e mantém valores antigos do Natal",
-      "Supabase: SKUs novos figuram disponíveis; falta compatibilizar backend e versão publicada",
-      "V4.4: imagens WebP finais são adicionadas no ZIP e não estão no GitHub",
-      "Safari/Instagram e checkout real ainda exigem homologação coordenada"
+      "Cloudflare: deployment/package/commit ainda não comprovados",
+      "Supabase Edge v37 suporta novos Cascões/Natal R$22, mas mantém preços anteriores dos três Cascões legados até corte coordenado do frontend",
+      "Nova tabela dos Cascões legados (R$18/R$18/R$20) somente no código candidato, não publicada em Cloudflare nem Edge",
+      "V4.4: fotografias WebP finais são adicionadas ao ZIP e não constam como binários no GitHub",
+      "Homologação de checkout real e Safari/Instagram, mais vinculação do ZIP à versão publicada, pendentes"
     ],
     "requires_explicit_release_authorization": true,
     "do_not_auto_deploy": true
