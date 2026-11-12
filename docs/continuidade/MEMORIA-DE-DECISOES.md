@@ -338,3 +338,14 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - **Mantidos sem alterações:** `create-whatsapp-order` e sua idempotência, pedido/itens/valores Pix, cartão e dinheiro, pagamento, estoque, impressão/cozinha, checkout site/online separado, tracking token, Tintim, Meta e CAPI. Nenhuma alteração em Supabase, Edge produtiva, Cloudflare publicada, refrigerantes ou endereço de retirada.
 - **Limitação conhecida:** `window.location.assign` após API assíncrona pode ser bloqueado ou tratado diferentemente por navegadores internos. O fallback é obrigatório; WebKit automatizado não comprova a abertura do aplicativo WhatsApp nem o envio da mensagem. Clique/abertura não são evidência de envio efetivo; reconciliação real depende de integração de mensagens.
 - **Branch:** `refine/checkout-whatsapp-passagem-direta-20261111` derivada de V4.1 `f4dc7b86`. Package `LUCIANE_COMERCIAL_V4_2_WHATSAPP.zip`, apenas após sucesso da CI no SHA final e oito fotografias WebP fiéis ao pacote anterior.
+
+
+## D-C37 — Cascão Trufado e fatias de Chocottone R$22 (12/11/2026)
+
+- **Solicitação expressa:** renomear categoria comercial `Cones Trufados` para **Cascão Trufado**; incluir três sabores com fotos originais da loja e preço R$20 por unidade, na ordem Kinder Bueno, Ninho com Morango, Ninho Nutella e Chocotone; alterar os quatro sabores de fatias de Chocottone para R$22.
+- **Preservar:** categoria técnica `cones` / `category_cones`, 3 SKUs antigos e preços R$14/R$14/R$16, fotos antigas, controle individual no admin, histórico, demais categorias e checkout WhatsApp V4.2.
+- **Novos SKUs e chaves:** `cascao-trufado-kinder-bueno`/`cascao_kinder_bueno`; `cascao-trufado-ninho-morango`/`cascao_ninho_morango`; `cascao-trufado-ninho-nutella-chocotone`/`cascao_ninho_nutella_chocotone`. Cada um tem preço R$20 no frontend e 2000 centavos no backend.
+- **Natal:** os 4 SKUs históricos `chocotone-*` passam a R$22 (2200 centavos) no frontend e no backend, sem mudar a quantidade/embalagem.
+- **Fotos:** 3 originais da loja de 12/11, 9 WebPs sem retoque. Binários não estão no GitHub; ZIP final precisa anexá-los e preservar 8 WebPs Natal com SHA. O workflow gera BASE explicitamente não publicável.
+- **Operação:** a categoria e Natal já estavam disponíveis em produção. Não implantar backend de preços novos enquanto o frontend antigo continuar visível; coordenar ocultação temporária, migração, deploy Edge, publicação Cloudflare, teste e liberação dos 3 novos sabores. Sem mudar pagamentos, impressora, estoque, bebidas ou Gestão.
+- **Branch:** `feat/cascao-trufado-natal-precos-20261112`, PR #33 (base PR #32). Detalhes em `docs/ENTREGA-CASCAO-NATAL-V43-20261112.md`.
