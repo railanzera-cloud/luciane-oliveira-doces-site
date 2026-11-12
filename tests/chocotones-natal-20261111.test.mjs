@@ -37,11 +37,11 @@ test("Natal aceita pedidos mistos e rejeita variante/opções forjadas", () => {
   assert.throws(()=>quoteCartItems([{product_id:"chocotone-casadinho",variant_id:"porcao",quantity:100}]),/Quantidade inválida/);
 });
 
-test("front não deixa Natal disponível por fallback e permanece com refrigerantes desligados", () => {
+test("front mantém Natal protegido no fallback e bebidas dependentes de disponibilidade remota", () => {
   const cat=files("app/catalog.ts");
   const statuses=files("app/menu-availability.ts");
   assert.match(cat,/CHOCOTONES = PRODUCTS\.filter/);
-  assert.match(cat,/drinks:\s*false/);
+  assert.match(cat,/drinks:\s*true/);
   assert.match(statuses,/\[CATEGORY_ITEM_KEYS\.natal\]: "hidden"/);
   assert.match(statuses,/for \(const chocotone of CHOCOTONE_ITEMS\) statuses\[chocotone\.itemKey\] = "hidden"/);
   assert.match(statuses,/CHOCOTONE_ITEM_KEYS/);
@@ -149,5 +149,5 @@ test("Natal V4.1 remove redundância e exibe total da seleção, não apenas o �
   assert.match(home,/Como deseja receber\?/);
   assert.match(home,/A partir de R\$8/);
   assert.match(home,/Em Paragominas/);
-  assert.match(files("app/catalog.ts"),/drinks:\s*false/);
+  assert.match(files("app/catalog.ts"),/drinks:\s*true/);
 });

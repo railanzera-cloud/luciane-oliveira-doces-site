@@ -168,7 +168,7 @@ export function paymentDescription(payment: CheckoutDetails["payment"], fulfillm
 export function buildOrderMessage(order: CheckoutDetails, orderId: string, pix: { holder: string; key: string; keyType: string }): string {
   const itemLines = order.items.map((item, index) => {
     const quantity = item.kind === "slice" ? `${item.quantity} ${item.quantity === 1 ? "fatia" : "fatias"}` : `${item.quantity} un.`;
-    const title = item.kind === "slice" ? item.name : `${item.name} ${item.size}`;
+    const title = item.kind === "slice" || item.kind === "cone" || item.kind === "chocotone" ? item.name : `${item.name} ${item.size}`;
     return [`*${index + 1}. ${title} — ${quantity}*`,
       ...(item.options.length ? [`Sabores: ${item.options.join(" + ")}`] : []),
       formatOrderMoney(item.unit_price * item.quantity)].join("\n");
@@ -228,10 +228,11 @@ export function buildRegisteredOrderMessage(order: CheckoutDetails, number: numb
   for (const item of order.items) {
     // As duas Pipocas Trufadas já são identificadas pelo sabor.
     // Ocultar apenas o sufixo "Pacote" no texto enviado pelo WhatsApp.
-    // Fatias artesanais e de Chocottone já identificam a unidade no nome.
+    // Fatias artesanais/Chocottone e Cascões já identificam o tipo no nome;
+    // o tamanho interno "1 cascão" permanece no contrato, não na mensagem.
     // O rótulo no catálogo e os dados do pedido/estoque permanecem intactos.
     const isTrufada = item.product_id === "crocante-ninho" || item.product_id === "crocante-chocolate";
-    const showSize = item.kind !== "slice" && item.kind !== "chocotone" && !(isTrufada && item.size.trim().toLowerCase() === "pacote");
+    const showSize = item.kind !== "slice" && item.kind !== "chocotone" && item.kind !== "cone" && !(isTrufada && item.size.trim().toLowerCase() === "pacote");
     lines.push(`${item.quantity}x ${item.name}${showSize ? ` ${item.size}` : ""}`);
     if (item.options.length) lines.push(item.options.join(" + "));
     lines.push("");

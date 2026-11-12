@@ -56,6 +56,6 @@ test("V4.4: preços/checkout/códigos de disponibilidade não são alterados pel
  assert.match(menu,/cascao_kinder_bueno/);
  assert.match(menu,/cascao_ninho_morango/);
  assert.match(menu,/cascao_ninho_nutella_chocotone/);
- assert.match(catalog,/drinks: false/);
+ assert.match(catalog,/drinks: true/); // Agora bebidas dependem da liberação remota por SKU, sem alterar Cascões.
  assert.match(page,/function addOrUpdateCone\(\)/);
 });

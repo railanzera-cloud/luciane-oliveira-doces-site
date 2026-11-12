@@ -3,6 +3,7 @@ import {
   SLICES,
   CONES,
   CHOCOTONES,
+  DRINKS,
   SLICE_DRAFTS,
   STORE_CONFIG,
   type CategoryId,
@@ -86,6 +87,18 @@ export const POPCORN_FLAVOR_ITEM_KEYS: Record<string, string> = {
   "choco-cookies-leite": "popcorn_flavor_choco_cookies_leite",
   ovomaltine: "popcorn_flavor_ovomaltine",
 };
+
+import { DRINKS as DRINK_CATALOG } from "../supabase/functions/_shared/drinks-catalog.mjs";
+
+export const DRINK_ITEM_KEYS: Record<string,string> = Object.fromEntries(
+  Object.values(DRINK_CATALOG).map(drink => [drink.id,drink.itemKey]),
+);
+export const DRINK_CATEGORY_KEY = "extras_drinks";
+export function drinkStatus(snapshot: AvailabilitySnapshot, productId:string): AvailabilityStatus {
+  const key = DRINK_ITEM_KEYS[productId];
+  // Sem confirmação remota, o refrigerante é oculto. Nunca usar fallback "available".
+  return snapshot.source === "supabase" && key ? snapshot.statuses[key] ?? "hidden" : "hidden";
+}
 
 export const CONE_ITEM_KEYS: Record<string, string> = {
   "cone-trufado-prestigio": "cone_prestigio",
@@ -193,6 +206,7 @@ export const MENU_AVAILABILITY_ITEMS: MenuAvailabilityItem[] = [
   ...SLICE_DRAFT_ITEMS,
   ...CONE_ITEMS,
   ...CHOCOTONE_ITEMS,
+  ...DRINKS.map(drink => ({ itemKey: DRINK_ITEM_KEYS[drink.id], name: `${drink.name} — ${drink.variants[0].label}`, itemType:"product" as const, categoryKey: DRINK_CATEGORY_KEY })),
 ];
 
 const KNOWN_ITEM_KEYS = new Set(MENU_AVAILABILITY_ITEMS.map((item) => item.itemKey));
@@ -228,6 +242,7 @@ export function createFallbackAvailability(): AvailabilitySnapshot {
   for (const draft of SLICE_DRAFTS) statuses[draft.itemKey] = "hidden";
   for (const cone of CONE_ITEMS) statuses[cone.itemKey] = "hidden";
   for (const chocotone of CHOCOTONE_ITEMS) statuses[chocotone.itemKey] = "hidden";
+  for (const drink of DRINKS) statuses[DRINK_ITEM_KEYS[drink.id]] = "hidden";
 
   return {
     ordersOpen: STORE_CONFIG.acceptingOrders,

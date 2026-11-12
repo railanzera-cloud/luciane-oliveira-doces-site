@@ -1,0 +1,125 @@
+/* V4.7 · Refrigerantes opcionais, compactos e sem navegação automática.
+   Não compartilha a regra de rolagem do carrinho nem a grade de complementos doces. */
+.storefront #acompanhamentos.refreshment-later {
+  display:block; margin:18px 0 20px; padding:0; overflow:hidden;
+  border:1px solid rgba(136,90,55,.28); border-radius:17px;
+  background:linear-gradient(130deg,#fffaf3 0%,#f5e9dc 100%);
+  box-shadow:inset 0 1px rgba(255,255,255,.92),0 5px 16px rgba(64,37,20,.05);
+  scroll-margin-top:118px; color:#472d20;
+}
+.storefront #acompanhamentos > summary {
+  display:flex; align-items:center; gap:11px; min-height:74px;
+  padding:12px 15px; list-style:none; cursor:pointer; user-select:none;
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+}
+.storefront #acompanhamentos > summary::-webkit-details-marker {display:none;}
+.storefront #acompanhamentos > summary::marker {content:"";}
+.storefront #acompanhamentos > summary:focus-visible {outline:3px solid #ac7548;outline-offset:-4px;}
+.storefront #acompanhamentos .refreshment-summary-symbol {
+  flex:0 0 42px; width:42px;height:42px;display:grid;place-items:center;
+  border-radius:13px; color:#80512e; border:1px solid #e1c5a7;
+  background:linear-gradient(145deg,#f7ead6,#eed9c1);
+}
+.storefront #acompanhamentos .refreshment-summary-copy {display:grid;gap:3px;flex:1;min-width:0;}
+.storefront #acompanhamentos .refreshment-summary-copy strong {font-size:.92rem;line-height:1.3;font-weight:760;}
+.storefront #acompanhamentos .refreshment-summary-copy small {font-size:.73rem;color:#82634e;line-height:1.3;}
+.storefront #acompanhamentos .refreshment-chevron {color:#885b3e;flex:0 0 18px;transition:transform .2s ease;}
+.storefront #acompanhamentos[open] .refreshment-chevron {transform:rotate(180deg);}
+.storefront #acompanhamentos .refreshment-body {padding:0 14px 15px;border-top:1px solid rgba(137,98,65,.15);}
+.storefront #acompanhamentos .refreshment-subtitle {margin:11px 0 12px;color:#79614f;font-size:.73rem;line-height:1.4;}
+.storefront #acompanhamentos .refreshment-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+.storefront #acompanhamentos .refreshment-card {
+  display:flex;flex-direction:column;justify-content:space-between;gap:9px;min-width:0;
+  padding:9px;border-radius:14px;border:1px solid rgba(155,105,69,.24);
+  background:rgba(255,252,247,.73);box-shadow:0 2px 9px rgba(57,33,22,.03);
+}
+.storefront #acompanhamentos .refreshment-card[data-selected] {border-color:#b5855b;background:#fff8ef;}
+.storefront #acompanhamentos .refreshment-card[data-unavailable] {opacity:.68;}
+.storefront #acompanhamentos .refreshment-product {display:flex;align-items:flex-start;gap:9px;min-width:0;}
+.storefront #acompanhamentos .refreshment-image {
+  flex:0 0 52px;width:52px;height:64px;display:grid;place-items:center;overflow:hidden;
+  background:#130e0d;border-radius:9px;
+}
+.storefront #acompanhamentos .refreshment-image img {width:100%;height:100%;object-fit:contain;}
+.storefront #acompanhamentos .refreshment-copy {display:grid;align-content:center;gap:3px;min-width:0;min-height:64px;}
+.storefront #acompanhamentos .refreshment-copy h4 {font-size:.78rem;font-weight:750;line-height:1.22;margin:0;overflow-wrap:anywhere;}
+.storefront #acompanhamentos .refreshment-copy small {font-size:.67rem;color:#826b58;line-height:1.2;}
+.storefront #acompanhamentos .refreshment-action-row {
+  display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto 40px;
+  justify-items:start;gap:5px;min-width:0;
+}
+/* Separar preço e controle: duas colunas em 320px não comportam R$+três botões
+   na mesma linha. Reservar a altura evita saltos quando a quantidade aparece. */
+.storefront #acompanhamentos .refreshment-add,
+.storefront #acompanhamentos .refreshment-quantity {justify-self:end;}
+.storefront #acompanhamentos .refreshment-price {font-size:.89rem;color:#5d3a25;white-space:nowrap;font-weight:760;font-variant-numeric:tabular-nums;}
+.storefront #acompanhamentos .refreshment-add,.storefront #acompanhamentos .refreshment-quantity button {
+  display:grid;place-items:center;flex:0 0 40px;min-width:40px;min-height:40px;
+  padding:0;border-radius:11px;border:1px solid #b88d6b;color:#704527;
+  background:linear-gradient(150deg,#f6e6d5,#f0d7bb);font:inherit;
+  cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+.storefront #acompanhamentos .refreshment-quantity {display:flex;align-items:center;gap:3px;}
+.storefront #acompanhamentos .refreshment-quantity button {flex-basis:30px;min-width:30px;min-height:40px;}
+.storefront #acompanhamentos .refreshment-quantity span {min-width:16px;text-align:center;font-variant-numeric:tabular-nums;font-weight:760;font-size:.86rem;}
+.storefront #acompanhamentos button:disabled {opacity:.48;cursor:not-allowed;}
+.storefront #acompanhamentos button:focus-visible {outline:3px solid #a56d42;outline-offset:2px;}
+.storefront #acompanhamentos button:not(:disabled):active {transform:scale(.95);background:#ebcfab;}
+.storefront #acompanhamentos .refreshment-unavailable {font-size:.68rem;color:#926b54;}
+.storefront #acompanhamentos .refreshment-footnote {margin:12px 1px 0;font-size:.7rem;line-height:1.35;color:#886a51;}
+
+/* Mobile: linha horizontal por bebida. Evita sobreposição dos controles
+   em telas 320–430 px e ocupa menos altura que cartões verticais de 2 colunas. */
+@media(max-width:699px) {
+ .storefront #acompanhamentos .refreshment-grid {
+   grid-template-columns:minmax(0,1fr);
+   gap:8px;
+ }
+ .storefront #acompanhamentos .refreshment-card {
+   display:grid;
+   grid-template-columns:minmax(0,1fr) auto;
+   align-items:center;
+   gap:8px;
+   min-height:74px;
+   padding:8px 10px;
+ }
+ .storefront #acompanhamentos .refreshment-product {
+   align-items:center;gap:9px;min-width:0;
+ }
+ .storefront #acompanhamentos .refreshment-image {
+   flex:0 0 43px;width:43px;height:55px;
+ }
+ .storefront #acompanhamentos .refreshment-copy {
+   min-height:55px;align-content:center;
+ }
+ .storefront #acompanhamentos .refreshment-action-row {
+   display:flex;flex-direction:column;align-items:flex-end;justify-content:center;
+   min-width:80px;gap:4px;
+ }
+ .storefront #acompanhamentos .refreshment-add {
+   width:40px;min-width:40px;justify-self:auto;
+ }
+ .storefront #acompanhamentos .refreshment-quantity {
+   justify-self:auto;
+ }
+ .storefront #acompanhamentos .refreshment-quantity button {
+   flex:0 0 30px;min-width:30px;min-height:36px;
+ }
+}
+
+@media(max-width:359px) {
+ .storefront #acompanhamentos .refreshment-grid {gap:7px;}
+ .storefront #acompanhamentos .refreshment-card {padding:7px;gap:7px;}
+ .storefront #acompanhamentos .refreshment-product {gap:6px;}
+ .storefront #acompanhamentos .refreshment-image {flex-basis:43px;width:43px;height:57px;}
+ .storefront #acompanhamentos .refreshment-copy {min-height:57px;}
+ .storefront #acompanhamentos .refreshment-copy h4 {font-size:.73rem;}
+ .storefront #acompanhamentos .refreshment-price {font-size:.81rem;}
+}
+@media(min-width:700px) {
+ .storefront #acompanhamentos .refreshment-grid {grid-template-columns:repeat(4,minmax(0,1fr));}
+}
+@media(prefers-reduced-motion:reduce) {
+ .storefront #acompanhamentos .refreshment-chevron {transition:none;}
+ .storefront #acompanhamentos button:not(:disabled):active {transform:none;}
+}
