@@ -10,16 +10,18 @@ test("Refrigerantes: abertura reversível preserva details nativo, teclado e fec
   assert.match(component, /<details ref=\{offerRef\} className="refreshment-later"/);
   assert.match(component, /<summary onClick=\{toggleOffer\}/);
   assert.match(component, /event\.preventDefault\(\)/);
-  assert.match(component, /expansionRef\.current \? !expansionTargetRef\.current : !details\.open/);
-  assert.match(component, /const currentHeight = details\.open \? body\.getBoundingClientRect\(\)\.height : 0/);
-  assert.match(component, /expansionRef\.current\?\.cancel\(\)/);
-  assert.match(component, /animation\.onfinish/);
-  assert.match(component, /details\.open = opening/);
+  assert.match(component, /const expanding = !details\.open \|\| details\.dataset\.collapsing === "true"/);
+  assert.match(component, /onTransitionEnd=\{finishCollapse\}/);
+  assert.match(component, /const finishCollapse/);
+  assert.match(component, /details\.open = false/);
+  assert.match(component, /cancelPendingClose/);
+  assert.match(css, /grid-template-rows:0fr/);
+  assert.match(css, /grid-template-rows:1fr/);
   assert.match(css, /box-sizing:border-box;overflow:hidden/);
 });
 
 test("Refrigerantes: tempos curtos, feedback tátil e acessibilidade", () => {
-  assert.match(component, /duration: opening \? 250 : 210/);
+  assert.match(css, /grid-template-rows 260ms/);
   assert.match(component, /prefers-reduced-motion: reduce/);
   assert.match(css, /#acompanhamentos > summary:active/);
   assert.match(css, /#acompanhamentos button:not\(:disabled\):active/);
