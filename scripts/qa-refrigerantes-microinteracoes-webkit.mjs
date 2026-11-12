@@ -80,7 +80,7 @@ try {
         const body = el.querySelector(".refreshment-body");
         return { open: el.open, height: reveal.getBoundingClientRect().height, full: body.scrollHeight,
           running: reveal.getAnimations().some(a => a.playState === "running"),
-          collapsing: el.dataset.collapsing, rows: getComputedStyle(reveal).gridTemplateRows,
+          collapsing: el.dataset.collapsing, opening: el.dataset.opening, rows: getComputedStyle(reveal).gridTemplateRows,
           transition: getComputedStyle(reveal).transitionProperty };
       });
       console.log("MOTION OPEN",width,JSON.stringify(duringOpen));
