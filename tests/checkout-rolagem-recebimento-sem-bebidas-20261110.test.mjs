@@ -9,7 +9,7 @@ const catalog = source("app/catalog.ts");
 test("refrigerantes opcionais ficam recolhidos, após os doces, sem reviver vitrine extensa", () => {
   assert.match(catalog, /enabledExtras:\s*\{\s*drinks:\s*true/);
   assert.match(page,/DrinkComplements availability=\{availability\}/);
-  assert.match(source("components/drink-complements.tsx"),/<details className="refreshment-later"/);
+  assert.match(source("components/drink-complements.tsx"),/<details ref=\{offerRef\} className="refreshment-later"/);
   const first = page.indexOf('checkoutComplementItems.map((id) => {');
   const drink = page.indexOf('<DrinkComplements availability={availability}');
   const receiving = page.indexOf('id="recebimento-opcoes"');
