@@ -12,11 +12,12 @@
     "production_branch": null,
     "production_code_sha": null,
     "do_not_equate_main_with_production": true,
-    "price_change_candidate_branch": "fix/cascao-precos-paridade-20261112",
+    "price_change_candidate_branch": "fix/cascao-precos-paridade-20261112 (merged in integration branch)",
     "price_change_compiled_sha": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f",
-    "release_candidate_branch": "fix/cascao-precos-paridade-20261112",
+    "release_candidate_branch": "work/integracao-comercial-controlada-20261112",
     "release_candidate_version": "V4.6",
-    "release_candidate_compiled_sha": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f"
+    "release_candidate_compiled_sha": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f",
+    "release_candidate_head_sha": "1b497c73be6ca181511984b489707f4a30b2a0be"
   },
   "deployments": {
     "cloudflare": {
@@ -135,11 +136,11 @@
   "release_readiness": {
     "status": "blocked",
     "known_blockers": [
-      "Cloudflare deployment ID/origem/ZIP ativos continuam sem verificação; backup/rollback precisam ser identificados antes do corte.",
-      "Edge v37 ACTIVE suporta novos Cascões e quatro Fatias de Chocottone a R$22, porém usa R$14/R$14/R$16 nos três Cascões legados; frontend V4.6 candidato usa R$18/R$18/R$20.",
-      "V4.6 ZIP de 117 arquivos e fotografias aprovadas já montado e validado, mas não publicado e sem paridade de preços com Edge ativa.",
-      "Fechar o CI integral do HEAD, incluindo teste de navegação corrigido de Cones Trufados para Cascão Trufado; evitar declarar pronta a release apenas com suite parcial verde.",
-      "Coordenar corte manual do Cloudflare e Edge com rollback, homologar checkout real/WhatsApp e Safari/Instagram, registrar ID de deploy e SHA de pacote."
+      "CI do HEAD de integração deve ser confirmado após merge PR37; PR37 validado e mesclado apenas na integração.",
+      "Cloudflare deployment atual não identificado (ID e pacote) e rollback/manual upload não documentados.",
+      "Supabase comercial Edge v37 ACTIVE preserva valores legados R$14/R$14/R$16 enquanto frontend V4.6 candidato calcula R$18/R$18/R$20; não liberar isoladamente.",
+      "V4.6 ZIP de 117 arquivos está íntegro, mas não foi publicado e seus novos preços precisam de corte coordenado com Edge.",
+      "Homologação física Safari/Instagram, pedido enviado realmente no WhatsApp e comanda de cozinha dependem de operação responsável."
     ],
     "requires_explicit_release_authorization": true,
     "do_not_auto_deploy": true
@@ -163,5 +164,15 @@
       24
     ],
     "warning": "Do not cherry-pick or enable until separate authorization after V4.6 release."
-  }
+  },
+  "integrated_work": [
+    {
+      "pr": 37,
+      "branch": "fix/cascao-precos-paridade-20261112",
+      "merged_into": "work/integracao-comercial-controlada-20261112",
+      "merge_sha": "1b497c73be6ca181511984b489707f4a30b2a0be",
+      "production_impact": "none",
+      "notes": "V4.6 catalog prices, all available checkout complements, QA navigation name correction, documentation; no deployment"
+    }
+  ]
 }
