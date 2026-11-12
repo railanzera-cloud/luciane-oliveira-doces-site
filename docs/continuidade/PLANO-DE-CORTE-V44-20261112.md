@@ -5,6 +5,12 @@
 > **ATUALIZAÇÃO OPERACIONAL — V4.6 (12/11/2026):** este documento foi escrito na fase de diagnóstico da V4.4 e contém **v36/1699/1899 como histórico**, não instrução para restaurar esse estado. A Edge atual está **v37 ACTIVE** e reconhece novos Cascões R$20 e Natal R$22; permanece com preços antigos R$14/R$14/R$16 dos três Cascões legados. O pacote de publicação candidato agora é **V4.6**, 117 arquivos, frontend com R$18/R$18/R$20. **Não publicá-lo sozinho.** O ID de implantação Cloudflare e o ZIP efetivamente ativo são desconhecidos. Preservar rollback da Edge v37, não apenas da v36; conferir catálogo comercial atual antes de qualquer deploy. PR #37 foi integrado no PR #36 (merge `1b497c73be6ca181511984b489707f4a30b2a0be`) após CI verde no PR #37; confirmar CI da branch de integração no SHA atual, mantendo V4.6 como artefato candidato, não publicado. A ativação comercial e a publicação exigem coordenação específica com o responsável e teste de pedido real/WhatsApp, inclusive Safari/Instagram. Enquanto isso, o plano permanece **NÃO EXECUTADO**.
  Destinado à loja Luciane Oliveira Doces (Supabase `edqiwvccmboyayojvuea`, Cloudflare Pages `lucianeoliveiradoces.pages.dev`). Documento operacional, não autorização para publicar, mudar disponibilidade ou criar pedido de teste. Não se aplica à Luciane Gestão.
 
+## Estado pós-corte mínimo da Edge v38 — referência operacional atual
+
+A seção original abaixo descreve **a fase histórica V4.4/v36**, não o estado atual. Em 12/11/2026, o Cloudflare Production `237b204c-d5a5-4d3a-a8e7-7bfc3d699cc0` foi identificado pelo proprietário e seus arquivos de assets conferem com a V4.6. O catálogo Supabase foi sincronizado com o frontend por deploy `create-whatsapp-order` **v38 ACTIVE** (fonte idêntica ao código candidato). A atualização alterou cinco linhas somente de `commerce-catalog.mjs`, mantendo os seis arquivos complementares, autenticação e contratos.
+
+**A fase de sincronização dos preços está executada.** Não repetir deploy nem publicar ZIP apenas porque este plano ainda contém comandos antigos. A conclusão restante é homologar venda real com a responsável (sem criar pedidos não autorizados), WhatsApp enviado, impressão, e testar Safari/Instagram. Os dados de prova do deployment e de versão Edge constam no checkpoint #68 e no `ESTADO-DE-RELEASE.json`, que permanecem com `release_readiness=blocked` até o aceite. O status da disponibilidade em banco deve ser respeitado.
+
 ## Por que há bloqueio
 
 | Camada | Situação observada | Risco |
