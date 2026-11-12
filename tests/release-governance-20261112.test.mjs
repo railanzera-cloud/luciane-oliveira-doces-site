@@ -23,8 +23,11 @@ test("snapshot de versão tem uma referência íntegra, mas não fabrica produç
   assert.equal(state.deployments.cloudflare.verification_state, "unknown");
   assert.equal(state.deployments.cloudflare.latest_deployment_package_sha256, null);
   assert.equal(state.deployments.supabase_commercial.project_ref, "edqiwvccmboyayojvuea");
-  assert.equal(state.deployments.supabase_commercial.observed_edge_version, 37);
+  assert.equal(state.deployments.supabase_commercial.observed_edge_version, 38);
   assert.equal(state.deployments.supabase_commercial.observed_new_cascao_supported_by_edge, true);
+  assert.deepEqual(state.deployments.supabase_commercial.observed_legacy_cascao_prices_centavos,[1800,1800,2000]);
+  assert.equal(state.deployments.cloudflare.latest_deployment_id,"237b204c-d5a5-4d3a-a8e7-7bfc3d699cc0");
+  assert.equal(state.deployments.supabase_commercial.production_contract_consistency,"compatible_with_release");
   assert.equal(state.release_readiness.status, "blocked");
   assert.equal(state.release_readiness.do_not_auto_deploy, true);
   const parallel = state.pending_divergent_work.find(x => x.pr === 34);
@@ -52,12 +55,12 @@ test("preflight documental passa sem declarar publicação", () => {
   assert.match(r.stdout,/release=blocked/);
 });
 
-test("gate de release falha fechado com Edge e Cloudflare não verificados", () => {
+test("gate de release segue bloqueado mesmo com Edge v38 em paridade, sem ZIP/hash Cloudflare e homologação real", () => {
   const r=execute("--release");
   assert.notEqual(r.status,0);
   assert.match(r.stderr,/BLOCKED:/);
   assert.match(r.stderr,/Cloudflare deployment não verificado/);
-  assert.match(r.stderr,/Paridade de preços\/SKUs do backend produtivo não comprovada/);
+  assert.doesNotMatch(r.stderr,/Paridade de preços\/SKUs do backend produtivo não comprovada/);
 });
 
 test("a entrada do projeto e o checkpoint direcionam para o protocolo novo", () => {
