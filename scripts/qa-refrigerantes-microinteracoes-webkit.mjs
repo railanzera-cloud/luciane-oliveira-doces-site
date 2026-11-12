@@ -74,20 +74,24 @@ try {
       assert.equal(await drink.locator('[data-drink-id="coca-cola-350"] button:enabled').count(), 0);
 
       await summary.click();
-      await page.waitForTimeout(60);
-      const duringOpen = await drink.evaluate(el => {
-        const reveal = el.querySelector(".refreshment-reveal");
-        const body = el.querySelector(".refreshment-body");
-        return { open: el.open, height: reveal.getBoundingClientRect().height, full: body.scrollHeight,
-          running: reveal.getAnimations().some(a => a.playState === "running"),
-          collapsing: el.dataset.collapsing, opening: el.dataset.opening, rows: getComputedStyle(reveal).gridTemplateRows,
-          transition: getComputedStyle(reveal).transitionProperty };
-      });
+      // A frame clock in WebKit may start after the click. Observe a real
+      // intermediate position rather than assuming it exists at exactly 60 ms.
+      const duringOpen = await (await page.waitForFunction(() => {
+        const el = document.getElementById("acompanhamentos");
+        const reveal = el?.querySelector(".refreshment-reveal");
+        const body = el?.querySelector(".refreshment-body");
+        if (!el || !reveal || !body) return false;
+        const height = reveal.getBoundingClientRect().height;
+        const full = body.scrollHeight;
+        const running = reveal.getAnimations().some(a => a.playState === "running");
+        return el.open && running && height > 2 && height < full - 5
+          ? { open: el.open, height, full, running, opening: el.dataset.opening }
+          : false;
+      }, null, { polling: 20, timeout: 1200 })).jsonValue();
       console.log("MOTION OPEN",width,JSON.stringify(duringOpen));
       assert.ok(duringOpen.open, "Abertura deve deixar details aberto durante animação");
-      assert.ok(duringOpen.running, "WebKit deve executar a microanimação (não saltar diretamente)");
-      assert.ok(duringOpen.height > 0 && duringOpen.height < duringOpen.full - 5,
-        "Altura intermediária real do painel durante abertura: " + JSON.stringify(duringOpen));
+      assert.ok(duringOpen.running, "WebKit deve interpolar altura real antes de expandir");
+      assert.ok(duringOpen.height > 2 && duringOpen.height < duringOpen.full - 5);
       await page.waitForTimeout(275);
       assert.equal(await drink.getAttribute("open"), "", "Abertura completa");
       await drink.screenshot({ path: path.join(out, "refrigerantes-aberto-" + width + ".png"), animations: "disabled" });
