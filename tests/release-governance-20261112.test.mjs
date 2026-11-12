@@ -23,8 +23,8 @@ test("snapshot de versão tem uma referência íntegra, mas não fabrica produç
   assert.equal(state.deployments.cloudflare.verification_state, "unknown");
   assert.equal(state.deployments.cloudflare.latest_deployment_package_sha256, null);
   assert.equal(state.deployments.supabase_commercial.project_ref, "edqiwvccmboyayojvuea");
-  assert.equal(state.deployments.supabase_commercial.observed_edge_version, 36);
-  assert.equal(state.deployments.supabase_commercial.observed_new_cascao_supported_by_edge, false);
+  assert.equal(state.deployments.supabase_commercial.observed_edge_version, 37);
+  assert.equal(state.deployments.supabase_commercial.observed_new_cascao_supported_by_edge, true);
   assert.equal(state.release_readiness.status, "blocked");
   assert.equal(state.release_readiness.do_not_auto_deploy, true);
   const parallel = state.pending_divergent_work.find(x => x.pr === 34);
