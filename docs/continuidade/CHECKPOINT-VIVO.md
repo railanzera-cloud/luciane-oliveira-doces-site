@@ -824,3 +824,11 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - **Cloudflare:** ID do deployment, SHA efetivamente publicado e hash do ZIP **não comprovados**. Não promover o código candidato à produção antes dessa reconciliação.
 - **Novos documentos:** `docs/continuidade/PROTOCOLO-DE-INTEGRACAO-E-RELEASE.md` e `docs/continuidade/ESTADO-DE-RELEASE.json`; gate `scripts/check-commercial-release.mjs` e CI documental independente. Os cinco documentos anteriores permanecem como histórico/produto.
 - **Próximo passo autorizado dentro desta tarefa:** validar pipeline documental em SHA final, abrir PR draft para revisão. **Etapa operacional pendente** (não automatizar): confirmar deployment, sincronizar Edge/preços/estoque em janela coordenada, homologar Safari/Instagram, depois decidir integração de `main` e fechar PRs históricos individualmente.
+
+### 61.1 — Reconciliação complementar e plano de corte (12/11/2026)
+
+- Comparação remota detalhada: PR #34 vs V4.4 diverge (V4.4 46 commits à frente de #34 e 40 atrás; ancestral `d19f381f...`). A proposta concorrente traz grade móvel e nome do terceiro sabor diferentes; não integrados por falta de aprovação específica dessas variações.
+- PR #23 bebidas vs V4.4 diverge (149 à frente, 4 atrás); PR #24 diverge (149 à frente, 13 atrás). São referências históricas, não módulos para cherry-pick na base comercial atual.
+- Fonte do backend inspecionada: `create-whatsapp-order` revalida `orders_open` e `menu_availability` por categoria/SKU, depois recota e compara o `expected_total`, retornando `price_changed` quando diverge. Isso confirma risco real de publicar frontend antes da Edge compatível.
+- Evidência pública Cloudflare não forneceu ID/hash/SHA verificáveis; não foi identificado deployment atual. Sem credencial ou extrato confiável da conta, registrar `unknown`.
+- Novos documentos: `RECONCILIACAO-PRs-20261112.md` e `PLANO-DE-CORTE-V44-20261112.md`; nenhum merge, SQL, Edge, modificação de estoque, Cloudflare ou pedido real executado.
