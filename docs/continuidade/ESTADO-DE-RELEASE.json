@@ -14,9 +14,9 @@
     "do_not_equate_main_with_production": true,
     "price_change_candidate_branch": "fix/cascao-precos-paridade-20261112 (merged in integration branch)",
     "price_change_compiled_sha": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f",
-    "release_candidate_branch": "work/integracao-comercial-controlada-20261112",
-    "release_candidate_version": "V4.6",
-    "release_candidate_compiled_sha": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f",
+    "release_candidate_branch": "feat/refrigerantes-ux-compacta-whatsapp-v47-20261112",
+    "release_candidate_version": "V4.7",
+    "release_candidate_compiled_sha": "9aa62f9076ef95fa5ea7e3c0fe774fa0fa89356c",
     "release_candidate_head_sha": "1b497c73be6ca181511984b489707f4a30b2a0be"
   },
   "deployments": {
@@ -164,6 +164,37 @@
       "frontend_price_contract": "prestigio=1800;dois_amores=1800;ferrero_rocher=2000;new_three=2000;natal_four=2200",
       "deployed": "not_verified",
       "critical": "Somente pacote candidato; não publicar Cloudflare sem atualizar Edge v37 para nova tabela R$18/R$18/R$20 e plano de rollback"
+    },
+    {
+      "release": "V4.7 - refrigerantes compactos e mensagem de Cascão sem unidade duplicada",
+      "filename": "LUCIANE_COMERCIAL_V4_7_REFRIGERANTES_CHECKOUT_WHATSAPP_PUBLICAR_MANUALMENTE.zip",
+      "sha256": "475a6f63d987669236c924388f5a658eeeb10566282c1766c05cfc95ef2f1997",
+      "files": 121,
+      "file_count": 116,
+      "compiled_from_sha": "9aa62f9076ef95fa5ea7e3c0fe774fa0fa89356c",
+      "ci_workflows": [
+        43246805214,
+        43246805401,
+        43246813130
+      ],
+      "ci_regressions": "all passed",
+      "webkit_viewports": [
+        320,
+        375,
+        390,
+        430,
+        1280
+      ],
+      "contains_unversioned_approved_photos": true,
+      "inherited_approved_cascao_webps": 20,
+      "added_approved_drink_webps": 4,
+      "previous_static_assets_checked_identical": 71,
+      "base_zip_sha256": "64330aa6d3e713333ea549b648ad6c3ff2f8099ad9436c8b783d385542141f9e",
+      "frontend_drink_contract": "coca_zero_220=400;fanta_220=400;guarana_200=300;coca_original_350=600",
+      "backend_function_v38_compatible": true,
+      "availability_status": "all_drinks_hidden_in_remote_on_2026-11-12",
+      "deployed": "not_verified",
+      "critical": "ZIP V4.7 não enviado ao Cloudflare; NÃO liberar bebidas enquanto o frontend não estiver publicado e validado. Safári/Instagram físicos e WhatsApp/cozinha exigem operação."
     }
   ],
   "pending_divergent_work": [
@@ -190,10 +221,12 @@
   "release_readiness": {
     "status": "blocked",
     "known_blockers": [
-      "Cloudflare Production ID 237b204c-d5a5-4d3a-a8e7-7bfc3d699cc0 is confirmed by screenshot; V4.6 hashed assets strongly match, but full ZIP SHA-256 and code SHA provenance are not verified directly from Cloudflare.",
-      "End-to-end real order, WhatsApp actually sent, payment and kitchen print, and physical Safari/Instagram are not yet homologated after Edge v38 deploy; avoid creating a sale without operator coordination.",
-      "Categories category_cones and category_natal were sold_out at the latest read-only Supabase check (do not alter availability/stock as part of release).",
-      "Merge main / PR #36 remains intentionally unperformed until release acceptance and review; ZIP V4.6 was not reuploaded because production fingerprint already matches."
+      "V4.7 121 entradas/116 arquivos montado e testado, mas NÃO publicado no Cloudflare. Production permanece V4.6 deployment 237b204c conforme último print; não confundir.",
+      "Quatro bebidas na disponibilidade do Supabase permanecem hidden; somente habilitar depois do upload V4.7, verificação dos quatro WebP e teste de navegação/checkout.",
+      "WebKit 320/375/390/430/1280 e testes comerciais passam no candidato; Safari/Instagram físico ainda não testado nesta release.",
+      "WhatsApp #1756 demonstrou redundância de texto Cascão; novo texto já corrigido em código V4.7 mas depende do upload. Injeção invisível do Tintim ocorre após a formatação e não foi alterada.",
+      "Pedido com bebida, envio real WhatsApp, impressão de cozinha, Pix e rollback Cloudflare devem ser homologados após publicação; não gerar venda de teste sem coordenação.",
+      "PR #38 permanece candidato sem merge na main; histórico e controle de integração preservados."
     ],
     "requires_explicit_release_authorization": true,
     "do_not_auto_deploy": true
@@ -201,7 +234,7 @@
   "future_feature_decision": {
     "feature": "refrigerantes",
     "decision_ref": "D-C42",
-    "status": "approved_concept_only_not_implemented",
+    "status": "implemented_in_v47_candidate_not_published",
     "follow_after": "V4.6 Cloudflare/Edge cut coordinated and real checkout validated",
     "ui": "compact collapsed-by-default expandable after sweet suggestions before receiving",
     "behavior": "same SKU +/-; mix flavors; no auto-scroll on add; floating CTA targets recebimento-opcoes",
@@ -216,7 +249,7 @@
       23,
       24
     ],
-    "warning": "Do not cherry-pick or enable until separate authorization after V4.6 release."
+    "warning": "PR38 code built and tested; no Cloudflare upload or remote availability enable yet. Do not merge main until release acceptance."
   },
   "integrated_work": [
     {
