@@ -73,26 +73,34 @@ try {
       assert.equal(await drink.locator('[data-drink-id="guarana-antarctica-200"]').count(), 0);
       assert.equal(await drink.locator('[data-drink-id="coca-cola-350"] button:enabled').count(), 0);
 
+      await page.evaluate(() => {
+        window.__drinkMotionSamples = [];
+        const watch = () => {
+          const details = document.getElementById("acompanhamentos");
+          const reveal = details?.querySelector(".refreshment-reveal");
+          if (details && reveal) {
+            window.__drinkMotionSamples.push({
+              open: details.open, height: reveal.getBoundingClientRect().height,
+              animations: reveal.getAnimations().map(a => a.playState),
+            });
+          }
+          if (window.__drinkMotionSamples.length < 65) requestAnimationFrame(watch);
+        };
+        requestAnimationFrame(watch);
+      });
       await summary.click();
-      // A frame clock in WebKit may start after the click. Observe a real
-      // intermediate position rather than assuming it exists at exactly 60 ms.
-      const duringOpen = await (await page.waitForFunction(() => {
-        const el = document.getElementById("acompanhamentos");
-        const reveal = el?.querySelector(".refreshment-reveal");
-        const body = el?.querySelector(".refreshment-body");
-        if (!el || !reveal || !body) return false;
-        const height = reveal.getBoundingClientRect().height;
-        const full = body.scrollHeight;
-        const running = reveal.getAnimations().some(a => a.playState === "running");
-        return el.open && running && height > 2 && height < full - 5
-          ? { open: el.open, height, full, running, opening: el.dataset.opening }
-          : false;
-      }, null, { polling: 20, timeout: 1200 })).jsonValue();
-      console.log("MOTION OPEN",width,JSON.stringify(duringOpen));
-      assert.ok(duringOpen.open, "Abertura deve deixar details aberto durante animação");
-      assert.ok(duringOpen.running, "WebKit deve interpolar altura real antes de expandir");
-      assert.ok(duringOpen.height > 2 && duringOpen.height < duringOpen.full - 5);
-      await page.waitForTimeout(275);
+      await page.waitForTimeout(335);
+      const duringOpen = await page.evaluate(() => ({
+        samples: window.__drinkMotionSamples,
+        full: document.querySelector("#acompanhamentos .refreshment-body").scrollHeight,
+      }));
+      const intermediates = duringOpen.samples.filter(x => x.height > 2 && x.height < duringOpen.full - 5);
+      console.log("MOTION OPEN", width, JSON.stringify({
+        full: duringOpen.full, count: duringOpen.samples.length, intermediate: intermediates.length,
+        first: duringOpen.samples.slice(0, 9), last: duringOpen.samples.slice(-6),
+      }));
+      assert.ok(intermediates.length >= 2, "WebKit deve renderizar quadros intermediários da expansão");
+      assert.ok(duringOpen.samples.some(x => x.animations.includes("running")), "WebKit executa animação");
       assert.equal(await drink.getAttribute("open"), "", "Abertura completa");
       await drink.screenshot({ path: path.join(out, "refrigerantes-aberto-" + width + ".png"), animations: "disabled" });
 
