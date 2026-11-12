@@ -65,9 +65,11 @@ test("UX: bloco único recolhido depois dos doces, antes do recebimento; CTA man
  assert.equal((page.match(/<DrinkComplements availability/g)||[]).length,1);
  assert.match(component,/<details className="refreshment-later"/);
  assert.match(component,/<summary /);
- assert.match(component,/onChange\(drink,-1\)/);
- assert.match(component,/onChange\(drink,1\)/);
+ assert.match(component,/adjust\(drink,-1\)/);
+ assert.match(component,/adjust\(drink,1\)/);
  assert.match(component,/quantity < 99/);
+ assert.match(component,/useLayoutEffect/);
+ assert.match(component,/window.scrollBy\(\{ top: delta/);
  assert.match(page,/bebidas: false, \/\/ O bloco de bebidas é separado/);
  assert.match(page,/sectionId === "recebimento" \? "recebimento-opcoes"/);
  const addDrinkBody=page.slice(page.indexOf("function changeDrink("),page.indexOf("function editItem("));
