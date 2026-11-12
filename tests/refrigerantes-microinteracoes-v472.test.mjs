@@ -12,6 +12,8 @@ test("Refrigerantes: abertura reversível preserva details nativo, teclado e fec
   assert.match(component, /event\.preventDefault\(\)/);
   assert.match(component, /const expanding = pending \? !desiredOpenRef\.current : !details\.open/);
   assert.match(component, /window\.requestAnimationFrame/);
+  assert.match(component, /details\.dataset\.opening = "true"/);
+  assert.match(css, /data-opening="true"/);
   assert.match(component, /onTransitionEnd=\{finishCollapse\}/);
   assert.match(component, /const finishCollapse/);
   assert.match(component, /details\.open = false/);
