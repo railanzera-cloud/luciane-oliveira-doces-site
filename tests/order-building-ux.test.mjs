@@ -60,12 +60,12 @@ test("exposes clear active, complete, and locked step states", () => {
   assert.match(page, /Etapa \$\{number\} concluída/);
 });
 
-test("keeps below-fold product images lazy and responsive", () => {
+test("keeps below-fold product images lazy and responsive", async () => {
   assert.match(page, /src=\{slice\.cardImage \?\? slice\.image\}/);
   assert.match(page, /loading=\{lastSlicesIds\.has\(slice\.id\) && available \? "eager" : "lazy"\}/);
   assert.match(page, /fetchPriority=\{lastSlicesIds\.has\(slice\.id\) && available \? "high" : "low"\}/);
   assert.match(page, /sizes="\(max-width: 599px\)/);
-  const drinks = source("components/drink-complements.tsx");
+  const drinks = await readFile(new URL("../components/drink-complements.tsx", import.meta.url), "utf8");
   assert.match(drinks,/src=\{drink\.image\}/);
   assert.match(drinks,/loading="lazy" decoding="async"/);
 });
