@@ -82,7 +82,7 @@ test("Vitrine, seleção, quantidade e carrinho usam fluxo de cones separado",()
 test("UX: quatro categorias têm cartões visíveis e Trufadas não ficam no fim", () => {
   const start = page.indexOf('<div className="collection-menu" role="group" aria-label="Escolha uma categoria">');
   const menuBody = page.slice(start, page.indexOf('</div>',start));
-  const cone = menuBody.indexOf('name="Cones Trufados"');
+  const cone = menuBody.indexOf('name="Cascão Trufado"');
   const trufadas = menuBody.indexOf('name="Pipocas Trufadas"');
   const remainder = menuBody.indexOf('visibleCategories.filter(category => category.id !== "cones")');
   assert.ok(start >= 0 && cone > 0 && trufadas > cone && remainder > trufadas);
