@@ -39,7 +39,32 @@
         "package_sha256_confirmed": false,
         "compiled_sha_confirmed": false,
         "rollback_target_candidate": true,
-        "note": "Screenshot establishes successful production deployment ID only; deployed HTML/JS bundle not yet matched to V4.6 and latest deployment list not checked."
+        "note": "Screenshot establishes successful production deployment ID only; deployed HTML/JS bundle not yet matched to V4.6 and latest deployment list not checked.",
+        "fingerprint_check": {
+          "checked_at": "2026-11-12",
+          "method": "user-provided Cloudflare assets list compared against local V4.4 and V4.6 ZIP entries",
+          "result": "strong_match_to_v46_by_content_addressed_asset_names",
+          "compiled_source_sha_candidate": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f",
+          "candidate_zip_sha256": "ce9eb18cd8a63dc7be9aa4af4fac2cf4d91a7c1f04df76d20f3a4e1c42883fad",
+          "matched_discriminating_assets": [
+            "assets/index-tOkIJ7US.js",
+            "assets/page-DbaIRWTq.js",
+            "assets/page-DXHeiOR9.js",
+            "assets/page-Bdkb0rdH.js",
+            "assets/index-CMe9Ay0W.css"
+          ],
+          "comparison_v44_main_assets": [
+            "assets/index-D-mf2opc.js",
+            "assets/page-PQXKU6wb.js",
+            "assets/page-1bi5U5Ci.js"
+          ],
+          "cloudflare_uploaded_asset_count": 109,
+          "v46_zip_file_count": 112,
+          "special_cloudflare_files_excluded_from_uploaded_assets_count": 3,
+          "bytewise_verified": false,
+          "current_live_production_confirmed": false,
+          "caveat": "Assets strongly fingerprint V4.6, but need verify this deployment is currently active and rollback available before backend cutover."
+        }
       }
     },
     "supabase_commercial": {
@@ -150,11 +175,10 @@
   "release_readiness": {
     "status": "blocked",
     "known_blockers": [
-      "CI do HEAD de integração deve ser confirmado após merge PR37; PR37 validado e mesclado apenas na integração.",
-      "Cloudflare: deployment de produção 237b204c-d5a5-4d3a-a8e7-7bfc3d699cc0 comprovado por captura como successful 12/11 10:17, mas posição como mais recente, correspondência do bundle/ZIP e rollback ainda não verificados.",
-      "Supabase comercial Edge v37 ACTIVE preserva valores legados R$14/R$14/R$16 enquanto frontend V4.6 candidato calcula R$18/R$18/R$20; não liberar isoladamente.",
-      "V4.6 ZIP de 117 arquivos está íntegro, mas não foi publicado e seus novos preços precisam de corte coordenado com Edge.",
-      "Homologação física Safari/Instagram, pedido enviado realmente no WhatsApp e comanda de cozinha dependem de operação responsável."
+      "Cloudflare deployment 237b204c-d5a5-4d3a-a8e7-7bfc3d699cc0 success e lista de 109 assets conferem fortemente com V4.6; confirmar que é o deployment atualmente ativo, conteúdo/hash/rollback antes de liberar corte.",
+      "DIVERGÊNCIA DE PREÇO POTENCIALMENTE ATIVA: frontend V4.6 candidato mostra Cascões legados R$18/R$18/R$20 e Edge comercial v37 ACTIVE mantém R$14/R$14/R$16; pedidos podem falhar por price_changed. Não atualizar Edge antes de verificar versão atual e janela/rollback.",
+      "Snapshot de Edge v37 disponível e delta exato do backend candidato em commerce-catalog.mjs (versão, comentário, 3 preços); não alterar demais funções, SQL, estoques nem bebidas.",
+      "Homologação real de pedidos/WhatsApp, administração/cozinha e iPhone Safari/Instagram ainda pendente após corte sincronizado."
     ],
     "requires_explicit_release_authorization": true,
     "do_not_auto_deploy": true
