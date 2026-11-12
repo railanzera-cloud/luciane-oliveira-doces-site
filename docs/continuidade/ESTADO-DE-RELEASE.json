@@ -22,7 +22,7 @@
   "deployments": {
     "cloudflare": {
       "site": "https://lucianeoliveiradoces.pages.dev",
-      "latest_deployment_id": null,
+      "latest_deployment_id": "237b204c-d5a5-4d3a-a8e7-7bfc3d699cc0",
       "latest_deployment_code_sha": null,
       "latest_deployment_package_sha256": null,
       "verification_state": "unknown",
@@ -35,7 +35,7 @@
         "timestamp_displayed": "2026-11-12 10:17 AM",
         "displayed_uploaded_assets": 109,
         "evidence": "User-provided Cloudflare Pages deployment details screenshot on 2026-11-12",
-        "latest_deployment_confirmed": false,
+        "latest_deployment_confirmed": true,
         "package_sha256_confirmed": false,
         "compiled_sha_confirmed": false,
         "rollback_target_candidate": true,
@@ -64,13 +64,16 @@
           "bytewise_verified": false,
           "current_live_production_confirmed": false,
           "caveat": "Assets strongly fingerprint V4.6, but need verify this deployment is currently active and rollback available before backend cutover."
-        }
-      }
+        },
+        "current_production_evidence": "Cloudflare Pages Deployments screenshot shows 237b204c first under Production, plus immutable deployment details and V4.6 asset filenames."
+      },
+      "last_observed_production_status": "success",
+      "last_observed_production_from": "2026-11-12 10:17 (Cloudflare screen)"
     },
     "supabase_commercial": {
       "project_ref": "edqiwvccmboyayojvuea",
       "edge_function": "create-whatsapp-order",
-      "observed_edge_version": 37,
+      "observed_edge_version": 38,
       "observation_date": "2026-11-12",
       "observed_natal_price_centavos": [
         2200,
@@ -80,13 +83,25 @@
       ],
       "observed_new_cascao_supported_by_edge": true,
       "observed_new_cascao_availability": "available",
-      "production_contract_consistency": "compatible_with_v44_only_new_legacy_cascao_prices_pending_cloudflare_cut",
+      "production_contract_consistency": "compatible_with_release",
       "observed_legacy_cascao_prices_centavos": [
-        1400,
-        1400,
-        1600
+        1800,
+        1800,
+        2000
       ],
-      "observed_edge_ezbr_sha256": "f9ce3b6dca1884143475302e26e80263f1b73c765b6a28e754ac31241debf2c5"
+      "observed_edge_ezbr_sha256": "9ed726b0f3ce3185456287dc37f9e6329cf3d26dc151d51d1676dc5d2233a706",
+      "catalog_parity_evidence": "Edge v38 ACTIVE catalog byte-for-byte identical to controlled integration candidate commerce-catalog.mjs; no real order E2E attempted",
+      "rollback": {
+        "prior_edge_version": 37,
+        "prior_edge_hash": "f9ce3b6dca1884143475302e26e80263f1b73c765b6a28e754ac31241debf2c5",
+        "prior_catalog_git_sha": "8df271026c11100afa726c9e4e276ee94d526f45",
+        "prior_catalog_prices_cents": [
+          1400,
+          1400,
+          1600
+        ],
+        "note": "To reverse pricing, use old v37 catalog with 6 unchanged supporting sources, coordinate frontend Cloudflare rollback and inspect SKU/prices first; do not roll back one side alone"
+      }
     }
   },
   "validated_artifacts": [
@@ -175,10 +190,10 @@
   "release_readiness": {
     "status": "blocked",
     "known_blockers": [
-      "Cloudflare deployment 237b204c-d5a5-4d3a-a8e7-7bfc3d699cc0 success e lista de 109 assets conferem fortemente com V4.6; confirmar que é o deployment atualmente ativo, conteúdo/hash/rollback antes de liberar corte.",
-      "DIVERGÊNCIA DE PREÇO POTENCIALMENTE ATIVA: frontend V4.6 candidato mostra Cascões legados R$18/R$18/R$20 e Edge comercial v37 ACTIVE mantém R$14/R$14/R$16; pedidos podem falhar por price_changed. Não atualizar Edge antes de verificar versão atual e janela/rollback.",
-      "Snapshot de Edge v37 disponível e delta exato do backend candidato em commerce-catalog.mjs (versão, comentário, 3 preços); não alterar demais funções, SQL, estoques nem bebidas.",
-      "Homologação real de pedidos/WhatsApp, administração/cozinha e iPhone Safari/Instagram ainda pendente após corte sincronizado."
+      "Cloudflare Production ID 237b204c-d5a5-4d3a-a8e7-7bfc3d699cc0 is confirmed by screenshot; V4.6 hashed assets strongly match, but full ZIP SHA-256 and code SHA provenance are not verified directly from Cloudflare.",
+      "End-to-end real order, WhatsApp actually sent, payment and kitchen print, and physical Safari/Instagram are not yet homologated after Edge v38 deploy; avoid creating a sale without operator coordination.",
+      "Categories category_cones and category_natal were sold_out at the latest read-only Supabase check (do not alter availability/stock as part of release).",
+      "Merge main / PR #36 remains intentionally unperformed until release acceptance and review; ZIP V4.6 was not reuploaded because production fingerprint already matches."
     ],
     "requires_explicit_release_authorization": true,
     "do_not_auto_deploy": true
