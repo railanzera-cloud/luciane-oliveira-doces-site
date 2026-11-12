@@ -349,3 +349,13 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - **Fotos:** 3 originais da loja de 12/11, 9 WebPs sem retoque. Binários não estão no GitHub; ZIP final precisa anexá-los e preservar 8 WebPs Natal com SHA. O workflow gera BASE explicitamente não publicável.
 - **Operação:** a categoria e Natal já estavam disponíveis em produção. Não implantar backend de preços novos enquanto o frontend antigo continuar visível; coordenar ocultação temporária, migração, deploy Edge, publicação Cloudflare, teste e liberação dos 3 novos sabores. Sem mudar pagamentos, impressora, estoque, bebidas ou Gestão.
 - **Branch:** `feat/cascao-trufado-natal-precos-20261112`, PR #33 (base PR #32). Detalhes em `docs/ENTREGA-CASCAO-NATAL-V43-20261112.md`.
+
+
+## D-C38 — Fotografia Cascão V4.4: trio na home e profundidade nas fichas (12/11/2026)
+
+- **Motivo:** proprietário constatou que V4.3 mudou foto de entrada para um único Cascão e três novos sabores pareciam menores e distantes em comparação aos antigos.
+- **Aprovação:** usar foto real dos três Cascões juntos na home e substituir fotos de três sabores novos pelas versões recebidas com exemplares iguais desfocados ao fundo. Preservar rigorosamente textura, recheio, cores e iluminação.
+- **Solução:** gerar recorte horizontal na home, centralizando três doces; cartões no formato 4:5, aproximando as fotografias por crop/resize, sem edição fotográfica ou geração de alimentos. Imagens completas de origem mantidas em detalhes. WebP responsivo versionado V4.4 contra cache obsoleto.
+- **Isolamento:** nenhuma mudança em preços, estoque, status, categoria, IDs/SKUs, carrinho, checkout, Pix, Meta/Tintim, QZ nem fotos dos três sabores antigos.
+- **Publicação:** binários fora do GitHub e montagem por script reproduzível. **A V4.4 ainda depende do corte de preços/Edge pendente da V4.3.** Não publicar isoladamente com cotação produtiva divergente.
+- **Branch:** refine/cascao-fotografias-v44-20261112 a partir do PR #33 @ 1b7533c16745cfeadacf3eb18d380c06204b9224.
