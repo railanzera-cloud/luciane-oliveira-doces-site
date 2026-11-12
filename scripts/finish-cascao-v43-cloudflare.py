@@ -53,7 +53,9 @@ def encode_original_photo(source, flavor):
             )
             out = BytesIO()
             resized.save(out, "WEBP", quality=quality, method=6, exact=True)
-            result[f"images/cascao-trufado-{flavor}{suffix}-20261112.webp"] = out.getvalue()
+            name = (f"images/cascao-trufado-{flavor}-20261112-360.webp" if suffix == "-360"
+                    else f"images/cascao-trufado-{flavor}{suffix}-20261112.webp")
+            result[name] = out.getvalue()
         return result
 
 def main():
