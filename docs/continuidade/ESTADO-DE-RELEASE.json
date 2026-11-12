@@ -11,7 +11,9 @@
     "validated_code_reference_sha": "8df271026c11100afa726c9e4e276ee94d526f45",
     "production_branch": null,
     "production_code_sha": null,
-    "do_not_equate_main_with_production": true
+    "do_not_equate_main_with_production": true,
+    "price_change_candidate_branch": "fix/cascao-precos-paridade-20261112",
+    "price_change_compiled_sha": "3f49daef10ad0e63e25f9971af89aee7d81dd385"
   },
   "deployments": {
     "cloudflare": {
@@ -58,6 +60,23 @@
       ],
       "contains_unversioned_approved_photos": true,
       "deployed": "not_verified"
+    },
+    {
+      "release": "V4.5 - candidato de novos preços dos Cascões",
+      "filename": "LUCIANE_COMERCIAL_V4_5_CASCAO_PRECOS_AGUARDANDO_CORTE.zip",
+      "sha256": "86e38b6179cf5b6a986f2dd63862ea4515b251f5126093eb9d2c2f5a3583a4a9",
+      "files": 117,
+      "compiled_from_sha": "3f49daef10ad0e63e25f9971af89aee7d81dd385",
+      "ci_commercial_tests": 855,
+      "ci_workflows": [
+        43221683902,
+        43221683714
+      ],
+      "contains_unversioned_approved_photos": true,
+      "deployed": "not_verified",
+      "source_assets_reference_v44_sha256": "475c8854d8279e372cffec7d61a9a48b72f1ef7f1d76a35ebb4965f55381dd1f",
+      "frontend_price_contract": "prestigio=1800;dois_amores=1800;ferrero_rocher=2000;new_three=2000;natal_four=2200",
+      "critical": "Cloudflare não publicado; Edge v37 ativa mantém preços antigos dos três Cascões legados e precisa de corte coordenado antes de upload"
     }
   ],
   "pending_divergent_work": [
