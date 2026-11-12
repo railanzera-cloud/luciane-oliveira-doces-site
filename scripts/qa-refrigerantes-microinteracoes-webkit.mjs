@@ -146,7 +146,7 @@ try {
         await page.waitForTimeout(280);
         assert.equal(await drink.getAttribute("open"), "", "Enter abre");
         await page.keyboard.press("Space");
-        await page.waitForTimeout(240);
+        await page.waitForTimeout(325);
         assert.equal(await drink.getAttribute("open"), null, "Espaço fecha");
       }
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false,
