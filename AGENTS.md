@@ -14,6 +14,10 @@
 
 ## Base de desenvolvimento, publicação e release (12/11/2026)
 
+> **Atualização de retomada (12/11):** a linha **mais completa de código candidato** é o PR #37 `fix/cascao-precos-paridade-20261112`, sobre PR #36. O ZIP de código funcional V4.6 (856 testes comerciais, WebKit) foi criado, **não publicado**. Edge v37 ACTIVE aceita SKUs novos e Natal 22, mas usa provisoriamente preços legados 14/14/16; frontend V4.6 espera 18/18/20. O ID real do deployment Cloudflare continua desconhecido; o gate deve permanecer `blocked`. Não publicar ZIP nem Edge isolados. Uma suíte antiga de navegação que usava “Cones Trufados” foi corrigida para “Cascão Trufado”; confirmar CI do HEAD antes do corte. Os refrigerantes tiveram **direção UX aprovada** em D-C42, mas **não devem ser implementados antes de concluir este corte**. Não restaurar PRs #23/#24 automaticamente.
+
+
+
 - **Leitura adicional obrigatória:** [Protocolo de Integração e Release](docs/continuidade/PROTOCOLO-DE-INTEGRACAO-E-RELEASE.md) e [Estado Estruturado de Release](docs/continuidade/ESTADO-DE-RELEASE.json). O JSON é um **snapshot datado**; nunca inferir situação ao vivo sem nova leitura.
 - **Linha candidata atual (sem deploy):** `work/integracao-comercial-controlada-20261112` foi criada da V4.4 validada (`8df271026c11100afa726c9e4e276ee94d526f45`). Este SHA é referência de **código**, não de publicação. Um PR #34 paralelo de Cascões divergiu, por isso não fazer merge cego, rebase destrutivo ou cherry-pick em massa.
 - **Contrato de prova:** registrar branch/HEAD, PR e CI; pacote final/hash/fotos; Edge/SQL/SKUs reais; deployment Cloudflare com ID/SHA; somente então decidir release. `main`, SHA mais novo, CI aprovada, ZIP e Cloudflare não são intercambiáveis.
