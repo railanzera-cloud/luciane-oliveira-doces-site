@@ -57,7 +57,7 @@ test("painel exibe números e etapas reais sem confundir aparelho com notebook r
   assert.match(panel, /printIssue\.details\.slice\(0, 8\)\.map/);
   assert.match(panel, /Pedido #\$\{related\.order_number\}/);
   assert.match(panel, /Ainda não assumida pelo notebook \(0 tentativas\)/);
-  assert.match(panel, /Assumida pelo QZ, sem confirmação de conclusão/);
+  assert.match(panel, /Assumida pela estação, sem confirmação de conclusão/);
   assert.match(panel, /Falha registrada no processamento da comanda/);
   assert.match(panel, /o estado do notebook não é monitorado remotamente/);
   assert.match(panel, /setPrinterLastVerifiedAt\(Date\.now\(\)\)/);
