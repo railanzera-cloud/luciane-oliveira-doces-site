@@ -46,7 +46,7 @@ export const CONES = Object.freeze({
   "cone-trufado-ferrero-rocher": Object.freeze({ id: "cone-trufado-ferrero-rocher", itemKey: "cone_ferrero_rocher", name: "Ferrero Rocher", priceCents: 1600 }),
   "cascao-trufado-kinder-bueno": Object.freeze({ id: "cascao-trufado-kinder-bueno", itemKey: "cascao_kinder_bueno", name: "Kinder Bueno", priceCents: 2000 }),
   "cascao-trufado-ninho-morango": Object.freeze({ id: "cascao-trufado-ninho-morango", itemKey: "cascao_ninho_morango", name: "Ninho com Morango", priceCents: 2000 }),
-  "cascao-trufado-ninho-nutella-chocotone": Object.freeze({ id: "cascao-trufado-ninho-nutella-chocotone", itemKey: "cascao_ninho_nutella_chocotone", name: "Ninho com Nutella e Chocotone", priceCents: 2000 }),
+  "cascao-trufado-ninho-nutella-chocotone": Object.freeze({ id: "cascao-trufado-ninho-nutella-chocotone", itemKey: "cascao_ninho_nutella_chocotone", name: "Ninho com Nutella e Chocottone", priceCents: 2000 }),
 });
 
 // Chocottones permanecem com item_type e IDs históricos, mas o produto físico vendido é uma fatia recheada.
