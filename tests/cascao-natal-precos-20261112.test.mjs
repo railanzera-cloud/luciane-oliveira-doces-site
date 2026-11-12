@@ -86,11 +86,11 @@ test("Admin, vitrine e banco reutilizam category_cones sem liberar novos sabores
   assert.match(page, /name="Cascão Trufado"/);
   assert.match(page, /Cascão Trufado/);
   assert.match(navigation, /name: "Cascão Trufado"/);
-  assert.match(admin, /<h2>Cascão Trufado<\\/h2>/);
-  assert.match(page, /CONES\\.filter\\(cone => coneIsVisible\\(cone\\.id\\)\\)\\.map/);
-  assert.match(read("app/cones-trufados-20261108.css"), /last-child:nth-child\\(odd\\)/);
-  assert.match(migration, /UPDATE public\\.menu_availability/);
-  assert.doesNotMatch(migration, /UPDATE public\\.menu_availability[\\s\\S]*SET status/i);
+  assert.ok(admin.includes("<h2>Cascão Trufado</h2>"));
+  assert.ok(page.includes("CONES.filter(cone => coneIsVisible(cone.id)).map"));
+  assert.ok(read("app/cones-trufados-20261108.css").includes("last-child:nth-child(odd)"));
+  assert.ok(migration.includes("UPDATE public.menu_availability"));
+  assert.ok(!migration.includes("SET status"));
   for (const [id, key] of novos) {
     assert.match(migration, new RegExp("'" + key + "'[\\s\\S]{0,110}'hidden'"));
     assert.equal(createFallbackAvailability().statuses[key], "hidden");
