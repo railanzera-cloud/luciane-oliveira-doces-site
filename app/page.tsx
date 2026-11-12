@@ -64,6 +64,8 @@ import {
   POPCORN_FLAVOR_ITEM_KEYS,
   POPCORN_SIZE_ITEM_KEYS,
   SLICE_ITEM_KEYS,
+  DRINK_ITEM_KEYS,
+  drinkStatus,
   isItemAvailable,
   isItemVisible,
   statusFor,
@@ -80,6 +82,7 @@ import { isPopcornPromotionActive, POPCORN_PROMOTION } from "@/supabase/function
 import { GOURMET_HOLIDAY_CREATIVE } from "@/lib/storefront-campaign-creative";
 import { StorefrontCampaignEditorial } from "@/components/storefront-campaign-editorial";
 import { ChristmasCollection } from "@/components/christmas-collection";
+import { DrinkComplements } from "@/components/drink-complements";
 import {
   buildRegisteredOrderMessage, captureOrderAttribution, cleanWhatsAppField, formatOrderMoney, newOrderContext,
   parseCashCents, paymentDescription, restoreOrderContext,
@@ -469,6 +472,14 @@ function cartAvailabilityIssues(
       if (item.optionIds.length !== 0 || variant.id !== "unidade") reasons.push("Este cascão não admite personalização ou outro tamanho.");
       if (!coneKey || !isItemAvailable(snapshot, coneKey)) reasons.push(unavailableReason(snapshot, coneKey ?? "", productLabel(product)));
       if (snapshot.source !== "supabase") reasons.push("Não foi possível confirmar a disponibilidade dos cascões.");
+    }
+
+    if (product.kind === "drink") {
+      const drinkKey = DRINK_ITEM_KEYS[product.id];
+      if (item.optionIds.length !== 0) reasons.push("Bebidas não admitem opções adicionais.");
+      if (snapshot.source !== "supabase" || !drinkKey || !isItemAvailable(snapshot,drinkKey)) {
+        reasons.push("Este refrigerante não está disponível para finalizar o pedido.");
+      }
     }
 
     if (product.kind === "slice") {
@@ -1084,7 +1095,7 @@ export default function Home() {
   const cartNeedsSizeReview = cart.some((item) => PRODUCTS.find((product) => product.id === item.productId)?.variants.find((variant) => variant.id === item.variantId)?.retired);
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
   const cartContainsCrocantes = cart.some((item) => isTrufadaOrLegacy(item.productId));
-  const cartRequiresWhatsApp = cartContainsCrocantes || cart.some(item => CONES.some(cone => cone.id === item.productId) || CHOCOTONES.some(p => p.id === item.productId));
+  const cartRequiresWhatsApp = cartContainsCrocantes || cart.some(item => DRINKS.some(drink => drink.id === item.productId) || CONES.some(cone => cone.id === item.productId) || CHOCOTONES.some(p => p.id === item.productId));
   const cupProductId = cupFlavorPreview ?? "";
   const cupProduct = PRODUCTS.find(product => product.id === cupProductId);
   const cupVariant = cupProduct?.variants.find(variant => variant.id === cupSizeId);
@@ -1156,7 +1167,7 @@ export default function Home() {
       trufadas: cupCanBeAddedFromCheckout,
       cones: conesCanBeAdded, // fonte real de disponibilidade, independente da categoria inicial
       natal: natalCanBeAdded, // exige coleção remota e ao menos um sabor realmente disponível
-      bebidas: STORE_CONFIG.enabledExtras.drinks && availability.ordersOpen,
+      bebidas: false, // O bloco de bebidas é separado; nunca substitui os doces.
     },
   );
   const cartIssues = useMemo(
@@ -1697,7 +1708,7 @@ export default function Home() {
   }
 
   function chooseCheckoutChannel(value: string) {
-    const next = value === "site" && COMMERCE_CONFIG.siteOrderingEnabled && !cart.some((item) => isTrufadaOrLegacy(item.productId)) ? "site" : "whatsapp";
+    const next = value === "site" && COMMERCE_CONFIG.siteOrderingEnabled && !cartRequiresWhatsApp ? "site" : "whatsapp";
     if (next === checkoutChannel) return;
     setCheckoutChannel(next);
     setPayment("");
@@ -1943,23 +1954,24 @@ export default function Home() {
     // a ação explícita Continuar pedido mostra os complementos.
   }
 
-  function addDrink(product: Product) {
-    if (!availability.ordersOpen || !isProductEnabled(product) || !product.available || !product.variants[0].available) return;
-    setCart((current) => {
-      const existing = current.find((item) => item.productId === product.id);
-      if (existing) {
-        return current.map((item) => item.id === existing.id ? { ...item, quantity: item.quantity + 1 } : item);
-      }
-      return [...current, {
-        id: makeCartId(),
-        productId: product.id,
-        variantId: product.variants[0].id,
-        optionIds: [],
-        quantity: 1,
-      }];
+  function changeDrink(product: Product, delta: -1 | 1) {
+    if (product.kind !== "drink" || !DRINK_ITEM_KEYS[product.id] || isFinalizing) return;
+    const already = cart.filter(item => item.productId === product.id).reduce((sum,item) => sum+item.quantity,0);
+    if (delta === 1) {
+      if (!STORE_CONFIG.enabledExtras.drinks || !availability.ordersOpen || availability.source !== "supabase"
+        || !isProductEnabled(product) || drinkStatus(availability,product.id) !== "available"
+        || !product.available || !product.variants[0].available || already >= 99) return;
+    } else if (already === 0) return;
+    setCart(current => {
+      const item = current.find(entry => entry.productId === product.id);
+      const nextCount = (item?.quantity ?? 0) + delta;
+      if (nextCount <= 0) return current.filter(entry => entry.productId !== product.id);
+      if (item) return current.map(entry => entry.id === item.id ? {...entry,quantity: Math.min(99,nextCount)} : entry);
+      return [...current,{id:makeCartId(),productId:product.id,variantId:product.variants[0].id,optionIds:[],quantity:1}];
     });
-    trackMetaEvent("AddToCart", metaProductPayload(product, product.variants[0], 1));
-    setDrinkMessage(`${product.name} ${product.variants[0].label} adicionado ao pedido.`);
+    if (delta > 0) trackMetaEvent("AddToCart",metaProductPayload(product,product.variants[0],1));
+    setDrinkMessage(`${product.name}: ${already+delta} ${already+delta===1?"unidade":"unidades"} no pedido.`);
+    // Intencional: não chama requestScroll, setAddedNotice ou setBuilderEngaged.
   }
 
   function editItem(item: CartItem) {
@@ -2039,7 +2051,7 @@ export default function Home() {
 
 
   async function finishOnSite(card?: MercadoPagoCardData) {
-    if (cart.some((item) => isTrufadaOrLegacy(item.productId) || CONES.some(cone => cone.id === item.productId) || CHOCOTONES.some(p => p.id === item.productId))) {
+    if (cart.some((item) => isTrufadaOrLegacy(item.productId) || DRINKS.some(drink => drink.id === item.productId) || CONES.some(cone => cone.id === item.productId) || CHOCOTONES.some(p => p.id === item.productId))) {
       setCheckoutChannel("whatsapp");
       setCheckoutAvailabilityMessage("Pedidos com Trufados são concluídos pelo WhatsApp.");
       return;
@@ -3291,7 +3303,7 @@ export default function Home() {
                       {conesCanBeAdded && <Button type="button" variant="outline" onClick={() => startAnother("cones")}><ShoppingBag size={16} /> {addMoreButtonLabel("cones", cart)}</Button>}
                       {cupCanBeAddedFromCheckout && <Button type="button" variant="outline" className="crocantes-cross-sell" onClick={startAnotherCrocantes}><ShoppingBag size={16} /> {cartContainsCrocantes ? "Adicionar outro pacote" : "Adicionar pacote Trufado"} <ChevronRight size={15} aria-hidden="true" /></Button>}
                       {natalCanBeAdded && <Button type="button" variant="outline" onClick={() => startAnother("natal")}><ShoppingBag size={16} /> Fatias de Chocottone</Button>}
-                      {STORE_CONFIG.enabledExtras.drinks && <Button type="button" variant="outline" onClick={() => scrollToSection("acompanhamentos")}><CupSoda size={16} /> Refrigerante</Button>}
+                      {STORE_CONFIG.enabledExtras.drinks && DRINKS.some(drink => drinkStatus(availability,drink.id) === "available") && <Button type="button" variant="outline" onClick={() => { const offer = document.getElementById("acompanhamentos") as HTMLDetailsElement | null; if (offer) offer.open = true; requestScroll("acompanhamentos"); }}><CupSoda size={16} /> Refrigerante</Button>}
                     </div>
                   </div>}
                 </div>
@@ -3370,6 +3382,7 @@ export default function Home() {
                   )}
                 </div>
               )}
+              {cart.length > 0 && STORE_CONFIG.enabledExtras.drinks && <DrinkComplements availability={availability} cart={cart} onChange={changeDrink} message={drinkMessage} busy={isFinalizing} />}
               <div className="step-heading checkout-step-heading" id="recebimento-opcoes"><StepMarker number={4} state={receivingStepState} /><div><h2 id="receiving-title">Como deseja receber?</h2><p>Escolha a opção mais conveniente.</p></div></div>
               <RadioGroup className="choice-grid" value={fulfillment} onValueChange={chooseFulfillment} aria-label="Forma de recebimento">
                 <label className={`choice-card ${fulfillment === "entrega" ? "is-selected" : ""}`} htmlFor="receive-delivery">
