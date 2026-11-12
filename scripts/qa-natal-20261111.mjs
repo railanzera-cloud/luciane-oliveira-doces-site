@@ -165,7 +165,16 @@ try {
         for (const flavor of ["Kinder Bueno", "Ninho com Morango", "Ninho Nutella e Chocotone"]) {
           assert.ok(cardText.includes(flavor), "Novo sabor ausente: " + flavor);
         }
-        assert.equal(await cascaoPage.locator(".cone-flavor-card").filter({hasText:"R$ 20,00"}).count(), 3, "Três novos sabores a R$20");
+        // Ferrero passou para R$20, assim como os três sabores novos.
+        for (const [flavor, price] of [
+          ["Prestígio", "R$ 18,00"], ["Dois Amores", "R$ 18,00"],
+          ["Ferrero Rocher", "R$ 20,00"], ["Kinder Bueno", "R$ 20,00"],
+          ["Ninho com Morango", "R$ 20,00"], ["Ninho Nutella e Chocotone", "R$ 20,00"],
+        ]) {
+          const card = cascaoPage.locator(".cone-flavor-card").filter({hasText: flavor});
+          assert.equal(await card.count(), 1, "Cartão único do sabor: " + flavor);
+          assert.ok((await card.innerText()).includes(price), "Preço do sabor divergente: " + flavor + " / " + price);
+        }
         assert.equal(await cascaoPage.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, "Cascão sem overflow horizontal");
         await cascaoPage.screenshot({path:path.join(out,"cascao-v43-"+width+".png"),animations:"disabled"});
       } finally { await cascaoPage.close(); }
