@@ -21,10 +21,12 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
   const anchorRef = useRef<number | null>(null);
   const closeTimerRef = useRef<number | null>(null);
   const openFrameRef = useRef<number | null>(null);
+  const openTimerRef = useRef<number | null>(null);
   const desiredOpenRef = useRef(false);
   useEffect(() => () => {
     if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current);
     if (openFrameRef.current !== null) window.cancelAnimationFrame(openFrameRef.current);
+    if (openTimerRef.current !== null) window.clearTimeout(openTimerRef.current);
   }, []);
 
   const cancelPendingClose = () => {
@@ -34,7 +36,9 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
 
   const cancelPendingOpen = () => {
     if (openFrameRef.current !== null) window.cancelAnimationFrame(openFrameRef.current);
+    if (openTimerRef.current !== null) window.clearTimeout(openTimerRef.current);
     openFrameRef.current = null;
+    openTimerRef.current = null;
   };
 
   // CSS grid preserves natural content height while transitions reverse smoothly.
@@ -45,7 +49,7 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
     event.preventDefault();
     const reveal = details.querySelector<HTMLElement>(".refreshment-reveal");
     if (!reveal) { details.open = !details.open; return; }
-    const pending = closeTimerRef.current !== null || openFrameRef.current !== null;
+    const pending = closeTimerRef.current !== null || openFrameRef.current !== null || openTimerRef.current !== null;
     const expanding = pending ? !desiredOpenRef.current : !details.open;
     desiredOpenRef.current = expanding;
     cancelPendingClose();
@@ -53,25 +57,33 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     if (reducedMotion) {
       details.removeAttribute("data-collapsing");
+      details.removeAttribute("data-opening");
       details.open = expanding;
       return;
     }
     if (expanding) {
       if (!details.open) {
-        details.dataset.collapsing = "true";
+        details.dataset.opening = "true";
         details.open = true;
-        // WebKit precisa de dois frames para materializar a faixa 0fr
-        // antes de começar a transição para 1fr, sem salto de altura.
+        // State opening is distinct from collapsing: transitionend cannot close
+        // a panel while its initial 0fr frame is being prepared by WebKit.
+        void reveal.getBoundingClientRect().height;
+        const finishOpening = () => {
+          cancelPendingOpen();
+          if (desiredOpenRef.current && details.dataset.opening === "true") {
+            details.removeAttribute("data-opening");
+          }
+        };
         openFrameRef.current = window.requestAnimationFrame(() => {
-          openFrameRef.current = window.requestAnimationFrame(() => {
-            openFrameRef.current = null;
-            if (desiredOpenRef.current) details.removeAttribute("data-collapsing");
-          });
+          openFrameRef.current = window.requestAnimationFrame(finishOpening);
         });
+        openTimerRef.current = window.setTimeout(finishOpening, 48);
       } else {
         details.removeAttribute("data-collapsing");
+        details.removeAttribute("data-opening");
       }
     } else {
+      details.removeAttribute("data-opening");
       details.dataset.collapsing = "true";
       closeTimerRef.current = window.setTimeout(() => {
         if (details.dataset.collapsing === "true") {
