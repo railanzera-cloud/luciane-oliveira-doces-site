@@ -46,8 +46,11 @@ test("V4.4: preços/checkout/códigos de disponibilidade não são alterados pel
  assert.match(catalog,/name: "Kinder Bueno", available: true/);
  assert.match(catalog,/name: "Ninho com Morango", available: true/);
  assert.match(catalog,/name: "Ninho Nutella e Chocotone", available: true/);
- const newPrices=catalog.match(/name: "(?:Kinder Bueno|Ninho com Morango|Ninho Nutella e Chocotone)", available: true,[\s\S]{0,270}?price: 20/g)||[];
- assert.equal(newPrices.length,3);
+ for(const id of ["cascao-trufado-kinder-bueno","cascao-trufado-ninho-morango","cascao-trufado-ninho-nutella-chocotone"]){
+  const start=catalog.indexOf('id: "'+id+'"');
+  assert.ok(start>=0,id);
+  assert.match(catalog.slice(start,start+650),/price: 20, available: true/,id);
+ }
  assert.match(server,/priceCents: 2000/);
  assert.match(server,/priceCents: 2200/);
  assert.match(menu,/cascao_kinder_bueno/);
