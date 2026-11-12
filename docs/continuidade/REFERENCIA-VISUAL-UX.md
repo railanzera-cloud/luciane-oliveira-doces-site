@@ -382,3 +382,12 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Estado comercial:** item `hidden` não é mostrado; `sold_out` aparece sem botão comprador; atualizar subtotal e etiqueta "N no pedido" ao adicionar/remover. A barra flutuante continua levando a entrega/retirada por rolagem suave, com alvo `recebimento-opcoes`.
 - **Fotografias:** conservar os quatro WebPs aprovados em 10/11, fundo escuro e latas/garrafa reais: `images/refrigerante-coca-zero-220-20261110.webp`, `refrigerante-fanta-220-20261110.webp`, `refrigerante-guarana-200-20261110.webp` e `refrigerante-coca-original-350-20261110.webp`. Não recriar produto nem omitir esses binários do ZIP — não constam no build GitHub-base.
 - **Testes:** WebKit 320/375/390/430/1280 confirmou toques, quantidades, subtotal, coexistência com doces e navegação; a imagem do QA-base pode aparecer vazia pela falta dos binários no build-base, mas o ZIP final contém as quatro fotos byte a byte. Safari/Instagram físico continua obrigatório após o upload.
+
+## Refrigerantes V4.7.2 — resposta tátil e transição reversível (12/11/2026)
+
+- **Visual preservado:** layout compacto recolhido, paleta creme/marrom, tipografia, miniaturas aprovadas, cards horizontais no mobile, ordenação doces → bebidas → entrega/retirada e CTA flutuante; sem transformação em vitrine permanente.
+- **Toque do convite:** pressionar `Adicionar refrigerante` oferece diminuição discreta de escala (~0,987), alteração sutil de fundo e sombra, com transições de ~160 ms, em harmonia com os complementos de doces.
+- **Expansão:** wrapper de recorte externo com entrada de opacidade + altura (260 ms para abrir, 220 ms para fechar) e chevron já aprovado, sem modificar a altura natural das bebidas. Ao inverter rapidamente o toque, preservar o conteúdo inteiro e concluir sem elementos presos em altura zero. Fallback de conclusão para frames temporariamente limitados.
+- **Quantidade:** controles `+` e `−` respondem com escala/sombra (~160 ms), mantendo touch target, preço, subtotal, seleção e ausência de rolagem automática; quantidade tem feedback rápido (~180 ms). Para `prefers-reduced-motion: reduce`, usar mudança imediata.
+- **Evidência:** build/regressões 868/868 e QA WebKit de cinco larguras + movimento reduzido no run `43267207283` (código testado `fe56a9b`). Fotografias WebP não estão no build-base do GitHub; anexar as quatro aprovadas ao pacote final e conferir Safari/Instagram físico. UI candidata, não declarar publicação.
+
