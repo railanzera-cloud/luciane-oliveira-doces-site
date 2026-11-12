@@ -6,25 +6,21 @@ const component = readFileSync("components/drink-complements.tsx", "utf8");
 const css = readFileSync("app/drink-complements-premium.css", "utf8");
 const checkout = readFileSync("app/page.tsx", "utf8");
 
-test("Refrigerantes: abertura reversível preserva details nativo, teclado e fechamento completo", () => {
+test("Refrigerantes: animação reversível no contêiner sem alterar altura natural", () => {
   assert.match(component, /<details ref=\{offerRef\} className="refreshment-later"/);
   assert.match(component, /<summary onClick=\{toggleOffer\}/);
   assert.match(component, /event\.preventDefault\(\)/);
-  assert.match(component, /const expanding = pending \? !desiredOpenRef\.current : !details\.open/);
-  assert.match(component, /window\.requestAnimationFrame/);
-  assert.match(component, /details\.dataset\.opening = "true"/);
-  assert.match(css, /data-opening="true"/);
-  assert.match(component, /onTransitionEnd=\{finishCollapse\}/);
-  assert.match(component, /const finishCollapse/);
-  assert.match(component, /details\.open = false/);
-  assert.match(component, /cancelPendingClose/);
-  assert.match(css, /grid-template-rows:0fr/);
-  assert.match(css, /grid-template-rows:1fr/);
-  assert.match(css, /box-sizing:border-box;overflow:hidden/);
+  assert.match(component, /const opening = motionRef\.current \? !targetOpenRef\.current : !details\.open/);
+  assert.match(component, /const currentHeight = details\.open \? reveal\.getBoundingClientRect\(\)\.height : 0/);
+  assert.match(component, /const fullHeight = body\.getBoundingClientRect\(\)\.height/);
+  assert.match(component, /motionRef\.current\?\.cancel\(\)/);
+  assert.match(component, /animation\.onfinish/);
+  assert.match(component, /details\.open = opening/);
+  assert.match(css, /refreshment-reveal \{box-sizing:border-box;overflow:hidden/);
 });
 
 test("Refrigerantes: tempos curtos, feedback tátil e acessibilidade", () => {
-  assert.match(css, /grid-template-rows 260ms/);
+  assert.match(component, /duration: opening \? 260 : 220/);
   assert.match(component, /prefers-reduced-motion: reduce/);
   assert.match(css, /#acompanhamentos > summary:active/);
   assert.match(css, /#acompanhamentos button:not\(:disabled\):active/);
