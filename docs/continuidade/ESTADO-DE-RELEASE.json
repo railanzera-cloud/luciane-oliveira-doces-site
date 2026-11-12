@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "updated_date": "2026-11-12",
+  "repository": "railanzera-cloud/luciane-oliveira-doces-site",
+  "project": "commercial",
+  "purpose": "Snapshot auditável; não é detector automático de produção",
+  "source_of_truth_policy": {
+    "developer_entrypoint": "AGENTS.md",
+    "integration_candidate_branch": "work/integracao-comercial-controlada-20261112",
+    "validated_code_reference_branch": "refine/cascao-fotografias-v44-20261112",
+    "validated_code_reference_sha": "8df271026c11100afa726c9e4e276ee94d526f45",
+    "production_branch": null,
+    "production_code_sha": null,
+    "do_not_equate_main_with_production": true
+  },
+  "deployments": {
+    "cloudflare": {
+      "site": "https://lucianeoliveiradoces.pages.dev",
+      "latest_deployment_id": null,
+      "latest_deployment_code_sha": null,
+      "latest_deployment_package_sha256": null,
+      "verification_state": "unknown",
+      "publication_method": "manual_zip"
+    },
+    "supabase_commercial": {
+      "project_ref": "edqiwvccmboyayojvuea",
+      "edge_function": "create-whatsapp-order",
+      "observed_edge_version": 36,
+      "observation_date": "2026-11-12",
+      "observed_natal_price_centavos": [
+        1899,
+        1899,
+        1699,
+        1899
+      ],
+      "observed_new_cascao_supported_by_edge": false,
+      "observed_new_cascao_availability": "available",
+      "production_contract_consistency": "mismatch_with_v44_candidate"
+    }
+  },
+  "validated_artifacts": [
+    {
+      "release": "V4.4",
+      "filename": "LUCIANE_COMERCIAL_V4_4_CASCAO_VISUAL.zip",
+      "sha256": "475c8854d8279e372cffec7d61a9a48b72f1ef7f1d76a35ebb4965f55381dd1f",
+      "files": 117,
+      "compiled_from_sha": "8df271026c11100afa726c9e4e276ee94d526f45",
+      "ci_commercial_tests": 849,
+      "ci_workflows": [
+        43206896427,
+        43206896391
+      ],
+      "contains_unversioned_approved_photos": true,
+      "deployed": "not_verified"
+    }
+  ],
+  "pending_divergent_work": [
+    {
+      "pr": 34,
+      "branch": "feat/cascao-novos-sabores-natal22-20261112",
+      "assessment": "parallel_diverged_not_merged",
+      "decision": "inspect_unique_changes_before_superseding",
+      "note": "Preço/nome se sobrepõem à V4.3; grade mobile e variação de nome diferem da V4.4 aprovada"
+    },
+    {
+      "pr": 23,
+      "branch": "feat/refrigerantes-complementos-premium-20261110",
+      "assessment": "historical_unpublished_option",
+      "decision": "do_not_cherry_pick_without_new_ux_decision"
+    },
+    {
+      "pr": 24,
+      "branch": "refine/checkout-doces-antes-bebidas-rolagem-20261110",
+      "assessment": "historical_unpublished_option",
+      "decision": "do_not_cherry_pick_without_new_ux_decision"
+    }
+  ],
+  "release_readiness": {
+    "status": "blocked",
+    "known_blockers": [
+      "Cloudflare: deployment/package/commit não comprovados",
+      "Supabase Edge v36 não aceita três SKUs de Cascão e mantém valores antigos do Natal",
+      "Supabase: SKUs novos figuram disponíveis; falta compatibilizar backend e versão publicada",
+      "V4.4: imagens WebP finais são adicionadas no ZIP e não estão no GitHub",
+      "Safari/Instagram e checkout real ainda exigem homologação coordenada"
+    ],
+    "requires_explicit_release_authorization": true,
+    "do_not_auto_deploy": true
+  }
+}
