@@ -798,7 +798,7 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 
 ## 59. Cascão Trufado — novos SKUs + Natal R$22 (12/11/2026)
 
-- **Solicitação explícita:** renomear categoria para Cascão Trufado, adicionar três produtos fotográficos Kinder Bueno, Ninho com Morango, Ninho com Nutella e Chocotone a R$20/unidade; elevar os quatro sabores de Fatias de Chocottone para R$22.
+- **Solicitação explícita:** renomear categoria para Cascão Trufado, adicionar três produtos fotográficos Kinder Bueno, Ninho com Morango, Ninho com Nutella e Chocottone a R$20/unidade; elevar os quatro sabores de Fatias de Chocottone para R$22.
 - **Branch isolada:** `feat/cascao-novos-sabores-natal22-20261112`, baseada em `refine/checkout-whatsapp-passagem-direta-20261111` @ `d19f381f132f8fc1e9feec5e89e821e6fb481dd8` (PR #32, ainda aberto). `main` não é fonte desta implementação.
 - **Contrato no código:** `app/catalog.ts`, `app/menu-availability.ts`, `app/page.tsx`, `app/menu-navigation.ts`, `app/admin/page.tsx`, `app/layout.tsx`, `app/cones-trufados-20261108.css`, `supabase/functions/_shared/commerce-catalog.mjs`, migração `20261112103000_cascao_trufado_novos_sabores.sql`. IDs `cones` e `cone` preservados; três registros novos começam `hidden`, sem estoques inventados; 3 antigos sem mudança de preço.
 - **Fotografias:** seis novas WebPs derivadas mecanicamente dos 3 JPEGs fornecidos na conversa e presentes somente no pacote final, não nos binários GitHub. `docs/CASCAO-NATAL22-ROLLOUT-20261112.md` contém hashes por imagem e gate. Preservar 8 WebP natalinos V3 aprovados e todo o acervo anterior no ZIP de Cloudflare.
