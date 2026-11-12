@@ -113,6 +113,10 @@ Quatro marcos inconfundíveis: **implementado no GitHub**, **validado no SHA**, 
 
 Autorização de desenvolvimento/documentação não equivale automaticamente a permissão de **SQL produtivo, Edge Function, Cloudflare, alteração de dados reais, merge em main ou segredos**. Confirmar o escopo específico dessas ações antes de executá-las. Não interromper fluxo real para produzir uma prova sintética.
 
+### 11.1 — Gate de integração oficial (adendo de 12/11/2026)
+
+O nível premium depende de **melhorar decisões**, não multiplicar branches. A cada ciclo, identificar a versão de desenvolvimento validada, divergências de PR, SHA compilado, fotos aprovadas fora do Git e contratos do Supabase ativo. A `main` somente representa base estável quando o merge e as evidências justificarem. Usar o [protocolo de integração](PROTOCOLO-DE-INTEGRACAO-E-RELEASE.md) e o [snapshot estruturado](ESTADO-DE-RELEASE.json), sem confundir dados datados com observação em tempo real. Alterações puramente documentais não exigem gerar ZIP. A validação deve seguir risco, clareza, conversão, performance, acessibilidade e operação — sempre preservar o que funciona.
+
 ## 12. Continuidade permanente
 
 Manter cinco arquivos coordenados:
