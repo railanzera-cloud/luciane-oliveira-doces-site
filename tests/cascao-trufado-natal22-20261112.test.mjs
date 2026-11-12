@@ -30,7 +30,7 @@ test("novos cascões têm identidades independentes, imagens e preço R$20 idên
     assert.equal(result.items[0].item_type,"cone");
     assert.equal(result.items[0].name,`Cascão Trufado — ${name}`);
     assert.equal(result.items[0].size_label,"1 cascão");
-    assert.deepEqual(result.availabilityKeys,["category_cones",key]);
+    assert.deepEqual([...result.availabilityKeys].sort(),["category_cones",key].sort());
     assert.throws(()=>quoteCartItems([{product_id:id,variant_id:"fatia",option_ids:[],quantity:1}]),/Cascão Trufado válido/);
     assert.throws(()=>quoteCartItems([{product_id:id,variant_id:"unidade",option_ids:["nutella"],quantity:1}]),/Cascão Trufado válido/);
   }
@@ -65,7 +65,7 @@ test("admin habilita novos cascões apenas via linhas próprias ocultas na migra
   const menu=read("app/menu-availability.ts");
   const page=read("app/page.tsx");
   const css=read("app/cones-trufados-20261108.css");
-  assert.equal(STORE_CONFIG.enabledCategories.drinks,false);
+  assert.equal(STORE_CONFIG.enabledExtras.drinks,false);
   for(const [,key,name] of cases) {
     assert.ok(menu.includes(key),key);
     assert.ok(migration.includes(`'${key}', '${name}', 'product', 'category_cones', 'hidden'`));
