@@ -13,9 +13,9 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 BASE = Path("outputs/luciane-oliveira-doces-cloudflare-pages.zip")
 RELEASE = environ.get("NATAL_PACKAGE_VERSION", "V4")
-if RELEASE not in {"V4", "V4_1", "V4_2"}:
+if RELEASE not in {"V4", "V4_1", "V4_2", "V4_3"}:
     raise SystemExit("Versão não autorizada de pacote Natal")
-FINAL = Path("outputs/LUCIANE_COMERCIAL_V4_2_WHATSAPP.zip" if RELEASE == "V4_2" else f"outputs/LUCIANE_NATAL_{RELEASE}.zip")
+FINAL = Path("outputs/LUCIANE_COMERCIAL_V4_3_BASE_SEM_FOTOS_CASCAO.zip" if RELEASE == "V4_3" else "outputs/LUCIANE_COMERCIAL_V4_2_WHATSAPP.zip" if RELEASE == "V4_2" else f"outputs/LUCIANE_NATAL_{RELEASE}.zip")
 URL = "https://lucianeoliveiradoces.pages.dev"
 # SHA-256 medidos nos oito binários de LUCIANE_NATAL_V3.zip, 11/11/2026.
 APPROVED = {
