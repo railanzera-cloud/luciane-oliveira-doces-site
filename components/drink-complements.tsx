@@ -19,6 +19,38 @@ type Props = {
 export function DrinkComplements({ availability, cart, onChange, message, busy = false }:Props) {
   const offerRef = useRef<HTMLDetailsElement>(null);
   const anchorRef = useRef<number | null>(null);
+  const expansionRef = useRef<Animation | null>(null);
+
+  // Animar o painel sem introduzir uma etapa, mudar o foco ou rolar a tela.
+  // Manter <details> nativo preserva semântica, teclado e estado inicial recolhido.
+  const toggleOffer = (event: React.MouseEvent<HTMLElement>) => {
+    const details = offerRef.current;
+    if (!details) return;
+    event.preventDefault();
+    expansionRef.current?.cancel();
+    const body = details.querySelector<HTMLElement>(".refreshment-body");
+    if (!body) { details.open = !details.open; return; }
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const wasOpen = details.open;
+    if (reduced || typeof body.animate !== "function") {
+      details.open = !wasOpen;
+      return;
+    }
+    if (!wasOpen) details.open = true;
+    const height = body.scrollHeight;
+    const animation = body.animate(
+      wasOpen
+        ? [{ height: `${height}px`, opacity: 1 }, { height: "0px", opacity: 0 }]
+        : [{ height: "0px", opacity: 0 }, { height: `${height}px`, opacity: 1 }],
+      { duration: wasOpen ? 210 : 250, easing: "cubic-bezier(.22, 1, .36, 1)" }
+    );
+    expansionRef.current = animation;
+    animation.onfinish = () => {
+      if (expansionRef.current !== animation) return;
+      if (wasOpen) details.open = false;
+      expansionRef.current = null;
+    };
+  };
 
   // Quando o carrinho acima cresce, preservar a posição da oferta no viewport.
   // Não navega nem move para a próxima etapa: corrige apenas a variação de layout.
@@ -51,7 +83,7 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
   const hasAvailable = Number.isFinite(startingPrice);
 
   return <details ref={offerRef} className="refreshment-later" id="acompanhamentos" data-has-selection={count > 0 || undefined}>
-    <summary aria-label={count > 0 ? `Adicionar refrigerante. ${count} no pedido` : "Adicionar refrigerante, opcional"}>
+    <summary onClick={toggleOffer} aria-label={count > 0 ? `Adicionar refrigerante. ${count} no pedido` : "Adicionar refrigerante, opcional"}>
       <span className="refreshment-summary-symbol"><CupSoda size={19} strokeWidth={1.8} aria-hidden="true" /></span>
       <span className="refreshment-summary-copy">
         <strong>Adicionar refrigerante</strong>
