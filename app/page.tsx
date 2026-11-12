@@ -3163,33 +3163,6 @@ export default function Home() {
 
       )}
 
-      {STORE_CONFIG.enabledExtras.drinks && (
-        <section className="extras-section" id="acompanhamentos">
-          <div className="page-shell extras-shell">
-            <div className="extras-heading"><div><p className="eyebrow">Complete seu pedido</p><h2>Refrigerantes</h2></div><p>Adicione com um toque. A quantidade pode ser ajustada no carrinho.</p></div>
-            <div className="drink-grid">
-              {DRINKS.map((drink) => {
-                const variant = drink.variants[0];
-                return (
-                  <article className={`drink-card ${!drink.available || !variant.available ? "is-unavailable" : ""}`} key={drink.id}>
-                    <span className="drink-media">
-                      {drink.image
-                        ? <img src={drink.cardImage ?? drink.image} alt={drink.imageAlt} width="256" height="256" loading="lazy" decoding="async" fetchPriority="low" sizes="58px" />
-                        : <CupSoda size={23} strokeWidth={1.6} />}
-                    </span>
-                    <div><strong>{drink.name}</strong><small>{variant.label}</small></div>
-                    <b>{currency.format(variant.price)}</b>
-                    <Button type="button" variant="outline" size="icon" onClick={() => addDrink(drink)} disabled={!availability.ordersOpen || !drink.available || !variant.available} aria-label={`Adicionar ${drink.name} ${variant.label}`}><Plus size={17} /></Button>
-                    {(!drink.available || !variant.available) && <span className="drink-status">Indisponível</span>}
-                  </article>
-                );
-              })}
-            </div>
-            <p className="drink-message" aria-live="polite">{drinkMessage}</p>
-          </div>
-        </section>
-      )}
-
       {(activeCategory || cart.length > 0) && (
       <section className={`checkout-section ${cart.length === 0 ? "is-empty-cart" : ""}`} id="carrinho">
         <div className="page-shell">
