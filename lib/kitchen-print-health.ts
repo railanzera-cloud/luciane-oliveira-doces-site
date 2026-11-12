@@ -11,11 +11,23 @@ export type KitchenPrintJob = {
   attempts: number;
 };
 
+export type KitchenPrintIssueDetail = {
+  id: string;
+  order_uuid: string;
+  kind: string;
+  status: KitchenPrintJobStatus;
+  attempts: number;
+  created_at: string;
+  stage: "not_claimed" | "awaiting_retry" | "unconfirmed" | "failed";
+};
+
 export type KitchenPrintIssue = {
   id: string;
   kind: "failed" | "delayed";
   count: number;
   message: string;
+  /** Diagnóstico sem efeitos: permite localizar pedidos sem presumir impressão em papel. */
+  details: KitchenPrintIssueDetail[];
 };
 
 export type StalledKitchenPrintJob = {
@@ -74,15 +86,26 @@ export function summarizeKitchenPrintIssues(
   const failed = relevant.filter(j => j.status === "failed");
   const category = failed.length ? failed : relevant;
   const key = category.map(j => j.id).sort().join(":");
+  const details: KitchenPrintIssueDetail[] = relevant.map(j => ({
+    id: j.id,
+    order_uuid: j.order_uuid,
+    kind: j.kind,
+    status: j.status,
+    attempts: j.attempts,
+    created_at: j.created_at,
+    stage: j.status === "failed" ? "failed"
+      : j.status === "printing" ? "unconfirmed"
+      : j.attempts > 0 ? "awaiting_retry" : "not_claimed",
+  }));
   return failed.length
     ? {
-      id: "failed:" + key, kind: "failed", count: failed.length,
+      id: "failed:" + key, kind: "failed", count: failed.length, details,
       message: failed.length === 1
         ? "Uma comanda apresentou falha de impressão. Confira a impressora e o pedido no painel."
         : `${failed.length} comandas apresentaram falha de impressão. Verifique a impressora.`,
     }
     : {
-      id: "delayed:" + key, kind: "delayed", count: relevant.length,
+      id: "delayed:" + key, kind: "delayed", count: relevant.length, details,
       message: relevant.length === 1
         ? "Uma comanda está aguardando impressão há mais de 2 minutos. Confira impressora, autorização QZ e estoque."
         : `${relevant.length} comandas aguardam impressão há mais de 2 minutos. Confira impressora, QZ e estoque.`,
