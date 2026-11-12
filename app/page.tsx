@@ -1866,7 +1866,7 @@ export default function Home() {
 
   function addOrUpdateCone() {
     if (!conesVisible || !availability.ordersOpen || !conesAvailable) {
-      setSelectionMessage(availability.ordersOpen ? "Cascão Trufado indisponíveis no momento." : STORE_CONFIG.closedMessage);
+      setSelectionMessage(availability.ordersOpen ? "Cascão Trufado indisponível no momento." : STORE_CONFIG.closedMessage);
       return;
     }
     if (!selectedCone || !selectedConeVariant || !coneReady) {
@@ -2949,10 +2949,10 @@ export default function Home() {
                   <StepMarker number={1} state={coneReady ? "complete" : "active"} />
                   <div>
                     <h3 id="cones-step-title">Escolha seu sabor</h3>
-                    <p>Três cones artesanais. Selecione um sabor para adicionar ao pedido.</p>
+                    <p>Seis sabores artesanais. Escolha o seu Cascão Trufado.</p>
                   </div>
                 </div>
-                {!CONES.some(cone => coneIsVisible(cone.id)) && <p className="selection-helper" role="status">Nenhum cone disponível no momento.</p>}
+                {!CONES.some(cone => coneIsVisible(cone.id)) && <p className="selection-helper" role="status">Nenhum cascão disponível no momento.</p>}
                 <RadioGroup className="cone-flavor-grid" value={coneProductId} aria-label="Sabor do Cascão Trufado"
                   onValueChange={value => {
                     if (!conesAvailable || !coneIsAvailable(value)) return;
@@ -2990,7 +2990,7 @@ export default function Home() {
               <section className="step-block" id="cones-quantidade" aria-labelledby="cones-qty-title">
                 <div className="step-heading compact-heading">
                   <StepMarker number={2} state={coneReady ? "active" : "locked"} />
-                  <div><h3 id="cones-qty-title">Quantos cones deste sabor?</h3>
+                  <div><h3 id="cones-qty-title">Quantos cascões deste sabor?</h3>
                     <p>Para misturar sabores, adicione este e escolha o próximo.</p></div>
                 </div>
                 {selectedCone && <div className="cone-current-choice">
