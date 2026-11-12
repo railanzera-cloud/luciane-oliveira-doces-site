@@ -123,3 +123,53 @@
  .storefront #acompanhamentos .refreshment-chevron {transition:none;}
  .storefront #acompanhamentos button:not(:disabled):active {transform:none;}
 }
+
+/* V4.7.2 — microinterações consistentes com os complementos de doces.
+   Sem alterar dimensões em repouso, ordem do checkout ou contratos comerciais. */
+.storefront #acompanhamentos > summary {
+  transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+.storefront #acompanhamentos > summary:active {
+  transform: scale(.987);
+  background: rgba(240, 223, 201, .62);
+  box-shadow: inset 0 2px 7px rgba(80, 49, 27, .09);
+}
+.storefront #acompanhamentos .refreshment-summary-symbol {
+  transition: background-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+.storefront #acompanhamentos[open] .refreshment-summary-symbol {
+  background: linear-gradient(145deg, #f3e1c8, #ebcfad);
+  box-shadow: 0 2px 8px rgba(91, 54, 28, .10);
+}
+.storefront #acompanhamentos .refreshment-add,
+.storefront #acompanhamentos .refreshment-quantity button {
+  transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+.storefront #acompanhamentos button:not(:disabled):active {
+  transform: scale(.94);
+  box-shadow: inset 0 2px 6px rgba(91, 54, 28, .13);
+}
+@media (hover: hover) and (pointer: fine) {
+  .storefront #acompanhamentos > summary:hover {
+    background: rgba(245, 228, 206, .38);
+    box-shadow: inset 0 1px rgba(255,255,255,.8);
+  }
+  .storefront #acompanhamentos .refreshment-add:not(:disabled):hover,
+  .storefront #acompanhamentos .refreshment-quantity button:not(:disabled):hover {
+    background: #f0d6b8;
+    border-color: #a97751;
+    box-shadow: 0 3px 9px rgba(91, 54, 28, .12);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront #acompanhamentos > summary,
+  .storefront #acompanhamentos .refreshment-summary-symbol,
+  .storefront #acompanhamentos .refreshment-add,
+  .storefront #acompanhamentos .refreshment-quantity button {
+    transition: none !important;
+  }
+  .storefront #acompanhamentos > summary:active,
+  .storefront #acompanhamentos button:not(:disabled):active {
+    transform: none !important;
+  }
+}
