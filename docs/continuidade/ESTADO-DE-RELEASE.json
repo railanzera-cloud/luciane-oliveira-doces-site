@@ -13,7 +13,7 @@
     "production_code_sha": null,
     "do_not_equate_main_with_production": true,
     "price_change_candidate_branch": "fix/cascao-precos-paridade-20261112",
-    "price_change_compiled_sha": "3f49daef10ad0e63e25f9971af89aee7d81dd385"
+    "price_change_compiled_sha": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f"
   },
   "deployments": {
     "cloudflare": {
@@ -76,7 +76,36 @@
       "deployed": "not_verified",
       "source_assets_reference_v44_sha256": "475c8854d8279e372cffec7d61a9a48b72f1ef7f1d76a35ebb4965f55381dd1f",
       "frontend_price_contract": "prestigio=1800;dois_amores=1800;ferrero_rocher=2000;new_three=2000;natal_four=2200",
-      "critical": "Cloudflare não publicado; Edge v37 ativa mantém preços antigos dos três Cascões legados e precisa de corte coordenado antes de upload"
+      "critical": "Cloudflare não publicado; Edge v37 ativa mantém preços antigos dos três Cascões legados e precisa de corte coordenado antes de upload",
+      "superseded_by": "LUCIANE_COMERCIAL_V4_6_CASCAO_COMPLEMENTOS_E_PRECOS_AGUARDANDO_CORTE.zip"
+    },
+    {
+      "release": "V4.6 - Cascão (repetição disponível), catálogo completo de complementos e preços",
+      "filename": "LUCIANE_COMERCIAL_V4_6_CASCAO_COMPLEMENTOS_E_PRECOS_AGUARDANDO_CORTE.zip",
+      "sha256": "ce9eb18cd8a63dc7be9aa4af4fac2cf4d91a7c1f04df76d20f3a4e1c42883fad",
+      "files": 117,
+      "compiled_from_sha": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f",
+      "ci_commercial_tests": 856,
+      "ci_workflows": [
+        43224471401,
+        43224471050
+      ],
+      "ui_webkit_viewports": [
+        320,
+        375,
+        390,
+        430,
+        1280
+      ],
+      "preserves_all_available_category_complements": true,
+      "preserves_own_category_when_natal_available": true,
+      "contains_unversioned_approved_photos": true,
+      "approved_cascao_photos_recovered": 20,
+      "approved_v44_static_assets_identical": 71,
+      "source_assets_reference_v44_sha256": "475c8854d8279e372cffec7d61a9a48b72f1ef7f1d76a35ebb4965f55381dd1f",
+      "frontend_price_contract": "prestigio=1800;dois_amores=1800;ferrero_rocher=2000;new_three=2000;natal_four=2200",
+      "deployed": "not_verified",
+      "critical": "Somente pacote candidato; não publicar Cloudflare sem atualizar Edge v37 para nova tabela R$18/R$18/R$20 e plano de rollback"
     }
   ],
   "pending_divergent_work": [
@@ -103,11 +132,11 @@
   "release_readiness": {
     "status": "blocked",
     "known_blockers": [
-      "Cloudflare: deployment/package/commit ainda não comprovados",
-      "Supabase Edge v37 suporta novos Cascões/Natal R$22, mas mantém preços anteriores dos três Cascões legados até corte coordenado do frontend",
-      "Nova tabela dos Cascões legados (R$18/R$18/R$20) somente no código candidato, não publicada em Cloudflare nem Edge",
-      "V4.4: fotografias WebP finais são adicionadas ao ZIP e não constam como binários no GitHub",
-      "Homologação de checkout real e Safari/Instagram, mais vinculação do ZIP à versão publicada, pendentes"
+      "Cloudflare: deployment ID e versão efetivamente publicada não comprovados",
+      "Edge create-whatsapp-order v37 ativa reconhece 3 novos Cascões e Natal R$22, mas mantém preços antigos dos Cascões legados R$14/R$14/R$16",
+      "V4.6 com complementos e preços R$18/R$18/R$20 somente compilada e testada no CI, não publicada no Cloudflare nem na Edge",
+      "Corte coordenado Cloudflare + Edge exige rollback verificado e testes de pedido real/WhatsApp no iPhone/Safari/Instagram",
+      "Sem deploy da correção, loja publicada ainda pode suprimir repetição de Cascão quando Natal está disponível"
     ],
     "requires_explicit_release_authorization": true,
     "do_not_auto_deploy": true
