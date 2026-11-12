@@ -20,7 +20,7 @@ test("Catálogo permanente registra três cones sem alterar outras categorias", 
     ["cone-trufado-ferrero-rocher","cone","Ferrero Rocher","unidade",16],
     ["cascao-trufado-kinder-bueno","cone","Kinder Bueno","unidade",20],
     ["cascao-trufado-ninho-morango","cone","Ninho com Morango","unidade",20],
-    ["cascao-trufado-ninho-nutella-chocotone","cone","Ninho com Nutella e Chocotone","unidade",20],
+    ["cascao-trufado-ninho-nutella-chocotone","cone","Ninho com Nutella e Chocottone","unidade",20],
   ]);
   assert.ok(CONES.every(p=>p.options.length===0 && (p.image?.startsWith("/images/cone-trufado-") || p.image?.startsWith("/images/cascao-"))));
 });
