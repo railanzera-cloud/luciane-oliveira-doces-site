@@ -13,7 +13,7 @@ INSERT INTO public.menu_availability (item_key, name, item_type, category_key, s
 VALUES
   ('cascao_kinder_bueno', 'Kinder Bueno', 'product', 'category_cones', 'hidden'::public.item_status),
   ('cascao_ninho_morango', 'Ninho com Morango', 'product', 'category_cones', 'hidden'::public.item_status),
-  ('cascao_ninho_nutella_chocotone', 'Ninho com Nutella e Chocotone', 'product', 'category_cones', 'hidden'::public.item_status)
+  ('cascao_ninho_nutella_chocotone', 'Ninho com Nutella e Chocottone', 'product', 'category_cones', 'hidden'::public.item_status)
 ON CONFLICT (item_key) DO NOTHING;
 
 COMMIT;
