@@ -86,7 +86,7 @@ try {
       console.log("MOTION OPEN",width,JSON.stringify(duringOpen));
       assert.ok(duringOpen.open, "Abertura deve deixar details aberto durante animação");
       assert.ok(duringOpen.running, "WebKit deve executar a microanimação (não saltar diretamente)");
-      assert.ok(duringOpen.height > 0 && duringOpen.height < duringOpen.full + 2,
+      assert.ok(duringOpen.height > 0 && duringOpen.height < duringOpen.full - 5,
         "Altura intermediária real do painel durante abertura: " + JSON.stringify(duringOpen));
       await page.waitForTimeout(275);
       assert.equal(await drink.getAttribute("open"), "", "Abertura completa");
