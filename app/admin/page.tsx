@@ -18,6 +18,7 @@ import {
 
 import {
   CATEGORY_ITEM_KEYS,
+  DRINK_CATEGORY_KEY,
   MENU_AVAILABILITY_ITEMS,
   createFallbackAvailability,
   type AvailabilitySnapshot,
@@ -124,7 +125,7 @@ export default function AdminPage() {
   const [loadError, setLoadError] = useState("");
   const [pendingKeys, setPendingKeys] = useState<string[]>([]);
   const [notice, setNotice] = useState("");
-  const [availabilitySection, setAvailabilitySection] = useState<"trufadas" | "gourmet" | "fatias" | "cones" | "natal">("trufadas");
+  const [availabilitySection, setAvailabilitySection] = useState<"trufadas" | "gourmet" | "fatias" | "cones" | "natal" | "drinks">("trufadas");
   const [gourmetView, setGourmetView] = useState<"sizes" | "flavors">("flavors");
   const [sliceSearch, setSliceSearch] = useState("");
   const [trufadasDirty, setTrufadasDirty] = useState(false);
@@ -137,12 +138,13 @@ export default function AdminPage() {
   const releasedSlices = slices.filter(item => !item.isDraft);
   const cones = MENU_AVAILABILITY_ITEMS.filter((item) => item.categoryKey === CATEGORY_ITEM_KEYS.cones && item.itemType === "product");
   const natalItems = MENU_AVAILABILITY_ITEMS.filter((item) => item.categoryKey === CATEGORY_ITEM_KEYS.natal && item.itemType === "product");
+  const drinkItems = MENU_AVAILABILITY_ITEMS.filter(item => item.categoryKey === DRINK_CATEGORY_KEY && item.itemType === "product");
   const gourmetItems = [...popcornSizes, ...popcornFlavors];
   const visibleSlices = slices.filter(item => normalizeAdminSearch(item.name)
     .includes(normalizeAdminSearch(sliceSearch)));
   const countReady = (items: MenuAvailabilityItem[]) => items.filter(item => availability.statuses[item.itemKey] === "available").length;
   const controlsUnavailable = loadingMenu || availability.source !== "supabase" || Boolean(loadError);
-  function selectAvailabilitySection(next: "trufadas" | "gourmet" | "fatias" | "cones" | "natal") {
+  function selectAvailabilitySection(next: "trufadas" | "gourmet" | "fatias" | "cones" | "natal" | "drinks") {
     if (next !== availabilitySection && availabilitySection === "trufadas" && trufadasDirty) {
       setAvailabilityWarning("Há alterações não salvas nas Trufadas. Salve ou descarte no editor antes de mudar de categoria.");
       return;
@@ -395,6 +397,12 @@ export default function AdminPage() {
             onClick={() => selectAvailabilitySection("fatias")}>
             <strong>Fatias</strong><small>{countReady(releasedSlices)}/{releasedSlices.length} liberadas</small>
           </button>
+          <button type="button" role="tab" id="admin-availability-tab-drinks"
+            aria-selected={availabilitySection === "drinks"} aria-controls="admin-availability-panel-drinks"
+            className={availabilitySection === "drinks" ? "is-active" : ""}
+            onClick={() => selectAvailabilitySection("drinks")}>
+            <strong>Bebidas</strong><small>{countReady(drinkItems)}/{drinkItems.length} disponíveis</small>
+          </button>
         </div>
 
         <details className="admin-availability-scope">
@@ -490,6 +498,34 @@ export default function AdminPage() {
                   onChange={status => changeItemStatus(item, status)} key={item.itemKey} />
               ))}
             </div>
+          </section>
+        )}
+
+        {availabilitySection === "drinks" && (
+          <section className="admin-category-section admin-category-compact" role="tabpanel" id="admin-availability-panel-drinks"
+            aria-labelledby="admin-availability-tab-drinks">
+            <div className="admin-category-heading">
+              <div><p className="eyebrow">Complemento opcional · após os doces</p><h2>Refrigerantes</h2></div>
+            </div>
+            <p className="admin-category-explanation">
+              Controle cada bebida sem alterar os outros doces. Disponível: o cliente pode adicioná-la depois de escolher um produto;
+              Esgotado: continua identificado, mas sem permitir inclusão; Oculto: não aparece no checkout.
+              Os preços e volumes são definidos pelo catálogo de pedidos, não por esta tela.
+            </p>
+            <div className="admin-group-title">
+              <h3>Bebidas e embalagens</h3><span>{countReady(drinkItems)}/{drinkItems.length} disponíveis</span>
+            </div>
+            <div className="admin-compact-grid">
+              {drinkItems.map(item => (
+                <AvailabilityControl key={item.itemKey} item={item}
+                  status={categoryStatus(item.itemKey)}
+                  pending={pendingKeys.includes(item.itemKey)} disabled={controlsUnavailable}
+                  onChange={status => changeItemStatus(item, status)} />
+              ))}
+            </div>
+            <p className="admin-category-explanation">
+              As bebidas só aparecem como complemento no checkout quando os pedidos estão abertos e existe confirmação de disponibilidade do servidor.
+            </p>
           </section>
         )}
 
