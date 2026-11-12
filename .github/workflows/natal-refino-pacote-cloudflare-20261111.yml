@@ -7,6 +7,7 @@ on:
       - refine/natal-v4-1-resumo-textos-whatsapp-20261111
       - refine/checkout-whatsapp-passagem-direta-20261111
       - feat/cascao-trufado-natal-precos-20261112
+      - refine/cascao-fotografias-v44-20261112
   workflow_dispatch:
 permissions:
   contents: read
@@ -57,12 +58,12 @@ jobs:
               assert not any(n.startswith('images/refrigerante-') for n in names)
           print('Pacote conectado validado; inserir 8 fotos aprovadas antes de publicar')
           PY
-      - name: Acoplar 8 fotos Natal aprovadas — base V4.3 ainda sem 9 fotos de cascão
-        run: NATAL_PACKAGE_VERSION=V4_3 python3 scripts/package-natal-v4-cloudflare.py
-      - name: Entregar somente BASE V4.3; não publicar antes de adicionar 9 fotos dos novos cascões
+      - name: Acoplar Natal aprovado — V4.4 requer anexar fotos do Cascão fora do GitHub
+        run: NATAL_PACKAGE_VERSION=V4_4 python3 scripts/package-natal-v4-cloudflare.py
+      - name: Entregar somente BASE V4.4; não publicar antes de anexar fotos reais dos cascões
         uses: actions/upload-artifact@v4
         with:
-          name: LUCIANE-COMERCIAL-V4-3-BASE-SEM-FOTOS-CASCAO
-          path: outputs/LUCIANE_COMERCIAL_V4_3_BASE_SEM_FOTOS_CASCAO.zip
+          name: LUCIANE-COMERCIAL-V4-4-BASE-SEM-FOTOS-CASCAO
+          path: outputs/LUCIANE_COMERCIAL_V4_4_BASE_SEM_FOTOS_CASCAO.zip
           if-no-files-found: error
           retention-days: 7
