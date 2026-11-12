@@ -1,5 +1,6 @@
 "use client";
 
+import { useLayoutEffect, useRef } from "react";
 import { ChevronDown, CupSoda, Minus, Plus } from "lucide-react";
 import { DRINKS, type Product } from "@/app/catalog";
 import { drinkStatus, type AvailabilitySnapshot } from "@/app/menu-availability";
@@ -16,6 +17,26 @@ type Props = {
 
 /** Oferta opcional, recolhida por padrão. Não participa da rolagem automática. */
 export function DrinkComplements({ availability, cart, onChange, message, busy = false }:Props) {
+  const offerRef = useRef<HTMLDetailsElement>(null);
+  const anchorRef = useRef<number | null>(null);
+
+  // Quando o carrinho acima cresce, preservar a posição da oferta no viewport.
+  // Não navega nem move para a próxima etapa: corrige apenas a variação de layout.
+  useLayoutEffect(() => {
+    const previousTop = anchorRef.current;
+    anchorRef.current = null;
+    if (previousTop === null || !offerRef.current) return;
+    const delta = offerRef.current.getBoundingClientRect().top - previousTop;
+    if (Math.abs(delta) > 1 && Number.isFinite(delta)) {
+      window.scrollBy({ top: delta, left: 0, behavior: "instant" });
+    }
+  }, [cart]);
+
+  const adjust = (product:Product, delta:-1|1) => {
+    anchorRef.current = offerRef.current?.getBoundingClientRect().top ?? null;
+    onChange(product, delta);
+  };
+
   // Bebida escondida nunca vira oferta; item esgotado pode aparecer apenas como indisponível.
   const visible = DRINKS.filter(drink => drinkStatus(availability, drink.id) !== "hidden");
   if (!visible.length || !availability.ordersOpen) return null;
@@ -29,7 +50,7 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
   const startingPrice = Math.min(...visible.filter(drink => drinkStatus(availability, drink.id) === "available").map(drink => drink.variants[0].price));
   const hasAvailable = Number.isFinite(startingPrice);
 
-  return <details className="refreshment-later" id="acompanhamentos" data-has-selection={count > 0 || undefined}>
+  return <details ref={offerRef} className="refreshment-later" id="acompanhamentos" data-has-selection={count > 0 || undefined}>
     <summary aria-label={count > 0 ? `Adicionar refrigerante. ${count} no pedido` : "Adicionar refrigerante, opcional"}>
       <span className="refreshment-summary-symbol"><CupSoda size={19} strokeWidth={1.8} aria-hidden="true" /></span>
       <span className="refreshment-summary-copy">
@@ -64,13 +85,13 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
               {!available && quantity === 0 ? <span className="refreshment-unavailable">Esgotado</span>
                 : quantity > 0 ? <div className="refreshment-quantity" role="group" aria-label={`Quantidade de ${drink.name}, ${variant.label}`}>
                     <button type="button" disabled={!canRemove} aria-label={`Remover uma unidade de ${drink.name}`}
-                      onClick={() => onChange(drink,-1)}><Minus size={16} aria-hidden="true" /></button>
+                      onClick={() => adjust(drink,-1)}><Minus size={16} aria-hidden="true" /></button>
                     <span aria-live="off">{quantity}</span>
                     <button type="button" disabled={!canAdd} aria-label={`Adicionar uma unidade de ${drink.name}`}
-                      onClick={() => onChange(drink,1)}><Plus size={16} aria-hidden="true" /></button>
+                      onClick={() => adjust(drink,1)}><Plus size={16} aria-hidden="true" /></button>
                   </div>
                 : <button type="button" className="refreshment-add" disabled={!canAdd}
-                    onClick={() => onChange(drink,1)} aria-label={`Adicionar ${drink.name}, ${variant.label}, ${money.format(variant.price)}`}>
+                    onClick={() => adjust(drink,1)} aria-label={`Adicionar ${drink.name}, ${variant.label}, ${money.format(variant.price)}`}>
                     <Plus size={19} strokeWidth={2} aria-hidden="true" />
                   </button>}
             </div>
