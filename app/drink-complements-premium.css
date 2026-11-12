@@ -44,7 +44,14 @@
 .storefront #acompanhamentos .refreshment-copy {display:grid;align-content:center;gap:3px;min-width:0;min-height:64px;}
 .storefront #acompanhamentos .refreshment-copy h4 {font-size:.78rem;font-weight:750;line-height:1.22;margin:0;overflow-wrap:anywhere;}
 .storefront #acompanhamentos .refreshment-copy small {font-size:.67rem;color:#826b58;line-height:1.2;}
-.storefront #acompanhamentos .refreshment-action-row {display:flex;align-items:center;justify-content:space-between;gap:3px;min-width:0;}
+.storefront #acompanhamentos .refreshment-action-row {
+  display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto 40px;
+  justify-items:start;gap:5px;min-width:0;
+}
+/* Separar preço e controle: duas colunas em 320px não comportam R$+três botões
+   na mesma linha. Reservar a altura evita saltos quando a quantidade aparece. */
+.storefront #acompanhamentos .refreshment-add,
+.storefront #acompanhamentos .refreshment-quantity {justify-self:end;}
 .storefront #acompanhamentos .refreshment-price {font-size:.89rem;color:#5d3a25;white-space:nowrap;font-weight:760;font-variant-numeric:tabular-nums;}
 .storefront #acompanhamentos .refreshment-add,.storefront #acompanhamentos .refreshment-quantity button {
   display:grid;place-items:center;flex:0 0 40px;min-width:40px;min-height:40px;
