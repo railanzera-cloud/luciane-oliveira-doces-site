@@ -382,3 +382,22 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Estado comercial:** item `hidden` não é mostrado; `sold_out` aparece sem botão comprador; atualizar subtotal e etiqueta "N no pedido" ao adicionar/remover. A barra flutuante continua levando a entrega/retirada por rolagem suave, com alvo `recebimento-opcoes`.
 - **Fotografias:** conservar os quatro WebPs aprovados em 10/11, fundo escuro e latas/garrafa reais: `images/refrigerante-coca-zero-220-20261110.webp`, `refrigerante-fanta-220-20261110.webp`, `refrigerante-guarana-200-20261110.webp` e `refrigerante-coca-original-350-20261110.webp`. Não recriar produto nem omitir esses binários do ZIP — não constam no build GitHub-base.
 - **Testes:** WebKit 320/375/390/430/1280 confirmou toques, quantidades, subtotal, coexistência com doces e navegação; a imagem do QA-base pode aparecer vazia pela falta dos binários no build-base, mas o ZIP final contém as quatro fotos byte a byte. Safari/Instagram físico continua obrigatório após o upload.
+
+
+## Cascões Trufados — fotografia fiel ao produto entregue (diretriz pendente, 12/11/2026)
+
+**Origem:** conversa com o responsável em 12/11/2026, a partir de fotografias reais enviadas pela confeiteira. **Estado:** análise estratégica armazenada para retomada; **não aprova troca de imagens nem altera catálogo/site neste momento**. Manter separadas as aprovações anteriores e a nova exigência de fidelidade fotográfica.
+
+**Realidade do produto e risco comercial:**
+- Os cascões são recheados por dentro e recebem cobertura/tampa de chocolate que sela o recheio para transporte/delivery. A foto antiga com creme, morango e outros ingredientes expostos no topo não representa necessariamente a unidade entregue e pode gerar expectativa errada.
+- Cor, formato e detalhes da tampa variam conforme o sabor. Exemplo referido: Prestígio pode receber tampa clara/branca; Ninho com Morango e Ninho Nutella e Chocotone têm composições internas distintas. Não atribuir cor ou decoração a todos sem confirmar visualmente cada unidade **fechada real**.
+- Imagens de referência recebidas incluem: Ninho com Morango antes de ser selado (morangos expostos); exemplar com tampa escura; corte real de Ninho com Morango mostrando morangos/recheio; corte real de Ninho Nutella e Chocotone com creme, chocolate e pedaços de chocotone. As imagens foram enviadas nesta conversa, não integram automaticamente o repositório.
+
+**Direção recomendada para discutir e implementar posteriormente:**
+1. **Capa de categoria na home:** uma foto real dos três cascões mais atraentes e diferenciados, **inteiros e selados, na forma vendida e entregue**; recorte mobile que destaque os três topos sem precisar mostrar o comprimento inteiro; não poluir com cortes explicativos nem criar montagens falsas.
+2. **Cada sabor na seleção interna:** foto principal do produto **inteiro, fechado/selado**, mais foto secundária **do exemplar efetivamente cortado**, exibindo o recheio real. Interação mobile simples, por exemplo miniaturas ou "Ver por dentro", sem esconder preço, quantidade ou botão de adicionar.
+3. **Padrão editorial:** luz e textura naturais, fundo/enquadramento coerente, proporções reais, sem brilho sintético nem ingredientes inexistentes. Não fazer a foto de produto aberto parecer o produto transportado. Se usar IA apenas para tratamento visual, não alterar forma, composição, tampa, quantidade ou conteúdo efetivo do produto; priorizar fotos reais.
+4. **Implantação por fases:** primeiro trio da home e sabores com par completo de fotografias reais disponíveis (Ninho com Morango, Ninho Nutella e Chocotone; terceiro sabor ainda a decidir), depois os restantes após receber fotografias autênticas de inteiro e corte. Não inventar imagens de sabores faltantes.
+5. **Validação:** confirmar com Luciane o padrão exato de tampa de *cada sabor*, fotografias finais de entrega e corte, depois decidir layout, files/IDs, teste visual responsivo, carrinho e catálogo. Nenhuma alteração antes de autorização específica.
+
+**Nota para retomada:** a conversa foi interrompida para priorizar o problema de impressão QZ. Ao voltar, recuperar esta seção e definir fotografias reais e escopo, preservando PR #41 da impressora. A recomendação discutida é **home = três cascões fechados reais; seleção = foto inteira + foto cortada para cada sabor**; ainda pendente de execução e revisão das imagens.
