@@ -6,6 +6,7 @@ on:
       - refine/natal-fatias-chocottone-editorial-v4-20261111
       - refine/natal-v4-1-resumo-textos-whatsapp-20261111
       - refine/checkout-whatsapp-passagem-direta-20261111
+      - feat/cascao-novos-sabores-natal22-20261112
   workflow_dispatch:
 permissions:
   contents: read
@@ -57,11 +58,11 @@ jobs:
           print('Pacote conectado validado; inserir 8 fotos aprovadas antes de publicar')
           PY
       - name: Acoplar fotografias V3 por SHA-256 e validar ZIP V4.1
-        run: NATAL_PACKAGE_VERSION=V4_2 python3 scripts/package-natal-v4-cloudflare.py
+        run: NATAL_PACKAGE_VERSION=V4_3 python3 scripts/package-natal-v4-cloudflare.py
       - name: Entregar pacote final completo para upload manual
         uses: actions/upload-artifact@v4
         with:
-          name: LUCIANE-COMERCIAL-V4-2-WHATSAPP-CLOUDFLARE
-          path: outputs/LUCIANE_COMERCIAL_V4_2_WHATSAPP.zip
+          name: LUCIANE-CASCAO-NATAL22-V4-3-BASE-QA
+          path: outputs/LUCIANE_COMERCIAL_CASCAO_NATAL22_V4_3_BASE.zip
           if-no-files-found: error
           retention-days: 7
