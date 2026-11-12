@@ -58,9 +58,9 @@
     {
       "pr": 34,
       "branch": "feat/cascao-novos-sabores-natal22-20261112",
-      "assessment": "parallel_diverged_not_merged",
-      "decision": "inspect_unique_changes_before_superseding",
-      "note": "Preço/nome se sobrepõem à V4.3; grade mobile e variação de nome diferem da V4.4 aprovada"
+      "assessment": "closed_superseded_unmerged",
+      "decision": "closed_after_test_parity_review_preserve_branch_and_history",
+      "note": "PR #34 foi encerrado sem merge em 12/11/2026, após comparar testes/paridade com PR #33/#35; variante de grade e nome do terceiro sabor não aprovados como substituição"
     },
     {
       "pr": 23,
