@@ -794,3 +794,13 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - **Preservado:** preços, catálogo, estoque, carrinho, confirmação no backend, processamento e impressão existentes, chaves Pix, texto formatado, link Tintim e parâmetros, permissões de admin, taxas, sazonalidade Natal e fotos. Não criar novo registro ao recuperar link nem habilitar confirmação automática de WhatsApp.
 - **QA pendente de consolidação:** checar CI no HEAD final, testes de redirecionamento seguro/recuperação, regressões comerciais, build conectado, fotos 8/8 por SHA-256, pacote Cloudflare e comportamento manual Safari/Instagram. Não declarar status de produção alterado; deployment continua manual.
 - **Entregável:** `LUCIANE_COMERCIAL_V4_2_WHATSAPP.zip` como arquivo Cloudflare já expandido do artefato GitHub Actions, caso todas as validações passem.
+
+
+## 59. V4.3 — Cascão Trufado e Natal R$22 (12/11/2026)
+
+- Base V4.2 `d19f381f132f8fc1e9feec5e89e821e6fb481dd8` (PR #32); PR #33 em `feat/cascao-trufado-natal-precos-20261112`.
+- Três produtos novos a R$20 com 9 WebPs fiéis às fotos enviadas; quatro fatias Natal a R$22. Categoria visual renomeada para Cascão Trufado, chaves técnicas/histórico e preços dos três antigos preservados.
+- SQL `20261112074500_cascao_trufado_tres_sabores.sql`: categoria muda só o nome, três SKUs novos `hidden`. Não liberar no painel antes de frontend+backend+fotos.
+- Edge `create-whatsapp-order` de produção estava na versão 36, cotador anterior; atualizar com versão 37 **somente na janela coordenada de publicação**, para evitar divergência de preço. A versão de repositório já inclui texto de fatias V4.
+- Workflows V4.3 geram `LUCIANE_COMERCIAL_V4_3_BASE_SEM_FOTOS_CASCAO.zip`, que **NÃO** contém os 9 WebPs. Script local `scripts/finish-cascao-v43-cloudflare.py` monta `LUCIANE_COMERCIAL_V4_3_CASCAO_NATAL.zip` e confere fotos/hashes. Preservar os 8 WebPs Natal.
+- CI deve ser confirmada no SHA final, não em commits intermediários. Sem merge, deploy Cloudflare ou ativação de novos SKUs até homologação e sincronização de preços.
