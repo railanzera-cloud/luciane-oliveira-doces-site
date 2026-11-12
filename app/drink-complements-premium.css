@@ -30,7 +30,9 @@
   display:grid;grid-template-rows:1fr;opacity:1;
   transition:grid-template-rows 260ms cubic-bezier(.22,1,.36,1),opacity 200ms ease;
 }
-.storefront #acompanhamentos[data-opening="true"] .refreshment-reveal,
+.storefront #acompanhamentos[data-opening="true"] .refreshment-reveal {
+  grid-template-rows:0fr;opacity:0;transition:none !important;
+}
 .storefront #acompanhamentos[data-collapsing="true"] .refreshment-reveal {
   grid-template-rows:0fr;opacity:0;
 }
