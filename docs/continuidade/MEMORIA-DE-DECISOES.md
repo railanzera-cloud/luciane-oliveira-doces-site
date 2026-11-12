@@ -338,3 +338,13 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - **Mantidos sem alterações:** `create-whatsapp-order` e sua idempotência, pedido/itens/valores Pix, cartão e dinheiro, pagamento, estoque, impressão/cozinha, checkout site/online separado, tracking token, Tintim, Meta e CAPI. Nenhuma alteração em Supabase, Edge produtiva, Cloudflare publicada, refrigerantes ou endereço de retirada.
 - **Limitação conhecida:** `window.location.assign` após API assíncrona pode ser bloqueado ou tratado diferentemente por navegadores internos. O fallback é obrigatório; WebKit automatizado não comprova a abertura do aplicativo WhatsApp nem o envio da mensagem. Clique/abertura não são evidência de envio efetivo; reconciliação real depende de integração de mensagens.
 - **Branch:** `refine/checkout-whatsapp-passagem-direta-20261111` derivada de V4.1 `f4dc7b86`. Package `LUCIANE_COMERCIAL_V4_2_WHATSAPP.zip`, apenas após sucesso da CI no SHA final e oito fotografias WebP fiéis ao pacote anterior.
+
+
+## D-C37 — Cascão Trufado + três sabores e Natal a R$22 (12/11/2026)
+
+- **Nova orientação explícita do proprietário:** nome comercial da categoria anterior “Cones Trufados” passa a **“Cascão Trufado”**, mantendo identidade técnica `cones`, tipo `cone`, rotas antigas e os três SKUs legados/preços históricos: Prestígio R$14, Dois Amores R$14, Ferrero Rocher R$16. A nova terminologia vale para vitrine, seleção, resumo, cotação e painel; não apagar registros antigos.
+- **Adicionados:** Kinder Bueno; Ninho com Morango; Ninho com Nutella e Chocotone — cada um a **R$20**, IDs `cascao-trufado-*` exclusivos e disponibilidade `cascao_*` independente, inicialmente `hidden`; fotos reais fornecidas pelo proprietário, duas versões WebP fiéis por produto.
+- **Quatro Fatias de Chocottone:** todas **R$22**, frontend/backend em centavos; sem alterar IDs `chocotone_*`, variante `porcao`, controle livre ou fotos.
+- **UX:** seis escolhas seguem o mesmo configurador de quantidade e carrinho; grade 2 colunas no celular, sem aumentar o último item quando par. A foto da home com trio clássico e as fotos antigas permanecem, preservando a aprovação original.
+- **Release é sincronizado:** Edge de cotação, migração de disponibilidade, Cloudflare ZIP com seis WebP novos e oito natalinos existentes, só depois liberação manual dos sabores. Enquanto não houver cutover, não anunciar “publicado” ou “vendável”. Backend v36 consultado e ainda sem contrato novo nesta sessão. Nenhum SQL, Edge, deploy Cloudflare ou ativação remota foi executado.
+- **Guia:** `docs/CASCAO-NATAL22-ROLLOUT-20261112.md` guarda nomes/IDs/preços, hashes das fotos e sequência segura de instalação.
