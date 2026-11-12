@@ -4317,6 +4317,18 @@ footer {
   margin: 0; line-height: 1.5; font-size: .84rem;
 }
 .admin-kitchen-print-issue small { color: #f2c1ae; font-size: .77rem; }
+/* Diagnóstico legível sem novos controles de impressão nem aumento da área crítica. */
+.admin-kitchen-issue-list {
+  list-style: none; margin: 0; padding: 0; display: grid; gap: 7px;
+}
+.admin-kitchen-issue-list li {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px;
+  border: 1px solid #8d5744; border-radius: 9px;
+  background: rgba(17, 10, 8, .20); padding: 9px 11px;
+  font-size: .8rem; line-height: 1.45;
+}
+.admin-kitchen-issue-list li strong { color: #ffe0c6; white-space: nowrap; }
+.admin-kitchen-issue-list li span { color: #f7d0bd; }
 .admin-kitchen-print-issue button { justify-self: start; min-height: 44px; }
 .admin-kitchen-health-note { color: #e5ca9e; font-size: .79rem; margin: 0; }
 
