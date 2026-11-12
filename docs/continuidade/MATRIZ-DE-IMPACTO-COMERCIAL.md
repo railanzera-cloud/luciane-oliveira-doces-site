@@ -3,6 +3,12 @@
 **Instituída em 05/11/2026** · **Objetivo:** impedir a regressão “adicionou o produto, mas o cliente não conseguiu pedi-lo”.  
 **Não é uma lista de testes a executar integralmente em todo commit.** Selecionar o conjunto real de dependências **a partir da mudança solicitada**, preservando contratos contíguos. Para dúvida de arquitetura, ler o código e a RPC antes de assumir conexão.
 
+### Gate transversal de release — 12/11/2026
+
+Qualquer nova implementação comercial deve validar **separadamente**: ancestry/PR/CI do SHA; cópia do ZIP final com hash e fotos não versionadas; cotação autoritativa da Edge ativa; disponibilidade no Supabase; Cloudflare deployment real; testes Safari/Instagram físico. Se uma origem não for comprovada, registrar como `unknown`, não inferir compatibilidade. Não usar preços do catálogo frontend como prova de cobrança no backend.
+
+`node scripts/check-commercial-release.mjs --preflight` valida o snapshot e `--release` barra promoção prematura. O protocolo detalhado está em [PROTOCOLO-DE-INTEGRACAO-E-RELEASE.md](PROTOCOLO-DE-INTEGRACAO-E-RELEASE.md).
+
 ## 1. Estados a manter separados
 
 | Estado | Não confundir com |
