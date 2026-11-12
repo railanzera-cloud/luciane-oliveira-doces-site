@@ -62,7 +62,8 @@ test("exposes clear active, complete, and locked step states", () => {
 
 test("keeps below-fold product images lazy and responsive", () => {
   assert.match(page, /src=\{slice\.cardImage \?\? slice\.image\}/);
-  assert.match(page, /loading="lazy" decoding="async" fetchPriority="low"/);
+  assert.match(page, /loading=\{lastSlicesIds\.has\(slice\.id\) && available \? "eager" : "lazy"\}/);
+  assert.match(page, /fetchPriority=\{lastSlicesIds\.has\(slice\.id\) && available \? "high" : "low"\}/);
   assert.match(page, /sizes="\(max-width: 599px\)/);
   const drinks = source("components/drink-complements.tsx");
   assert.match(drinks,/src=\{drink\.image\}/);
