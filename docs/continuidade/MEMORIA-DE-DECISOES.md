@@ -359,3 +359,13 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - **Isolamento:** nenhuma mudança em preços, estoque, status, categoria, IDs/SKUs, carrinho, checkout, Pix, Meta/Tintim, QZ nem fotos dos três sabores antigos.
 - **Publicação:** binários fora do GitHub e montagem por script reproduzível. **A V4.4 ainda depende do corte de preços/Edge pendente da V4.3.** Não publicar isoladamente com cotação produtiva divergente.
 - **Branch:** refine/cascao-fotografias-v44-20261112 a partir do PR #33 @ 1b7533c16745cfeadacf3eb18d380c06204b9224.
+
+
+## D-C39 — Integração progressiva com provas separadas e qualidade acumulativa (12/11/2026)
+
+- **Fonte:** autorização explícita do proprietário após análise dos riscos de branches encadeadas/desatualizadas, versões publicadas distintas e perda de padrões aprovados.
+- **Motivo:** centenas de commits podem estar adiante da `main` sem que isso represente evolução homogênea; PR #34 implementa Cascões em paralelo à linha PR #33/#35. CI aprovada, ZIP preparado e foto aprovada não demonstram produção compatível. Usuário quer elevar o nível de UX e engenharia, não simplesmente repetir cartões antigos.
+- **Decisão adotada:** manter a V4.4 (`8df271026c11100afa726c9e4e276ee94d526f45`) como referência **de código validado**, criar `work/integracao-comercial-controlada-20261112` para reconciliação sem deploy, registrar versões separadas em `ESTADO-DE-RELEASE.json`, instituir protocolo e gate `--preflight`/`--release`. Integrar futuras mudanças após análise de concorrentes e revisão de qualidade/risco proporcional.
+- **Alternativas rejeitadas:** fazer merge imediato de todos os PRs, usar `main` ou o último ZIP como certeza de produção, apagar branches antigas, fixar uma UI idêntica em todas as categorias, sofisticar por estética sem prova de clareza/conversão, ou presumir envio WhatsApp pelo clique.
+- **Proteções:** `main`, Edge, SQL, estoque, Cloudflare, pagamentos, cozinha e fotos seguem intactos. PR #34 permanece aberto enquanto alterações exclusivas são avaliadas; refrigerantes antigos PR #23/#24 não são reativados. O snapshot continua marcado **blocked** até identificar deployment real e corrigir mismatch de preços/IDs de Edge v36.
+- **Status:** decisão aprovada; governança implementada em branch candidata, aguardando CI e revisão. **Não publicada nem mesclada**.
