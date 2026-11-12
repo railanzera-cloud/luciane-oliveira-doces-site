@@ -4,7 +4,7 @@
 
 ## Solicitação aprovada
 - Categoria **Cascão Trufado** (identidade comercial), mantendo o ID técnico `cones`, o tipo interno `cone`, os IDs dos três produtos antigos e os preços **Prestígio R$14; Dois Amores R$14; Ferrero Rocher R$16**.
-- Três novos SKUs `unidade`, sem opções extras e com fotos fornecidas pelo proprietário: `cascao-trufado-kinder-bueno` (**Kinder Bueno**), `cascao-trufado-ninho-morango` (**Ninho com Morango**) e `cascao-trufado-ninho-nutella-chocotone` (**Ninho com Nutella e Chocotone**), **R$20 cada**.
+- Três novos SKUs `unidade`, sem opções extras e com fotos fornecidas pelo proprietário: `cascao-trufado-kinder-bueno` (**Kinder Bueno**), `cascao-trufado-ninho-morango` (**Ninho com Morango**) e `cascao-trufado-ninho-nutella-chocotone` (**Ninho com Nutella e Chocottone**), **R$20 cada**.
 - Os quatro SKUs de **Fatias de Chocottone** (Casadinho, Ferrero Rocher, Ninho com Nutella, Morango com Brigadeiro Branco e Chocolate) passam de R$16,99/R$18,99 para **R$22 cada**, sem alterar seus IDs, fotos, sazonalidade ou quantidade livre.
 
 ## Paridade / IDs
@@ -21,7 +21,7 @@ Os arquivos enviados nesta sessão são três JPEGs intactos (1122×1402). Foram
 |---|---|---|---|
 | Kinder Bueno | `fa639ae45e5a4f0fb954368140ac11ddadc3365ab7778cccbae0bd0b3e73ce25` | `37b6451d92e89c45c62bbb5a25adae00493022258fa81f5968c04b7a67ac507a` | `fc60b4bdf6b9293e83e937da0fb5f9f9668072fb0a5134bb054e4b705be0f9fa` |
 | Ninho com Morango | `6f50d502edeacf4b400ea1f6ef7bd49fc3d4548c1625b6bcb04c788bd2d063df` | `bd6e28d669d3bf2612d6c0a13bb5d576fb66974a24a5031459ba631ccafd6e75` | `fec42580e60e657d399130f1d5497513dd248070228ab692e96a65dc8baa9397` |
-| Ninho com Nutella e Chocotone | `45391c0ec15dbae3872d7b67d15307e2e72e17a94215a89edafdd47304212c22` | `747553e2e909810c00324b7c52e2a94c29ce892c4fc073da34e3589064c9c1d7` | `1a7ad2cd9118097165055f81b6d65359cca0a4128cbe5a24af664c111391b44d` |
+| Ninho com Nutella e Chocottone | `45391c0ec15dbae3872d7b67d15307e2e72e17a94215a89edafdd47304212c22` | `747553e2e909810c00324b7c52e2a94c29ce892c4fc073da34e3589064c9c1d7` | `1a7ad2cd9118097165055f81b6d65359cca0a4128cbe5a24af664c111391b44d` |
 
 Caminhos: `images/cascao-<slug>-detail-20261112.webp` e `images/cascao-<slug>-card-20261112.webp`, com slugs `kinder-bueno`, `ninho-morango`, `ninho-nutella-chocotone`.
 
