@@ -5,10 +5,10 @@ import { CHOCOTONES, CATEGORY_ITEM_KEYS, quoteCartItems } from "../supabase/func
 
 const files = (p) => readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const offers = [
-  ["chocotone-ninho-nutella", "chocotone_ninho_nutella", 1899],
-  ["chocotone-ferrero-rocher", "chocotone_ferrero_rocher", 1899],
-  ["chocotone-casadinho", "chocotone_casadinho", 1699],
-  ["chocotone-morango-brigadeiro-branco-chocolate", "chocotone_morango_brigadeiro_branco_chocolate", 1899],
+  ["chocotone-ninho-nutella", "chocotone_ninho_nutella", 2200],
+  ["chocotone-ferrero-rocher", "chocotone_ferrero_rocher", 2200],
+  ["chocotone-casadinho", "chocotone_casadinho", 2200],
+  ["chocotone-morango-brigadeiro-branco-chocolate", "chocotone_morango_brigadeiro_branco_chocolate", 2200],
 ];
 
 test("Natal tem quatro SKUs próprios, valores autoritativos e tipo distinto", () => {
@@ -30,7 +30,7 @@ test("Natal aceita pedidos mistos e rejeita variante/opções forjadas", () => {
     {product_id:"chocotone-casadinho",variant_id:"porcao",option_ids:[],quantity:1},
     {product_id:"cone-trufado-prestigio",variant_id:"unidade",option_ids:[],quantity:1}
   ]);
-  assert.equal(quote.subtotalCents,1699+1400);
+  assert.equal(quote.subtotalCents,2200+1400);
   assert.deepEqual(quote.items.map(x=>x.item_type),["chocotone","cone"]);
   assert.throws(()=>quoteCartItems([{product_id:"chocotone-casadinho",variant_id:"inteiro",quantity:1}]),/fatia individual de Chocottone/);
   assert.throws(()=>quoteCartItems([{product_id:"chocotone-casadinho",variant_id:"porcao",quantity:1,option_ids:["calda-chocolate"]}]),/fatia individual de Chocottone/);
