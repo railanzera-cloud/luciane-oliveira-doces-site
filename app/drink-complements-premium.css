@@ -25,6 +25,15 @@
 .storefront #acompanhamentos .refreshment-summary-copy small {font-size:.73rem;color:#82634e;line-height:1.3;}
 .storefront #acompanhamentos .refreshment-chevron {color:#885b3e;flex:0 0 18px;transition:transform .2s ease;}
 .storefront #acompanhamentos[open] .refreshment-chevron {transform:rotate(180deg);}
+/* CSS grid allows reversed transitions to retain the natural height in WebKit. */
+.storefront #acompanhamentos .refreshment-reveal {
+  display:grid;grid-template-rows:1fr;opacity:1;
+  transition:grid-template-rows 260ms cubic-bezier(.22,1,.36,1),opacity 200ms ease;
+}
+.storefront #acompanhamentos[data-collapsing="true"] .refreshment-reveal {
+  grid-template-rows:0fr;opacity:0;
+}
+.storefront #acompanhamentos .refreshment-reveal-shell {min-height:0;overflow:hidden;}
 .storefront #acompanhamentos .refreshment-body {
   box-sizing:border-box;overflow:hidden;
   padding:0 14px 15px;border-top:1px solid rgba(137,98,65,.15);
@@ -176,6 +185,7 @@
   display:inline-block;animation:refreshment-count-confirm 180ms ease-out both;
 }
 @media (prefers-reduced-motion: reduce) {
+  .storefront #acompanhamentos .refreshment-reveal {transition:none !important;}
   .storefront #acompanhamentos .refreshment-card {transition:none !important;}
   .storefront #acompanhamentos .refreshment-count {animation:none !important;}
   .storefront #acompanhamentos > summary,
