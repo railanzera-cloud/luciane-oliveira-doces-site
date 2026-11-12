@@ -79,8 +79,11 @@ try {
         const reveal = el.querySelector(".refreshment-reveal");
         const body = el.querySelector(".refreshment-body");
         return { open: el.open, height: reveal.getBoundingClientRect().height, full: body.scrollHeight,
-          running: reveal.getAnimations().some(a => a.playState === "running") };
+          running: reveal.getAnimations().some(a => a.playState === "running"),
+          collapsing: el.dataset.collapsing, rows: getComputedStyle(reveal).gridTemplateRows,
+          transition: getComputedStyle(reveal).transitionProperty };
       });
+      console.log("MOTION OPEN",width,JSON.stringify(duringOpen));
       assert.ok(duringOpen.open, "Abertura deve deixar details aberto durante animação");
       assert.ok(duringOpen.running, "WebKit deve executar a microanimação (não saltar diretamente)");
       assert.ok(duringOpen.height > 0 && duringOpen.height < duringOpen.full + 2,
