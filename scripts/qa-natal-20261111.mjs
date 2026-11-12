@@ -246,7 +246,16 @@ try {
         // Avançar é explícito: o botão leva a recebimento, não à grade de bebidas.
         const sticky = cascaoPage.locator(".mobile-sticky-bar.is-checkout-flow button").first();
         if (width < 700 && await sticky.count() && await sticky.isVisible()) {
+          assert.match(await sticky.innerText(),/Entrega ou retirada/i,"CTA é realmente continuação de recebimento");
           await sticky.click();
+          // A UI usa scrollIntoView({behavior:"smooth"}). Aguardar a animação em vez
+          // de medir no mesmo frame do clique, antes do requestAnimationFrame da React.
+          await cascaoPage.waitForFunction(() => {
+            const el = document.getElementById("recebimento-opcoes");
+            if (!el) return false;
+            const top = el.getBoundingClientRect().top;
+            return top >= -24 && top < window.innerHeight - 100;
+          }, null, {timeout:5000,polling:50});
           const receivingTop=await cascaoPage.locator("#recebimento-opcoes").evaluate(el=>el.getBoundingClientRect().top);
           assert.ok(receivingTop<height-100,"CTA de continuação chegou ao recebimento, não à bebida: "+receivingTop);
         }
