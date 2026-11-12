@@ -18,6 +18,11 @@ const baseStatuses=[
   {item_key:"category_natal",status:"available"},
   ...keys.map(item_key=>({item_key,status:"available"})),
   {item_key:"cone_prestigio",status:"available"},
+  {item_key:"cone_dois_amores",status:"available"},
+  {item_key:"cone_ferrero_rocher",status:"available"},
+  {item_key:"cascao_kinder_bueno",status:"available"},
+  {item_key:"cascao_ninho_morango",status:"available"},
+  {item_key:"cascao_ninho_nutella_chocotone",status:"available"},
   {item_key:"slice_chocolatudo",status:"available"},
   {item_key:"popcorn_size_500ml",status:"available"},
   {item_key:"popcorn_flavor_leitinho",status:"available"},
@@ -150,7 +155,21 @@ try {
       }
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
       assert.equal(errors.length,0,errors.join(" / "));
-      console.log("Natal QA",width,"ok",JSON.stringify(dimensions));
+      // V4.3: seis sabores no mesmo grid; imagens originais entram no ZIP final.
+      const cascaoPage = await context.newPage();
+      try {
+        await cascaoPage.goto(origin + "/?categoria=cones", {waitUntil:"domcontentloaded"});
+        await cascaoPage.locator(".cone-flavor-card").first().waitFor({state:"visible"});
+        assert.equal(await cascaoPage.locator(".cone-flavor-card").count(), 6, "Três sabores antigos + três cascões novos");
+        const cardText = await cascaoPage.locator(".cone-flavor-grid").innerText();
+        for (const flavor of ["Kinder Bueno", "Ninho com Morango", "Ninho Nutella e Chocotone"]) {
+          assert.ok(cardText.includes(flavor), "Novo sabor ausente: " + flavor);
+        }
+        assert.equal(await cascaoPage.locator(".cone-flavor-card").filter({hasText:"R$ 20,00"}).count(), 3, "Três novos sabores a R$20");
+        assert.equal(await cascaoPage.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, "Cascão sem overflow horizontal");
+        await cascaoPage.screenshot({path:path.join(out,"cascao-v43-"+width+".png"),animations:"disabled"});
+      } finally { await cascaoPage.close(); }
+      console.log("Natal e Cascão V4.3 QA",width,"ok",JSON.stringify(dimensions));
     } finally {
       await context.close();
     }
