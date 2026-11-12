@@ -9,6 +9,7 @@ on:
       - refine/natal-v4-1-resumo-textos-whatsapp-20261111
       - refine/checkout-whatsapp-passagem-direta-20261111
       - feat/cascao-trufado-natal-precos-20261112
+      - refine/cascao-fotografias-v44-20261112
   workflow_dispatch:
 permissions:
   contents: read
@@ -91,8 +92,8 @@ jobs:
               assert not any(n.startswith(('supabase/','.env','node_modules/')) for n in names)
           print('BUILDER NATAL CONECTADO CONFERIDO — imagens externas devem ser inseridas no ZIP antes de publicar')
           PY
-      - name: Consolidar BASE V4.3 com fotos Natal aprovadas; faltam 9 fotos Cascão
-        run: NATAL_PACKAGE_VERSION=V4_3 python3 scripts/package-natal-v4-cloudflare.py
+      - name: Consolidar BASE V4.4 com fotos Natal aprovadas; fotos Cascão serão anexadas offline
+        run: NATAL_PACKAGE_VERSION=V4_4 python3 scripts/package-natal-v4-cloudflare.py
       - name: Capturas visuais de QA (não são Safari físico)
         if: always()
         uses: actions/upload-artifact@v4
@@ -101,10 +102,10 @@ jobs:
           path: ${{ runner.temp }}/natal-visual/
           if-no-files-found: warn
           retention-days: 7
-      - name: BASE V4.3 incompleta - acoplar 9 fotos Cascão antes de publicar
+      - name: BASE V4.4 incompleta - acoplar fotos Cascão antes de publicar
         uses: actions/upload-artifact@v4
         with:
-          name: LUCIANE-COMERCIAL-V4-3-BASE-QA-SEM-FOTOS-CASCAO
-          path: outputs/LUCIANE_COMERCIAL_V4_3_BASE_SEM_FOTOS_CASCAO.zip
+          name: LUCIANE-COMERCIAL-V4-4-BASE-QA-SEM-FOTOS-CASCAO
+          path: outputs/LUCIANE_COMERCIAL_V4_4_BASE_SEM_FOTOS_CASCAO.zip
           if-no-files-found: error
           retention-days: 7
