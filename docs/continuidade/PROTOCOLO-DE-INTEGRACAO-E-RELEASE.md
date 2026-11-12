@@ -46,6 +46,14 @@ Leitura remota do Supabase comercial `edqiwvccmboyayojvuea` em 12/11/2026: Edge 
 
 Cloudflare: não há deployment ID/SHA/hash identificado nesta verificação. O site pode estar em versão diferente do HEAD; a URL pública por si não comprova build.
 
+### Atualização operacional após a divergência original (12/11/2026)
+
+O diagnóstico acima sobre a **Edge v36** é um registro histórico do momento inicial. Depois dele, a Edge comercial foi atualizada para **v37 ACTIVE**, com suporte aos três novos Cascões (2000 centavos) e às quatro Fatias de Chocottone (2200 centavos). A diferença remanescente é a nova tabela dos três Cascões antigos: frontend V4.6 = 1800/1800/2000 centavos, Edge v37 = 1400/1400/1600 centavos. **Nenhum pacote V4.6 tem deployment comprovado.**
+
+O PR #37, sobre o PR #36, contém a linha funcional candidata mais completa, com correção dos complementos e o ZIP V4.6 de 117 arquivos preservando fotos aprovadas. Um teste de navegação que buscava o rótulo histórico “Cones Trufados” foi atualizado para “Cascão Trufado”; reavaliar CI no HEAD exato antes de promover. **Não usar os SHAs de V4.4 ou V4.6 como prova de publicação.**
+
+A decisão de produto D-C42 aprova futuramente bebidas compactas expansíveis, mas sua implementação ocorre **depois** de reconciliar Cloudflare, Edge, preços e integração. Não restaurar PRs #23/#24 no fechamento da V4.6. O release permanece bloqueado até Cloudflare identificado, rollback preparado, paridade servidor/frontend e homologação real do checkout.
+
 ## 4. Ritual obrigatório antes de começar um refinamento
 
 1. Ler `AGENTS.md` + cinco documentos, com atenção especial ao checkpoint recente; consultar este protocolo e o JSON de release.
