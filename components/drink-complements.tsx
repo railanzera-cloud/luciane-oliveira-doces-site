@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, type MouseEvent } from "react";
 import { ChevronDown, CupSoda, Minus, Plus } from "lucide-react";
 import { DRINKS, type Product } from "@/app/catalog";
 import { drinkStatus, type AvailabilitySnapshot } from "@/app/menu-availability";
@@ -20,34 +20,61 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
   const offerRef = useRef<HTMLDetailsElement>(null);
   const anchorRef = useRef<number | null>(null);
   const expansionRef = useRef<Animation | null>(null);
+  const expansionTargetRef = useRef(false);
 
-  // Animar o painel sem introduzir uma etapa, mudar o foco ou rolar a tela.
-  // Manter <details> nativo preserva semântica, teclado e estado inicial recolhido.
-  const toggleOffer = (event: React.MouseEvent<HTMLElement>) => {
+  // Cancelar qualquer animação ainda ativa ao desmontar, sem mudar o estado do carrinho.
+  useEffect(() => () => expansionRef.current?.cancel(), []);
+
+  // O <details> continua nativo (teclado, semântica e estado inicial fechado).
+  // Interceptamos apenas o clique do <summary> para animar o conteúdo sem nova rolagem.
+  const toggleOffer = (event: MouseEvent<HTMLElement>) => {
     const details = offerRef.current;
     if (!details) return;
     event.preventDefault();
-    expansionRef.current?.cancel();
+
     const body = details.querySelector<HTMLElement>(".refreshment-body");
-    if (!body) { details.open = !details.open; return; }
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const wasOpen = details.open;
-    if (reduced || typeof body.animate !== "function") {
-      details.open = !wasOpen;
+    if (!body) {
+      details.open = !details.open;
       return;
     }
-    if (!wasOpen) details.open = true;
-    const height = body.scrollHeight;
+
+    // Durante cliques sucessivos, inverter a intenção mais recente, não apenas
+    // o atributo open (que permanece true enquanto o fechamento é animado).
+    const opening = expansionRef.current ? !expansionTargetRef.current : !details.open;
+    const currentHeight = details.open ? body.getBoundingClientRect().height : 0;
+    const measuredOpacity = details.open ? Number.parseFloat(getComputedStyle(body).opacity) : 0;
+    const currentOpacity = Number.isFinite(measuredOpacity) ? measuredOpacity : (details.open ? 1 : 0);
+
+    // Ler as dimensões antes de cancelar permite continuar da posição intermediária,
+    // evitando salto quando alguém toca duas ou três vezes rapidamente.
+    expansionRef.current?.cancel();
+    expansionRef.current = null;
+    expansionTargetRef.current = opening;
+
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    if (reducedMotion || typeof body.animate !== "function") {
+      details.open = opening;
+      return;
+    }
+    if (opening) details.open = true;
+
+    // Com box-sizing:border-box, height:0 oculta inclusive padding e borda.
+    const borderSize = Math.max(0, body.offsetHeight - body.clientHeight);
+    const expandedHeight = body.scrollHeight + borderSize;
     const animation = body.animate(
-      wasOpen
-        ? [{ height: `${height}px`, opacity: 1 }, { height: "0px", opacity: 0 }]
-        : [{ height: "0px", opacity: 0 }, { height: `${height}px`, opacity: 1 }],
-      { duration: wasOpen ? 210 : 250, easing: "cubic-bezier(.22, 1, .36, 1)" }
+      [
+        { height: `${currentHeight}px`, opacity: currentOpacity },
+        { height: `${opening ? expandedHeight : 0}px`, opacity: opening ? 1 : 0 },
+      ],
+      {
+        duration: opening ? 250 : 210,
+        easing: "cubic-bezier(.22, 1, .36, 1)",
+      }
     );
     expansionRef.current = animation;
     animation.onfinish = () => {
       if (expansionRef.current !== animation) return;
-      if (wasOpen) details.open = false;
+      details.open = opening;
       expansionRef.current = null;
     };
   };
@@ -118,7 +145,7 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
                 : quantity > 0 ? <div className="refreshment-quantity" role="group" aria-label={`Quantidade de ${drink.name}, ${variant.label}`}>
                     <button type="button" disabled={!canRemove} aria-label={`Remover uma unidade de ${drink.name}`}
                       onClick={() => adjust(drink,-1)}><Minus size={16} aria-hidden="true" /></button>
-                    <span aria-live="off">{quantity}</span>
+                    <span key={quantity} className="refreshment-count" aria-live="off">{quantity}</span>
                     <button type="button" disabled={!canAdd} aria-label={`Adicionar uma unidade de ${drink.name}`}
                       onClick={() => adjust(drink,1)}><Plus size={16} aria-hidden="true" /></button>
                   </div>
