@@ -49,7 +49,10 @@ test("preserva assets do catálogo na origem e assinala o novo card exclusivo do
   // explícita e não deve autorizar outros arquivos ausentes.
   const packagedOnlyCard = "/fatia-abacaxi-brigadeiro-branco-card-20261108.webp";
   const cardImages = [...catalog.matchAll(/cardImage: "([^"]+)"/g)].map(match => match[1])
-    .filter(path => !path.startsWith("/images/cone-trufado-") && !path.startsWith("/images/chocotone-"));
+    .filter(path => !path.startsWith("/images/cone-trufado-") && !path.startsWith("/images/chocotone-") && !path.startsWith("/images/cascao-"));
+  // Os novos Cascões também recebem seis WebP otimizados no ZIP Cloudflare final;
+  // a ausência de binários no GitHub é explicitamente documentada, não silenciosa.
+  assert.equal([...catalog.matchAll(/cardImage: "\/images\/cascao-[^"]+"/g)].length, 3);
   // Os oito assets natalinos serão acoplados ao ZIP conectado durante o empacotamento final;
   // não afirmar que existam no GitHub enquanto os binários permanecerem externos.
   assert.equal([...catalog.matchAll(/cardImage: "\/images\/chocotone-[^"]+"/g)].length, 4);
