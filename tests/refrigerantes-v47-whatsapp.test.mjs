@@ -21,7 +21,7 @@ test("Somente quatro SKUs atuais; catálogo frontend espelha a Edge e preço",()
    assert.equal(p.variants[0].price*100,prices[i]);
    assert.equal(p.variants[0].whatsappLabel,s.label);
    assert.equal(p.image,s.image);
-   assert.equal(s.itemKey, `${id.replaceAll("-", "_") === id ? id : s.itemKey}`); // Chave autoritativa do servidor.
+   assert.match(s.itemKey,/^drink_/);
    assert.match(read("app/menu-availability.ts"),/Object\.values\(DRINK_CATALOG\)/);
    assert.match(p.image,/^\/images\/refrigerante-/);
  }
