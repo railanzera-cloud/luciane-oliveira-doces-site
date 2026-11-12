@@ -2,7 +2,7 @@ import { STORE_CONFIG, type CategoryId } from "@/app/catalog";
 import { CATEGORY_ITEM_KEYS, isItemAvailable, isItemVisible, type AvailabilitySnapshot } from "@/app/menu-availability";
 
 export const MENU_CATEGORIES = [
-  { id: "cones", name: "Cones Trufados", description: "Prestígio, Dois Amores e Ferrero Rocher" },
+  { id: "cones", name: "Cascão Trufado", description: "6 sabores, incluindo Kinder Bueno e Ninho com Morango" },
   { id: "pipocas", name: "Pipocas Gourmet", description: "Escolha o tamanho e combine seus sabores" },
   { id: "fatias", name: "Fatias Artesanais", description: "Escolha entre os sabores disponíveis" },
 ] as const;
