@@ -27,6 +27,9 @@ test("snapshot de versão tem uma referência íntegra, mas não fabrica produç
   assert.equal(state.deployments.supabase_commercial.observed_new_cascao_supported_by_edge, false);
   assert.equal(state.release_readiness.status, "blocked");
   assert.equal(state.release_readiness.do_not_auto_deploy, true);
+  const parallel = state.pending_divergent_work.find(x => x.pr === 34);
+  assert.equal(parallel.assessment, "closed_superseded_unmerged");
+  assert.equal(parallel.decision, "closed_after_test_parity_review_preserve_branch_and_history");
 });
 
 test("não confunde pacote CI, fotografias externas nem ZIP publicado", () => {
@@ -63,4 +66,19 @@ test("a entrada do projeto e o checkpoint direcionam para o protocolo novo", () 
   assert.match(checkpoint,/work\/integracao-comercial-controlada-20261112/);
   assert.match(guide,/Safari\/Instagram/);
   assert.match(guide,/WhatsApp/);
+});
+
+test("reconciliação e runbook não executam migrações nem afirmam release", () => {
+ const reconciliation = readFileSync(join(root, "docs/continuidade/RECONCILIACAO-PRs-20261112.md"), "utf8");
+ const operations = readFileSync(join(root, "docs/continuidade/PLANO-DE-CORTE-V44-20261112.md"), "utf8");
+ assert.match(reconciliation, /encerrado como substituído, sem merge/i);
+ assert.match(reconciliation, /PR #23/);
+ assert.match(reconciliation, /PR #24/);
+ assert.match(operations, /NÃO EXECUTADO/);
+ assert.match(operations, /rollback/i);
+ assert.match(operations, /Cloudflare/);
+ assert.match(operations, /create-whatsapp-order/);
+ assert.match(operations, /1699\/1899/);
+ assert.match(operations, /2000\/2200/);
+ assert.match(operations, /nenhum/i); // política de execução não automática
 });
