@@ -37,7 +37,7 @@ test("Cotação autoritativa reconhece os cones e cobra o preço correto", () =>
   for(const [product_id,item_key,cents] of cases) {
     const quote=quoteCartItems([{product_id,variant_id:"unidade",quantity:2,option_ids:[]}]);
     assert.equal(quote.subtotalCents,cents*2);
-    assert.deepEqual(quote.availabilityKeys,["category_cones",item_key]);
+    assert.deepEqual([...quote.availabilityKeys].sort(),["category_cones",item_key].sort());
     assert.deepEqual(quote.items.map(x=>({
       item_type:x.item_type,category_key:x.category_key,item_key:x.item_key,unit_price_cents:x.unit_price_cents,
       size_label:x.size_label,option_ids:x.option_ids,
