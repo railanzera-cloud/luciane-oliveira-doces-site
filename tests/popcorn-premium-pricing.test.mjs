@@ -5,7 +5,7 @@ import ts from "typescript";
 
 const source = await readFile(new URL("../app/catalog.ts", import.meta.url), "utf8");
 const { outputText } = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } });
-const resolved = outputText.replace('../supabase/functions/_shared/popcorn-promotion.mjs', new URL('../supabase/functions/_shared/popcorn-promotion.mjs', import.meta.url).href);
+const resolved = outputText.replace('../supabase/functions/_shared/popcorn-promotion.mjs', new URL('../supabase/functions/_shared/popcorn-promotion.mjs', import.meta.url).href).replace('../supabase/functions/_shared/drinks-catalog.mjs', new URL('../supabase/functions/_shared/drinks-catalog.mjs', import.meta.url).href);
 const catalog = await import(`data:text/javascript;base64,${Buffer.from(resolved).toString("base64")}`);
 const { POPCORN, POPCORN_PRICING_GROUPS } = catalog;
 // This suite verifies the permanent price table, independently of temporary offers.

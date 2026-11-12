@@ -14,9 +14,9 @@ test("Vitrine usa foto de três sabores, Prestígio usa nova imagem",()=>{
   const prestigio=CONES.find(p=>p.id==="cone-trufado-prestigio");
   assert.equal(prestigio?.image,"/images/cone-trufado-prestigio-20261108-v2.webp");
   assert.equal(prestigio?.cardImage,"/images/cone-trufado-prestigio-card-20261108-v2.webp");
-  assert.equal(prestigio?.variants[0].price,14);
-  assert.equal(CONES.find(p=>p.id==="cone-trufado-dois-amores")?.variants[0].price,14);
-  assert.equal(CONES.find(p=>p.id==="cone-trufado-ferrero-rocher")?.variants[0].price,16);
+  assert.equal(prestigio?.variants[0].price,18);
+  assert.equal(CONES.find(p=>p.id==="cone-trufado-dois-amores")?.variants[0].price,18);
+  assert.equal(CONES.find(p=>p.id==="cone-trufado-ferrero-rocher")?.variants[0].price,20);
 });
 
 test("Tela de Cones anima entrada com duração e redução de movimento",()=>{

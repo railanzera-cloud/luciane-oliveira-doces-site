@@ -8,6 +8,9 @@ on:
       - refine/checkout-whatsapp-passagem-direta-20261111
       - feat/cascao-trufado-natal-precos-20261112
       - refine/cascao-fotografias-v44-20261112
+      - fix/cascao-precos-paridade-20261112
+      - feat/refrigerantes-ux-compacta-whatsapp-v47-20261112
+      - fix/admin-refrigerantes-disponibilidade-v471-20261112
   workflow_dispatch:
 permissions:
   contents: read

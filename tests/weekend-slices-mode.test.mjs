@@ -12,14 +12,15 @@ test("reactivates the popcorn category while keeping its catalog data", () => {
   assert.match(catalog, /export const POPCORN = PRODUCTS\.find/);
 });
 
-test("keeps drinks ready to reactivate while hiding them from the current menu", () => {
-  assert.match(catalog, /enabledExtras:\s*\{\s*drinks: false,/s);
-  assert.match(catalog, /id: "coca-cola-220"/);
+test("keeps the four drinks gated by remote availability and independent of dessert menus", async () => {
+  assert.match(catalog, /enabledExtras:\s*\{\s*drinks: true,/s);
+  assert.match(catalog, /DRINKS as DRINK_CATALOG/);
   assert.match(catalog, /export const DRINKS = PRODUCTS\.filter/);
-  assert.match(page, /if \(product\.kind === "slice"\) return isCategoryEnabled\("fatias"\);\s*if \(product\.kind === "cone"\) return isCategoryEnabled\("cones"\);\s*if \(product\.kind === "chocotone"\) return isCategoryEnabled\("natal"\);\s*return STORE_CONFIG\.enabledExtras\.drinks;/s);
-  assert.match(page, /STORE_CONFIG\.enabledExtras\.drinks && \(\s*<section className="extras-section"/s);
-  assert.match(page, /STORE_CONFIG\.enabledExtras\.drinks && <Button/);
-  assert.match(page, /scrollToSection\("acompanhamentos"\)/);
+  assert.match(page, /return STORE_CONFIG\.enabledExtras\.drinks;/);
+  assert.match(page, /DRINKS\.some\(drink => drinkStatus\(availability,drink.id\) === "available"\)/);
+  assert.match(page, /scrollToSection|requestScroll/);
+  assert.match(page, /recebimento-opcoes/);
+  assert.match(await readFile(new URL("../components/drink-complements.tsx", import.meta.url), "utf8"), /refreshment-later/);
 });
 
 test("starts neutral and resolves navigation from the existing availability controls", () => {

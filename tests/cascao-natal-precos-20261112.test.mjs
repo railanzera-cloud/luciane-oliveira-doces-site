@@ -12,9 +12,9 @@ const novos = [
   ["cascao-trufado-ninho-nutella-chocotone", "cascao_ninho_nutella_chocotone", "Ninho Nutella e Chocotone"],
 ];
 const anteriores = [
-  ["cone-trufado-prestigio", 1400],
-  ["cone-trufado-dois-amores", 1400],
-  ["cone-trufado-ferrero-rocher", 1600],
+  ["cone-trufado-prestigio", 1800],
+  ["cone-trufado-dois-amores", 1800],
+  ["cone-trufado-ferrero-rocher", 2000],
 ];
 const natal = [
   "chocotone-ninho-nutella",
@@ -51,7 +51,7 @@ test("Cascão Trufado: 6 sabores, 3 novos a R$20 com foto real e IDs exclusivos"
   assert.equal(novos.length, 3);
 });
 
-test("Sabores anteriores mantêm preço e SKU, com nome comercial Cascão Trufado", () => {
+test("Sabores anteriores usam preços atualizados pela Luciane e mantêm seus SKUs", () => {
   for (const [id, cents] of anteriores) {
     const front = FRONT_CONES.find(p => p.id === id);
     assert.equal(Math.round(front.variants[0].price * 100), cents);

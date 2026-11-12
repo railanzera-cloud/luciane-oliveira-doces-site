@@ -30,18 +30,18 @@ test("Natal aceita pedidos mistos e rejeita variante/opções forjadas", () => {
     {product_id:"chocotone-casadinho",variant_id:"porcao",option_ids:[],quantity:1},
     {product_id:"cone-trufado-prestigio",variant_id:"unidade",option_ids:[],quantity:1}
   ]);
-  assert.equal(quote.subtotalCents,2200+1400);
+  assert.equal(quote.subtotalCents,2200+1800);
   assert.deepEqual(quote.items.map(x=>x.item_type),["chocotone","cone"]);
   assert.throws(()=>quoteCartItems([{product_id:"chocotone-casadinho",variant_id:"inteiro",quantity:1}]),/fatia individual de Chocottone/);
   assert.throws(()=>quoteCartItems([{product_id:"chocotone-casadinho",variant_id:"porcao",quantity:1,option_ids:["calda-chocolate"]}]),/fatia individual de Chocottone/);
   assert.throws(()=>quoteCartItems([{product_id:"chocotone-casadinho",variant_id:"porcao",quantity:100}]),/Quantidade inválida/);
 });
 
-test("front não deixa Natal disponível por fallback e permanece com refrigerantes desligados", () => {
+test("front mantém Natal protegido no fallback e bebidas dependentes de disponibilidade remota", () => {
   const cat=files("app/catalog.ts");
   const statuses=files("app/menu-availability.ts");
   assert.match(cat,/CHOCOTONES = PRODUCTS\.filter/);
-  assert.match(cat,/drinks:\s*false/);
+  assert.match(cat,/drinks:\s*true/);
   assert.match(statuses,/\[CATEGORY_ITEM_KEYS\.natal\]: "hidden"/);
   assert.match(statuses,/for \(const chocotone of CHOCOTONE_ITEMS\) statuses\[chocotone\.itemKey\] = "hidden"/);
   assert.match(statuses,/CHOCOTONE_ITEM_KEYS/);
@@ -84,7 +84,7 @@ test("Natal está presente nas recomendações contextuais e o CTA duplicado é 
   const css=files("app/colecao-natal-2026.css");
   assert.match(home,/addedNotice\?\.category === "natal" \? "natal"/);
   assert.match(home,/natal: natalCanBeAdded/);
-  assert.match(home,/id === "natal" \? "Fatias de Chocottone"/);
+  assert.match(home,/id === "natal" \? \(addedNotice\?\.category === "natal" \? "Adicionar mais fatias de Chocottone" : "Fatias de Chocottone"\)/);
   assert.match(home,/id === "natal"\) startAnother\("natal"\)/);
   assert.match(home,/className="boutique-complement-choice" data-natal=\{id === "natal" \|\| undefined\}/);
   assert.match(home,/natalPicking && natalInlineActionVisible/);
@@ -149,5 +149,5 @@ test("Natal V4.1 remove redundância e exibe total da seleção, não apenas o �
   assert.match(home,/Como deseja receber\?/);
   assert.match(home,/A partir de R\$8/);
   assert.match(home,/Em Paragominas/);
-  assert.match(files("app/catalog.ts"),/drinks:\s*false/);
+  assert.match(files("app/catalog.ts"),/drinks:\s*true/);
 });

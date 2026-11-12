@@ -1,0 +1,41 @@
+name: Governanca comercial - continuidade e release sem deploy
+
+on:
+  push:
+    branches:
+      - 'work/integracao-comercial-*'
+  pull_request:
+    paths:
+      - 'AGENTS.md'
+      - 'README.md'
+      - 'docs/continuidade/**'
+      - 'scripts/check-commercial-release.mjs'
+      - 'tests/release-governance-20261112.test.mjs'
+      - '.github/workflows/release-governance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: Linha de integracao e manifesto de release
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificar descendencia da ultima candidata V4.4
+        run: git merge-base --is-ancestor 8df271026c11100afa726c9e4e276ee94d526f45 HEAD
+      - name: Testes de continuidade e release
+        run: node --test tests/continuity-contract.test.mjs tests/release-governance-20261112.test.mjs
+      - name: Conferir snapshot comercial sem declarar deploy
+        run: node scripts/check-commercial-release.mjs --preflight
+      - name: Impedir criacao de pacote publicavel por tarefa documental
+        run: |
+          test ! -e outputs/LUCIANE_COMERCIAL_V4_4_CASCAO_VISUAL.zip
+          echo "Governanca documental: nenhum ZIP novo ou deploy."

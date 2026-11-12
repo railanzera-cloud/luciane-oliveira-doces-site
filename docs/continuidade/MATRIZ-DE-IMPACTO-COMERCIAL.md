@@ -3,6 +3,12 @@
 **Instituída em 05/11/2026** · **Objetivo:** impedir a regressão “adicionou o produto, mas o cliente não conseguiu pedi-lo”.  
 **Não é uma lista de testes a executar integralmente em todo commit.** Selecionar o conjunto real de dependências **a partir da mudança solicitada**, preservando contratos contíguos. Para dúvida de arquitetura, ler o código e a RPC antes de assumir conexão.
 
+### Gate transversal de release — 12/11/2026
+
+Qualquer nova implementação comercial deve validar **separadamente**: ancestry/PR/CI do SHA; cópia do ZIP final com hash e fotos não versionadas; cotação autoritativa da Edge ativa; disponibilidade no Supabase; Cloudflare deployment real; testes Safari/Instagram físico. Se uma origem não for comprovada, registrar como `unknown`, não inferir compatibilidade. Não usar preços do catálogo frontend como prova de cobrança no backend.
+
+`node scripts/check-commercial-release.mjs --preflight` valida o snapshot e `--release` barra promoção prematura. O protocolo detalhado está em [PROTOCOLO-DE-INTEGRACAO-E-RELEASE.md](PROTOCOLO-DE-INTEGRACAO-E-RELEASE.md).
+
 ## 1. Estados a manter separados
 
 | Estado | Não confundir com |
@@ -139,3 +145,11 @@ Contrato temporário de negócio (sem atualizar tabelas permanentes): `POPCORN_P
 - Integração: um carrinho misto, etiqueta `Chocotone — Sabor`, descrição "1 porção individual", quantidade ajustável e subtotal. Meta `AddToCart` dispara só na adição; `Purchase` depende de venda legítima. Sem modificar frete/pagamento/CRM.
 - Operacional: primeiro deploy de backend compatível e inserção SQL com cinco linhas `hidden`, depois ZIP manual Cloudflare, homologar fotos e pedidos mistos no Safari/Instagram, somente então liberar categoria e sabores no `/admin`. Para encerrar temporada, ocultar a categoria (preserva venda histórica).
 - Verificações: QA comercial, cotação forjada/mista, build, tipos sem novas regressões, WebKit 5 larguras, assets ZIP SHA/rotas. Não substituir fotos de categorias existentes nem tornar as bebidas ocultas novamente vendáveis.
+
+## Complemento opcional refrigerantes V4.7 — contrato de ponta a ponta (12/11/2026)
+
+- **Fonte de preço e identificador:** `supabase/functions/_shared/drinks-catalog.mjs`, já presente na Edge `create-whatsapp-order` v38. Frontend importa o mesmo catálogo para `app/catalog.ts`; cada bebida usa ID, variante e preço exato: `coca-cola-zero-220/220ml/400`, `fanta-laranja-220/220ml/400`, `guarana-antarctica-200/200ml/300`, `coca-cola-350/350ml/600` (centavos). IDs históricos de bebidas não podem ser remapeados silenciosamente.
+- **Disponibilidade e ciclo de release:** `menu_availability.item_key` separado por SKU, fallback `hidden`; `DRINK_ITEM_KEYS` precisa mapear `itemKey` autoritativo, `source=supabase`, `orders_open` e `status=available`. `sold_out` bloqueia adição; `hidden` não é exibido. Não definir `available` no banco antes de publicar V4.7 no Cloudflare; não publicar build com fotografias ausentes.
+- **Carrinho/checkout:** `kind='drink'`, somente variante oficial, `option_ids=[]`, quantidade 1..99 por SKU. Preço de venda sempre validado na Edge; não confiar em valores do navegador. Mistura de bebidas + doces em um único pedido; quantidade incrementa/decrementa sem novo pedido e sem scroll programático; botão flutuante deve permanecer em `recebimento-opcoes`.
+- **Destino dos pedidos:** bebida ativa `cartRequiresWhatsApp`; preservar metadados de entrega/retirada, Pix/dinheiro/cartão, Tintim/Meta, envio efetivo da mensagem, ordem armazenada, confirmação de pagamento e trabalho de impressão QZ na cozinha. Não disparar `Purchase` só porque cliente abriu WhatsApp ou porque uma comanda foi registrada. O texto `1x Cascão ... 1 cascão` foi corrigido apenas na mensagem: variante interna `1 cascão` preservada.
+- **Homologação mínima:** testar falha/oculto/esgotado, 1 bebida, múltiplas da mesma bebida, duas bebidas distintas, carrinho misto, remoção a zero, total com entrega/retirada, CTA e scroll 320/375/390/430/1280, Safari e Instagram físicos, WhatsApp enviado de verdade, Pix e comanda. Produção só é aceita quando fotos e preços têm paridade, e existe rollback de Cloudflare para V4.6.

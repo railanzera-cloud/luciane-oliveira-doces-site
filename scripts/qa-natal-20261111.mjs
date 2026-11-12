@@ -24,6 +24,10 @@ const baseStatuses=[
   {item_key:"cascao_ninho_morango",status:"available"},
   {item_key:"cascao_ninho_nutella_chocotone",status:"available"},
   {item_key:"slice_chocolatudo",status:"available"},
+  {item_key:"drink_coca_cola_zero_220",status:"available"},
+  {item_key:"drink_fanta_laranja_220",status:"available"},
+  {item_key:"drink_guarana_antarctica_200",status:"hidden"},
+  {item_key:"drink_coca_cola_350",status:"sold_out"},
   {item_key:"popcorn_size_500ml",status:"available"},
   {item_key:"popcorn_flavor_leitinho",status:"available"},
 ];
@@ -165,9 +169,97 @@ try {
         for (const flavor of ["Kinder Bueno", "Ninho com Morango", "Ninho Nutella e Chocotone"]) {
           assert.ok(cardText.includes(flavor), "Novo sabor ausente: " + flavor);
         }
-        assert.equal(await cascaoPage.locator(".cone-flavor-card").filter({hasText:"R$ 20,00"}).count(), 3, "Três novos sabores a R$20");
+        // Ferrero passou para R$20, assim como os três sabores novos.
+        for (const [flavor, price] of [
+          ["Prestígio", "R$ 18,00"], ["Dois Amores", "R$ 18,00"],
+          ["Ferrero Rocher", "R$ 20,00"], ["Kinder Bueno", "R$ 20,00"],
+          ["Ninho com Morango", "R$ 20,00"], ["Ninho Nutella e Chocotone", "R$ 20,00"],
+        ]) {
+          const card = cascaoPage.locator(".cone-flavor-card").filter({hasText: flavor});
+          assert.equal(await card.count(), 1, "Cartão único do sabor: " + flavor);
+          const actualText = (await card.innerText()).replace(/\s+/g, " "); // Intl.Formatter usa NBSP em moeda.
+          assert.ok(actualText.includes(price), "Preço do sabor divergente: " + flavor + " / " + price + " / exibido: " + actualText);
+        }
         assert.equal(await cascaoPage.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, "Cascão sem overflow horizontal");
         await cascaoPage.screenshot({path:path.join(out,"cascao-v43-"+width+".png"),animations:"disabled"});
+        // Regressão real: depois de Ninho com Morango, Natal não pode suprimir "outro cascão".
+        await cascaoPage.locator('label[for="cone-cascao-trufado-ninho-morango"]').click();
+        await cascaoPage.locator("#cones-quantidade .add-button").click();
+        const repeatOffers = cascaoPage.locator("#recebimento .boutique-added-continuity .boutique-complement-choice");
+        await repeatOffers.first().waitFor({state:"visible"});
+        assert.equal(await repeatOffers.count(), 4, "Cascão + Natal + Gourmet + Fatias; Trufadas indisponíveis");
+        assert.match(await repeatOffers.first().innerText(), /Escolher outro cascão/);
+        assert.equal(await repeatOffers.filter({hasText:"Fatias de Chocottone"}).count(),1);
+        assert.equal(await repeatOffers.filter({hasText:"Adicionar fatia"}).count(),1);
+        assert.equal(await cascaoPage.locator("#carrinho .cart-item").count(),1,"Primeiro cascão preservado");
+        await cascaoPage.screenshot({path:path.join(out,"cascao-complementos-"+width+".png"),animations:"disabled"});
+        await repeatOffers.first().click();
+        await cascaoPage.locator('label[for="cone-cone-trufado-prestigio"]').waitFor({state:"visible"});
+        assert.equal(await cascaoPage.locator("#carrinho .cart-item").count(),1,"Voltar ao configurador não limpa carrinho");
+        await cascaoPage.locator('label[for="cone-cone-trufado-prestigio"]').click();
+        await cascaoPage.locator("#cones-quantidade .add-button").click();
+        assert.equal(await cascaoPage.locator("#carrinho .cart-item").count(),2,"Dois sabores separados no mesmo pedido");
+        const subtotal = (await cascaoPage.locator("#carrinho .cart-subtotal strong").innerText()).replace(/\s+/g," ");
+        assert.match(subtotal,/38,00/,"Ninho com Morango R$20 + Prestígio R$18");
+        assert.equal(await cascaoPage.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),false,"Complementos sem overflow");
+        // V4.7: oferta opcional compacta não rouba a navegação ou os complementos.
+        const drinks = cascaoPage.locator("#acompanhamentos");
+        await drinks.locator("summary").waitFor({state:"visible"});
+        assert.equal(await drinks.getAttribute("open"),null,"Bebidas começam recolhidas");
+        await drinks.locator("summary").click();
+        const drinkCards = drinks.locator(".refreshment-card");
+        assert.equal(await drinkCards.count(),3,"Duas bebidas disponíveis, uma esgotada, uma oculta");
+        assert.equal(await drinks.locator('[data-drink-id="guarana-antarctica-200"]').count(),0,"Bebida oculta não aparece");
+        assert.equal(await drinks.locator('[data-drink-id="coca-cola-350"] button:enabled').count(),0,"Bebida esgotada bloqueada");
+        const zero = drinks.locator('[data-drink-id="coca-cola-zero-220"]');
+        const fanta = drinks.locator('[data-drink-id="fanta-laranja-220"]');
+        const addZero = async () => {
+          const button = zero.locator(".refreshment-add:enabled, .refreshment-quantity button:last-child:enabled");
+          await button.click();
+        };
+        await addZero();
+        const firstQty = await zero.locator(".refreshment-quantity span").innerText();
+        assert.equal(firstQty,"1","Primeira Coca Zero adicionada");
+        // Playwright pode rolar antes de clicar em botões perto da sticky bar.
+        // Fixar o botão no centro antes da medição isola scroll disparado pelo app.
+        const plusZero = zero.locator(".refreshment-quantity button:last-child");
+        await plusZero.evaluate(el => el.scrollIntoView({block:"center", behavior:"instant"}));
+        await cascaoPage.waitForTimeout(150);
+        const yBefore = await cascaoPage.evaluate(() => window.scrollY);
+        const topBefore = await plusZero.evaluate(el => el.getBoundingClientRect().top);
+        await addZero();
+        const yAfter = await cascaoPage.evaluate(() => window.scrollY);
+        const topAfter = await zero.locator(".refreshment-quantity button:last-child").evaluate(el => el.getBoundingClientRect().top);
+        assert.ok(Math.abs(topAfter-topBefore) < 14,
+          "Botão de bebida saltou visualmente: antes=" + topBefore + " depois=" + topAfter
+          + " scroll antes=" + yBefore + " depois=" + yAfter);
+        assert.equal(await zero.locator(".refreshment-quantity span").innerText(),"2");
+        await fanta.locator(".refreshment-add").click();
+        assert.equal(await fanta.locator(".refreshment-quantity span").innerText(),"1");
+        assert.match((await cascaoPage.locator("#carrinho .cart-subtotal strong").innerText()).replace(/\s+/g," "),/50,00/,"R$38 doces + R$8 Zero + R$4 Fanta");
+        await zero.locator(".refreshment-quantity button:first-child").click();
+        assert.equal(await zero.locator(".refreshment-quantity span").innerText(),"1");
+        assert.equal(await cascaoPage.locator("#carrinho .cart-item").count(),4,"Dois Cascões + dois SKUs bebida");
+        assert.equal(await drinks.getAttribute("open"),"","Bloco não fecha após adicionar");
+        assert.equal(await cascaoPage.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1),false,"Sem overflow com bebidas");
+        await cascaoPage.screenshot({path:path.join(out,"refrigerantes-compactos-"+width+".png"),animations:"disabled"});
+        // Avançar é explícito: o botão leva a recebimento, não à grade de bebidas.
+        const sticky = cascaoPage.locator(".mobile-sticky-bar.is-checkout-flow button").first();
+        if (width < 700 && await sticky.count() && await sticky.isVisible()) {
+          assert.match(await sticky.innerText(),/Entrega ou retirada/i,"CTA é realmente continuação de recebimento");
+          await sticky.click();
+          // A UI usa scrollIntoView({behavior:"smooth"}). Aguardar a animação em vez
+          // de medir no mesmo frame do clique, antes do requestAnimationFrame da React.
+          await cascaoPage.waitForFunction(() => {
+            const el = document.getElementById("recebimento-opcoes");
+            if (!el) return false;
+            const top = el.getBoundingClientRect().top;
+            return top >= -24 && top < window.innerHeight - 100;
+          }, null, {timeout:5000,polling:50});
+          const receivingTop=await cascaoPage.locator("#recebimento-opcoes").evaluate(el=>el.getBoundingClientRect().top);
+          assert.ok(receivingTop<height-100,"CTA de continuação chegou ao recebimento, não à bebida: "+receivingTop);
+        }
+
       } finally { await cascaoPage.close(); }
       console.log("Natal e Cascão V4.3 QA",width,"ok",JSON.stringify(dimensions));
     } finally {

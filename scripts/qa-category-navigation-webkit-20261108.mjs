@@ -91,7 +91,7 @@ try {
       await page.keyboard.press("Escape");
       assert.equal(await toggle.getAttribute("aria-expanded"), "false");
       await page.locator(".builder-nav-back").tap();
-      const coneCard = page.locator(".collection-choice").filter({ hasText: "Cones Trufados" }).first();
+      const coneCard = page.locator(".collection-choice").filter({ hasText: "Cascão Trufado" }).first();
       await coneCard.waitFor({ state: "visible" });
       await coneCard.tap();
       await assertEntry("cones-sabores", "Cones");

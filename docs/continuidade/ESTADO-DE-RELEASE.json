@@ -1,0 +1,330 @@
+{
+  "schema_version": 1,
+  "updated_date": "2026-11-12",
+  "repository": "railanzera-cloud/luciane-oliveira-doces-site",
+  "project": "commercial",
+  "purpose": "Snapshot auditável; não é detector automático de produção",
+  "source_of_truth_policy": {
+    "developer_entrypoint": "AGENTS.md",
+    "integration_candidate_branch": "work/integracao-comercial-controlada-20261112",
+    "validated_code_reference_branch": "refine/cascao-fotografias-v44-20261112",
+    "validated_code_reference_sha": "8df271026c11100afa726c9e4e276ee94d526f45",
+    "production_branch": null,
+    "production_code_sha": null,
+    "do_not_equate_main_with_production": true,
+    "price_change_candidate_branch": "fix/cascao-precos-paridade-20261112 (merged in integration branch)",
+    "price_change_compiled_sha": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f",
+    "release_candidate_branch": "work/integracao-comercial-controlada-20261112",
+    "release_candidate_version": "V4.7.1",
+    "release_candidate_compiled_sha": "baf4284f56672f95cd3d98582a765b16a2e92146",
+    "release_candidate_head_sha": "baf4284f56672f95cd3d98582a765b16a2e92146",
+    "release_candidate_tested_sha": "baf4284f56672f95cd3d98582a765b16a2e92146",
+    "release_candidate_note": "V4.7.1 PR39 merged only into PR36 integration at 9b8cf36; compiled frontend from baf4284; later docs changes only; no main/deploy.",
+    "release_candidate_merge_sha": "9b8cf36f2723426e90e0681481db4b98ed954450"
+  },
+  "deployments": {
+    "cloudflare": {
+      "site": "https://lucianeoliveiradoces.pages.dev",
+      "latest_deployment_id": "237b204c-d5a5-4d3a-a8e7-7bfc3d699cc0",
+      "latest_deployment_code_sha": null,
+      "latest_deployment_package_sha256": null,
+      "verification_state": "unknown",
+      "publication_method": "manual_zip",
+      "observed_production_deployment": {
+        "id": "237b204c-d5a5-4d3a-a8e7-7bfc3d699cc0",
+        "url": "https://237b204c.lucianeoliveiradoces.pages.dev",
+        "environment": "production",
+        "status": "success",
+        "timestamp_displayed": "2026-11-12 10:17 AM",
+        "displayed_uploaded_assets": 109,
+        "evidence": "User-provided Cloudflare Pages deployment details screenshot on 2026-11-12",
+        "latest_deployment_confirmed": true,
+        "package_sha256_confirmed": false,
+        "compiled_sha_confirmed": false,
+        "rollback_target_candidate": true,
+        "note": "Screenshot establishes successful production deployment ID only; deployed HTML/JS bundle not yet matched to V4.6 and latest deployment list not checked.",
+        "fingerprint_check": {
+          "checked_at": "2026-11-12",
+          "method": "user-provided Cloudflare assets list compared against local V4.4 and V4.6 ZIP entries",
+          "result": "strong_match_to_v46_by_content_addressed_asset_names",
+          "compiled_source_sha_candidate": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f",
+          "candidate_zip_sha256": "ce9eb18cd8a63dc7be9aa4af4fac2cf4d91a7c1f04df76d20f3a4e1c42883fad",
+          "matched_discriminating_assets": [
+            "assets/index-tOkIJ7US.js",
+            "assets/page-DbaIRWTq.js",
+            "assets/page-DXHeiOR9.js",
+            "assets/page-Bdkb0rdH.js",
+            "assets/index-CMe9Ay0W.css"
+          ],
+          "comparison_v44_main_assets": [
+            "assets/index-D-mf2opc.js",
+            "assets/page-PQXKU6wb.js",
+            "assets/page-1bi5U5Ci.js"
+          ],
+          "cloudflare_uploaded_asset_count": 109,
+          "v46_zip_file_count": 112,
+          "special_cloudflare_files_excluded_from_uploaded_assets_count": 3,
+          "bytewise_verified": false,
+          "current_live_production_confirmed": false,
+          "caveat": "Assets strongly fingerprint V4.6, but need verify this deployment is currently active and rollback available before backend cutover."
+        },
+        "current_production_evidence": "Cloudflare Pages Deployments screenshot shows 237b204c first under Production, plus immutable deployment details and V4.6 asset filenames."
+      },
+      "last_observed_production_status": "success",
+      "last_observed_production_from": "2026-11-12 10:17 (Cloudflare screen)",
+      "user_reported_new_upload": {
+        "reported_at": "2026-11-12",
+        "package": "V4.7 reported by user",
+        "new_deployment_id": null,
+        "new_hash_verified": false,
+        "source": "User report: 'Eu publiquei aqui o pacote' and drinks absent in store/admin",
+        "note": "The user-uploaded deployment has not been independently identified; do not overwrite previous verified historical deployment evidence."
+      }
+    },
+    "supabase_commercial": {
+      "project_ref": "edqiwvccmboyayojvuea",
+      "edge_function": "create-whatsapp-order",
+      "observed_edge_version": 38,
+      "observation_date": "2026-11-12",
+      "observed_natal_price_centavos": [
+        2200,
+        2200,
+        2200,
+        2200
+      ],
+      "observed_new_cascao_supported_by_edge": true,
+      "observed_new_cascao_availability": "available",
+      "production_contract_consistency": "compatible_with_release",
+      "observed_legacy_cascao_prices_centavos": [
+        1800,
+        1800,
+        2000
+      ],
+      "observed_edge_ezbr_sha256": "9ed726b0f3ce3185456287dc37f9e6329cf3d26dc151d51d1676dc5d2233a706",
+      "catalog_parity_evidence": "Edge v38 ACTIVE catalog byte-for-byte identical to controlled integration candidate commerce-catalog.mjs; no real order E2E attempted",
+      "rollback": {
+        "prior_edge_version": 37,
+        "prior_edge_hash": "f9ce3b6dca1884143475302e26e80263f1b73c765b6a28e754ac31241debf2c5",
+        "prior_catalog_git_sha": "8df271026c11100afa726c9e4e276ee94d526f45",
+        "prior_catalog_prices_cents": [
+          1400,
+          1400,
+          1600
+        ],
+        "note": "To reverse pricing, use old v37 catalog with 6 unchanged supporting sources, coordinate frontend Cloudflare rollback and inspect SKU/prices first; do not roll back one side alone"
+      }
+    }
+  },
+  "validated_artifacts": [
+    {
+      "release": "V4.4",
+      "filename": "LUCIANE_COMERCIAL_V4_4_CASCAO_VISUAL.zip",
+      "sha256": "475c8854d8279e372cffec7d61a9a48b72f1ef7f1d76a35ebb4965f55381dd1f",
+      "files": 117,
+      "compiled_from_sha": "8df271026c11100afa726c9e4e276ee94d526f45",
+      "ci_commercial_tests": 849,
+      "ci_workflows": [
+        43206896427,
+        43206896391
+      ],
+      "contains_unversioned_approved_photos": true,
+      "deployed": "not_verified"
+    },
+    {
+      "release": "V4.5 - candidato de novos preços dos Cascões",
+      "filename": "LUCIANE_COMERCIAL_V4_5_CASCAO_PRECOS_AGUARDANDO_CORTE.zip",
+      "sha256": "86e38b6179cf5b6a986f2dd63862ea4515b251f5126093eb9d2c2f5a3583a4a9",
+      "files": 117,
+      "compiled_from_sha": "3f49daef10ad0e63e25f9971af89aee7d81dd385",
+      "ci_commercial_tests": 855,
+      "ci_workflows": [
+        43221683902,
+        43221683714
+      ],
+      "contains_unversioned_approved_photos": true,
+      "deployed": "not_verified",
+      "source_assets_reference_v44_sha256": "475c8854d8279e372cffec7d61a9a48b72f1ef7f1d76a35ebb4965f55381dd1f",
+      "frontend_price_contract": "prestigio=1800;dois_amores=1800;ferrero_rocher=2000;new_three=2000;natal_four=2200",
+      "critical": "Cloudflare não publicado; Edge v37 ativa mantém preços antigos dos três Cascões legados e precisa de corte coordenado antes de upload",
+      "superseded_by": "LUCIANE_COMERCIAL_V4_6_CASCAO_COMPLEMENTOS_E_PRECOS_AGUARDANDO_CORTE.zip"
+    },
+    {
+      "release": "V4.6 - Cascão (repetição disponível), catálogo completo de complementos e preços",
+      "filename": "LUCIANE_COMERCIAL_V4_6_CASCAO_COMPLEMENTOS_E_PRECOS_AGUARDANDO_CORTE.zip",
+      "sha256": "ce9eb18cd8a63dc7be9aa4af4fac2cf4d91a7c1f04df76d20f3a4e1c42883fad",
+      "files": 117,
+      "compiled_from_sha": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f",
+      "ci_commercial_tests": 856,
+      "ci_workflows": [
+        43224471401,
+        43224471050
+      ],
+      "ui_webkit_viewports": [
+        320,
+        375,
+        390,
+        430,
+        1280
+      ],
+      "preserves_all_available_category_complements": true,
+      "preserves_own_category_when_natal_available": true,
+      "contains_unversioned_approved_photos": true,
+      "approved_cascao_photos_recovered": 20,
+      "approved_v44_static_assets_identical": 71,
+      "source_assets_reference_v44_sha256": "475c8854d8279e372cffec7d61a9a48b72f1ef7f1d76a35ebb4965f55381dd1f",
+      "frontend_price_contract": "prestigio=1800;dois_amores=1800;ferrero_rocher=2000;new_three=2000;natal_four=2200",
+      "deployed": "not_verified",
+      "critical": "Somente pacote candidato; não publicar Cloudflare sem atualizar Edge v37 para nova tabela R$18/R$18/R$20 e plano de rollback"
+    },
+    {
+      "release": "V4.7 - refrigerantes compactos e mensagem de Cascão sem unidade duplicada",
+      "filename": "LUCIANE_COMERCIAL_V4_7_REFRIGERANTES_CHECKOUT_WHATSAPP_PUBLICAR_MANUALMENTE.zip",
+      "sha256": "66d9dbf267d4e7163ae8a75a340e5adc5d94ebeee8df8a6f0cfd7b16ab427bb7",
+      "files": 121,
+      "file_count": 116,
+      "compiled_from_sha": "ce0ceea36eccaa5fa1886c362c1915323a4cadc5",
+      "ci_workflows": [
+        43247101842,
+        43247102153,
+        43246503526
+      ],
+      "ci_regressions": "861/861 passed",
+      "webkit_viewports": [
+        320,
+        375,
+        390,
+        430,
+        1280
+      ],
+      "contains_unversioned_approved_photos": true,
+      "inherited_approved_cascao_webps": 20,
+      "added_approved_drink_webps": 4,
+      "previous_static_assets_checked_identical": 71,
+      "base_zip_sha256": "5127788544af3d3486f2e45928e762efb409b15066b1567992a7d3f6f573dc57",
+      "frontend_drink_contract": "coca_zero_220=400;fanta_220=400;guarana_200=300;coca_original_350=600",
+      "backend_function_v38_compatible": true,
+      "availability_status": "all_four_drinks_hidden_as_observed_2026_11_12",
+      "deployed": "reported_uploaded_by_user_on_2026-11-12_without_cloudflare_deployment_id",
+      "critical": "Frontend V4.7 pronto para upload manual Cloudflare, ainda NÃO publicado; manter 4 bebidas hidden até verificar imagens, SKUs, checkout, Pix/WhatsApp e cozinha.",
+      "ci_code_tested_sha": "32a128ec53da1c5c3ee5aa042d1d9775b7952156",
+      "ci_commercial_tests": 861,
+      "ci_focused_tests": 8,
+      "publication_note": "NOT PUBLISHED as of 2026-11-12; deployed is not_verified for release-preflight schema. Cloudflare upload manual pending."
+    },
+    {
+      "release": "V4.7.1 - hotfix disponibilidade de refrigerantes no painel administrativo",
+      "filename": "LUCIANE_COMERCIAL_V4_7_1_ADMIN_REFRIGERANTES_CORRIGIDO_PUBLICAR.zip",
+      "sha256": "a4c60ae1b036eb620b7fa361f7aa4babb66f910a8141dea5fd84fc050d0f48cd",
+      "files": 121,
+      "file_count": 116,
+      "compiled_from_sha": "baf4284f56672f95cd3d98582a765b16a2e92146",
+      "ci_workflows": [
+        43250467616,
+        43250467710
+      ],
+      "ci_commercial_tests": 865,
+      "ci_focused_tests": 8,
+      "webkit_viewports": [
+        320,
+        375,
+        390,
+        430,
+        1280
+      ],
+      "retains_v47_drinks_ui": true,
+      "admin_has_drinks_section": true,
+      "admin_controls": [
+        "available",
+        "sold_out",
+        "hidden"
+      ],
+      "preserves_approved_cascao_webps": 20,
+      "preserves_approved_drink_webps": 4,
+      "intact_files_from_v47_base": 79,
+      "build_from_github_actions_artifact": 13958168692,
+      "backend_function_v38_compatible": true,
+      "deployed": "not_published",
+      "critical": "Manter quatro bebidas hidden até publicar ZIP V4.7.1 e confirmar upload/checkout; só então habilitar cada SKU via admin."
+    }
+  ],
+  "pending_divergent_work": [
+    {
+      "pr": 34,
+      "branch": "feat/cascao-novos-sabores-natal22-20261112",
+      "assessment": "closed_superseded_unmerged",
+      "decision": "closed_after_test_parity_review_preserve_branch_and_history",
+      "note": "PR #34 foi encerrado sem merge em 12/11/2026, após comparar testes/paridade com PR #33/#35; variante de grade e nome do terceiro sabor não aprovados como substituição"
+    },
+    {
+      "pr": 23,
+      "branch": "feat/refrigerantes-complementos-premium-20261110",
+      "assessment": "historical_unpublished_option",
+      "decision": "do_not_cherry_pick_without_new_ux_decision"
+    },
+    {
+      "pr": 24,
+      "branch": "refine/checkout-doces-antes-bebidas-rolagem-20261110",
+      "assessment": "historical_unpublished_option",
+      "decision": "do_not_cherry_pick_without_new_ux_decision"
+    }
+  ],
+  "release_readiness": {
+    "status": "blocked",
+    "known_blockers": [
+      "Usuário relata ter publicado ZIP V4.7 mas não mostrou novo Cloudflare deployment ID/assets; a versão exata servida atualmente não foi comprovada. Último deployment identificado anteriormente foi 237b204c, que pode não ser mais atual.",
+      "Quatro refrigerantes estão hidden no banco (verificado por SQL em 12/11/2026). O componente intencionalmente desaparece quando todos estão hidden.",
+      "Hotfix V4.7.1 corrigiu omissão da aba Bebidas no admin. ZIP a4c60ae1b036eb620b7fa361f7aa4babb66f910a8141dea5fd84fc050d0f48cd foi gerado/validado, mas NÃO foi enviado ao Cloudflare nesta sessão.",
+      "Depois do upload V4.7.1, confirmar presença da aba administrativa e das quatro imagens. Somente então operador libera status Available para SKUs realmente vendáveis.",
+      "Checkout misto real, mensagem WhatsApp efetivamente enviada, cozinha/QZ, Pix e Safari/Instagram físico ainda exigem homologação. Não tratar CI como venda.",
+      "PR #39 mergeado somente na integração PR #36; sem merge em main, deploy Cloudflare/Edge/SQL ou ativação de bebidas."
+    ],
+    "requires_explicit_release_authorization": true,
+    "do_not_auto_deploy": true
+  },
+  "future_feature_decision": {
+    "feature": "refrigerantes",
+    "decision_ref": "D-C42",
+    "status": "v47_reported_uploaded_v471_admin_hotfix_ready",
+    "follow_after": "V4.6 Cloudflare/Edge cut coordinated and real checkout validated",
+    "ui": "compact collapsed-by-default expandable after sweet suggestions before receiving",
+    "behavior": "same SKU +/-; mix flavors; no auto-scroll on add; floating CTA targets recebimento-opcoes",
+    "price_cents": [
+      400,
+      400,
+      300,
+      600
+    ],
+    "remote_availability": "four_skus_hidden_in_production_2026_11_12",
+    "historical_prs": [
+      23,
+      24
+    ],
+    "warning": "SKU hidden and missing admin section jointly explained absence. V4.7.1 ZIP ready for second manual Cloudflare upload; no status changes performed."
+  },
+  "integrated_work": [
+    {
+      "pr": 37,
+      "branch": "fix/cascao-precos-paridade-20261112",
+      "merged_into": "work/integracao-comercial-controlada-20261112",
+      "merge_sha": "1b497c73be6ca181511984b489707f4a30b2a0be",
+      "production_impact": "none",
+      "notes": "V4.6 catalog prices, all available checkout complements, QA navigation name correction, documentation; no deployment"
+    },
+    {
+      "pr": 38,
+      "branch": "feat/refrigerantes-ux-compacta-whatsapp-v47-20261112",
+      "merged_into": "work/integracao-comercial-controlada-20261112",
+      "merge_sha": "4ac49600aa04c8cd332b900c8f1e0e632d1e0090",
+      "production_impact": "none",
+      "notes": "V4.7 drinks compact UX and WhatsApp Cascao text; 861 tests + WebKit; ZIP completed; no Cloudflare deployment nor remote drink enable."
+    },
+    {
+      "pr": 39,
+      "branch": "fix/admin-refrigerantes-disponibilidade-v471-20261112",
+      "merged_into": "work/integracao-comercial-controlada-20261112",
+      "merge_sha": "9b8cf36f2723426e90e0681481db4b98ed954450",
+      "production_impact": "none",
+      "notes": "V4.7.1 admin drinks tab, 865/865 tests and WebKit, ZIP integrity; not deployed nor statuses enabled"
+    }
+  ]
+}

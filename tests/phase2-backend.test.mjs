@@ -21,7 +21,7 @@ const frontendSource = await readFile(new URL("../app/catalog.ts", import.meta.u
 const { outputText } = ts.transpileModule(frontendSource, {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
 });
-const resolved = outputText.replace('../supabase/functions/_shared/popcorn-promotion.mjs', new URL('../supabase/functions/_shared/popcorn-promotion.mjs', import.meta.url).href);
+const resolved = outputText.replace('../supabase/functions/_shared/popcorn-promotion.mjs', new URL('../supabase/functions/_shared/popcorn-promotion.mjs', import.meta.url).href).replace('../supabase/functions/_shared/drinks-catalog.mjs', new URL('../supabase/functions/_shared/drinks-catalog.mjs', import.meta.url).href);
 const frontend = await import(`data:text/javascript;base64,${Buffer.from(resolved).toString("base64")}`);
 const quoteCartItems = items => quoteCartItemsAtTime(items, Date.parse('2026-10-12T03:00:00Z'));
 

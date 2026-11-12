@@ -1,4 +1,5 @@
 import { promotionalPopcornPriceCents } from "../supabase/functions/_shared/popcorn-promotion.mjs";
+import { DRINKS as DRINK_CATALOG } from "../supabase/functions/_shared/drinks-catalog.mjs";
 
 export type CategoryId = "pipocas" | "fatias" | "cones" | "natal";
 export type ProductKind = "popcorn" | "slice" | "cone" | "drink" | "chocotone";
@@ -53,7 +54,7 @@ export const DELIVERY_TIME_ESTIMATE = "Preparo e entrega: em média, 15 a 20 min
 
 // Controle geral do atendimento e das categorias exibidas no cardápio.
 // Para reativar as pipocas, altere somente `pipocas` para true.
-// Para reativar os refrigerantes, altere somente `drinks` para true.
+// Bebidas requerem flag local E disponibilidade remota por SKU; a flag não libera estoque.
 export const STORE_CONFIG = {
   acceptingOrders: true,
   enabledCategories: {
@@ -63,7 +64,7 @@ export const STORE_CONFIG = {
     natal: true, // coleção temporária: só aparece quando liberada remotamente
   } satisfies Record<CategoryId, boolean>,
   enabledExtras: {
-    drinks: false,
+    drinks: true,
   },
   closedMessage: "Pedidos encerrados por hoje.",
 };
@@ -105,7 +106,7 @@ export const PRODUCTS: Product[] = [
     image: "/images/cone-trufado-prestigio-20261108-v2.webp",
     cardImage: "/images/cone-trufado-prestigio-card-20261108-v2.webp",
     imageAlt: "Cone trufado Prestígio coberto com coco e creme liso de coco no topo, sem bombom",
-    variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 14, available: true }],
+    variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 18, available: true }],
     options: [],
   },
   {
@@ -114,7 +115,7 @@ export const PRODUCTS: Product[] = [
     image: "/images/cone-trufado-dois-amores-20261108.webp",
     cardImage: "/images/cone-trufado-dois-amores-card-20261108.webp",
     imageAlt: "Cone trufado Dois Amores com cobertura de chocolate e dois cremes",
-    variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 14, available: true }],
+    variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 18, available: true }],
     options: [],
   },
   {
@@ -123,7 +124,7 @@ export const PRODUCTS: Product[] = [
     image: "/images/cone-trufado-ferrero-rocher-20261108.webp",
     cardImage: "/images/cone-trufado-ferrero-rocher-card-20261108.webp",
     imageAlt: "Cone trufado Ferrero Rocher com pedaços crocantes e creme de chocolate",
-    variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 16, available: true }],
+    variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 20, available: true }],
     options: [],
   },
 
@@ -373,42 +374,19 @@ export const PRODUCTS: Product[] = [
     variants: [{ id: "porcao", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
     options: [],
   },
-  {
-    id: "coca-cola-220",
-    kind: "drink",
+  // SKUs, embalagem, fotos e preços vêm do mesmo catálogo autoritativo da Edge.
+  ...Object.values(DRINK_CATALOG).map(drink => ({
+    id: drink.id,
+    kind: "drink" as const,
     category: "Refrigerantes",
-    name: "Coca-Cola",
-    image: "/coca-cola-220.jpeg",
-    cardImage: "/coca-cola-220-card.webp",
-    imageAlt: "Lata gelada de Coca-Cola 220 ml",
+    name: drink.name,
+    image: drink.image,
+    cardImage: drink.image,
+    imageAlt: `${drink.name}, ${drink.label}`,
     available: true,
-    variants: [{ id: "220ml", label: "220 ml", whatsappLabel: "220 ml", price: 5, available: true }],
+    variants: [{ id: drink.variantId, label: drink.label, whatsappLabel: drink.label, price: drink.priceCents / 100, available: true }],
     options: [],
-  },
-  {
-    id: "coca-cola-350",
-    kind: "drink",
-    category: "Refrigerantes",
-    name: "Coca-Cola",
-    image: "/coca-cola-350.jpeg",
-    cardImage: "/coca-cola-350-card.webp",
-    imageAlt: "Lata gelada de Coca-Cola 350 ml",
-    available: true,
-    variants: [{ id: "350ml", label: "350 ml", whatsappLabel: "350 ml", price: 6, available: true }],
-    options: [],
-  },
-  {
-    id: "fanta-laranja-350",
-    kind: "drink",
-    category: "Refrigerantes",
-    name: "Fanta Laranja",
-    image: "/fanta-laranja-350.jpeg",
-    cardImage: "/fanta-laranja-350-card.webp",
-    imageAlt: "Lata gelada de Fanta Laranja 350 ml",
-    available: true,
-    variants: [{ id: "350ml", label: "350 ml", whatsappLabel: "350 ml", price: 5, available: true }],
-    options: [],
-  },
+  })),
 ];
 
 export const POPCORN = PRODUCTS.find((product) => product.kind === "popcorn")!;

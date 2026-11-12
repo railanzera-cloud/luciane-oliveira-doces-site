@@ -32,7 +32,7 @@ test("renders production metadata without a development preview marker", async (
   const html = await response.text();
   assert.doesNotMatch(html, developmentPreviewMeta);
   assert.match(html, /<title>Luciane Oliveira Doces \| Fatias de Chocottone, Cascão Trufado, Pipocas e Fatias<\/title>/);
-  assert.doesNotMatch(html, /refrigerantes/i);
+  // A palavra pode estar no bundle; SKUs só podem ser escolhidos após disponibilidade remota.
   assert.doesNotMatch(html, /coca-cola-220/i);
   assert.match(html, /Escolha seu <em>doce/);
   assert.match(html, /Carregando cardápio/);
