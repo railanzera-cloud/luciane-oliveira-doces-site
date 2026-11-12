@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, type MouseEvent, type TransitionEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, type MouseEvent } from "react";
 import { ChevronDown, CupSoda, Minus, Plus } from "lucide-react";
 import { DRINKS, type Product } from "@/app/catalog";
 import { drinkStatus, type AvailabilitySnapshot } from "@/app/menu-availability";
@@ -19,89 +19,46 @@ type Props = {
 export function DrinkComplements({ availability, cart, onChange, message, busy = false }:Props) {
   const offerRef = useRef<HTMLDetailsElement>(null);
   const anchorRef = useRef<number | null>(null);
-  const closeTimerRef = useRef<number | null>(null);
-  const openFrameRef = useRef<number | null>(null);
-  const openTimerRef = useRef<number | null>(null);
-  const desiredOpenRef = useRef(false);
-  useEffect(() => () => {
-    if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current);
-    if (openFrameRef.current !== null) window.cancelAnimationFrame(openFrameRef.current);
-    if (openTimerRef.current !== null) window.clearTimeout(openTimerRef.current);
-  }, []);
+  const motionRef = useRef<Animation | null>(null);
+  const targetOpenRef = useRef(false);
+  useEffect(() => () => motionRef.current?.cancel(), []);
 
-  const cancelPendingClose = () => {
-    if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current);
-    closeTimerRef.current = null;
-  };
-
-  const cancelPendingOpen = () => {
-    if (openFrameRef.current !== null) window.cancelAnimationFrame(openFrameRef.current);
-    if (openTimerRef.current !== null) window.clearTimeout(openTimerRef.current);
-    openFrameRef.current = null;
-    openTimerRef.current = null;
-  };
-
-  // CSS grid preserves natural content height while transitions reverse smoothly.
-  // <details> and <summary> retain native keyboard semantics.
+  // Animate a clipping wrapper, never the natural-height drink content.
+  // Repeated taps reverse the latest target from the current rendered height.
+  // Native details/summary preserves Enter, Space and accessible semantics.
   const toggleOffer = (event: MouseEvent<HTMLElement>) => {
     const details = offerRef.current;
     if (!details) return;
     event.preventDefault();
     const reveal = details.querySelector<HTMLElement>(".refreshment-reveal");
-    if (!reveal) { details.open = !details.open; return; }
-    const pending = closeTimerRef.current !== null || openFrameRef.current !== null || openTimerRef.current !== null;
-    const expanding = pending ? !desiredOpenRef.current : !details.open;
-    desiredOpenRef.current = expanding;
-    cancelPendingClose();
-    cancelPendingOpen();
-    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    if (reducedMotion) {
-      details.removeAttribute("data-collapsing");
-      details.removeAttribute("data-opening");
-      details.open = expanding;
+    const body = details.querySelector<HTMLElement>(".refreshment-body");
+    if (!reveal || !body) { details.open = !details.open; return; }
+
+    const opening = motionRef.current ? !targetOpenRef.current : !details.open;
+    const currentHeight = details.open ? reveal.getBoundingClientRect().height : 0;
+    const measuredOpacity = details.open ? Number.parseFloat(getComputedStyle(reveal).opacity) : 0;
+    const currentOpacity = Number.isFinite(measuredOpacity) ? measuredOpacity : (details.open ? 1 : 0);
+    motionRef.current?.cancel();
+    motionRef.current = null;
+    targetOpenRef.current = opening;
+    if (opening) details.open = true;
+
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    if (reduced || typeof reveal.animate !== "function") {
+      details.open = opening;
       return;
     }
-    if (expanding) {
-      if (!details.open) {
-        details.dataset.opening = "true";
-        details.open = true;
-        // State opening is distinct from collapsing: transitionend cannot close
-        // a panel while its initial 0fr frame is being prepared by WebKit.
-        void reveal.getBoundingClientRect().height;
-        const finishOpening = () => {
-          cancelPendingOpen();
-          if (desiredOpenRef.current && details.dataset.opening === "true") {
-            details.removeAttribute("data-opening");
-          }
-        };
-        openFrameRef.current = window.requestAnimationFrame(() => {
-          openFrameRef.current = window.requestAnimationFrame(finishOpening);
-        });
-        openTimerRef.current = window.setTimeout(finishOpening, 48);
-      } else {
-        details.removeAttribute("data-collapsing");
-        details.removeAttribute("data-opening");
-      }
-    } else {
-      details.removeAttribute("data-opening");
-      details.dataset.collapsing = "true";
-      closeTimerRef.current = window.setTimeout(() => {
-        if (details.dataset.collapsing === "true") {
-          details.open = false;
-          details.removeAttribute("data-collapsing");
-        }
-        closeTimerRef.current = null;
-      }, 300);
-    }
-  };
-
-  const finishCollapse = (event: TransitionEvent<HTMLDivElement>) => {
-    if (event.target !== event.currentTarget || event.propertyName !== "grid-template-rows") return;
-    const details = offerRef.current;
-    if (details?.dataset.collapsing !== "true") return;
-    cancelPendingClose();
-    details.open = false;
-    details.removeAttribute("data-collapsing");
+    const fullHeight = body.getBoundingClientRect().height;
+    const animation = reveal.animate([
+      { height: `${currentHeight}px`, opacity: currentOpacity },
+      { height: `${opening ? fullHeight : 0}px`, opacity: opening ? 1 : 0 },
+    ], { duration: opening ? 260 : 220, easing: "cubic-bezier(.22, 1, .36, 1)" });
+    motionRef.current = animation;
+    animation.onfinish = () => {
+      if (motionRef.current !== animation) return;
+      details.open = opening;
+      motionRef.current = null;
+    };
   };
 
   // Quando o carrinho acima cresce, preservar a posição da oferta no viewport.
@@ -145,9 +102,8 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
       </span>
       <ChevronDown className="refreshment-chevron" size={18} aria-hidden="true" />
     </summary>
-    <div className="refreshment-reveal" onTransitionEnd={finishCollapse}>
-      <div className="refreshment-reveal-shell">
-        <div className="refreshment-body">
+    <div className="refreshment-reveal">
+      <div className="refreshment-body">
       <p className="refreshment-subtitle">Opcional. Escolha uma ou mais bebidas, sem sair do seu pedido.</p>
       <div className="refreshment-grid" role="group" aria-label="Bebidas para acompanhar">
         {visible.map(drink => {
@@ -185,7 +141,6 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
         })}
       </div>
       <p className="refreshment-footnote">Sem obrigação de adicionar. Continue em entrega ou retirada logo abaixo.</p>
-        </div>
       </div>
     </div>
     <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">{message}</span>
