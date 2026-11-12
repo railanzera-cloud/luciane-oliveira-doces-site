@@ -13,9 +13,9 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 BASE = Path("outputs/luciane-oliveira-doces-cloudflare-pages.zip")
 RELEASE = environ.get("NATAL_PACKAGE_VERSION", "V4")
-if RELEASE not in {"V4", "V4_1", "V4_2"}:
+if RELEASE not in {"V4", "V4_1", "V4_2", "V4_3"}:
     raise SystemExit("Versão não autorizada de pacote Natal")
-FINAL = Path("outputs/LUCIANE_COMERCIAL_V4_2_WHATSAPP.zip" if RELEASE == "V4_2" else f"outputs/LUCIANE_NATAL_{RELEASE}.zip")
+FINAL = Path("outputs/LUCIANE_COMERCIAL_CASCAO_NATAL22_V4_3_BASE.zip" if RELEASE == "V4_3" else "outputs/LUCIANE_COMERCIAL_V4_2_WHATSAPP.zip" if RELEASE == "V4_2" else f"outputs/LUCIANE_NATAL_{RELEASE}.zip")
 URL = "https://lucianeoliveiradoces.pages.dev"
 # SHA-256 medidos nos oito binários de LUCIANE_NATAL_V3.zip, 11/11/2026.
 APPROVED = {
@@ -63,4 +63,4 @@ with ZipFile(FINAL) as final:
     for path, approved_sha in APPROVED.items():
         assert sha256(final.read(path)).hexdigest() == approved_sha, path
     assert not any(x.startswith((".env", "supabase/", "node_modules/")) for x in names)
-    print(f"LUCIANE_NATAL_{RELEASE} íntegro: {len(names)} arquivos, {FINAL.stat().st_size} bytes, SHA256 {sha256(FINAL.read_bytes()).hexdigest()}")
+    print(f"LUCIANE_NATAL_{RELEASE} íntegro (V4_3 requer anexar seis WebP novos no ZIP FINAL): {len(names)} arquivos, {FINAL.stat().st_size} bytes, SHA256 {sha256(FINAL.read_bytes()).hexdigest()}")
