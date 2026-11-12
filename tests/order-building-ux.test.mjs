@@ -64,7 +64,9 @@ test("keeps below-fold product images lazy and responsive", () => {
   assert.match(page, /src=\{slice\.cardImage \?\? slice\.image\}/);
   assert.match(page, /loading="lazy" decoding="async" fetchPriority="low"/);
   assert.match(page, /sizes="\(max-width: 599px\)/);
-  assert.match(page, /src=\{drink\.cardImage \?\? drink\.image\}/);
+  const drinks = source("components/drink-complements.tsx");
+  assert.match(drinks,/src=\{drink\.image\}/);
+  assert.match(drinks,/loading="lazy" decoding="async"/);
 });
 
 test("explains quantities for repeated and different combinations", () => {
