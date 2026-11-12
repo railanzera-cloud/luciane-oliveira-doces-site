@@ -204,12 +204,13 @@
       "frontend_drink_contract": "coca_zero_220=400;fanta_220=400;guarana_200=300;coca_original_350=600",
       "backend_function_v38_compatible": true,
       "availability_status": "all_four_drinks_hidden_as_observed_2026_11_12",
-      "deployed": "reported_uploaded_by_user_on_2026-11-12_without_cloudflare_deployment_id",
+      "deployed": "not_verified",
       "critical": "Frontend V4.7 pronto para upload manual Cloudflare, ainda NÃO publicado; manter 4 bebidas hidden até verificar imagens, SKUs, checkout, Pix/WhatsApp e cozinha.",
       "ci_code_tested_sha": "32a128ec53da1c5c3ee5aa042d1d9775b7952156",
       "ci_commercial_tests": 861,
       "ci_focused_tests": 8,
-      "publication_note": "NOT PUBLISHED as of 2026-11-12; deployed is not_verified for release-preflight schema. Cloudflare upload manual pending."
+      "publication_note": "NOT PUBLISHED as of 2026-11-12; deployed is not_verified for release-preflight schema. Cloudflare upload manual pending.",
+      "publication_evidence_note": "Registro anterior: reported_uploaded_by_user_on_2026-11-12_without_cloudflare_deployment_id. Não há comprovação de publicação atual do pacote."
     },
     {
       "release": "V4.7.1 - hotfix disponibilidade de refrigerantes no painel administrativo",
@@ -243,8 +244,9 @@
       "intact_files_from_v47_base": 79,
       "build_from_github_actions_artifact": 13958168692,
       "backend_function_v38_compatible": true,
-      "deployed": "not_published",
-      "critical": "Manter quatro bebidas hidden até publicar ZIP V4.7.1 e confirmar upload/checkout; só então habilitar cada SKU via admin."
+      "deployed": "not_verified",
+      "critical": "Manter quatro bebidas hidden até publicar ZIP V4.7.1 e confirmar upload/checkout; só então habilitar cada SKU via admin.",
+      "publication_evidence_note": "Registro anterior: not_published. Não há comprovação de publicação atual do pacote."
     }
   ],
   "pending_divergent_work": [

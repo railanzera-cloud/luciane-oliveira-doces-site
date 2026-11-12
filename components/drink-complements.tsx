@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, type MouseEvent } from "react";
 import { ChevronDown, CupSoda, Minus, Plus } from "lucide-react";
 import { DRINKS, type Product } from "@/app/catalog";
 import { drinkStatus, type AvailabilitySnapshot } from "@/app/menu-availability";
@@ -19,6 +19,63 @@ type Props = {
 export function DrinkComplements({ availability, cart, onChange, message, busy = false }:Props) {
   const offerRef = useRef<HTMLDetailsElement>(null);
   const anchorRef = useRef<number | null>(null);
+  const motionRef = useRef<Animation | null>(null);
+  const finishTimerRef = useRef<number | null>(null);
+  const targetOpenRef = useRef(false);
+  useEffect(() => () => {
+    motionRef.current?.cancel();
+    if (finishTimerRef.current !== null) window.clearTimeout(finishTimerRef.current);
+  }, []);
+
+  // Animate a clipping wrapper, never the natural-height drink content.
+  // Repeated taps reverse the latest target from the current rendered height.
+  // Native details/summary preserves Enter, Space and accessible semantics.
+  const toggleOffer = (event: MouseEvent<HTMLElement>) => {
+    const details = offerRef.current;
+    if (!details) return;
+    event.preventDefault();
+    const reveal = details.querySelector<HTMLElement>(".refreshment-reveal");
+    const body = details.querySelector<HTMLElement>(".refreshment-body");
+    if (!reveal || !body) { details.open = !details.open; return; }
+
+    const opening = motionRef.current ? !targetOpenRef.current : !details.open;
+    const currentHeight = details.open ? reveal.getBoundingClientRect().height : 0;
+    const measuredOpacity = details.open ? Number.parseFloat(getComputedStyle(reveal).opacity) : 0;
+    const currentOpacity = Number.isFinite(measuredOpacity) ? measuredOpacity : (details.open ? 1 : 0);
+    motionRef.current?.cancel();
+    if (finishTimerRef.current !== null) window.clearTimeout(finishTimerRef.current);
+    finishTimerRef.current = null;
+    motionRef.current = null;
+    targetOpenRef.current = opening;
+    if (opening) details.open = true;
+
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    if (reduced || typeof reveal.animate !== "function") {
+      details.open = opening;
+      return;
+    }
+    const fullHeight = body.getBoundingClientRect().height;
+    const animation = reveal.animate([
+      { height: `${currentHeight}px`, opacity: currentOpacity },
+      { height: `${opening ? fullHeight : 0}px`, opacity: opening ? 1 : 0 },
+    ], { duration: opening ? 260 : 220, easing: "cubic-bezier(.22, 1, .36, 1)" });
+    motionRef.current = animation;
+    const finish = () => {
+      if (motionRef.current !== animation) return;
+      motionRef.current = null;
+      animation.onfinish = null;
+      // Remove Web Animations' clipping effect even if WebKit throttled frames.
+      // Otherwise details may be open while the wrapper remains at height:0.
+      animation.cancel();
+      details.open = opening;
+      if (finishTimerRef.current !== null) window.clearTimeout(finishTimerRef.current);
+      finishTimerRef.current = null;
+    };
+    animation.onfinish = finish;
+    // Headless WebKit and background Safari sometimes throttle animation frames.
+    // A matching duration fallback guarantees the final accessible details state.
+    finishTimerRef.current = window.setTimeout(finish, opening ? 310 : 270);
+  };
 
   // Quando o carrinho acima cresce, preservar a posição da oferta no viewport.
   // Não navega nem move para a próxima etapa: corrige apenas a variação de layout.
@@ -51,7 +108,7 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
   const hasAvailable = Number.isFinite(startingPrice);
 
   return <details ref={offerRef} className="refreshment-later" id="acompanhamentos" data-has-selection={count > 0 || undefined}>
-    <summary aria-label={count > 0 ? `Adicionar refrigerante. ${count} no pedido` : "Adicionar refrigerante, opcional"}>
+    <summary onClick={toggleOffer} aria-label={count > 0 ? `Adicionar refrigerante. ${count} no pedido` : "Adicionar refrigerante, opcional"}>
       <span className="refreshment-summary-symbol"><CupSoda size={19} strokeWidth={1.8} aria-hidden="true" /></span>
       <span className="refreshment-summary-copy">
         <strong>Adicionar refrigerante</strong>
@@ -61,7 +118,8 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
       </span>
       <ChevronDown className="refreshment-chevron" size={18} aria-hidden="true" />
     </summary>
-    <div className="refreshment-body">
+    <div className="refreshment-reveal">
+      <div className="refreshment-body">
       <p className="refreshment-subtitle">Opcional. Escolha uma ou mais bebidas, sem sair do seu pedido.</p>
       <div className="refreshment-grid" role="group" aria-label="Bebidas para acompanhar">
         {visible.map(drink => {
@@ -86,7 +144,7 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
                 : quantity > 0 ? <div className="refreshment-quantity" role="group" aria-label={`Quantidade de ${drink.name}, ${variant.label}`}>
                     <button type="button" disabled={!canRemove} aria-label={`Remover uma unidade de ${drink.name}`}
                       onClick={() => adjust(drink,-1)}><Minus size={16} aria-hidden="true" /></button>
-                    <span aria-live="off">{quantity}</span>
+                    <span key={quantity} className="refreshment-count" aria-live="off">{quantity}</span>
                     <button type="button" disabled={!canAdd} aria-label={`Adicionar uma unidade de ${drink.name}`}
                       onClick={() => adjust(drink,1)}><Plus size={16} aria-hidden="true" /></button>
                   </div>
@@ -99,6 +157,7 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
         })}
       </div>
       <p className="refreshment-footnote">Sem obrigação de adicionar. Continue em entrega ou retirada logo abaixo.</p>
+      </div>
     </div>
     <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">{message}</span>
   </details>;

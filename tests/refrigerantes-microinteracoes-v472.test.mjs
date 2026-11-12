@@ -1,0 +1,43 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+
+const component = readFileSync("components/drink-complements.tsx", "utf8");
+const css = readFileSync("app/drink-complements-premium.css", "utf8");
+const checkout = readFileSync("app/page.tsx", "utf8");
+
+test("Refrigerantes: animação reversível no contêiner sem alterar altura natural", () => {
+  assert.match(component, /<details ref=\{offerRef\} className="refreshment-later"/);
+  assert.match(component, /<summary onClick=\{toggleOffer\}/);
+  assert.match(component, /event\.preventDefault\(\)/);
+  assert.match(component, /const opening = motionRef\.current \? !targetOpenRef\.current : !details\.open/);
+  assert.match(component, /const currentHeight = details\.open \? reveal\.getBoundingClientRect\(\)\.height : 0/);
+  assert.match(component, /const fullHeight = body\.getBoundingClientRect\(\)\.height/);
+  assert.match(component, /motionRef\.current\?\.cancel\(\)/);
+  assert.match(component, /animation\.onfinish/);
+  assert.match(component, /details\.open = opening/);
+  assert.match(css, /refreshment-reveal \{box-sizing:border-box;overflow:hidden/);
+});
+
+test("Refrigerantes: tempos curtos, feedback tátil e acessibilidade", () => {
+  assert.match(component, /duration: opening \? 260 : 220/);
+  assert.match(component, /prefers-reduced-motion: reduce/);
+  assert.match(css, /#acompanhamentos > summary:active/);
+  assert.match(css, /#acompanhamentos button:not\(:disabled\):active/);
+  assert.match(css, /refreshment-count-confirm/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(css, /animation:none !important/);
+});
+
+test("Refrigerantes: mesmas variantes, sem rolagem nova, sem alterar CTAs ou layout inicial", () => {
+  assert.match(component, /const visible = DRINKS\.filter/);
+  assert.match(component, /drinkStatus\(availability, drink\.id\) !== "hidden"/);
+  assert.match(component, /adjust\(drink,-1\)/);
+  assert.match(component, /adjust\(drink,1\)/);
+  assert.match(component, /quantity < 99/);
+  assert.match(component, /aria-live="polite"/);
+  assert.match(component, /window\.scrollBy\(\{ top: delta/);
+  assert.doesNotMatch(component.slice(component.indexOf("const toggleOffer"), component.indexOf("// Quando o carrinho acima cresce")), /scrollTo|scrollIntoView|scrollBy/);
+  assert.equal((checkout.match(/<DrinkComplements availability=\{availability\}/g) ?? []).length, 1);
+  assert.match(checkout, /id="recebimento-opcoes"/);
+});
