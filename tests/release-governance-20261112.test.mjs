@@ -39,7 +39,7 @@ test("não confunde pacote CI, fotografias externas nem ZIP publicado", () => {
   assert.match(guide, /main/);
   assert.match(guide, /PR #34/);
   assert.match(guide, /refrigerantes/i);
-  assert.match(guide, /não é prova de deploy/i);
+  assert.match(guide, /não prova publicação|nem prova de deploy/i);
 });
 
 test("preflight documental passa sem declarar publicação", () => {
