@@ -14,13 +14,13 @@
     "do_not_equate_main_with_production": true,
     "price_change_candidate_branch": "fix/cascao-precos-paridade-20261112 (merged in integration branch)",
     "price_change_compiled_sha": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f",
-    "release_candidate_branch": "fix/admin-refrigerantes-disponibilidade-v471-20261112",
+    "release_candidate_branch": "work/integracao-comercial-controlada-20261112",
     "release_candidate_version": "V4.7.1",
     "release_candidate_compiled_sha": "baf4284f56672f95cd3d98582a765b16a2e92146",
     "release_candidate_head_sha": "baf4284f56672f95cd3d98582a765b16a2e92146",
     "release_candidate_tested_sha": "baf4284f56672f95cd3d98582a765b16a2e92146",
-    "release_candidate_note": "PR39 hotfix only adds /admin Bebidas; code at baf4284 Actions verified. Following documentation commits do not alter build output. PR39 targets PR36 only, no main merge.",
-    "release_candidate_merge_sha": "4ac49600aa04c8cd332b900c8f1e0e632d1e0090"
+    "release_candidate_note": "V4.7.1 PR39 merged only into PR36 integration at 9b8cf36; compiled frontend from baf4284; later docs changes only; no main/deploy.",
+    "release_candidate_merge_sha": "9b8cf36f2723426e90e0681481db4b98ed954450"
   },
   "deployments": {
     "cloudflare": {
@@ -276,7 +276,7 @@
       "Hotfix V4.7.1 corrigiu omissão da aba Bebidas no admin. ZIP a4c60ae1b036eb620b7fa361f7aa4babb66f910a8141dea5fd84fc050d0f48cd foi gerado/validado, mas NÃO foi enviado ao Cloudflare nesta sessão.",
       "Depois do upload V4.7.1, confirmar presença da aba administrativa e das quatro imagens. Somente então operador libera status Available para SKUs realmente vendáveis.",
       "Checkout misto real, mensagem WhatsApp efetivamente enviada, cozinha/QZ, Pix e Safari/Instagram físico ainda exigem homologação. Não tratar CI como venda.",
-      "PR #39 ainda candidato controlado, sem merge em main nem novo deployment Edge/SQL."
+      "PR #39 mergeado somente na integração PR #36; sem merge em main, deploy Cloudflare/Edge/SQL ou ativação de bebidas."
     ],
     "requires_explicit_release_authorization": true,
     "do_not_auto_deploy": true
@@ -317,6 +317,14 @@
       "merge_sha": "4ac49600aa04c8cd332b900c8f1e0e632d1e0090",
       "production_impact": "none",
       "notes": "V4.7 drinks compact UX and WhatsApp Cascao text; 861 tests + WebKit; ZIP completed; no Cloudflare deployment nor remote drink enable."
+    },
+    {
+      "pr": 39,
+      "branch": "fix/admin-refrigerantes-disponibilidade-v471-20261112",
+      "merged_into": "work/integracao-comercial-controlada-20261112",
+      "merge_sha": "9b8cf36f2723426e90e0681481db4b98ed954450",
+      "production_impact": "none",
+      "notes": "V4.7.1 admin drinks tab, 865/865 tests and WebKit, ZIP integrity; not deployed nor statuses enabled"
     }
   ]
 }
