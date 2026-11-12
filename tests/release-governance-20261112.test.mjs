@@ -79,6 +79,6 @@ test("reconciliação e runbook não executam migrações nem afirmam release", 
  assert.match(operations, /Cloudflare/);
  assert.match(operations, /create-whatsapp-order/);
  assert.match(operations, /1699\/1899/);
- assert.match(operations, /2000\/2200/);
- assert.match(operations, /nenhum/i); // política de execução não automática
+ assert.match(operations, /Natal 2200 e novos Cascões a 2000/);
+ assert.match(operations, /não autorização para publicar/);
 });
