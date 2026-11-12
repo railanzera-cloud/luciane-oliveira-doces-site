@@ -1,0 +1,69 @@
+name: V4.7.2 - refrigerantes microinteracoes WebKit e regressao
+on:
+  push:
+    branches:
+      - refine/refrigerantes-microinteracoes-v472-20261112
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  drinks-motion-qa:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      SITE_ORDERING_ENABLED: 'false'
+      SUPABASE_URL: https://edqiwvccmboyayojvuea.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_69flK5d9m8Oe3HHVnmKWdA_omNIuIcl
+      MP_PUBLIC_KEY_TEST: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Dependencias fixadas
+        run: npm ci --no-audit --no-fund
+      - name: Verificar alteracoes TypeScript contra erros historicos conhecidos
+        shell: bash
+        run: |
+          set +e
+          npx tsc --noEmit > /tmp/tsc-drinks.log 2>&1
+          code=$?
+          set -e
+          cat /tmp/tsc-drinks.log
+          if [ "$code" -ne 0 ]; then
+            grep 'error TS' /tmp/tsc-drinks.log | grep -Ev '^(components/admin-trufadas-stock.tsx|db/index.ts|worker/index.ts)' > /tmp/tsc-drinks-new.log || true
+            if [ -s /tmp/tsc-drinks-new.log ]; then
+              echo "::error::Erros TypeScript fora da lista historica"
+              exit 1
+            fi
+            echo "::warning::Somente erros historicos conhecidos"
+          fi
+      - name: Build conectado e todas as regressões comerciais
+        run: |
+          npm run build
+          node --test tests/*.test.mjs
+      - name: Instalar WebKit isolado
+        run: |
+          npm install --prefix "$RUNNER_TEMP/drinks-webkit" --no-save --no-package-lock playwright@1.56.1
+          "$RUNNER_TEMP/drinks-webkit/node_modules/.bin/playwright" install --with-deps webkit
+      - name: Homologar abertura, reversão, quantidades e teclado em WebKit
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/drinks-motion-visual"
+          SUPABASE_PUBLISHABLE_KEY='qa_mock_no_credentials_20261112' npm run build
+          node scripts/package-cloudflare.mjs
+          python3 -m http.server 8181 --bind 127.0.0.1 --directory outputs/cloudflare-pages > /tmp/drinks-motion-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          export QA_PACKAGE="$RUNNER_TEMP/drinks-webkit/package.json"
+          export QA_OUTPUT="$RUNNER_TEMP/drinks-motion-visual"
+          node scripts/qa-refrigerantes-microinteracoes-webkit.mjs
+      - name: Capturas de comparação visual (não são Safari físico)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: QA-REFRIGERANTES-MICROINTERACOES-V472
+          path: ${{ runner.temp }}/drinks-motion-visual/
+          if-no-files-found: warn
+          retention-days: 7
