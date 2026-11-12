@@ -10,7 +10,8 @@ test("Refrigerantes: abertura reversível preserva details nativo, teclado e fec
   assert.match(component, /<details ref=\{offerRef\} className="refreshment-later"/);
   assert.match(component, /<summary onClick=\{toggleOffer\}/);
   assert.match(component, /event\.preventDefault\(\)/);
-  assert.match(component, /const expanding = !details\.open \|\| details\.dataset\.collapsing === "true"/);
+  assert.match(component, /const expanding = pending \? !desiredOpenRef\.current : !details\.open/);
+  assert.match(component, /window\.requestAnimationFrame/);
   assert.match(component, /onTransitionEnd=\{finishCollapse\}/);
   assert.match(component, /const finishCollapse/);
   assert.match(component, /details\.open = false/);
