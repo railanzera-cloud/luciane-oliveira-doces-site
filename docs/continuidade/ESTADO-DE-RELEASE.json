@@ -14,10 +14,13 @@
     "do_not_equate_main_with_production": true,
     "price_change_candidate_branch": "fix/cascao-precos-paridade-20261112 (merged in integration branch)",
     "price_change_compiled_sha": "c9f4e3f2b08efe241eba7a37adadd3d4246f613f",
-    "release_candidate_branch": "feat/refrigerantes-ux-compacta-whatsapp-v47-20261112",
+    "release_candidate_branch": "work/integracao-comercial-controlada-20261112",
     "release_candidate_version": "V4.7",
-    "release_candidate_compiled_sha": "9aa62f9076ef95fa5ea7e3c0fe774fa0fa89356c",
-    "release_candidate_head_sha": "1b497c73be6ca181511984b489707f4a30b2a0be"
+    "release_candidate_compiled_sha": "ce0ceea36eccaa5fa1886c362c1915323a4cadc5",
+    "release_candidate_head_sha": "32a128ec53da1c5c3ee5aa042d1d9775b7952156",
+    "release_candidate_tested_sha": "32a128ec53da1c5c3ee5aa042d1d9775b7952156",
+    "release_candidate_note": "PR38 merged into PR36 controlled integration at 4ac49600; code compiled from ce0ceea, validated at 32a128e; subsequent docs commits are not new frontend builds.",
+    "release_candidate_merge_sha": "4ac49600aa04c8cd332b900c8f1e0e632d1e0090"
   },
   "deployments": {
     "cloudflare": {
@@ -168,16 +171,16 @@
     {
       "release": "V4.7 - refrigerantes compactos e mensagem de Cascão sem unidade duplicada",
       "filename": "LUCIANE_COMERCIAL_V4_7_REFRIGERANTES_CHECKOUT_WHATSAPP_PUBLICAR_MANUALMENTE.zip",
-      "sha256": "475a6f63d987669236c924388f5a658eeeb10566282c1766c05cfc95ef2f1997",
+      "sha256": "66d9dbf267d4e7163ae8a75a340e5adc5d94ebeee8df8a6f0cfd7b16ab427bb7",
       "files": 121,
       "file_count": 116,
-      "compiled_from_sha": "9aa62f9076ef95fa5ea7e3c0fe774fa0fa89356c",
+      "compiled_from_sha": "ce0ceea36eccaa5fa1886c362c1915323a4cadc5",
       "ci_workflows": [
-        43246805214,
-        43246805401,
-        43246813130
+        43247101842,
+        43247102153,
+        43246503526
       ],
-      "ci_regressions": "all passed",
+      "ci_regressions": "861/861 passed",
       "webkit_viewports": [
         320,
         375,
@@ -189,12 +192,15 @@
       "inherited_approved_cascao_webps": 20,
       "added_approved_drink_webps": 4,
       "previous_static_assets_checked_identical": 71,
-      "base_zip_sha256": "64330aa6d3e713333ea549b648ad6c3ff2f8099ad9436c8b783d385542141f9e",
+      "base_zip_sha256": "5127788544af3d3486f2e45928e762efb409b15066b1567992a7d3f6f573dc57",
       "frontend_drink_contract": "coca_zero_220=400;fanta_220=400;guarana_200=300;coca_original_350=600",
       "backend_function_v38_compatible": true,
-      "availability_status": "all_drinks_hidden_in_remote_on_2026-11-12",
-      "deployed": "not_verified",
-      "critical": "ZIP V4.7 não enviado ao Cloudflare; NÃO liberar bebidas enquanto o frontend não estiver publicado e validado. Safári/Instagram físicos e WhatsApp/cozinha exigem operação."
+      "availability_status": "all_four_drinks_hidden_as_observed_2026_11_12",
+      "deployed": "not_published",
+      "critical": "Frontend V4.7 pronto para upload manual Cloudflare, ainda NÃO publicado; manter 4 bebidas hidden até verificar imagens, SKUs, checkout, Pix/WhatsApp e cozinha.",
+      "ci_code_tested_sha": "32a128ec53da1c5c3ee5aa042d1d9775b7952156",
+      "ci_commercial_tests": 861,
+      "ci_focused_tests": 8
     }
   ],
   "pending_divergent_work": [
@@ -221,12 +227,12 @@
   "release_readiness": {
     "status": "blocked",
     "known_blockers": [
-      "V4.7 121 entradas/116 arquivos montado e testado, mas NÃO publicado no Cloudflare. Production permanece V4.6 deployment 237b204c conforme último print; não confundir.",
-      "Quatro bebidas na disponibilidade do Supabase permanecem hidden; somente habilitar depois do upload V4.7, verificação dos quatro WebP e teste de navegação/checkout.",
-      "WebKit 320/375/390/430/1280 e testes comerciais passam no candidato; Safari/Instagram físico ainda não testado nesta release.",
-      "WhatsApp #1756 demonstrou redundância de texto Cascão; novo texto já corrigido em código V4.7 mas depende do upload. Injeção invisível do Tintim ocorre após a formatação e não foi alterada.",
-      "Pedido com bebida, envio real WhatsApp, impressão de cozinha, Pix e rollback Cloudflare devem ser homologados após publicação; não gerar venda de teste sem coordenação.",
-      "PR #38 permanece candidato sem merge na main; histórico e controle de integração preservados."
+      "V4.7 ZIP compilado e verificado: 121 entradas, 116 arquivos, 20 fotos aprovadas Cascão e 4 bebidas. SHA256 66d9dbf267d4e7163ae8a75a340e5adc5d94ebeee8df8a6f0cfd7b16ab427bb7. NÃO publicado no Cloudflare.",
+      "CI final V4.7: 861/861 regressões, oito focados e WebKit 320/375/390/430/1280 SUCCESS (run 43247101842), build conectado SUCCESS (run 43247102153), QA bairros/entrega SUCCESS (run 43246503526). Safari/Instagram físico ainda não testado nesta release.",
+      "Cloudflare: último deployment comprovado Production 237b204c-d5a5-4d3a-a8e7-7bfc3d699cc0 (bundle V4.6); confirmar status atual e preservar rollback antes de upload V4.7.",
+      "Quatro bebidas estão hidden no Supabase; publicar ZIP, conferir fotos e fluxo, só então habilitar SKUs deliberadamente, sem alterar estoques, tarifas, outros produtos ou catálogo de preços.",
+      "Após publicação: homologar compra mista controlada, mensagem realmente enviada pelo WhatsApp, Pix, registro administrativo e impressão física QZ. Não interpretar WebKit/abertura WhatsApp como confirmação.",
+      "PR #38 mergeado somente na integração controlada PR #36, sem merge em main e sem publicar Cloudflare; não confundir código preparado com loja atual."
     ],
     "requires_explicit_release_authorization": true,
     "do_not_auto_deploy": true
@@ -244,12 +250,12 @@
       300,
       600
     ],
-    "remote_availability": "hidden_as_observed_2026-11-12",
+    "remote_availability": "all_four_hidden_2026-11-12",
     "historical_prs": [
       23,
       24
     ],
-    "warning": "PR38 code built and tested; no Cloudflare upload or remote availability enable yet. Do not merge main until release acceptance."
+    "warning": "PR38 861 tests passed; ZIP V4.7 ready for user-controlled manual Cloudflare upload. No production release or DB write occurred."
   },
   "integrated_work": [
     {
@@ -259,6 +265,14 @@
       "merge_sha": "1b497c73be6ca181511984b489707f4a30b2a0be",
       "production_impact": "none",
       "notes": "V4.6 catalog prices, all available checkout complements, QA navigation name correction, documentation; no deployment"
+    },
+    {
+      "pr": 38,
+      "branch": "feat/refrigerantes-ux-compacta-whatsapp-v47-20261112",
+      "merged_into": "work/integracao-comercial-controlada-20261112",
+      "merge_sha": "4ac49600aa04c8cd332b900c8f1e0e632d1e0090",
+      "production_impact": "none",
+      "notes": "V4.7 drinks compact UX and WhatsApp Cascao text; 861 tests + WebKit; ZIP completed; no Cloudflare deployment nor remote drink enable."
     }
   ]
 }
