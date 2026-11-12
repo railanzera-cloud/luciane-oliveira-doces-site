@@ -221,9 +221,13 @@ try {
         const firstQty = await zero.locator(".refreshment-quantity span").innerText();
         assert.equal(firstQty,"1","Primeira Coca Zero adicionada");
         const yBefore = await cascaoPage.evaluate(() => window.scrollY);
+        const topBefore = await zero.locator(".refreshment-quantity button:last-child").evaluate(el => el.getBoundingClientRect().top);
         await addZero();
         const yAfter = await cascaoPage.evaluate(() => window.scrollY);
-        assert.ok(Math.abs(yAfter-yBefore) < 14,"Somar bebida não movimenta a tela: "+(yAfter-yBefore));
+        const topAfter = await zero.locator(".refreshment-quantity button:last-child").evaluate(el => el.getBoundingClientRect().top);
+        assert.ok(Math.abs(topAfter-topBefore) < 14,
+          "Botão de bebida saltou visualmente: antes=" + topBefore + " depois=" + topAfter
+          + " scroll antes=" + yBefore + " depois=" + yAfter);
         assert.equal(await zero.locator(".refreshment-quantity span").innerText(),"2");
         await fanta.locator(".refreshment-add").click();
         assert.equal(await fanta.locator(".refreshment-quantity span").innerText(),"1");
