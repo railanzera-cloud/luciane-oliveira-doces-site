@@ -26,7 +26,7 @@
 
 ### Complementos de reconciliação e operação (12/11/2026)
 
-- [Mapa verificável de branches e PRs concorrentes](RECONCILIACAO-PRs-20261112.md): identifica divergência de PR #34, PRs #23/#24 e mudanças exclusivas a tratar sem merge cego.
+- [Mapa verificável de branches e PRs concorrentes](RECONCILIACAO-PRs-20261112.md): registra a comparação e o encerramento **sem merge** do PR #34, além das referências de bebidas PRs #23/#24.
 - [Plano de corte comercial coordenado V4.4](PLANO-DE-CORTE-V44-20261112.md): checklist antes de qualquer Edge/SQL/Cloudflare, plano de backup, etapas operacionais e rollback. **Preparado, não executado.**
 - A leitura pública da URL não fornece ID/SHAs de deployment; se o Cloudflare não estiver conectado, registrar **produção desconhecida** em vez de procurar evidências inválidas no GitHub.
 
@@ -35,7 +35,7 @@
 | Linha | Situação e decisão |
 | --- | --- |
 | PR #31 → #32 → #33 → #35 | Cadeia de ancestralidade coerente. V4.4 é a referência de código mais recente desta linha, mas **não** referência comprovada de produção. |
-| PR #34 | Branch `feat/cascao-novos-sabores-natal22-20261112` **divergida**, partindo do checkout V4.2. Implementa os mesmos novos Cascões/preços em paralelo, mas tem decisões diferentes: nome do terceiro sabor e layout de duas colunas em mobile. Não misturar automaticamente nem decretar superior sem homologação. Revisar apenas diferenças exclusivas/úteis antes de encerrar; fotos V4.4 e nome aprovado têm precedência enquanto não houver decisão nova. |
+| PR #34 | Branch `feat/cascao-novos-sabores-natal22-20261112` **divergida**, partindo do checkout V4.2. Implementa os mesmos novos Cascões/preços em paralelo, mas tem decisões diferentes: nome do terceiro sabor e layout de duas colunas em mobile. Não misturar automaticamente nem decretar superior sem homologação. Diferenças/testes revisados e PR #34 encerrado como substituído em 12/11 **sem merge nem exclusão de branch**. Fotos V4.4 e nome aprovado seguem como referência enquanto não houver nova decisão. |
 | PR #23 / #24 | Bebidas e ajustes de complementos anteriores não autorizam reativar refrigerantes. Código e UX podem servir como referência, mas **não** devem ser mesclados sem a nova decisão de produto. |
 | PRs #5–#30 | Histórico acumulado por encadeamento; quantidade de PRs abertos **não** equivale a trabalho faltando em produção. Não executar merge/fechamento em lote. Documentar dependências que ainda importam. |
 | `main` | Separada do checkpoint recente. Diferença histórica de ~1.235 commits no momento da conferência, que não é medida de falhas nem prova de deploy. |
