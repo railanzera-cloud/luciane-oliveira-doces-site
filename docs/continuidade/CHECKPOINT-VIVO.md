@@ -804,3 +804,13 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - Edge `create-whatsapp-order` de produção estava na versão 36, cotador anterior; atualizar com versão 37 **somente na janela coordenada de publicação**, para evitar divergência de preço. A versão de repositório já inclui texto de fatias V4.
 - Workflows V4.3 geram `LUCIANE_COMERCIAL_V4_3_BASE_SEM_FOTOS_CASCAO.zip`, que **NÃO** contém os 9 WebPs. Script local `scripts/finish-cascao-v43-cloudflare.py` monta `LUCIANE_COMERCIAL_V4_3_CASCAO_NATAL.zip` e confere fotos/hashes. Preservar os 8 WebPs Natal.
 - CI deve ser confirmada no SHA final, não em commits intermediários. Sem merge, deploy Cloudflare ou ativação de novos SKUs até homologação e sincronização de preços.
+
+
+## 60. Cascão V4.4 — substituir foto principal e três fotos individuais (12/11/2026)
+
+- **Autorização:** proprietário aprovou quatro fotos, com três Cascões juntos na home e fotos individuais dos novos sabores com exemplares ao fundo; ajustar enquadramento sem retoque do alimento.
+- **Base:** V4.3 / PR #33 / 1b7533c16745cfeadacf3eb18d380c06204b9224; branch refine/cascao-fotografias-v44-20261112.
+- **Frontend:** usar cascao-trufado-trio-home-20261112-v44.webp na categoria quando novos produtos estiverem visíveis; trocar image/cardImage dos três novos sabores e miniatura de complementos; preservar fallback e três sabores antigos.
+- **Assets:** quatro JPEG recebidos em 12/11 -> onze WebPs (3× detalhe/cartão/360 e trio home/360). Crops home (0,70,1122,840), card (236,85,886,898), somente resize/encode. Arquivos anteriores de Cascão e Natal preservados. Script scripts/finish-cascao-v44-cloudflare.py verifica hashes de JPEG e do ZIP V4.3.
+- **QA:** novo teste tests/cascao-fotografias-v44-20261112.test.mjs, suites comerciais, TS/build, WebKit cinco larguras, integridade do ZIP LUCIANE_COMERCIAL_V4_4_CASCAO_VISUAL.zip. Confirmar último SHA antes de declarar sucesso.
+- **Estado:** nenhum SQL/Edge/Supabase produtivo, preço, estoque, pagamento, entrega, impressão, merge ou deploy alterado. Permanece risco de preço divergente se V4.3/V4.4 for publicado sem sincronizar cotador comercial (Natal R$22, Cascões R$20). Exigir janela coordenada e homologação no iPhone.
