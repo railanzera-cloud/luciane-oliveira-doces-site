@@ -98,32 +98,62 @@ export const SLICE_DRAFTS: ReadonlyArray<{ id: string; itemKey: string; name: st
 
 // Catálogo central: preços, fotos e disponibilidade são alterados somente aqui.
 export const PRODUCTS: Product[] = [
-  // Cones Trufados: sabores permanentes, disponibilidade individual no Supabase.
+  // Cascão Trufado: manter IDs históricos dos três sabores existentes; disponibilidade individual no Supabase.
   {
-    id: "cone-trufado-prestigio", kind: "cone", category: "Cones Trufados",
+    id: "cone-trufado-prestigio", kind: "cone", category: "Cascão Trufado",
     name: "Prestígio", available: true,
     image: "/images/cone-trufado-prestigio-20261108-v2.webp",
     cardImage: "/images/cone-trufado-prestigio-card-20261108-v2.webp",
     imageAlt: "Cone trufado Prestígio coberto com coco e creme liso de coco no topo, sem bombom",
-    variants: [{ id: "unidade", label: "1 cone", whatsappLabel: "1 cone", price: 14, available: true }],
+    variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 14, available: true }],
     options: [],
   },
   {
-    id: "cone-trufado-dois-amores", kind: "cone", category: "Cones Trufados",
+    id: "cone-trufado-dois-amores", kind: "cone", category: "Cascão Trufado",
     name: "Dois Amores", available: true,
     image: "/images/cone-trufado-dois-amores-20261108.webp",
     cardImage: "/images/cone-trufado-dois-amores-card-20261108.webp",
     imageAlt: "Cone trufado Dois Amores com cobertura de chocolate e dois cremes",
-    variants: [{ id: "unidade", label: "1 cone", whatsappLabel: "1 cone", price: 14, available: true }],
+    variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 14, available: true }],
     options: [],
   },
   {
-    id: "cone-trufado-ferrero-rocher", kind: "cone", category: "Cones Trufados",
+    id: "cone-trufado-ferrero-rocher", kind: "cone", category: "Cascão Trufado",
     name: "Ferrero Rocher", available: true,
     image: "/images/cone-trufado-ferrero-rocher-20261108.webp",
     cardImage: "/images/cone-trufado-ferrero-rocher-card-20261108.webp",
     imageAlt: "Cone trufado Ferrero Rocher com pedaços crocantes e creme de chocolate",
-    variants: [{ id: "unidade", label: "1 cone", whatsappLabel: "1 cone", price: 16, available: true }],
+    variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 16, available: true }],
+    options: [],
+  },
+
+  // Novos cascões maiores, imagens originais da loja convertidas para WebP.
+  // Não reutilizar IDs de cones antigos nem de sabores de pipoca.
+  {
+    id: "cascao-trufado-kinder-bueno", kind: "cone", category: "Cascão Trufado",
+    name: "Kinder Bueno", available: true,
+    image: "/images/cascao-trufado-kinder-bueno-20261112.webp",
+    cardImage: "/images/cascao-trufado-kinder-bueno-card-20261112.webp",
+    imageAlt: "Cascão de chocolate com creme claro, pedaços de Kinder Bueno e crocantes",
+    variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 20, available: true }],
+    options: [],
+  },
+  {
+    id: "cascao-trufado-ninho-morango", kind: "cone", category: "Cascão Trufado",
+    name: "Ninho com Morango", available: true,
+    image: "/images/cascao-trufado-ninho-morango-20261112.webp",
+    cardImage: "/images/cascao-trufado-ninho-morango-card-20261112.webp",
+    imageAlt: "Cascão de chocolate com creme de Ninho e pedaços de morango fresco",
+    variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 20, available: true }],
+    options: [],
+  },
+  {
+    id: "cascao-trufado-ninho-nutella-chocotone", kind: "cone", category: "Cascão Trufado",
+    name: "Ninho Nutella e Chocotone", available: true,
+    image: "/images/cascao-trufado-ninho-nutella-chocotone-20261112.webp",
+    cardImage: "/images/cascao-trufado-ninho-nutella-chocotone-card-20261112.webp",
+    imageAlt: "Cascão de chocolate com creme de Ninho, Nutella e pedaços de chocotone",
+    variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 20, available: true }],
     options: [],
   },
 
@@ -313,7 +343,7 @@ export const PRODUCTS: Product[] = [
     image: "/images/chocotone-ninho-nutella-detail-2026.webp",
     cardImage: "/images/chocotone-ninho-nutella-card-2026.webp",
     imageAlt: "Fatia recheada de Chocottone Ninho com Nutella em prato branco com ambiente natalino",
-    variants: [{ id: "porcao", label: "1 fatia", whatsappLabel: "1 fatia", price: 18.99, available: true }],
+    variants: [{ id: "porcao", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
     options: [],
   },
   {
@@ -322,7 +352,7 @@ export const PRODUCTS: Product[] = [
     image: "/images/chocotone-ferrero-rocher-detail-2026.webp",
     cardImage: "/images/chocotone-ferrero-rocher-card-2026.webp",
     imageAlt: "Fatia recheada de Chocottone Ferrero Rocher em prato branco com ambiente natalino",
-    variants: [{ id: "porcao", label: "1 fatia", whatsappLabel: "1 fatia", price: 18.99, available: true }],
+    variants: [{ id: "porcao", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
     options: [],
   },
   {
@@ -331,7 +361,7 @@ export const PRODUCTS: Product[] = [
     image: "/images/chocotone-casadinho-detail-2026.webp",
     cardImage: "/images/chocotone-casadinho-card-2026.webp",
     imageAlt: "Fatia recheada de Chocottone Casadinho em prato branco com ambiente natalino",
-    variants: [{ id: "porcao", label: "1 fatia", whatsappLabel: "1 fatia", price: 16.99, available: true }],
+    variants: [{ id: "porcao", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
     options: [],
   },
   {
@@ -340,7 +370,7 @@ export const PRODUCTS: Product[] = [
     image: "/images/chocotone-morango-brigadeiro-branco-chocolate-detail-2026.webp",
     cardImage: "/images/chocotone-morango-brigadeiro-branco-chocolate-card-2026.webp",
     imageAlt: "Fatia recheada de Chocottone Morango com Brigadeiro Branco e Chocolate em prato branco com ambiente natalino",
-    variants: [{ id: "porcao", label: "1 fatia", whatsappLabel: "1 fatia", price: 18.99, available: true }],
+    variants: [{ id: "porcao", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
     options: [],
   },
   {

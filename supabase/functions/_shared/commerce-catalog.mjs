@@ -2,7 +2,7 @@ import { deliveryLocalityById, deliveryLegacyReviewState, deliveryLegacySpecific
 import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
-export const CATALOG_VERSION = "2026-11-11.fatias-chocottone-v4";
+export const CATALOG_VERSION = "2026-11-12.cascao-natal-v43";
 import { DRINKS } from "./drinks-catalog.mjs";
 import { TRUFADAS_VARIANTS, getTrufadaVariant } from "./trufadas-variants.mjs";
 
@@ -39,19 +39,22 @@ export const POPCORN_FLAVORS = Object.freeze({
   nutella: Object.freeze({ id: "nutella", itemKey: "popcorn_flavor_nutella", name: "Nutella", pricingGroup: 3 }),
 });
 
-// Preços em centavos definidos pela Luciane; cada cone é vendido por unidade.
+// Cascões vendidos por unidade. Preservar preços/IDs históricos; novos sabores a R$ 20.
 export const CONES = Object.freeze({
   "cone-trufado-prestigio": Object.freeze({ id: "cone-trufado-prestigio", itemKey: "cone_prestigio", name: "Prestígio", priceCents: 1400 }),
   "cone-trufado-dois-amores": Object.freeze({ id: "cone-trufado-dois-amores", itemKey: "cone_dois_amores", name: "Dois Amores", priceCents: 1400 }),
   "cone-trufado-ferrero-rocher": Object.freeze({ id: "cone-trufado-ferrero-rocher", itemKey: "cone_ferrero_rocher", name: "Ferrero Rocher", priceCents: 1600 }),
+  "cascao-trufado-kinder-bueno": Object.freeze({ id: "cascao-trufado-kinder-bueno", itemKey: "cascao_kinder_bueno", name: "Kinder Bueno", priceCents: 2000 }),
+  "cascao-trufado-ninho-morango": Object.freeze({ id: "cascao-trufado-ninho-morango", itemKey: "cascao_ninho_morango", name: "Ninho com Morango", priceCents: 2000 }),
+  "cascao-trufado-ninho-nutella-chocotone": Object.freeze({ id: "cascao-trufado-ninho-nutella-chocotone", itemKey: "cascao_ninho_nutella_chocotone", name: "Ninho Nutella e Chocotone", priceCents: 2000 }),
 });
 
 // Chocottones permanecem com item_type e IDs históricos, mas o produto físico vendido é uma fatia recheada.
 export const CHOCOTONES = Object.freeze({
-  "chocotone-ninho-nutella": Object.freeze({ id: "chocotone-ninho-nutella", itemKey: "chocotone_ninho_nutella", name: "Ninho com Nutella", priceCents: 1899 }),
-  "chocotone-ferrero-rocher": Object.freeze({ id: "chocotone-ferrero-rocher", itemKey: "chocotone_ferrero_rocher", name: "Ferrero Rocher", priceCents: 1899 }),
-  "chocotone-casadinho": Object.freeze({ id: "chocotone-casadinho", itemKey: "chocotone_casadinho", name: "Casadinho", priceCents: 1699 }),
-  "chocotone-morango-brigadeiro-branco-chocolate": Object.freeze({ id: "chocotone-morango-brigadeiro-branco-chocolate", itemKey: "chocotone_morango_brigadeiro_branco_chocolate", name: "Morango com Brigadeiro Branco e Chocolate", priceCents: 1899 }),
+  "chocotone-ninho-nutella": Object.freeze({ id: "chocotone-ninho-nutella", itemKey: "chocotone_ninho_nutella", name: "Ninho com Nutella", priceCents: 2200 }),
+  "chocotone-ferrero-rocher": Object.freeze({ id: "chocotone-ferrero-rocher", itemKey: "chocotone_ferrero_rocher", name: "Ferrero Rocher", priceCents: 2200 }),
+  "chocotone-casadinho": Object.freeze({ id: "chocotone-casadinho", itemKey: "chocotone_casadinho", name: "Casadinho", priceCents: 2200 }),
+  "chocotone-morango-brigadeiro-branco-chocolate": Object.freeze({ id: "chocotone-morango-brigadeiro-branco-chocolate", itemKey: "chocotone_morango_brigadeiro_branco_chocolate", name: "Morango com Brigadeiro Branco e Chocolate", priceCents: 2200 }),
 });
 
 export const SLICES = Object.freeze({
@@ -194,20 +197,20 @@ export function quoteCartItems(rawItems, now = Date.now()) {
       };
     }
 
-    // Cones Trufados são produtos próprios, sem caldas de fatias e sem variantes
+    // Cascões Trufados são produtos próprios, sem caldas de fatias e sem variantes
     // de tamanho. A cotação autoritativa protege valor, SKU e disponibilidade.
     if (Object.hasOwn(CONES, productId)) {
       const cone = CONES[productId];
       if (variantId !== "unidade" || optionIds.length !== 0)
-        throw new Error("Escolha um Cone Trufado válido.");
+        throw new Error("Escolha um Cascão Trufado válido.");
       availabilityKeys.add(CATEGORY_ITEM_KEYS.cones);
       availabilityKeys.add(cone.itemKey);
       return {
         item_key: cone.itemKey, product_id: productId,
         category_key: CATEGORY_ITEM_KEYS.cones, item_type: "cone",
-        name: `Cone Trufado — ${cone.name}`,
+        name: `Cascão Trufado — ${cone.name}`,
         variant_id: "unidade", variant_item_key: cone.itemKey,
-        size_label: "1 cone", option_ids: [], option_item_keys: [],
+        size_label: "1 cascão", option_ids: [], option_item_keys: [],
         option_names: [], quantity, unit_price_cents: cone.priceCents,
         line_total_cents: cone.priceCents * quantity, catalog_version: CATALOG_VERSION,
       };

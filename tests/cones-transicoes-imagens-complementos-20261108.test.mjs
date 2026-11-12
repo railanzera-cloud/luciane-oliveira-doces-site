@@ -8,8 +8,9 @@ const css=readFileSync("app/refinamento-cones-visual-20261108.css","utf8");
 const layout=readFileSync("app/layout.tsx","utf8");
 
 test("Vitrine usa foto de três sabores, Prestígio usa nova imagem",()=>{
-  assert.ok(page.includes('photo="/images/cones-trufados-trio-20261108.webp"'));
-  assert.ok(page.includes('id === "cones" ? "/images/cones-trufados-trio-card-20261108.webp"'));
+  // Foto nova só na vitrine quando o SKU Kinder estiver visível; fallback preserva trio antigo.
+  assert.ok(page.includes('coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-kinder-bueno-20261112.webp"'));
+  assert.ok(page.includes('id === "cones" ? (coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-kinder-bueno-card-20261112.webp"'));
   const prestigio=CONES.find(p=>p.id==="cone-trufado-prestigio");
   assert.equal(prestigio?.image,"/images/cone-trufado-prestigio-20261108-v2.webp");
   assert.equal(prestigio?.cardImage,"/images/cone-trufado-prestigio-card-20261108-v2.webp");

@@ -63,10 +63,10 @@ test("Resumo mais curto, área segura Instagram e redução de movimento não al
   assert.ok(css.includes('.collection-choice .collection-copy'));
   assert.ok(css.includes('min-height: 44px'));
   assert.ok(layout.includes('import "./mobile-refinamentos-funil-20261108.css";'));
-  assert.ok(page.includes("Cones Trufados"));
+  assert.ok(page.includes("Cascão Trufado"));
   assert.ok(page.includes("Pipocas Trufadas"));
   assert.ok(page.includes("Fatias Artesanais"));
   assert.ok(page.includes("Pipocas Gourmet"));
   assert.ok(page.includes('className="builder-utility-nav" aria-label="Navegação do cardápio"'));
-  assert.ok(page.includes('activeCategory === "cones" ? "Escolha um cone para começar."'));
+  assert.ok(page.includes('activeCategory === "cones" ? "Escolha um cascão para começar."'));
 });
