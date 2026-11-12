@@ -67,6 +67,46 @@
 .storefront #acompanhamentos button:not(:disabled):active {transform:scale(.95);background:#ebcfab;}
 .storefront #acompanhamentos .refreshment-unavailable {font-size:.68rem;color:#926b54;}
 .storefront #acompanhamentos .refreshment-footnote {margin:12px 1px 0;font-size:.7rem;line-height:1.35;color:#886a51;}
+
+/* Mobile: linha horizontal por bebida. Evita sobreposição dos controles
+   em telas 320–430 px e ocupa menos altura que cartões verticais de 2 colunas. */
+@media(max-width:699px) {
+ .storefront #acompanhamentos .refreshment-grid {
+   grid-template-columns:minmax(0,1fr);
+   gap:8px;
+ }
+ .storefront #acompanhamentos .refreshment-card {
+   display:grid;
+   grid-template-columns:minmax(0,1fr) auto;
+   align-items:center;
+   gap:8px;
+   min-height:74px;
+   padding:8px 10px;
+ }
+ .storefront #acompanhamentos .refreshment-product {
+   align-items:center;gap:9px;min-width:0;
+ }
+ .storefront #acompanhamentos .refreshment-image {
+   flex:0 0 43px;width:43px;height:55px;
+ }
+ .storefront #acompanhamentos .refreshment-copy {
+   min-height:55px;align-content:center;
+ }
+ .storefront #acompanhamentos .refreshment-action-row {
+   display:flex;flex-direction:column;align-items:flex-end;justify-content:center;
+   min-width:80px;gap:4px;
+ }
+ .storefront #acompanhamentos .refreshment-add {
+   width:40px;min-width:40px;justify-self:auto;
+ }
+ .storefront #acompanhamentos .refreshment-quantity {
+   justify-self:auto;
+ }
+ .storefront #acompanhamentos .refreshment-quantity button {
+   flex:0 0 30px;min-width:30px;min-height:36px;
+ }
+}
+
 @media(max-width:359px) {
  .storefront #acompanhamentos .refreshment-grid {gap:7px;}
  .storefront #acompanhamentos .refreshment-card {padding:7px;gap:7px;}
