@@ -2462,7 +2462,7 @@ export default function Home() {
                   <CollectionChoice format="Novidade no cardápio" name="Cascão Trufado"
                     photo="/images/cones-trufados-trio-20261108.webp" photoWidth={900}
                     fallback="/images/cone-trufado-prestigio-20261108-v2.webp"
-                    description="6 sabores · Kinder Bueno, Ninho e outros"
+                    description="Sabores clássicos e novidades"
                     price={currency.format(Math.min(...CONES.map(cone => cone.variants[0].price)))}
                     action={!conesAvailable ? "Esgotado" : "Escolher meu cascão"}
                     disabled={!conesAvailable} onClick={() => selectCategory("cones")} />
@@ -2949,7 +2949,7 @@ export default function Home() {
                   <StepMarker number={1} state={coneReady ? "complete" : "active"} />
                   <div>
                     <h3 id="cones-step-title">Escolha seu sabor</h3>
-                    <p>Seis sabores artesanais. Escolha o seu Cascão Trufado.</p>
+                    <p>Escolha entre os sabores disponíveis de Cascão Trufado.</p>
                   </div>
                 </div>
                 {!CONES.some(cone => coneIsVisible(cone.id)) && <p className="selection-helper" role="status">Nenhum cascão disponível no momento.</p>}
@@ -3330,7 +3330,7 @@ export default function Home() {
                               : id === "trufadas" ? cartContainsCrocantes ? "Outro pacote Trufado" : "Pipocas Trufadas"
                               : id === "natal" ? "Fatias de Chocottone"
                                 : "Refrigerante";
-                          const detail = id === "cones" ? (addedNotice?.category === "cones" ? "Adicionar mais um sabor" : "Conhecer os seis sabores")
+                          const detail = id === "cones" ? (addedNotice?.category === "cones" ? "Adicionar mais um sabor" : "Conhecer sabores")
                             : id === "gourmet" ? "Montar pote Gourmet"
                             : id === "fatias" ? (addedNotice?.category === "natal" ? "Conhecer sabores artesanais" : "Escolher sua fatia")
                               : id === "trufadas" ? "Escolher sabor e tamanho"
