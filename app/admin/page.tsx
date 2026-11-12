@@ -451,9 +451,9 @@ export default function AdminPage() {
         {availabilitySection === "cones" && (
           <section className="admin-category-section admin-category-compact" role="tabpanel" id="admin-availability-panel-cones"
             aria-labelledby="admin-availability-tab-cones">
-            <div className="admin-category-heading"><div><p className="eyebrow">Categoria permanente</p><h2>Cones Trufados</h2></div></div>
+            <div className="admin-category-heading"><div><p className="eyebrow">Categoria permanente</p><h2>Cascão Trufado</h2></div></div>
             <p className="admin-category-explanation">Libere a categoria em Configurações gerais e depois cada sabor produzido. Quando acabar, marque somente aquele sabor como Esgotado; os outros permanecem à venda.</p>
-            <div className="admin-group-title"><h3>Sabores dos cones</h3><span>{countReady(cones)}/{cones.length} liberados</span></div>
+            <div className="admin-group-title"><h3>Sabores dos cascões</h3><span>{countReady(cones)}/{cones.length} liberados</span></div>
             <div className="admin-compact-grid">
               {cones.map(item => (
                 <AvailabilityControl item={item} status={categoryStatus(item.itemKey)}
