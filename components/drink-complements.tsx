@@ -20,13 +20,21 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
   const offerRef = useRef<HTMLDetailsElement>(null);
   const anchorRef = useRef<number | null>(null);
   const closeTimerRef = useRef<number | null>(null);
+  const openFrameRef = useRef<number | null>(null);
+  const desiredOpenRef = useRef(false);
   useEffect(() => () => {
     if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current);
+    if (openFrameRef.current !== null) window.cancelAnimationFrame(openFrameRef.current);
   }, []);
 
   const cancelPendingClose = () => {
     if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current);
     closeTimerRef.current = null;
+  };
+
+  const cancelPendingOpen = () => {
+    if (openFrameRef.current !== null) window.cancelAnimationFrame(openFrameRef.current);
+    openFrameRef.current = null;
   };
 
   // CSS grid preserves natural content height while transitions reverse smoothly.
@@ -37,8 +45,11 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
     event.preventDefault();
     const reveal = details.querySelector<HTMLElement>(".refreshment-reveal");
     if (!reveal) { details.open = !details.open; return; }
-    const expanding = !details.open || details.dataset.collapsing === "true";
+    const pending = closeTimerRef.current !== null || openFrameRef.current !== null;
+    const expanding = pending ? !desiredOpenRef.current : !details.open;
+    desiredOpenRef.current = expanding;
     cancelPendingClose();
+    cancelPendingOpen();
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     if (reducedMotion) {
       details.removeAttribute("data-collapsing");
@@ -49,9 +60,17 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
       if (!details.open) {
         details.dataset.collapsing = "true";
         details.open = true;
-        void reveal.getBoundingClientRect().height;
+        // WebKit precisa de dois frames para materializar a faixa 0fr
+        // antes de começar a transição para 1fr, sem salto de altura.
+        openFrameRef.current = window.requestAnimationFrame(() => {
+          openFrameRef.current = window.requestAnimationFrame(() => {
+            openFrameRef.current = null;
+            if (desiredOpenRef.current) details.removeAttribute("data-collapsing");
+          });
+        });
+      } else {
+        details.removeAttribute("data-collapsing");
       }
-      details.removeAttribute("data-collapsing");
     } else {
       details.dataset.collapsing = "true";
       closeTimerRef.current = window.setTimeout(() => {
