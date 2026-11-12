@@ -98,14 +98,14 @@ export const SLICE_DRAFTS: ReadonlyArray<{ id: string; itemKey: string; name: st
 
 // Catálogo central: preços, fotos e disponibilidade são alterados somente aqui.
 export const PRODUCTS: Product[] = [
-  // Cones Trufados: sabores permanentes, disponibilidade individual no Supabase.
+  // Cascão Trufado: sabores permanentes, mantendo os três IDs históricos no Supabase.
   {
     id: "cone-trufado-prestigio", kind: "cone", category: "Cascão Trufado",
     name: "Prestígio", available: true,
     image: "/images/cone-trufado-prestigio-20261108-v2.webp",
     cardImage: "/images/cone-trufado-prestigio-card-20261108-v2.webp",
     imageAlt: "Cone trufado Prestígio coberto com coco e creme liso de coco no topo, sem bombom",
-    variants: [{ id: "unidade", label: "1 cone", whatsappLabel: "1 cone", price: 14, available: true }],
+    variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 14, available: true }],
     options: [],
   },
   {
@@ -114,7 +114,7 @@ export const PRODUCTS: Product[] = [
     image: "/images/cone-trufado-dois-amores-20261108.webp",
     cardImage: "/images/cone-trufado-dois-amores-card-20261108.webp",
     imageAlt: "Cone trufado Dois Amores com cobertura de chocolate e dois cremes",
-    variants: [{ id: "unidade", label: "1 cone", whatsappLabel: "1 cone", price: 14, available: true }],
+    variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 14, available: true }],
     options: [],
   },
   {
@@ -123,7 +123,7 @@ export const PRODUCTS: Product[] = [
     image: "/images/cone-trufado-ferrero-rocher-20261108.webp",
     cardImage: "/images/cone-trufado-ferrero-rocher-card-20261108.webp",
     imageAlt: "Cone trufado Ferrero Rocher com pedaços crocantes e creme de chocolate",
-    variants: [{ id: "unidade", label: "1 cone", whatsappLabel: "1 cone", price: 16, available: true }],
+    variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 16, available: true }],
     options: [],
   },
 
