@@ -15,6 +15,9 @@ const compiled = ts.transpileModule(source, {
 }).outputText.replace(
   "../supabase/functions/_shared/popcorn-promotion.mjs",
   new URL("../supabase/functions/_shared/popcorn-promotion.mjs", import.meta.url).href,
+).replace(
+  "../supabase/functions/_shared/drinks-catalog.mjs",
+  new URL("../supabase/functions/_shared/drinks-catalog.mjs", import.meta.url).href,
 );
 const catalog = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`);
 const item = (size, flavors, quantity = 1) =>
