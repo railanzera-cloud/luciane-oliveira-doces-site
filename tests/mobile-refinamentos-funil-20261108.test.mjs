@@ -68,5 +68,5 @@ test("Resumo mais curto, área segura Instagram e redução de movimento não al
   assert.ok(page.includes("Fatias Artesanais"));
   assert.ok(page.includes("Pipocas Gourmet"));
   assert.ok(page.includes('className="builder-utility-nav" aria-label="Navegação do cardápio"'));
-  assert.ok(page.includes('activeCategory === "cones" ? "Escolha um cone para começar."'));
+  assert.ok(page.includes('activeCategory === "cones" ? "Escolha um cascão para começar."'));
 });
