@@ -62,8 +62,12 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
     motionRef.current = animation;
     const finish = () => {
       if (motionRef.current !== animation) return;
-      details.open = opening;
       motionRef.current = null;
+      animation.onfinish = null;
+      // Remove Web Animations' clipping effect even if WebKit throttled frames.
+      // Otherwise details may be open while the wrapper remains at height:0.
+      animation.cancel();
+      details.open = opening;
       if (finishTimerRef.current !== null) window.clearTimeout(finishTimerRef.current);
       finishTimerRef.current = null;
     };
