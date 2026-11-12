@@ -76,15 +76,16 @@ try {
       await summary.click();
       await page.waitForTimeout(60);
       const duringOpen = await drink.evaluate(el => {
+        const reveal = el.querySelector(".refreshment-reveal");
         const body = el.querySelector(".refreshment-body");
-        return { open: el.open, height: body.getBoundingClientRect().height, full: body.scrollHeight,
-          running: body.getAnimations().some(a => a.playState === "running") };
+        return { open: el.open, height: reveal.getBoundingClientRect().height, full: body.scrollHeight,
+          running: reveal.getAnimations().some(a => a.playState === "running") };
       });
       assert.ok(duringOpen.open, "Abertura deve deixar details aberto durante animação");
       assert.ok(duringOpen.running, "WebKit deve executar a microanimação (não saltar diretamente)");
       assert.ok(duringOpen.height > 0 && duringOpen.height < duringOpen.full + 2,
         "Altura intermediária real do painel durante abertura: " + JSON.stringify(duringOpen));
-      await page.waitForTimeout(270);
+      await page.waitForTimeout(275);
       assert.equal(await drink.getAttribute("open"), "", "Abertura completa");
       await drink.screenshot({ path: path.join(out, "refrigerantes-aberto-" + width + ".png"), animations: "disabled" });
 
@@ -92,9 +93,9 @@ try {
       await summary.click();
       await page.waitForTimeout(40);
       await summary.click();
-      await page.waitForTimeout(290);
+      await page.waitForTimeout(295);
       assert.equal(await drink.getAttribute("open"), "", "Inversão do fechamento mantém aberto");
-      const expandedHeight = await drink.evaluate(el => el.querySelector(".refreshment-body").getBoundingClientRect().height);
+      const expandedHeight = await drink.evaluate(el => el.querySelector(".refreshment-reveal").getBoundingClientRect().height);
       assert.ok(expandedHeight > 200, "Conteúdo inteiro deve reaparecer sem corte: " + expandedHeight);
 
       // Testar interação comercial: quantidades, subtotal e posição na tela.
@@ -115,7 +116,7 @@ try {
       await drink.screenshot({ path: path.join(out, "refrigerantes-com-quantidade-" + width + ".png"), animations: "disabled" });
 
       await summary.click();
-      await page.waitForTimeout(240);
+      await page.waitForTimeout(300);
       assert.equal(await drink.getAttribute("open"), null, "Fechamento completo sem conteúdo preso");
       assert.ok((await drink.evaluate(el => el.getBoundingClientRect().height)) < 135, "Retorna à altura compacta");
 
@@ -153,7 +154,7 @@ try {
     const summary = drink.locator("summary");
     await summary.click();
     assert.equal(await drink.getAttribute("open"), "", "Motion reduce abre imediatamente");
-    const active = await drink.evaluate(el => el.querySelector(".refreshment-body").getAnimations().length);
+    const active = await drink.evaluate(el => el.querySelector(".refreshment-reveal").getAnimations().length);
     assert.equal(active, 0, "Motion reduce não executa animação");
     await summary.click();
     assert.equal(await drink.getAttribute("open"), null, "Motion reduce fecha imediatamente");
