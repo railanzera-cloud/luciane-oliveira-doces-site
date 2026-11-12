@@ -220,8 +220,13 @@ try {
         await addZero();
         const firstQty = await zero.locator(".refreshment-quantity span").innerText();
         assert.equal(firstQty,"1","Primeira Coca Zero adicionada");
+        // Playwright pode rolar antes de clicar em botões perto da sticky bar.
+        // Fixar o botão no centro antes da medição isola scroll disparado pelo app.
+        const plusZero = zero.locator(".refreshment-quantity button:last-child");
+        await plusZero.evaluate(el => el.scrollIntoView({block:"center", behavior:"instant"}));
+        await cascaoPage.waitForTimeout(150);
         const yBefore = await cascaoPage.evaluate(() => window.scrollY);
-        const topBefore = await zero.locator(".refreshment-quantity button:last-child").evaluate(el => el.getBoundingClientRect().top);
+        const topBefore = await plusZero.evaluate(el => el.getBoundingClientRect().top);
         await addZero();
         const yAfter = await cascaoPage.evaluate(() => window.scrollY);
         const topAfter = await zero.locator(".refreshment-quantity button:last-child").evaluate(el => el.getBoundingClientRect().top);
