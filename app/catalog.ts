@@ -132,8 +132,8 @@ export const PRODUCTS: Product[] = [
   {
     id: "cascao-trufado-kinder-bueno", kind: "cone", category: "Cascão Trufado",
     name: "Kinder Bueno", available: true,
-    image: "/images/cascao-trufado-kinder-bueno-20261112.webp",
-    cardImage: "/images/cascao-trufado-kinder-bueno-card-20261112.webp",
+    image: "/images/cascao-trufado-kinder-bueno-20261112-v44.webp",
+    cardImage: "/images/cascao-trufado-kinder-bueno-card-20261112-v44.webp",
     imageAlt: "Cascão de chocolate com creme claro, pedaços de Kinder Bueno e crocantes",
     variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 20, available: true }],
     options: [],
@@ -141,8 +141,8 @@ export const PRODUCTS: Product[] = [
   {
     id: "cascao-trufado-ninho-morango", kind: "cone", category: "Cascão Trufado",
     name: "Ninho com Morango", available: true,
-    image: "/images/cascao-trufado-ninho-morango-20261112.webp",
-    cardImage: "/images/cascao-trufado-ninho-morango-card-20261112.webp",
+    image: "/images/cascao-trufado-ninho-morango-20261112-v44.webp",
+    cardImage: "/images/cascao-trufado-ninho-morango-card-20261112-v44.webp",
     imageAlt: "Cascão de chocolate com creme de Ninho e pedaços de morango fresco",
     variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 20, available: true }],
     options: [],
@@ -150,8 +150,8 @@ export const PRODUCTS: Product[] = [
   {
     id: "cascao-trufado-ninho-nutella-chocotone", kind: "cone", category: "Cascão Trufado",
     name: "Ninho Nutella e Chocotone", available: true,
-    image: "/images/cascao-trufado-ninho-nutella-chocotone-20261112.webp",
-    cardImage: "/images/cascao-trufado-ninho-nutella-chocotone-card-20261112.webp",
+    image: "/images/cascao-trufado-ninho-nutella-chocotone-20261112-v44.webp",
+    cardImage: "/images/cascao-trufado-ninho-nutella-chocotone-card-20261112-v44.webp",
     imageAlt: "Cascão de chocolate com creme de Ninho, Nutella e pedaços de chocotone",
     variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 20, available: true }],
     options: [],

@@ -364,3 +364,12 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Fallback após retorno/bloqueio:** cartão editorial compacto, mas com **uma única ação principal** verde, “Abrir WhatsApp para enviar pedido”. Título “Envie seu pedido pelo WhatsApp”, marcador “Falta uma etapa”, instrução simples. Resumo de valor e pagamento secundários. “Precisa de ajuda?” é `details` fechado, não segundo botão de WhatsApp; o link de acompanhamento fica lá dentro.
 - **Cuidado de linguagem:** como não há telemetria conclusiva do envio, nunca afirmar “você não enviou” sem prova; informar “se já enviou, não precisa repetir”. Na consulta, registro interno não se chama “recebido pela loja” quando é uma transação de handoff pendente.
 - **Testes:** mobile 320, 375, 390, 430 e WebKit simulado; manual obrigatório no Safari e navegador interno do Instagram, incluindo bloqueio e retorno. Verificar pedido único, mensagem com itens/total/Pix e tracking Tintim. O fluxo de pagamento integrado ao site não muda.
+
+
+## Cascão Trufado V4.4 — quatro fotografias reais aprovadas (12/11/2026)
+
+- **Home:** Kinder Bueno à esquerda, Ninho com Morango ao centro e Ninho Nutella e Chocotone à direita. Origem FB85FF19-36DD-4C5E-AC17-280F62B70098(3).jpeg; crop horizontal (0,70,1122,840), preservando os três topos visíveis e centralizados. Arquivo images/cascao-trufado-trio-home-20261112-v44.webp e versão -360.webp. Quando os novos itens estiverem ocultos, manter fallback antigo.
+- **Cartões novos:** Kinder Bueno usa 4FA9E1D7-AD23-4B7C-8FC8-E0ABBA7AD8BA(1).jpeg; Ninho com Morango usa 47073016-43EC-457B-8A7E-3B8078C55D68(1).jpeg; Ninho Nutella e Chocotone usa 430EAAF3-601A-4378-8A75-0800D6E33AE5(1).jpeg. Exemplares desfocados atrás fazem parte da foto original, não foram adicionados artificialmente.
+- **Enquadramento:** cardImage crop (236,85,886,898) = 650×813, exportado em 600×750 (4:5) e enquadramento próximo dos sabores antigos. Imagem de detalhes preserva foto inteira 1122×1402; versão móvel 360×450. Não alterar grade de três colunas nem fotos antigas.
+- **Fidelidade:** somente crop, resize LANCZOS e codificação WebP; sem manipular brilho/cor/recheio. Fotos antigas V4.3 e as oito fotos natalinas aprovadas preservadas byte a byte. Foto antiga de entrada mantida como fallback.
+- **Aceite:** três Cascões visíveis na home, novas coberturas evidentes na mesma escala dos três sabores antigos, sem cortes nas coberturas. Imagens precisam estar presentes no ZIP; Safari/Instagram físico pendente.
