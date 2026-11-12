@@ -99,6 +99,7 @@ try {
 
       // Testar interação comercial: quantidades, subtotal e posição na tela.
       const zero = drink.locator('[data-drink-id="coca-cola-zero-220"]');
+      await zero.locator(".refreshment-add").scrollIntoViewIfNeeded();
       const beforeTop = await summary.evaluate(el => el.getBoundingClientRect().top);
       await zero.locator(".refreshment-add").click();
       assert.equal((await zero.locator(".refreshment-count").innerText()).trim(), "1");
