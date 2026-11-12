@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, type MouseEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, type MouseEvent, type TransitionEvent } from "react";
 import { ChevronDown, CupSoda, Minus, Plus } from "lucide-react";
 import { DRINKS, type Product } from "@/app/catalog";
 import { drinkStatus, type AvailabilitySnapshot } from "@/app/menu-availability";
@@ -19,64 +19,58 @@ type Props = {
 export function DrinkComplements({ availability, cart, onChange, message, busy = false }:Props) {
   const offerRef = useRef<HTMLDetailsElement>(null);
   const anchorRef = useRef<number | null>(null);
-  const expansionRef = useRef<Animation | null>(null);
-  const expansionTargetRef = useRef(false);
+  const closeTimerRef = useRef<number | null>(null);
+  useEffect(() => () => {
+    if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current);
+  }, []);
 
-  // Cancelar qualquer animação ainda ativa ao desmontar, sem mudar o estado do carrinho.
-  useEffect(() => () => expansionRef.current?.cancel(), []);
+  const cancelPendingClose = () => {
+    if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = null;
+  };
 
-  // O <details> continua nativo (teclado, semântica e estado inicial fechado).
-  // Interceptamos apenas o clique do <summary> para animar o conteúdo sem nova rolagem.
+  // CSS grid preserves natural content height while transitions reverse smoothly.
+  // <details> and <summary> retain native keyboard semantics.
   const toggleOffer = (event: MouseEvent<HTMLElement>) => {
     const details = offerRef.current;
     if (!details) return;
     event.preventDefault();
-
-    const body = details.querySelector<HTMLElement>(".refreshment-body");
-    if (!body) {
-      details.open = !details.open;
-      return;
-    }
-
-    // Durante cliques sucessivos, inverter a intenção mais recente, não apenas
-    // o atributo open (que permanece true enquanto o fechamento é animado).
-    const opening = expansionRef.current ? !expansionTargetRef.current : !details.open;
-    const currentHeight = details.open ? body.getBoundingClientRect().height : 0;
-    const measuredOpacity = details.open ? Number.parseFloat(getComputedStyle(body).opacity) : 0;
-    const currentOpacity = Number.isFinite(measuredOpacity) ? measuredOpacity : (details.open ? 1 : 0);
-
-    // Ler as dimensões antes de cancelar permite continuar da posição intermediária,
-    // evitando salto quando alguém toca duas ou três vezes rapidamente.
-    expansionRef.current?.cancel();
-    expansionRef.current = null;
-    expansionTargetRef.current = opening;
-
+    const reveal = details.querySelector<HTMLElement>(".refreshment-reveal");
+    if (!reveal) { details.open = !details.open; return; }
+    const expanding = !details.open || details.dataset.collapsing === "true";
+    cancelPendingClose();
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    if (reducedMotion || typeof body.animate !== "function") {
-      details.open = opening;
+    if (reducedMotion) {
+      details.removeAttribute("data-collapsing");
+      details.open = expanding;
       return;
     }
-    if (opening) details.open = true;
-
-    // Com box-sizing:border-box, height:0 oculta inclusive padding e borda.
-    const borderSize = Math.max(0, body.offsetHeight - body.clientHeight);
-    const expandedHeight = body.scrollHeight + borderSize;
-    const animation = body.animate(
-      [
-        { height: `${currentHeight}px`, opacity: currentOpacity },
-        { height: `${opening ? expandedHeight : 0}px`, opacity: opening ? 1 : 0 },
-      ],
-      {
-        duration: opening ? 250 : 210,
-        easing: "cubic-bezier(.22, 1, .36, 1)",
+    if (expanding) {
+      if (!details.open) {
+        details.dataset.collapsing = "true";
+        details.open = true;
+        void reveal.getBoundingClientRect().height;
       }
-    );
-    expansionRef.current = animation;
-    animation.onfinish = () => {
-      if (expansionRef.current !== animation) return;
-      details.open = opening;
-      expansionRef.current = null;
-    };
+      details.removeAttribute("data-collapsing");
+    } else {
+      details.dataset.collapsing = "true";
+      closeTimerRef.current = window.setTimeout(() => {
+        if (details.dataset.collapsing === "true") {
+          details.open = false;
+          details.removeAttribute("data-collapsing");
+        }
+        closeTimerRef.current = null;
+      }, 300);
+    }
+  };
+
+  const finishCollapse = (event: TransitionEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget || event.propertyName !== "grid-template-rows") return;
+    const details = offerRef.current;
+    if (details?.dataset.collapsing !== "true") return;
+    cancelPendingClose();
+    details.open = false;
+    details.removeAttribute("data-collapsing");
   };
 
   // Quando o carrinho acima cresce, preservar a posição da oferta no viewport.
@@ -120,7 +114,9 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
       </span>
       <ChevronDown className="refreshment-chevron" size={18} aria-hidden="true" />
     </summary>
-    <div className="refreshment-body">
+    <div className="refreshment-reveal" onTransitionEnd={finishCollapse}>
+      <div className="refreshment-reveal-shell">
+        <div className="refreshment-body">
       <p className="refreshment-subtitle">Opcional. Escolha uma ou mais bebidas, sem sair do seu pedido.</p>
       <div className="refreshment-grid" role="group" aria-label="Bebidas para acompanhar">
         {visible.map(drink => {
@@ -158,6 +154,8 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
         })}
       </div>
       <p className="refreshment-footnote">Sem obrigação de adicionar. Continue em entrega ou retirada logo abaixo.</p>
+        </div>
+      </div>
     </div>
     <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">{message}</span>
   </details>;
