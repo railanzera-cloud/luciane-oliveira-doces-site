@@ -54,6 +54,14 @@ O PR #37 foi **mergeado no PR #36** em `1b497c73be6ca181511984b489707f4a30b2a0be
 
 A decisão de produto D-C42 aprova futuramente bebidas compactas expansíveis, mas sua implementação ocorre **depois** de reconciliar Cloudflare, Edge, preços e integração. Não restaurar PRs #23/#24 no fechamento da V4.6. O release permanece bloqueado até Cloudflare identificado, rollback preparado, paridade servidor/frontend e homologação real do checkout.
 
+### Estado de preços após Edge v38 e confirmação do Cloudflare Production (12/11/2026)
+
+A atualização acima que ainda descreve a Edge **v37** com 14/14/16 e Cloudflare sem deployment identificado tornou-se **histórica**. Capturas do painel comprovam que `237b204c-d5a5-4d3a-a8e7-7bfc3d699cc0` é o deployment atual de Production e os nomes de seus assets correspondem ao pacote V4.6 de 117 entradas (112 arquivos, três especiais Cloudflare, 109 ativos carregados). A equivalência criptográfica do ZIP enviado não foi comprovada diretamente pela plataforma.
+
+O corte mínimo da Edge foi executado com autorização do proprietário: `create-whatsapp-order` **v38 ACTIVE**, catálogo idêntico ao da branch de integração V4.6. Preços dos Cascões antigos agora Prestígio R$18, Dois Amores R$18, Ferrero Rocher R$20; três novos Cascões R$20, Natal R$22. Seis outros arquivos Edge, `verify_jwt`, estoque e bebidas preservados.
+
+**O fechamento integral do release continua bloqueado somente por evidências de operação real e procedência de ZIP**, não por divergência conhecida de preços/IDs. Categorias Cascão e Natal estão `sold_out` na observação, sem alteração automática; não fazer pedidos reais de teste sem avisar a operação. A revisão da `main` ocorrerá após aceite e verificação das demais regressões. Refrigerantes só na próxima etapa.
+
 ## 4. Ritual obrigatório antes de começar um refinamento
 
 1. Ler `AGENTS.md` + cinco documentos, com atenção especial ao checkpoint recente; consultar este protocolo e o JSON de release.
