@@ -51,18 +51,32 @@ test("Cones disponíveis entram nas recomendações das três jornadas existente
   assert.deepEqual(orderCheckoutComplements("trufadas", available), ["cones","gourmet","fatias","trufadas"]);
 });
 
-// Natal não cria uma quinta etapa obrigatória: ocupa um dos quatro convites,
-// substituindo a repetição da categoria de origem quando está realmente disponível.
-test("Natal aparece como complemento nas quatro categorias habituais, sem ampliar o bloco", () => {
+// Natal complementa, mas não substitui, o atalho para repetir a categoria de origem.
+test("Natal preserva repetição do produto e todas as cinco categorias disponíveis", () => {
   const ready = { gourmet:true, trufadas:true, fatias:true, cones:true, natal:true, bebidas:false };
-  assert.deepEqual(orderCheckoutComplements("gourmet", ready), ["natal","cones","trufadas","fatias"]);
-  assert.deepEqual(orderCheckoutComplements("trufadas", ready), ["natal","cones","gourmet","fatias"]);
-  assert.deepEqual(orderCheckoutComplements("fatias", ready), ["natal","cones","gourmet","trufadas"]);
-  assert.deepEqual(orderCheckoutComplements("cones", ready), ["natal","trufadas","fatias","gourmet"]);
-  assert.deepEqual(orderCheckoutComplements("natal", ready), ["cones","trufadas","fatias","gourmet"]);
+  assert.deepEqual(orderCheckoutComplements("gourmet", ready), ["gourmet","natal","cones","trufadas","fatias"]);
+  assert.deepEqual(orderCheckoutComplements("trufadas", ready), ["trufadas","natal","cones","gourmet","fatias"]);
+  assert.deepEqual(orderCheckoutComplements("fatias", ready), ["fatias","natal","cones","gourmet","trufadas"]);
+  assert.deepEqual(orderCheckoutComplements("cones", ready), ["cones","natal","trufadas","fatias","gourmet"]);
+  assert.deepEqual(orderCheckoutComplements("natal", ready), ["natal","cones","trufadas","fatias","gourmet"]);
   for (const origin of ["gourmet","trufadas","fatias","cones","natal"]) {
-    assert.equal(orderCheckoutComplements(origin, ready).length, 4);
+    const suggestions = orderCheckoutComplements(origin, ready);
+    assert.equal(suggestions.length, 5);
+    assert.equal(suggestions[0], origin, "O primeiro atalho repete a categoria do produto");
+    assert.equal(new Set(suggestions).size, 5, "Sem categorias duplicadas");
   }
+  assert.deepEqual(orderCheckoutComplements("cones", {...ready, bebidas:true}),
+    ["cones","natal","trufadas","fatias","gourmet","bebidas"]);
+});
+
+test("Regressão real: Cascão + Chocottone são ambos oferecidos, sem forçar categoria esgotada", () => {
+  const screen = { cones:true, natal:true, gourmet:false, fatias:false, trufadas:false, bebidas:false };
+  assert.deepEqual(orderCheckoutComplements("cones", screen), ["cones","natal"]);
+  assert.deepEqual(orderCheckoutComplements("cones", {...screen, cones:false}), ["natal"]);
+  assert.deepEqual(orderCheckoutComplements("natal", screen), ["natal","cones"]);
+  assert.deepEqual(orderCheckoutComplements("fatias", screen), ["natal","cones"]);
+  assert.deepEqual(orderCheckoutComplements("cones", {...screen,natal:false}), ["cones"]);
+  assert.deepEqual(orderCheckoutComplements("cones", {...screen,cones:false,natal:false}), []);
 });
 
 test("Coleção oculta/esgotada não aparece e a ordem legada permanece intacta", () => {
@@ -73,6 +87,6 @@ test("Coleção oculta/esgotada não aparece e a ordem legada permanece intacta"
   }
   assert.deepEqual(
     orderCheckoutComplements("cones",{...base,natal:true,cones:true,fatias:false,trufadas:false}),
-    ["natal","gourmet"]
+    ["cones","natal","gourmet"]
   );
 });
