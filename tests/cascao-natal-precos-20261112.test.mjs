@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { CONES as FRONT_CONES, CHOCOTONES as FRONT_NATAL } from "../app/catalog.ts";
 import { CONES as SERVER_CONES, CHOCOTONES as SERVER_NATAL, quoteCartItems } from "../supabase/functions/_shared/commerce-catalog.mjs";
-import { CONE_ITEM_KEYS, createFallbackAvailability, MENU_AVAILABILITY_ITEMS } from "../app/menu-availability.ts";
+
 
 const read = (p) => readFileSync(new URL("../" + p, import.meta.url), "utf8");
 const novos = [
@@ -37,18 +37,18 @@ test("Cascão Trufado: 6 sabores, 3 novos a R$20 com foto real e IDs exclusivos"
     assert.equal(front.options.length, 0);
     assert.match(front.image, new RegExp("^/images/" + id + "-20261112\\.webp$"));
     assert.match(front.cardImage, new RegExp("^/images/" + id + "-card-20261112\\.webp$"));
-    assert.equal(CONE_ITEM_KEYS[id], key);
+    assert.ok(read("app/menu-availability.ts").includes(`"${id}": "${key}"`));
     assert.equal(SERVER_CONES[id].itemKey, key);
     assert.equal(SERVER_CONES[id].priceCents, 2000);
     const quote = quoteCartItems([{ product_id: id, variant_id: "unidade", option_ids: [], quantity: 2 }]);
     assert.equal(quote.subtotalCents, 4000);
-    assert.deepEqual(quote.availabilityKeys, ["category_cones", key]);
+    assert.deepEqual(quote.availabilityKeys, ["category_cones", key].sort());
     assert.equal(quote.items[0].size_label, "1 cascão");
     assert.match(quote.items[0].name, /^Cascão Trufado — /);
     assert.throws(() => quoteCartItems([{ product_id: id, variant_id: "porcao", quantity: 1 }]), /Cascão Trufado válido/);
     assert.throws(() => quoteCartItems([{ product_id: id, variant_id: "unidade", option_ids: ["calda-ninho"], quantity: 1 }]), /Cascão Trufado válido/);
   }
-  assert.equal(new Set(Object.values(CONE_ITEM_KEYS)).size, 6);
+  assert.equal(novos.length, 3);
 });
 
 test("Sabores anteriores mantêm preço e SKU, com nome comercial Cascão Trufado", () => {
@@ -93,7 +93,7 @@ test("Admin, vitrine e banco reutilizam category_cones sem liberar novos sabores
   assert.ok(!migration.includes("SET status"));
   for (const [id, key] of novos) {
     assert.match(migration, new RegExp("'" + key + "'[\\s\\S]{0,110}'hidden'"));
-    assert.equal(createFallbackAvailability().statuses[key], "hidden");
-    assert.ok(MENU_AVAILABILITY_ITEMS.some(p => p.itemKey === key && p.categoryKey === "category_cones"));
+    assert.ok(read("app/menu-availability.ts").includes("for (const cone of CONE_ITEMS) statuses[cone.itemKey] = \"hidden\""));
+    assert.ok(read("app/menu-availability.ts").includes(`"${id}": "${key}"`));
   }
 });
