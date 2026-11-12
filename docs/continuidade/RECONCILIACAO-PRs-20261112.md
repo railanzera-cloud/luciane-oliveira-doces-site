@@ -19,7 +19,7 @@
 | PR #35 — fotografias V4.4 | Descendente de PR #33, commit `8df271026c...`, 849 testes e WebKit. | **Referência de código já aprovada para refinamentos.** | BINÁRIOS aprovados adicionados apenas no ZIP final de 117 arquivos. Não confundir GitHub com pacote. |
 | PR #36 — governança | Descendente de V4.4, **sem mudanças em arquivos comerciais/visuais**, testes de documento. | **Candidata de integração para futuras branches.** | Não autoriza deploy. |
 
-## Itens exclusivos a tratar antes de encerrar PR #34
+## Itens exclusivos revisados antes de encerrar PR #34
 
 1. **Grade 2×3 em mobile:** preservar versão V4.4 até demonstrar ganho real; o proprietário ainda não aprovou mudança de grid. Registrar como alternativa de UX, não regressão automática.
 2. **Nomenclatura de terceiro sabor:** V4.4 aprovada `Ninho Nutella e Chocotone`; PR #34 contém `Ninho com Nutella e Chocottone`. Não alterar contrato comercial somente pelo merge.
@@ -27,7 +27,7 @@
 4. **Fotos:** V4.4 exige as quatro fotografias novas com amostras ao fundo, trio na home e 11 WebPs adicionais; PR #34 possui versão anterior de imagens. Não substituir arquivos aprovados.
 5. **Testes:** PR #34 pode conter assertions úteis, mas migrar somente testes compatíveis com o comportamento aprovado, isoladamente, com CI no novo SHA.
 
-**Decisão pendente de revisão final:** classificar PR #34 como “substituído após preservar insights” e, então, fechar PR com comentário, **sem excluir branch**. Esta ação não foi executada aqui.
+**Decisão executada em 12/11:** testes do PR #34 comparados com testes equivalentes da V4.4; os contratos de SKU/preços, variantes, itens mistos e disponibilidade já estão cobertos. PR #34 **encerrado como substituído, sem merge**, com comentário de revisão. Sua branch e commits continuam preservados. A alternativa de grid 2×3 permanece apenas proposta futura de UX, não alteração aprovada.
 
 ## Evidência de backend e produção, separadas
 
