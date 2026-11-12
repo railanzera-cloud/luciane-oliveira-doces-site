@@ -832,3 +832,8 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - Fonte do backend inspecionada: `create-whatsapp-order` revalida `orders_open` e `menu_availability` por categoria/SKU, depois recota e compara o `expected_total`, retornando `price_changed` quando diverge. Isso confirma risco real de publicar frontend antes da Edge compatível.
 - Evidência pública Cloudflare não forneceu ID/hash/SHA verificáveis; não foi identificado deployment atual. Sem credencial ou extrato confiável da conta, registrar `unknown`.
 - Novos documentos: `RECONCILIACAO-PRs-20261112.md` e `PLANO-DE-CORTE-V44-20261112.md`; nenhum merge, SQL, Edge, modificação de estoque, Cloudflare ou pedido real executado.
+
+### 61.2 — PR #34 encerrado após reconciliação (12/11/2026)
+
+- Revisados os testes equivalentes de SKUs, preço, variantes, item misto e status no PR #34 versus V4.4; a cadeia V4.4 já contém cobertura dos contratos comerciais aprovados. PR #34 foi **encerrado como substituído, sem merge ou exclusão da branch**; decisão registrada no próprio PR. A alternativa de grade 2×3 não foi incorporada.
+- Novos documentos de preparação: `RECONCILIACAO-PRs-20261112.md` e `PLANO-DE-CORTE-V44-20261112.md`. Sem mudanças de catálogo, backend, pedidos ou produção.
