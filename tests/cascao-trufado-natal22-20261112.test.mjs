@@ -8,7 +8,7 @@ const read = path => readFileSync(new URL("../" + path, import.meta.url), "utf8"
 const cases = [
   ["cascao-trufado-kinder-bueno", "cascao_kinder_bueno", "Kinder Bueno", "cascao-kinder-bueno"],
   ["cascao-trufado-ninho-morango", "cascao_ninho_morango", "Ninho com Morango", "cascao-ninho-morango"],
-  ["cascao-trufado-ninho-nutella-chocotone", "cascao_ninho_nutella_chocotone", "Ninho com Nutella e Chocotone", "cascao-ninho-nutella-chocotone"],
+  ["cascao-trufado-ninho-nutella-chocotone", "cascao_ninho_nutella_chocotone", "Ninho com Nutella e Chocottone", "cascao-ninho-nutella-chocotone"],
 ];
 
 test("novos cascões têm identidades independentes, imagens e preço R$20 idêntico no frontend e backend", () => {
