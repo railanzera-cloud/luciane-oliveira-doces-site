@@ -49,3 +49,6 @@
 > “Continue o projeto comercial Luciane Oliveira Doces. Leia `AGENTS.md` e os cinco documentos de `docs/continuidade/`, confirme o estado do GitHub e dos contratos necessários e execute minha próxima tarefa preservando o padrão visual aprovado, toda a jornada comercial e as melhorias já validadas.”
 
 Se não houver ferramentas conectadas ao GitHub ou navegador exigido, informar o limite sem fingir inspeção. Se o usuário enviar **somente o Prompt Mestre**, reconhecer e aguardar uma tarefa concreta.
+
+> **Estado pós-corte de preços (12/11):** Cloudflare painel Production mostra deployment `237b204c-d5a5-4d3a-a8e7-7bfc3d699cc0` e assets compilados compatíveis com V4.6. A Edge `create-whatsapp-order` foi corrigida para **v38 ACTIVE**, com catálogo igual ao código candidato (Cascões 18/18/20 + 3 novos a 20 + Natal 22). Isto **não** comprova envio real de WhatsApp, impressão ou equivalência criptográfica de ZIP, e `main` continua não integrada. `category_cones` e `category_natal` estavam `sold_out` na leitura remota; não alterar disponibilidade automaticamente. Consultar Checkpoint Vivo #68 e JSON de release; a feature de refrigerantes D-C42 permanece não implementada. Não realizar novo deploy sem analisar a produção atual.
+
