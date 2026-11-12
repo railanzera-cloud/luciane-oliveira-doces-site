@@ -139,3 +139,11 @@ Contrato temporário de negócio (sem atualizar tabelas permanentes): `POPCORN_P
 - Integração: um carrinho misto, etiqueta `Chocotone — Sabor`, descrição "1 porção individual", quantidade ajustável e subtotal. Meta `AddToCart` dispara só na adição; `Purchase` depende de venda legítima. Sem modificar frete/pagamento/CRM.
 - Operacional: primeiro deploy de backend compatível e inserção SQL com cinco linhas `hidden`, depois ZIP manual Cloudflare, homologar fotos e pedidos mistos no Safari/Instagram, somente então liberar categoria e sabores no `/admin`. Para encerrar temporada, ocultar a categoria (preserva venda histórica).
 - Verificações: QA comercial, cotação forjada/mista, build, tipos sem novas regressões, WebKit 5 larguras, assets ZIP SHA/rotas. Não substituir fotos de categorias existentes nem tornar as bebidas ocultas novamente vendáveis.
+
+
+## 12/11/2026 — contrato específico Cascão/Natal
+
+- Três novos SKUs mantêm `item_type=cone` e `variant_id=unidade`, mas IDs de produto novos e suas próprias chaves `cascao_*`. Não renomear IDs históricos `cone-trufado-*` nem reabrir automaticamente qualquer status.
+- Os quatro `chocotone_*` usam `item_type=chocotone` e `variant_id=porcao`; todos com 2200 centavos, inclusive Casadinho, preservando fotos e seleção livre. Alteração de preço exige corte coordenado **Edge ↔ Cloudflare**, com pedidos pausados para evitar `price_changed`.
+- Mapa obrigatório: novo produto → disponibilidade inicialmente oculta → admin/liberação → carrinho/quantidade → quote em centavos no servidor → WhatsApp e comanda → status/integrações. Fotografias aprovadas devem estar no ZIP final (6 novas + 8 natalinas), não confiar no build CI sem os assets externos.
+- Ver `docs/CASCAO-NATAL22-ROLLOUT-20261112.md` para hashes, testes e ordem do cutover.
