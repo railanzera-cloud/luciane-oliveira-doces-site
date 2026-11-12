@@ -117,7 +117,7 @@ type CartItem = {
 /** Rótulos de recompra devem refletir o carrinho, sem tratar Crocantes como potes Gourmet. */
 function addMoreButtonLabel(category: CategoryId, cart: CartItem[]): string {
   if (category === "cones") return cart.some(item => CONES.some(cone => cone.id === item.productId))
-    ? "Outro cone" : "Adicionar cone";
+    ? "Outro cascão" : "Adicionar cascão";
   if (category === "pipocas") {
     return cart.some((item) => item.productId === POPCORN.id)
       ? "Outro pote recheado" : "Adicionar pote recheado";
@@ -371,7 +371,7 @@ function productLabel(product: Product) {
   if (isTrufadaOrLegacy(product.id)) {
     return `Pipocas Trufadas — ${product.name}`;
   }
-  if (product.kind === "cone") return `Cone Trufado — ${product.name}`;
+  if (product.kind === "cone") return `Cascão Trufado — ${product.name}`;
   if (product.kind === "chocotone") return `Fatia de Chocottone — ${product.name}`;
   return product.subtitle
     ? `${product.name} (${product.subtitle.toLowerCase()})`
@@ -466,9 +466,9 @@ function cartAvailabilityIssues(
 
     if (product.kind === "cone") {
       const coneKey = CONE_ITEM_KEYS[product.id];
-      if (item.optionIds.length !== 0 || variant.id !== "unidade") reasons.push("Este cone não admite personalização ou outro tamanho.");
+      if (item.optionIds.length !== 0 || variant.id !== "unidade") reasons.push("Este cascão não admite personalização ou outro tamanho.");
       if (!coneKey || !isItemAvailable(snapshot, coneKey)) reasons.push(unavailableReason(snapshot, coneKey ?? "", productLabel(product)));
-      if (snapshot.source !== "supabase") reasons.push("Não foi possível confirmar a disponibilidade dos cones.");
+      if (snapshot.source !== "supabase") reasons.push("Não foi possível confirmar a disponibilidade dos cascões.");
     }
 
     if (product.kind === "slice") {
@@ -1342,7 +1342,7 @@ export default function Home() {
       : "A partir de"
     : cart.length > 0 && !builderFlowActive
     ? hasEstimatedTotal ? "Total do pedido" : "Subtotal do pedido"
-    : cart.length > 0 ? "Item em montagem" : activeCategory === "pipocas" ? "Sua pipoca" : activeCategory === "cones" ? "Seu cone" : "Sua fatia";
+    : cart.length > 0 ? "Item em montagem" : activeCategory === "pipocas" ? "Sua pipoca" : activeCategory === "cones" ? "Seu cascão" : "Sua fatia";
   const paymentLabel = checkoutChannel === "site" && isSitePayment(payment)
     ? sitePaymentLabel(payment, fulfillment)
     : paymentDescription(isWhatsAppPayment(payment) ? payment : "", fulfillment).replace(" (1x)", "");
@@ -1394,14 +1394,14 @@ export default function Home() {
         : draftReady
       ? activeCategory === "pipocas"
         ? `Adicionar ${popcornQuantity} ${popcornQuantity === 1 ? "pipoca" : "pipocas"}`
-        : activeCategory === "cones" ? `Adicionar ${coneQuantity} ${coneQuantity === 1 ? "cone" : "cones"}`
+        : activeCategory === "cones" ? `Adicionar ${coneQuantity} ${coneQuantity === 1 ? "cascão" : "cascões"}`
         : selectedSlice?.id==="fatia-chocolate-morango" && strawberryPreorder
           ? `Adicionar ${sliceQuantity} ${sliceQuantity === 1 ? "fatia" : "fatias"} à pré-reserva`
           : `Adicionar ${sliceQuantity} ${sliceQuantity === 1 ? "fatia" : "fatias"}`
       : builderFlowActive
         ? activeCategory === "pipocas"
           ? popcornVariant ? "Ir aos sabores" : "Escolher tamanho"
-          : activeCategory === "cones" ? "Escolher meu cone"
+          : activeCategory === "cones" ? "Escolher meu cascão"
           : "Escolher minha fatia"
           : checkoutReady ? finalButtonLabel : checkoutNextActionLabel;
 
@@ -1866,7 +1866,7 @@ export default function Home() {
 
   function addOrUpdateCone() {
     if (!conesVisible || !availability.ordersOpen || !conesAvailable) {
-      setSelectionMessage(availability.ordersOpen ? "Cones Trufados indisponíveis no momento." : STORE_CONFIG.closedMessage);
+      setSelectionMessage(availability.ordersOpen ? "Cascão Trufado indisponíveis no momento." : STORE_CONFIG.closedMessage);
       return;
     }
     if (!selectedCone || !selectedConeVariant || !coneReady) {
@@ -1890,7 +1890,7 @@ export default function Home() {
       setAddedNotice({
         category: "cones",
         productId: selectedCone.id,
-        description: `${coneQuantity}x Cone Trufado — ${selectedCone.name}`,
+        description: `${coneQuantity}x Cascão Trufado — ${selectedCone.name}`,
       });
     }
     clearDraft();
@@ -2419,7 +2419,7 @@ export default function Home() {
           {activeCategory ? (
             <div className="entry-heading">
               <p className="eyebrow">Luciane Oliveira Doces</p>
-              <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : activeCategory === "cones" ? "Cones Trufados" : activeCategory === "natal" ? "Fatias de Chocottone" : "Fatias Artesanais"}</h1>
+              <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : activeCategory === "cones" ? "Cascão Trufado" : activeCategory === "natal" ? "Fatias de Chocottone" : "Fatias Artesanais"}</h1>
               <p className="entry-copy">{activeCategory === "pipocas"
                 ? showLimitedCupView ? "Três sabores artesanais em pacotes P, M e G." : "Escolha o tamanho e combine seus sabores."
                 : activeCategory === "cones" ? "Escolha seu sabor e a quantidade desejada." : activeCategory === "natal" ? "Edição especial de Natal · 4 sabores recheados." : "Sabores disponíveis"}</p>
@@ -2459,12 +2459,12 @@ export default function Home() {
             visibleCategories.length > 0 ? (
               <div className="collection-menu" role="group" aria-label="Escolha uma categoria">
                 {conesVisible && (
-                  <CollectionChoice format="Novidade no cardápio" name="Cones Trufados"
+                  <CollectionChoice format="Novidade no cardápio" name="Cascão Trufado"
                     photo="/images/cones-trufados-trio-20261108.webp" photoWidth={900}
                     fallback="/images/cone-trufado-prestigio-20261108-v2.webp"
-                    description="Prestígio, Dois Amores e Ferrero Rocher"
+                    description="6 sabores · Kinder Bueno, Ninho e outros"
                     price={currency.format(Math.min(...CONES.map(cone => cone.variants[0].price)))}
-                    action={!conesAvailable ? "Esgotado" : "Escolher meu cone"}
+                    action={!conesAvailable ? "Esgotado" : "Escolher meu cascão"}
                     disabled={!conesAvailable} onClick={() => selectCategory("cones")} />
                 )}
                 {pipocasVisible && (
@@ -2698,7 +2698,7 @@ export default function Home() {
           )}
           {activeCategory !== "natal" && <div className="section-intro" id="potes-recheados">
             <p className="eyebrow">Seu pedido, do seu jeito</p>
-            <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : activeCategory === "cones" ? "Escolha seu cone." : "Sua vitrine de sabores."}</h2>
+            <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : activeCategory === "cones" ? "Escolha seu cascão." : "Sua vitrine de sabores."}</h2>
             <p>{activeCategory === "pipocas"
               ? "Um tamanho, seus sabores favoritos. Tudo do seu jeito."
               : activeCategory === "cones" ? "Um sabor por vez. Adicione quantos desejar e finalize tudo no mesmo pedido." : "Escolha sua fatia favorita. Depois, você pode adicionar outras."}</p>
@@ -2953,7 +2953,7 @@ export default function Home() {
                   </div>
                 </div>
                 {!CONES.some(cone => coneIsVisible(cone.id)) && <p className="selection-helper" role="status">Nenhum cone disponível no momento.</p>}
-                <RadioGroup className="cone-flavor-grid" value={coneProductId} aria-label="Sabor do Cone Trufado"
+                <RadioGroup className="cone-flavor-grid" value={coneProductId} aria-label="Sabor do Cascão Trufado"
                   onValueChange={value => {
                     if (!conesAvailable || !coneIsAvailable(value)) return;
                     setConeProductId(value);
@@ -2984,7 +2984,7 @@ export default function Home() {
                   })}
                 </RadioGroup>
                 <p className="selection-helper" aria-live="polite">
-                  {selectionMessage || (selectedCone ? `${selectedCone.name} escolhido. Confira a quantidade.` : "Escolha um cone para continuar.")}
+                  {selectionMessage || (selectedCone ? `${selectedCone.name} escolhido. Confira a quantidade.` : "Escolha um cascão para continuar.")}
                 </p>
               </section>
               <section className="step-block" id="cones-quantidade" aria-labelledby="cones-qty-title">
@@ -2999,17 +2999,17 @@ export default function Home() {
                   <b>{currency.format(selectedCone.variants[0].price)}</b>
                 </div>}
                 <div className="quantity-row">
-                  <div className="quantity-control" aria-label="Quantidade de cones">
+                  <div className="quantity-control" aria-label="Quantidade de cascões">
                     <Button type="button" variant="ghost" size="icon" disabled={!coneReady || coneQuantity <= 1}
-                      onClick={() => setConeQuantity(q => Math.max(1,q-1))} aria-label="Diminuir cones"><Minus size={18}/></Button>
+                      onClick={() => setConeQuantity(q => Math.max(1,q-1))} aria-label="Diminuir cascões"><Minus size={18}/></Button>
                     <strong aria-live="polite">{coneQuantity}</strong>
                     <Button type="button" variant="ghost" size="icon" disabled={!coneReady || coneQuantity >= 99}
-                      onClick={() => setConeQuantity(q => Math.min(99,q+1))} aria-label="Aumentar cones"><Plus size={18}/></Button>
+                      onClick={() => setConeQuantity(q => Math.min(99,q+1))} aria-label="Aumentar cascões"><Plus size={18}/></Button>
                   </div>
                   <div className="draft-total"><small>Subtotal</small><strong>{selectedConeVariant ? currency.format(selectedConeVariant.price * coneQuantity) : "Escolha o sabor"}</strong></div>
                 </div>
                 <Button type="button" className="primary-cta add-button" onClick={addOrUpdateCone} disabled={!coneReady}>
-                  <ShoppingBag size={18}/>{editingId ? "Salvar alterações" : `Adicionar ${coneQuantity} ${coneQuantity === 1 ? "cone" : "cones"} ao pedido`}
+                  <ShoppingBag size={18}/>{editingId ? "Salvar alterações" : `Adicionar ${coneQuantity} ${coneQuantity === 1 ? "cascão" : "cascões"} ao pedido`}
                 </Button>
                 {editingId && <Button type="button" variant="ghost" className="cancel-edit" onClick={clearDraft}>Cancelar edição</Button>}
               </section>
@@ -3212,7 +3212,7 @@ export default function Home() {
               </div>
               {cart.length === 0 ? (
                 <div className="empty-cart">
-                  <ShoppingBag size={26} strokeWidth={1.5} /><strong>Seu pedido está vazio</strong><p>{activeCategory === "pipocas" ? "Escolha uma pipoca para começar." : activeCategory === "cones" ? "Escolha um cone para começar." : "Escolha uma fatia para começar."}</p>
+                  <ShoppingBag size={26} strokeWidth={1.5} /><strong>Seu pedido está vazio</strong><p>{activeCategory === "pipocas" ? "Escolha uma pipoca para começar." : activeCategory === "cones" ? "Escolha um cascão para começar." : "Escolha uma fatia para começar."}</p>
                   <Button type="button" variant="outline" onClick={beginBuilding}>Escolher produtos</Button>
                 </div>
               ) : (
@@ -3324,13 +3324,13 @@ export default function Home() {
                       </div>
                       <div className="boutique-complement-grid" role="group" aria-label="Outros produtos disponíveis para adicionar">
                         {checkoutComplementItems.map((id) => {
-                          const heading = id === "cones" ? (addedNotice?.category === "cones" ? "Escolher outro cone" : "Adicionar cone trufado")
+                          const heading = id === "cones" ? (addedNotice?.category === "cones" ? "Escolher outro cascão" : "Adicionar cascão trufado")
                             : id === "gourmet" ? addMoreButtonLabel("pipocas", cart)
                             : id === "fatias" ? (addedNotice?.category === "natal" ? "Adicionar fatia artesanal" : addMoreButtonLabel("fatias", cart))
                               : id === "trufadas" ? cartContainsCrocantes ? "Outro pacote Trufado" : "Pipocas Trufadas"
                               : id === "natal" ? "Fatias de Chocottone"
                                 : "Refrigerante";
-                          const detail = id === "cones" ? (addedNotice?.category === "cones" ? "Adicionar mais um sabor" : "Conhecer os três sabores")
+                          const detail = id === "cones" ? (addedNotice?.category === "cones" ? "Adicionar mais um sabor" : "Conhecer os seis sabores")
                             : id === "gourmet" ? "Montar pote Gourmet"
                             : id === "fatias" ? (addedNotice?.category === "natal" ? "Conhecer sabores artesanais" : "Escolher sua fatia")
                               : id === "trufadas" ? "Escolher sabor e tamanho"
