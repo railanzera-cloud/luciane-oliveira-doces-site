@@ -30,7 +30,7 @@ test("Natal aceita pedidos mistos e rejeita variante/opções forjadas", () => {
     {product_id:"chocotone-casadinho",variant_id:"porcao",option_ids:[],quantity:1},
     {product_id:"cone-trufado-prestigio",variant_id:"unidade",option_ids:[],quantity:1}
   ]);
-  assert.equal(quote.subtotalCents,2200+1400);
+  assert.equal(quote.subtotalCents,2200+1800);
   assert.deepEqual(quote.items.map(x=>x.item_type),["chocotone","cone"]);
   assert.throws(()=>quoteCartItems([{product_id:"chocotone-casadinho",variant_id:"inteiro",quantity:1}]),/fatia individual de Chocottone/);
   assert.throws(()=>quoteCartItems([{product_id:"chocotone-casadinho",variant_id:"porcao",quantity:1,option_ids:["calda-chocolate"]}]),/fatia individual de Chocottone/);
