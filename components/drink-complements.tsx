@@ -20,8 +20,12 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
   const offerRef = useRef<HTMLDetailsElement>(null);
   const anchorRef = useRef<number | null>(null);
   const motionRef = useRef<Animation | null>(null);
+  const finishTimerRef = useRef<number | null>(null);
   const targetOpenRef = useRef(false);
-  useEffect(() => () => motionRef.current?.cancel(), []);
+  useEffect(() => () => {
+    motionRef.current?.cancel();
+    if (finishTimerRef.current !== null) window.clearTimeout(finishTimerRef.current);
+  }, []);
 
   // Animate a clipping wrapper, never the natural-height drink content.
   // Repeated taps reverse the latest target from the current rendered height.
@@ -39,6 +43,8 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
     const measuredOpacity = details.open ? Number.parseFloat(getComputedStyle(reveal).opacity) : 0;
     const currentOpacity = Number.isFinite(measuredOpacity) ? measuredOpacity : (details.open ? 1 : 0);
     motionRef.current?.cancel();
+    if (finishTimerRef.current !== null) window.clearTimeout(finishTimerRef.current);
+    finishTimerRef.current = null;
     motionRef.current = null;
     targetOpenRef.current = opening;
     if (opening) details.open = true;
@@ -54,11 +60,17 @@ export function DrinkComplements({ availability, cart, onChange, message, busy =
       { height: `${opening ? fullHeight : 0}px`, opacity: opening ? 1 : 0 },
     ], { duration: opening ? 260 : 220, easing: "cubic-bezier(.22, 1, .36, 1)" });
     motionRef.current = animation;
-    animation.onfinish = () => {
+    const finish = () => {
       if (motionRef.current !== animation) return;
       details.open = opening;
       motionRef.current = null;
+      if (finishTimerRef.current !== null) window.clearTimeout(finishTimerRef.current);
+      finishTimerRef.current = null;
     };
+    animation.onfinish = finish;
+    // Headless WebKit and background Safari sometimes throttle animation frames.
+    // A matching duration fallback guarantees the final accessible details state.
+    finishTimerRef.current = window.setTimeout(finish, opening ? 310 : 270);
   };
 
   // Quando o carrinho acima cresce, preservar a posição da oferta no viewport.
