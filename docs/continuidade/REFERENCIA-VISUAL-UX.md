@@ -364,3 +364,12 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Fallback após retorno/bloqueio:** cartão editorial compacto, mas com **uma única ação principal** verde, “Abrir WhatsApp para enviar pedido”. Título “Envie seu pedido pelo WhatsApp”, marcador “Falta uma etapa”, instrução simples. Resumo de valor e pagamento secundários. “Precisa de ajuda?” é `details` fechado, não segundo botão de WhatsApp; o link de acompanhamento fica lá dentro.
 - **Cuidado de linguagem:** como não há telemetria conclusiva do envio, nunca afirmar “você não enviou” sem prova; informar “se já enviou, não precisa repetir”. Na consulta, registro interno não se chama “recebido pela loja” quando é uma transação de handoff pendente.
 - **Testes:** mobile 320, 375, 390, 430 e WebKit simulado; manual obrigatório no Safari e navegador interno do Instagram, incluindo bloqueio e retorno. Verificar pedido único, mensagem com itens/total/Pix e tracking Tintim. O fluxo de pagamento integrado ao site não muda.
+
+
+## 12/11/2026 — Cascão Trufado: expansão de 3 para 6 sabores (candidata)
+
+- A nomenclatura da categoria passa a “Cascão Trufado”; foto de vitrine com trio clássico permanece até eventual decisão visual específica.
+- Três **fotos reais enviadas pelo proprietário**, na ordem: Kinder Bueno (bombom em pedaços no topo), Ninho com Morango (morangos visíveis), Ninho com Nutella e Chocotone (pedaços de chocotone e creme de chocolate). Fundo quente desfocado e suporte transparente originais. **Não retocar** chocolate, cor, recheios ou formato. Recortar apenas tecnicamente: 900×1125 detalhe integral, 640×480 cartão com topo preservado.
+- No configurador, grade 2 colunas até 599px, preço alinhado ao rodapé do cartão. Com seis itens, evitar aplicar o cartão duplo que era usado para três itens em largura muito estreita.
+- Categoria antiga continua com seus três produtos, preços e imagens; novas variantes têm R$20. Quatro Fatias de Chocottone com fotografias originais intocadas e preços R$22.
+- **Status da prova:** apenas código e arquivos de imagem técnica, aguardando CI/ZIP e homologação física Safari/Instagram. Metadados, nomes e fotos finais devem corresponder ao corte autorizado; não presumir que passaram à produção.
