@@ -22,5 +22,5 @@ Cada sabor ainda recebe variante `{prefix}-20261113-v475-360.webp` para operaç�
 - `app/catalog.ts`: troca exclusiva de `image`, `cardImage` e textos alternativos relevantes dos seis sabores.
 - `app/page.tsx`: atualização da foto de miniatura do Kinder Bueno nos complementos; **capa V4.7.4 intocada**.
 - Scripts de teste históricos atualizados para as referências atuais, sem afrouxar regras de SKU, preço, carrinho e disponibilidade.
-- Os binários são guardados no ZIP de distribuição íntegra; a branch contém referências e testes, não todos os assets de mídia. Não publicar ZIP do CI isoladamente.
+- Os binários são guardados no ZIP de distribuição íntegra; a branch contém referências e testes, não todos os assets de mídia. Usar build **conectado** (não o de QA visual) da CI como código compilado para Cloudflare. Não publicar ZIP do CI isoladamente.
 - Nenhuma alteração em Supabase, Edge, SQL, Cloudflare, PIX, WhatsApp, QZ Tray, estoque, pedido ou preços; publicação somente manual e autorizada à parte.
