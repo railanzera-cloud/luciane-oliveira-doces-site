@@ -391,3 +391,11 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Quantidade:** controles `+` e `−` respondem com escala/sombra (~160 ms), mantendo touch target, preço, subtotal, seleção e ausência de rolagem automática; quantidade tem feedback rápido (~180 ms). Para `prefers-reduced-motion: reduce`, usar mudança imediata.
 - **Evidência:** build/regressões 868/868 e QA WebKit de cinco larguras + movimento reduzido no run `43267207283` (código testado `fe56a9b`). Fotografias WebP não estão no build-base do GitHub; anexar as quatro aprovadas ao pacote final e conferir Safari/Instagram físico. UI candidata, não declarar publicação.
 
+## Cascões Trufados V4.7.4 — capa caseira e individuais (13/11/2026)
+
+- Decisão posterior ao plano fotográfico PR #42: a home pode mostrar o **trio aberto/selado conforme a apresentação fotografada**, com recheios de destaque; não impor três tampas fechadas contra a preferência expressa da Luciane.
+- A capa aprovada contém Kinder Bueno (esquerda), Ninho com Morango (centro) e Ninho Nutella e Chocotone (direita), numa bancada de granito com suporte de acrílico; foto de aspecto caseiro. Os três **cards individuais** mostram um cascão único cada, sem duplicatas desfocadas no fundo.
+- Ninho com Morango aparece com morango inteiro e creme expostos (pré-selagem); Kinder Bueno, pedaços no topo na versão fotográfica atual; Ninho Nutella e Chocotone apresenta tampa escura fechada. **Fotografias são representações geradas a partir de referências reais**, e não provas de acabamento ou fotos brutas. Luciane pode mudar a finalização; confirmar antes de fazer declarações de entrega.
+- Não modificar visual nem imagens dos outros três sabores (Prestígio, Dois Amores, Ferrero Rocher). Conservam 6 sabores no grid, preços 18/18/20/20/20/20 e disponibilidade remota individual.
+- Arquivos: `images/cascao-trufado-trio-home-20261113-v474.webp` + `-360.webp`; para os três novos sabores `images/cascao-trufado-{slug}-20261113-v474.webp`, `-card-20261113-v474.webp` e `-20261113-v474-360.webp`.
+- O padrão adotado substitui **somente as quatro fotos visíveis no contexto aprovado**, não reabre outras categorias nem altera a experiência de compra. Consultar `docs/continuidade/FOTOS-CASCAO-NATURAIS-V474.md` para as fontes/limites.

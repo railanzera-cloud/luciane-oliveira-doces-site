@@ -2472,7 +2472,7 @@ export default function Home() {
               <div className="collection-menu" role="group" aria-label="Escolha uma categoria">
                 {conesVisible && (
                   <CollectionChoice format="Novidade no cardápio" name="Cascão Trufado"
-                    photo={coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-trio-home-20261112-v44.webp" : "/images/cones-trufados-trio-20261108.webp"} photoWidth={1122}
+                    photo={coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-trio-home-20261113-v474.webp" : "/images/cones-trufados-trio-20261108.webp"} photoWidth={1122}
                     fallback="/images/cone-trufado-prestigio-20261108-v2.webp"
                     description="Escolha entre os sabores disponíveis"
                     price={currency.format(Math.min(...CONES.map(cone => cone.variants[0].price)))}
@@ -3321,7 +3321,7 @@ export default function Home() {
                               : id === "trufadas" ? "Escolher sabor e tamanho"
                               : id === "natal" ? (addedNotice?.category === "natal" ? "Escolher mais sabores" : "Fatias recheadas · 4 sabores")
                                 : "Ver acompanhamentos";
-                          const photo = id === "cones" ? (coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-kinder-bueno-card-20261112-v44.webp" : "/images/cones-trufados-trio-card-20261108.webp")
+                          const photo = id === "cones" ? (coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-kinder-bueno-card-20261113-v474.webp" : "/images/cones-trufados-trio-card-20261108.webp")
                             : id === "gourmet" ? "/images/categoria-pipocas-editorial-enquadrada-v107.webp"
                             : id === "fatias" ? "/images/categoria-fatias-editorial.webp"
                               : id === "trufadas" ? "/images/pipocas-trufadas-ninho-20261101.webp"

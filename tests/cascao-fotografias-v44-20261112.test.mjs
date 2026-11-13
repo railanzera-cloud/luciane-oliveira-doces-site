@@ -9,19 +9,19 @@ const packer=fs.readFileSync("scripts/finish-cascao-v44-cloudflare.py","utf8");
 const menu=fs.readFileSync("app/menu-availability.ts","utf8");
 const server=fs.readFileSync("supabase/functions/_shared/commerce-catalog.mjs","utf8");
 
-test("V4.4: home troca foto de apenas um sabor por três cascões juntos",()=>{
- assert.match(page,/photo=\{coneIsVisible\("cascao-trufado-kinder-bueno"\) \? "\/images\/cascao-trufado-trio-home-20261112-v44\.webp"/);
+test("V4.7.4: home mantém trio de três cascões com fotografia natural",()=>{
+ assert.match(page,/photo=\{coneIsVisible\("cascao-trufado-kinder-bueno"\) \? "\/images\/cascao-trufado-trio-home-20261113-v474\.webp"/);
  assert.match(page,/photo\.replace\("\.webp", "-360\.webp"\)/);
  assert.match(page,/id === "cones" \? \(coneIsVisible\("cascao-trufado-kinder-bueno"\)/);
  assert.match(page,/\/images\/cones-trufados-trio-20261108\.webp/);
  assert.doesNotMatch(page,/photo=\{coneIsVisible\("cascao-trufado-kinder-bueno"\) \? "\/images\/cascao-trufado-kinder-bueno-20261112\.webp"/);
 });
 
-test("V4.4: somente as três fotos novas são trocadas nas fichas, preservando os três sabores antigos",()=>{
+test("V4.7.4: atualiza somente três fotos, preservando os três sabores antigos",()=>{
  const flavors=["kinder-bueno","ninho-morango","ninho-nutella-chocotone"];
  for(const flavor of flavors){
-   assert.match(catalog,new RegExp("image: \"/images/cascao-trufado-"+flavor+"-20261112-v44\\.webp\""));
-   assert.match(catalog,new RegExp("cardImage: \"/images/cascao-trufado-"+flavor+"-card-20261112-v44\\.webp\""));
+   assert.match(catalog,new RegExp("image: \"/images/cascao-trufado-"+flavor+"-20261113-v474\\.webp\""));
+   assert.match(catalog,new RegExp("cardImage: \"/images/cascao-trufado-"+flavor+"-card-20261113-v474\\.webp\""));
  }
  for(const flavor of ["prestigio","dois-amores","ferrero-rocher"])
    assert.match(catalog,new RegExp("image: \"/images/cone-trufado-"+flavor+"-20261108"));
