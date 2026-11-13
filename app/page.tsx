@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { StorefrontLegalFooter } from "@/components/storefront-legal-footer";
 import { DeliveryLocalityPicker } from "@/components/delivery-locality-picker";
 import { deliveryLocalityById, deliveryLegacyLocality, deliveryLocalityCanQuote } from "@/supabase/functions/_shared/delivery-localities.mjs";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -3589,7 +3590,7 @@ export default function Home() {
 
       <section className="trust-section"><div className="page-shell trust-content"><Crown size={30} strokeWidth={1.4} aria-hidden="true" /><div><p className="eyebrow">Luciane Oliveira Doces</p><h2>Feito em Paragominas com muito recheio e cuidado em cada pedido.</h2></div></div></section>
 
-      <footer><div className="page-shell footer-content"><div><strong>Luciane Oliveira Doces</strong><span>Paragominas–PA</span></div><div className="footer-details"><span className="footer-phone"><MessageCircle size={16} /> (91) 99362-3669</span><span>Entrega a partir de R$8.</span><span>Retirada disponível.</span></div></div></footer>
+      <StorefrontLegalFooter />
 
       {(activeCategory || cart.length > 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen && Boolean(cupFlavorPreview && cupSizeId) && cupCanOrder)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && !(natalPicking && natalInlineActionVisible) && !(builderFlowActive && activeCategory === "pipocas" && gourmetFlavorsInView && !gourmetContinueAvailable) && (
       <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"} ${stickyIsCheckoutReady && checkoutChannel === "whatsapp" ? "is-whatsapp" : ""} ${cupBuilderFlowActive ? "is-crocantes-step" : ""} ${stickyUsesCheckoutAction ? "is-checkout-flow" : ""} ${natalPicking ? "is-natal-step" : ""} ${builderFlowActive && activeCategory === "pipocas" ? "is-gourmet-step" : ""} ${gourmetContinueAvailable ? "is-gourmet-flavor-continue" : ""}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
