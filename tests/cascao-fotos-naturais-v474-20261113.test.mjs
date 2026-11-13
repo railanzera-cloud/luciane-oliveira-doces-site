@@ -16,7 +16,7 @@ test("cada sabor novo mantém id, preço e fotos isoladas V4.7.4", () => {
     const parts = catalog.split(`id: "${id}"`);
     assert.equal(parts.length, 2, `ID único: ${name}`);
     const entry = parts[1].split("options: [],")[0];
-    const edition = slug === "ninho-morango" ? "v475" : "v476";
+    const edition = slug === "ninho-morango" ? "v478" : "v476";
     assert.ok(entry.includes("price: 20, available: true"), `Preço preservado: ${name}`);
     assert.ok(entry.includes(`/images/cascao-trufado-${slug}-20261113-${edition}.webp`));
     assert.ok(entry.includes(`/images/cascao-trufado-${slug}-card-20261113-${edition}.webp`));
@@ -33,9 +33,9 @@ test("capa da categoria usa trio atualizado e mantém fallback", () => {
 
 test("outros três sabores preservam identidade e preço com fotos padronizadas", () => {
   for (const file of [
-    "cone-trufado-prestigio-20261113-v477.webp",
+    "cone-trufado-prestigio-20261113-v478.webp",
     "cone-trufado-dois-amores-20261113-v475.webp",
-    "cone-trufado-ferrero-rocher-20261113-v475.webp",
+    "cone-trufado-ferrero-rocher-20261113-v478.webp",
   ]) assert.ok(catalog.includes(file), `Arquivo histórico preservado: ${file}`);
   assert.ok(home.includes('<RadioGroup className="cone-flavor-grid"'));
   assert.ok(home.includes("cone.cardImage ?? cone.image"));

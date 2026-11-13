@@ -20,14 +20,14 @@ test("V4.7.4: home mantém trio de três cascões com fotografia natural",()=>{
 test("V4.7.5: seis imagens de sabor atualizadas sem mudar o grid",()=>{
  const flavors=["kinder-bueno","ninho-morango","ninho-nutella-chocotone"];
  for(const flavor of flavors){
-   const edition = flavor === "ninho-morango" ? "v475" : "v476";
+   const edition = flavor === "ninho-morango" ? "v478" : "v476";
    assert.match(catalog,new RegExp("image: \"/images/cascao-trufado-"+flavor+"-20261113-"+edition+"\\.webp\""));
    assert.match(catalog,new RegExp("cardImage: \"/images/cascao-trufado-"+flavor+"-card-20261113-"+edition+"\\.webp\""));
  }
  for(const flavor of ["prestigio","dois-amores","ferrero-rocher"]) {
-   const photoEdition = flavor === "prestigio" ? "v477" : "v475";
+   const photoEdition = flavor === "prestigio" || flavor === "ferrero-rocher" ? "v478" : "v475";
    assert.ok(catalog.includes(`image: "/images/cone-trufado-${flavor}-20261113-${photoEdition}.webp"`));
-   assert.ok(catalog.includes(`cardImage: "/images/cone-trufado-${flavor}-card-20261113-v475.webp"`));
+   assert.ok(catalog.includes(`cardImage: "/images/cone-trufado-${flavor}-card-20261113-${photoEdition}.webp"`));
  }
  assert.match(style,/\.cone-flavor-photo \{/);
  assert.match(style,/aspect-ratio: 4 \/ 5/);
