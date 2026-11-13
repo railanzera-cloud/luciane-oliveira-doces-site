@@ -43,6 +43,7 @@ export function ChristmasCollection({ availability, quantities, onAdjust, onChec
               <div className="natal-product-info">
                 <div className="natal-product-heading">
                   <h4>{morango ? "Morango com Chocolate" : product.name}</h4>
+                  <span className="natal-product-base">Chocottone Bauducco</span>
                   {morango && <span className="natal-product-note">Brigadeiro branco</span>}
                 </div>
                 <div className="natal-product-price-row">
