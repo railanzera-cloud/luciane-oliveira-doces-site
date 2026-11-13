@@ -463,3 +463,13 @@ O usuário determinou a grafia comercial **Ninho Nutella e Chocottone** (dois T)
 ## D-C54 — Mostrar Chocottone Bauducco abaixo do nome de cada sabor de Natal (13/11/2026)
 
 O responsável aprovou o refinamento textual da coleção de **Fatias de Chocottone**: cada um dos quatro cards internos mostra `Chocottone Bauducco` imediatamente abaixo do nome do recheio, com texto menor em bege suave. A proposta substitui a alternativa de exibir a marca no cabeçalho da coleção. **Não adicionar selo/logotipo**, não sugerir endosso comercial, não repetir informação nos cards da vitrine externa. Manter `Morango com Chocolate` e observação `Brigadeiro branco`, fotos reais aprovadas, R$22 por fatia, pedido e todos os contratos externos. O nome identifica a massa utilizada conforme declarado pela proprietária; em caso de mudança do insumo, revisar o texto. Release V4.7.12 é candidato manual, sem produção alterada.
+
+
+## D-C55 — Identificação pública da empresa para verificação Meta (13/11/2026)
+
+- **Autorização:** proprietário aprovou implementar a identificação jurídica no site para preparar nova verificação empresarial da Meta após recusas anteriores.
+- **Fatos informados:** domínio próprio lucianeoliveiradoces.com.br ativo no Pages; contato@lucianeoliveiradoces.com.br encaminha via Cloudflare Email Routing para Gmail verificado pela proprietária. Teste com resultado Encaminhado chegou à pasta Spam.
+- **Origem dos dados:** CNPJ 69.806.739/0001-91, nome empresarial 69.806.739 LUCIANE GALVAO DE OLIVEIRA, conforme telas fornecidas pelo proprietário. O CCMEI oficial não foi reaberto neste incremento; fazer confronto literal antes de publicar.
+- **Decisão:** manter vitrine e conversão prioritárias, com nome empresarial, CNPJ e link Informações da empresa discretamente no rodapé e página pública própria. Expor email no domínio, telefone comercial já público e cidade/UF. Não publicar endereço residencial completo por suposição.
+- **Fronteiras:** sem alterar fotos, catálogo, SKUs, preços, checkout, pagamentos, Meta Pixel/CAPI, Tintim, Edge, Supabase, CRM, QZ ou Cloudflare. A publicação depende de ZIP manual compatível com a produção.
+- **Limite:** a identificação facilita associação empresa/domínio, sem garantir aprovação da Meta; conferir CCMEI, nome, endereço no cadastro e documentos antes da submissão.
