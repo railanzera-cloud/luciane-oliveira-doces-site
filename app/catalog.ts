@@ -133,8 +133,8 @@ export const PRODUCTS: Product[] = [
   {
     id: "cascao-trufado-kinder-bueno", kind: "cone", category: "Cascão Trufado",
     name: "Kinder Bueno", available: true,
-    image: "/images/cascao-trufado-kinder-bueno-20261113-v475.webp",
-    cardImage: "/images/cascao-trufado-kinder-bueno-card-20261113-v475.webp",
+    image: "/images/cascao-trufado-kinder-bueno-20261113-v476.webp",
+    cardImage: "/images/cascao-trufado-kinder-bueno-card-20261113-v476.webp",
     imageAlt: "Cascão Kinder Bueno artesanal aberto, com pedaços de chocolate e cobertura cremosa",
     variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 20, available: true }],
     options: [],
@@ -151,8 +151,8 @@ export const PRODUCTS: Product[] = [
   {
     id: "cascao-trufado-ninho-nutella-chocotone", kind: "cone", category: "Cascão Trufado",
     name: "Ninho Nutella e Chocotone", available: true,
-    image: "/images/cascao-trufado-ninho-nutella-chocotone-20261113-v475.webp",
-    cardImage: "/images/cascao-trufado-ninho-nutella-chocotone-card-20261113-v475.webp",
+    image: "/images/cascao-trufado-ninho-nutella-chocotone-20261113-v476.webp",
+    cardImage: "/images/cascao-trufado-ninho-nutella-chocotone-card-20261113-v476.webp",
     imageAlt: "Cascão Ninho Nutella e Chocotone com tampa de chocolate escuro fechada",
     variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 20, available: true }],
     options: [],
