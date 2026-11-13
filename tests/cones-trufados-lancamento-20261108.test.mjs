@@ -102,7 +102,7 @@ test("UX: segundo cone usa o mesmo cartão de complementos, sem botão ilegível
   assert.ok(page.includes('cones: conesCanBeAdded'));
   assert.ok(page.includes('id === "cones" ? (addedNotice?.category === "cones" ? "Escolher outro cascão" : "Adicionar cascão trufado")'));
   assert.ok(page.includes('id === "cones" ? (addedNotice?.category === "cones" ? "Adicionar mais um sabor" : "Conhecer sabores")'));
-  assert.ok(page.includes('id === "cones" ? (coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-kinder-bueno-card-20261113-v474.webp" : "/images/cones-trufados-trio-card-20261108.webp")'));
+  assert.ok(page.includes('id === "cones" ? (coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-kinder-bueno-card-20261113-v475.webp" : "/images/cones-trufados-trio-card-20261108.webp")'));
   assert.ok(page.includes('if (id === "cones") startAnother("cones")'));
   assert.ok(page.includes('className="boutique-complement-choice"'));
   assert.ok(!page.includes('className="cone-cross-sell"'));

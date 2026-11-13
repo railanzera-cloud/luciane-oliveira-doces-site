@@ -17,14 +17,16 @@ test("V4.7.4: home mantém trio de três cascões com fotografia natural",()=>{
  assert.doesNotMatch(page,/photo=\{coneIsVisible\("cascao-trufado-kinder-bueno"\) \? "\/images\/cascao-trufado-kinder-bueno-20261112\.webp"/);
 });
 
-test("V4.7.4: atualiza somente três fotos, preservando os três sabores antigos",()=>{
+test("V4.7.5: seis imagens de sabor atualizadas sem mudar o grid",()=>{
  const flavors=["kinder-bueno","ninho-morango","ninho-nutella-chocotone"];
  for(const flavor of flavors){
-   assert.match(catalog,new RegExp("image: \"/images/cascao-trufado-"+flavor+"-20261113-v474\\.webp\""));
-   assert.match(catalog,new RegExp("cardImage: \"/images/cascao-trufado-"+flavor+"-card-20261113-v474\\.webp\""));
+   assert.match(catalog,new RegExp("image: \"/images/cascao-trufado-"+flavor+"-20261113-v475\\.webp\""));
+   assert.match(catalog,new RegExp("cardImage: \"/images/cascao-trufado-"+flavor+"-card-20261113-v475\\.webp\""));
  }
- for(const flavor of ["prestigio","dois-amores","ferrero-rocher"])
-   assert.match(catalog,new RegExp("image: \"/images/cone-trufado-"+flavor+"-20261108"));
+ for(const flavor of ["prestigio","dois-amores","ferrero-rocher"]) {
+   assert.ok(catalog.includes(`image: "/images/cone-trufado-${flavor}-20261113-v475.webp"`));
+   assert.ok(catalog.includes(`cardImage: "/images/cone-trufado-${flavor}-card-20261113-v475.webp"`));
+ }
  assert.match(style,/\.cone-flavor-photo \{/);
  assert.match(style,/aspect-ratio: 4 \/ 5/);
  assert.match(style,/grid-template-columns: repeat\(3,minmax\(0,1fr\)\)/);
