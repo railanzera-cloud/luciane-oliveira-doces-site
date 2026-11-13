@@ -103,9 +103,9 @@ export const PRODUCTS: Product[] = [
   {
     id: "cone-trufado-prestigio", kind: "cone", category: "Cascão Trufado",
     name: "Prestígio", available: true,
-    image: "/images/cone-trufado-prestigio-20261113-v475.webp",
-    cardImage: "/images/cone-trufado-prestigio-card-20261113-v475.webp",
-    imageAlt: "Cascão Prestígio com casca de chocolate artesanal e tampa clara consistente, sem decoração adicional",
+    image: "/images/cone-trufado-prestigio-20261113-v477.webp",
+    cardImage: "/images/cone-trufado-prestigio-card-20261113-v477.webp",
+    imageAlt: "Cascão Prestígio totalmente branco, casquinha com textura de coco e tampa branca lisa",
     variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 18, available: true }],
     options: [],
   },

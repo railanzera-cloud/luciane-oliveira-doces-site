@@ -25,7 +25,8 @@ test("V4.7.5: seis imagens de sabor atualizadas sem mudar o grid",()=>{
    assert.match(catalog,new RegExp("cardImage: \"/images/cascao-trufado-"+flavor+"-card-20261113-"+edition+"\\.webp\""));
  }
  for(const flavor of ["prestigio","dois-amores","ferrero-rocher"]) {
-   assert.ok(catalog.includes(`image: "/images/cone-trufado-${flavor}-20261113-v475.webp"`));
+   const photoEdition = flavor === "prestigio" ? "v477" : "v475";
+   assert.ok(catalog.includes(`image: "/images/cone-trufado-${flavor}-20261113-${photoEdition}.webp"`));
    assert.ok(catalog.includes(`cardImage: "/images/cone-trufado-${flavor}-card-20261113-v475.webp"`));
  }
  assert.match(style,/\.cone-flavor-photo \{/);
