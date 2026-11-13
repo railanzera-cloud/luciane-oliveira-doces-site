@@ -820,6 +820,11 @@ export default function Home() {
   const conesAvailable = conesVisible
     && isItemAvailable(availability, CATEGORY_ITEM_KEYS.cones);
   const conesCanBeAdded = conesAvailable && availability.ordersOpen && CONES.some(cone => cone.available && cone.variants[0].available && coneIsAvailable(cone.id));
+  // Um único preço mínimo fundamenta o card da categoria e o botão flutuante.
+  // Ignora sabores não vendáveis; durante carregamento, recorre ao catálogo sem assumir estoque.
+  const sellableConePrices = CONES.filter(cone => cone.available && cone.variants[0].available && coneIsAvailable(cone.id))
+    .map(cone => cone.variants[0].price);
+  const coneStartingPrice = Math.min(...(sellableConePrices.length ? sellableConePrices : CONES.map(cone => cone.variants[0].price)));
 
   function categoryIsVisible(category: CategoryId) {
     return category === "pipocas" ? pipocasVisible : category === "cones" ? conesVisible : category === "natal" ? natalVisible : fatiasVisible;
@@ -1343,7 +1348,7 @@ export default function Home() {
     : cart.length > 0 && !builderFlowActive
     ? cartNeedsSizeReview ? "Revise o tamanho" : currency.format(hasEstimatedTotal ? orderTotal : cartSubtotal)
     : draftSubtotal === null
-      ? activeCategory === "pipocas" ? `A partir de ${currency.format(popcornPrice("500ml", [], promotionTime))}` : activeCategory === "cones" ? "A partir de R$14" : "A partir de R$20"
+      ? activeCategory === "pipocas" ? `A partir de ${currency.format(popcornPrice("500ml", [], promotionTime))}` : activeCategory === "cones" ? `A partir de ${currency.format(coneStartingPrice)}` : "A partir de R$20"
       : currency.format(draftSubtotal);
   const stickyPriceCaption = natalPicking
     ? natalSelectedCount > 0 ? `${natalSelectedCount} ${natalSelectedCount === 1 ? "fatia selecionada" : "fatias selecionadas"}` : "Coleção especial de Natal"
@@ -2475,7 +2480,7 @@ export default function Home() {
                     photo={coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-trio-home-20261113-v474.webp" : "/images/cones-trufados-trio-20261108.webp"} photoWidth={1122}
                     fallback="/images/cone-trufado-prestigio-20261108-v2.webp"
                     description="Escolha entre os sabores disponíveis"
-                    price={currency.format(Math.min(...CONES.map(cone => cone.variants[0].price)))}
+                    price={currency.format(coneStartingPrice)}
                     action={!conesAvailable ? "Esgotado" : "Escolher meu cascão"}
                     disabled={!conesAvailable} onClick={() => selectCategory("cones")} />
                 )}
@@ -3321,7 +3326,7 @@ export default function Home() {
                               : id === "trufadas" ? "Escolher sabor e tamanho"
                               : id === "natal" ? (addedNotice?.category === "natal" ? "Escolher mais sabores" : "Fatias recheadas · 4 sabores")
                                 : "Ver acompanhamentos";
-                          const photo = id === "cones" ? (coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-kinder-bueno-card-20261113-v475.webp" : "/images/cones-trufados-trio-card-20261108.webp")
+                          const photo = id === "cones" ? (coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-kinder-bueno-card-20261113-v476.webp" : "/images/cones-trufados-trio-card-20261108.webp")
                             : id === "gourmet" ? "/images/categoria-pipocas-editorial-enquadrada-v107.webp"
                             : id === "fatias" ? "/images/categoria-fatias-editorial.webp"
                               : id === "trufadas" ? "/images/pipocas-trufadas-ninho-20261101.webp"

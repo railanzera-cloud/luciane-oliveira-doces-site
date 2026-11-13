@@ -18,16 +18,17 @@ test("seis sabores mantêm identificadores e preços, mas agora apontam para fot
     const parts = catalog.split(`id: "${id}"`);
     assert.equal(parts.length, 2, `SKU único ${id}`);
     const entry = parts[1].split("options: [],")[0];
+    const edition = id === "cascao-trufado-kinder-bueno" || id === "cascao-trufado-ninho-nutella-chocotone" ? "v476" : "v475";
     assert.match(entry, new RegExp(`price: ${price}, available: true`), `Preço ${id}`);
-    assert.ok(entry.includes(`/images/${prefix}-20261113-v475.webp`), `Foto ${id}`);
-    assert.ok(entry.includes(`/images/${prefix}-card-20261113-v475.webp`), `Card ${id}`);
+    assert.ok(entry.includes(`/images/${prefix}-20261113-${edition}.webp`), `Foto ${id}`);
+    assert.ok(entry.includes(`/images/${prefix}-card-20261113-${edition}.webp`), `Card ${id}`);
     assert.ok(!entry.includes("20261108.webp") && !entry.includes("20261113-v474.webp"), `Sem refs antigas ${id}`);
   }
 });
 
 test("capa com trio fica aprovada e complemento recebe miniatura nova sem alterar lógica", () => {
   assert.ok(home.includes("cascao-trufado-trio-home-20261113-v474.webp"));
-  assert.ok(home.includes("cascao-trufado-kinder-bueno-card-20261113-v475.webp"));
+  assert.ok(home.includes("cascao-trufado-kinder-bueno-card-20261113-v476.webp"));
   assert.ok(home.includes('photo.replace(".webp", "-360.webp")'));
   assert.ok(home.includes('<RadioGroup className="cone-flavor-grid"'));
   assert.ok(home.includes("cone.cardImage ?? cone.image"));
