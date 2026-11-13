@@ -20,7 +20,7 @@ test("V4.7.4: home mantém trio de três cascões com fotografia natural",()=>{
 test("V4.7.5: seis imagens de sabor atualizadas sem mudar o grid",()=>{
  const flavors=["kinder-bueno","ninho-morango","ninho-nutella-chocotone"];
  for(const flavor of flavors){
-   const edition = flavor === "ninho-morango" ? "v478" : "v476";
+   const edition = flavor === "ninho-morango" ? "v478" : flavor === "ninho-nutella-chocotone" ? "v479" : "v476";
    assert.match(catalog,new RegExp("image: \"/images/cascao-trufado-"+flavor+"-20261113-"+edition+"\\.webp\""));
    assert.match(catalog,new RegExp("cardImage: \"/images/cascao-trufado-"+flavor+"-card-20261113-"+edition+"\\.webp\""));
  }
@@ -49,7 +49,7 @@ test("V4.4: montagem preserva fotos de Natal e originais e aplica apenas crop/re
 test("V4.4: preços/checkout/códigos de disponibilidade não são alterados pela troca visual",()=>{
  assert.match(catalog,/name: "Kinder Bueno", available: true/);
  assert.match(catalog,/name: "Ninho com Morango", available: true/);
- assert.match(catalog,/name: "Ninho Nutella e Chocotone", available: true/);
+ assert.match(catalog,/name: "Ninho Nutella e Chocottone", available: true/);
  for(const id of ["cascao-trufado-kinder-bueno","cascao-trufado-ninho-morango","cascao-trufado-ninho-nutella-chocotone"]){
   const start=catalog.indexOf('id: "'+id+'"');
   assert.ok(start>=0,id);
