@@ -17,7 +17,7 @@ test("V4.7.4: home mantém trio de três cascões com fotografia natural",()=>{
  assert.doesNotMatch(page,/photo=\{coneIsVisible\("cascao-trufado-kinder-bueno"\) \? "\/images\/cascao-trufado-kinder-bueno-20261112\.webp"/);
 });
 
-test("V4.7.4: atualiza somente três fotos, preservando os três sabores antigos",()=>{
+test("V4.7.5: seis imagens de sabor atualizadas sem mudar o grid",()=>{
  const flavors=["kinder-bueno","ninho-morango","ninho-nutella-chocotone"];
  for(const flavor of flavors){
    assert.match(catalog,new RegExp("image: \"/images/cascao-trufado-"+flavor+"-20261113-v475\\.webp\""));
