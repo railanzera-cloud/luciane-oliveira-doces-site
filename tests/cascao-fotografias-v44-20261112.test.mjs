@@ -20,8 +20,8 @@ test("V4.7.4: home mantém trio de três cascões com fotografia natural",()=>{
 test("V4.7.4: atualiza somente três fotos, preservando os três sabores antigos",()=>{
  const flavors=["kinder-bueno","ninho-morango","ninho-nutella-chocotone"];
  for(const flavor of flavors){
-   assert.match(catalog,new RegExp("image: \"/images/cascao-trufado-"+flavor+"-20261113-v474\\.webp\""));
-   assert.match(catalog,new RegExp("cardImage: \"/images/cascao-trufado-"+flavor+"-card-20261113-v474\\.webp\""));
+   assert.match(catalog,new RegExp("image: \"/images/cascao-trufado-"+flavor+"-20261113-v475\\.webp\""));
+   assert.match(catalog,new RegExp("cardImage: \"/images/cascao-trufado-"+flavor+"-card-20261113-v475\\.webp\""));
  }
  for(const flavor of ["prestigio","dois-amores","ferrero-rocher"])
    assert.match(catalog,new RegExp("image: \"/images/cone-trufado-"+flavor+"-20261108"));
