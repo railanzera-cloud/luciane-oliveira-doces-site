@@ -20,7 +20,7 @@ test("Catálogo permanente preserva três sabores antigos e adiciona três casc�
     ["cone-trufado-ferrero-rocher","cone","Ferrero Rocher","unidade",20],
     ["cascao-trufado-kinder-bueno","cone","Kinder Bueno","unidade",20],
     ["cascao-trufado-ninho-morango","cone","Ninho com Morango","unidade",20],
-    ["cascao-trufado-ninho-nutella-chocotone","cone","Ninho Nutella e Chocotone","unidade",20],
+    ["cascao-trufado-ninho-nutella-chocotone","cone","Ninho Nutella e Chocottone","unidade",20],
   ]);
   assert.ok(CONES.every(p=>p.options.length===0 && p.image?.startsWith("/images/")));
 });

@@ -412,3 +412,9 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 As imagens aprovadas de **Ninho com Morango**, **Prestígio** e **Ferrero Rocher** adotam bancada de granito cinza, parede bege clara com textura discreta, luz natural sem artificialidade e suporte de acrílico transparente. Reproduzir o mesmo cenário nas versões principais e cards sem introduzir mãos, faixas borradas, sombras excessivas ou novos elementos. Foto principal inteira e crop mobile 4:5 com tampas/topos protagonizando, mantendo cerca de 70–80% da casca; acabamento caseiro intencional.
 
 Produtos aprovados: Ninho com Morango com morango inteiro e casca de chocolate escuro (Ninho é recheio interior); Prestígio com casca branca coberta de coco, chocolate e beijinho no topo; Ferrero Rocher com casca crocante de castanhas e bombom partido. **Não reverter** Prestígio à tampa branca lisa da V477 nem modificar a capa trio V474. Nomes de arquivos e fontes em `FOTOS-CASCAO-TRES-NATURAIS-V478.md`.
+
+## Cascão Ninho Nutella e Chocottone — V4.7.9 (13/11/2026)
+
+- **Imagem de origem aprovada:** `a_crisp_high_detail_studio_lit_close_up_product.png`, cascão escuro sobre suporte transparente, na bancada de granito com parede bege suave; cobertura de chocolate e pedaço de chocottone cortado exibindo miolo no topo, mantendo irregularidades artesanais.
+- **Padronização mobile:** imagem principal sem corte 1122×1402; card 600×750 em proporção 4:5, recorte central/superior como demais Cascões; miniatura 360×450. Não criar bordas desfocadas nem trocar cenário.
+- **Nome na interface:** `Ninho Nutella e Chocottone` (dois T). **Não** mudar os identificadores internos `chocotone`; eles são contratos comerciais estáveis. Outros cinco sabores e a capa trio permanecem intocados.

@@ -31,6 +31,6 @@ test("Prestígio mantém 6 SKUs e os outros cinco sabores/valores permanecem int
     ["cone-trufado-ferrero-rocher","v478"],
     ["cascao-trufado-kinder-bueno","v476"],
     ["cascao-trufado-ninho-morango","v478"],
-    ["cascao-trufado-ninho-nutella-chocotone","v476"]
+    ["cascao-trufado-ninho-nutella-chocotone","v479"]
   ]) assert.match(CONES.find(p=>p.id===id).cardImage,new RegExp(version+"\\.webp$"));
 });

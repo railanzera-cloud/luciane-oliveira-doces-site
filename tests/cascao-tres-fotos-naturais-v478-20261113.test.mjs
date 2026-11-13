@@ -37,5 +37,5 @@ test("V4.7.8 preserva os três outros sabores e a tabela de preços", () => {
   ]);
   assert.equal(CONES.find(p=>p.id==="cone-trufado-dois-amores")?.cardImage, "/images/cone-trufado-dois-amores-card-20261113-v475.webp");
   assert.equal(CONES.find(p=>p.id==="cascao-trufado-kinder-bueno")?.cardImage, "/images/cascao-trufado-kinder-bueno-card-20261113-v476.webp");
-  assert.equal(CONES.find(p=>p.id==="cascao-trufado-ninho-nutella-chocotone")?.cardImage, "/images/cascao-trufado-ninho-nutella-chocotone-card-20261113-v476.webp");
+  assert.equal(CONES.find(p=>p.id==="cascao-trufado-ninho-nutella-chocotone")?.cardImage, "/images/cascao-trufado-ninho-nutella-chocotone-card-20261113-v479.webp");
 });

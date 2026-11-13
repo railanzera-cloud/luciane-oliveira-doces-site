@@ -8,7 +8,7 @@ const home = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8")
 const flavors = [
   ["cascao-trufado-kinder-bueno", "kinder-bueno", "Kinder Bueno"],
   ["cascao-trufado-ninho-morango", "ninho-morango", "Ninho com Morango"],
-  ["cascao-trufado-ninho-nutella-chocotone", "ninho-nutella-chocotone", "Ninho Nutella e Chocotone"],
+  ["cascao-trufado-ninho-nutella-chocotone", "ninho-nutella-chocotone", "Ninho Nutella e Chocottone"],
 ];
 
 test("cada sabor novo mantém id, preço e fotos isoladas V4.7.4", () => {
@@ -16,7 +16,7 @@ test("cada sabor novo mantém id, preço e fotos isoladas V4.7.4", () => {
     const parts = catalog.split(`id: "${id}"`);
     assert.equal(parts.length, 2, `ID único: ${name}`);
     const entry = parts[1].split("options: [],")[0];
-    const edition = slug === "ninho-morango" ? "v478" : "v476";
+    const edition = slug === "ninho-morango" ? "v478" : slug === "ninho-nutella-chocotone" ? "v479" : "v476";
     assert.ok(entry.includes("price: 20, available: true"), `Preço preservado: ${name}`);
     assert.ok(entry.includes(`/images/cascao-trufado-${slug}-20261113-${edition}.webp`));
     assert.ok(entry.includes(`/images/cascao-trufado-${slug}-card-20261113-${edition}.webp`));

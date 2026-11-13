@@ -10,8 +10,9 @@ test("V4.7.6: troca somente as fotos de Kinder e Ninho Nutella sem lateral desfo
   for (const id of ["cascao-trufado-kinder-bueno", "cascao-trufado-ninho-nutella-chocotone"]) {
     const entry = catalog.split(`id: "${id}"`)[1]?.split("options: [],")[0];
     assert.ok(entry, id);
-    assert.ok(entry.includes(`/images/${id}-20261113-v476.webp`), id);
-    assert.ok(entry.includes(`/images/${id}-card-20261113-v476.webp`), id);
+    const edition = id === "cascao-trufado-ninho-nutella-chocotone" ? "v479" : "v476";
+    assert.ok(entry.includes(`/images/${id}-20261113-${edition}.webp`), id);
+    assert.ok(entry.includes(`/images/${id}-card-20261113-${edition}.webp`), id);
     assert.doesNotMatch(entry, /20261113-v475/);
     assert.match(entry, /price: 20, available: true/);
   }
