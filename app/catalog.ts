@@ -128,32 +128,32 @@ export const PRODUCTS: Product[] = [
     options: [],
   },
 
-  // Novos cascões maiores, imagens originais da loja convertidas para WebP.
+  // Cascões maiores: apresentações fotográficas ilustrativas, com cenário caseiro de referência.\n  // Três fotos atualizadas em V4.7.4; sabores históricos e IDs comerciais permanecem intactos.
   // Não reutilizar IDs de cones antigos nem de sabores de pipoca.
   {
     id: "cascao-trufado-kinder-bueno", kind: "cone", category: "Cascão Trufado",
     name: "Kinder Bueno", available: true,
-    image: "/images/cascao-trufado-kinder-bueno-20261112-v44.webp",
-    cardImage: "/images/cascao-trufado-kinder-bueno-card-20261112-v44.webp",
-    imageAlt: "Cascão de chocolate com creme claro, pedaços de Kinder Bueno e crocantes",
+    image: "/images/cascao-trufado-kinder-bueno-20261113-v474.webp",
+    cardImage: "/images/cascao-trufado-kinder-bueno-card-20261113-v474.webp",
+    imageAlt: "Cascão Kinder Bueno artesanal aberto, com pedaços de chocolate e cobertura cremosa",
     variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 20, available: true }],
     options: [],
   },
   {
     id: "cascao-trufado-ninho-morango", kind: "cone", category: "Cascão Trufado",
     name: "Ninho com Morango", available: true,
-    image: "/images/cascao-trufado-ninho-morango-20261112-v44.webp",
-    cardImage: "/images/cascao-trufado-ninho-morango-card-20261112-v44.webp",
-    imageAlt: "Cascão de chocolate com creme de Ninho e pedaços de morango fresco",
+    image: "/images/cascao-trufado-ninho-morango-20261113-v474.webp",
+    cardImage: "/images/cascao-trufado-ninho-morango-card-20261113-v474.webp",
+    imageAlt: "Cascão Ninho com Morango aberto, com creme claro e morango inteiro no topo, antes da selagem",
     variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 20, available: true }],
     options: [],
   },
   {
     id: "cascao-trufado-ninho-nutella-chocotone", kind: "cone", category: "Cascão Trufado",
     name: "Ninho Nutella e Chocotone", available: true,
-    image: "/images/cascao-trufado-ninho-nutella-chocotone-20261112-v44.webp",
-    cardImage: "/images/cascao-trufado-ninho-nutella-chocotone-card-20261112-v44.webp",
-    imageAlt: "Cascão de chocolate com creme de Ninho, Nutella e pedaços de chocotone",
+    image: "/images/cascao-trufado-ninho-nutella-chocotone-20261113-v474.webp",
+    cardImage: "/images/cascao-trufado-ninho-nutella-chocotone-card-20261113-v474.webp",
+    imageAlt: "Cascão Ninho Nutella e Chocotone com tampa de chocolate escuro fechada",
     variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 20, available: true }],
     options: [],
   },
