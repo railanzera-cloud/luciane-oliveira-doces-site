@@ -23,8 +23,10 @@ test("V4.7.5: seis imagens de sabor atualizadas sem mudar o grid",()=>{
    assert.match(catalog,new RegExp("image: \"/images/cascao-trufado-"+flavor+"-20261113-v475\\.webp\""));
    assert.match(catalog,new RegExp("cardImage: \"/images/cascao-trufado-"+flavor+"-card-20261113-v475\\.webp\""));
  }
- for(const flavor of ["prestigio","dois-amores","ferrero-rocher"])
-   assert.match(catalog,new RegExp("image: \"/images/cone-trufado-"+flavor+"-20261108"));
+ for(const flavor of ["prestigio","dois-amores","ferrero-rocher"]) {
+   assert.ok(catalog.includes(`image: "/images/cone-trufado-${flavor}-20261113-v475.webp"`));
+   assert.ok(catalog.includes(`cardImage: "/images/cone-trufado-${flavor}-card-20261113-v475.webp"`));
+ }
  assert.match(style,/\.cone-flavor-photo \{/);
  assert.match(style,/aspect-ratio: 4 \/ 5/);
  assert.match(style,/grid-template-columns: repeat\(3,minmax\(0,1fr\)\)/);
