@@ -12,8 +12,8 @@ test("Vitrine usa foto de três sabores, Prestígio usa nova imagem",()=>{
   assert.ok(page.includes('coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-trio-home-20261113-v474.webp"'));
   assert.ok(page.includes('id === "cones" ? (coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-kinder-bueno-card-20261113-v476.webp"'));
   const prestigio=CONES.find(p=>p.id==="cone-trufado-prestigio");
-  assert.equal(prestigio?.image,"/images/cone-trufado-prestigio-20261113-v477.webp");
-  assert.equal(prestigio?.cardImage,"/images/cone-trufado-prestigio-card-20261113-v477.webp");
+  assert.equal(prestigio?.image,"/images/cone-trufado-prestigio-20261113-v478.webp");
+  assert.equal(prestigio?.cardImage,"/images/cone-trufado-prestigio-card-20261113-v478.webp");
   assert.equal(prestigio?.variants[0].price,18);
   assert.equal(CONES.find(p=>p.id==="cone-trufado-dois-amores")?.variants[0].price,18);
   assert.equal(CONES.find(p=>p.id==="cone-trufado-ferrero-rocher")?.variants[0].price,20);
