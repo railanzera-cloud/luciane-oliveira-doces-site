@@ -1,0 +1,149 @@
+/* Identificação pública do empreendimento: isolada da jornada do carrinho. */
+.storefront .footer-business {
+  min-width: 0;
+  max-width: 550px;
+}
+.storefront .footer-business .footer-legal-id {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: #b6a596;
+  line-height: 1.5;
+  font-size: .7rem;
+}
+.storefront .footer-company-link {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  width: fit-content;
+  margin-top: 12px;
+  color: #e8bc80;
+  font-size: .77rem;
+  line-height: 1.4;
+  font-weight: 650;
+  text-decoration: underline;
+  text-decoration-color: rgba(232, 188, 128, .52);
+  text-underline-offset: 4px;
+}
+.storefront .footer-company-link:hover,
+.storefront .footer-company-link:focus-visible,
+.storefront .footer-contact-email:hover,
+.storefront .footer-contact-email:focus-visible {
+  color: #ffe0b3;
+}
+.storefront .footer-company-link:focus-visible,
+.storefront .footer-contact-email:focus-visible {
+  outline: 2px solid #e8bc80;
+  outline-offset: 4px;
+  border-radius: 3px;
+}
+.storefront .footer-details .footer-contact-email {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: .74rem;
+  font-weight: 500;
+}
+
+.company-page {
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 20% 0%, #24150d 0%, #100b08 52%, #090705 100%);
+  color: #f7eadb;
+  padding: 0 18px 80px;
+}
+.company-page__shell {
+  width: min(100%, 830px);
+  margin: 0 auto;
+}
+.company-page__nav {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 0;
+  border-bottom: 1px solid rgba(234, 190, 137, .19);
+}
+.company-page__brand {
+  color: #f7e4ce;
+  font: 500 1.1rem Georgia, "Times New Roman", serif;
+  text-decoration: none;
+}
+.company-page__back {
+  color: #eac08a;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font-size: .85rem;
+  white-space: nowrap;
+}
+.company-page a:focus-visible {
+  outline: 2px solid #e8bc80;
+  outline-offset: 4px;
+  border-radius: 3px;
+}
+.company-page__heading {
+  padding: clamp(38px, 9vw, 72px) 0 25px;
+}
+.company-page__eyebrow {
+  color: #ddb07d;
+  font-size: .74rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.company-page__heading h1 {
+  margin: 11px 0 17px;
+  font: 500 clamp(2.1rem, 7vw, 3.6rem)/1.1 Georgia, "Times New Roman", serif;
+  letter-spacing: -.025em;
+}
+.company-page__heading > p:last-child {
+  max-width: 620px;
+  color: #c8b4a0;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+.company-page__card {
+  margin: 20px 0;
+  padding: clamp(20px, 5vw, 32px);
+  border: 1px solid rgba(222, 175, 119, .18);
+  border-radius: 18px;
+  background: rgba(255, 242, 221, .035);
+}
+.company-page__card h2 {
+  margin: 0 0 14px;
+  color: #f3d5ad;
+  font: 500 1.45rem/1.25 Georgia, "Times New Roman", serif;
+}
+.company-page__details {
+  margin: 0;
+}
+.company-page__details > div {
+  padding: 14px 0;
+  border-top: 1px solid rgba(228, 196, 161, .12);
+}
+.company-page__details dt {
+  color: #aa9786;
+  font-size: .76rem;
+  margin-bottom: 7px;
+}
+.company-page__details dd {
+  color: #f5e6d8;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: .96rem;
+  line-height: 1.55;
+}
+.company-page__details a {
+  color: #e8bc80;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.company-page__note {
+  margin-top: 26px;
+  color: #b7a38f;
+  line-height: 1.6;
+  font-size: .86rem;
+}
+@media (max-width: 430px) {
+  .company-page__nav { align-items: flex-start; }
+  .company-page__brand { max-width: 155px; }
+  .company-page__back { font-size: .78rem; }
+}

@@ -1,0 +1,31 @@
+name: Identificacao juridica no site - QA sem deploy
+on:
+  pull_request:
+    paths:
+      - 'app/informacoes-da-empresa/**'
+      - 'app/company-identity.css'
+      - 'app/page.tsx'
+      - 'app/layout.tsx'
+      - 'components/storefront-legal-footer.tsx'
+      - 'lib/company-identity.ts'
+      - 'tests/legal-identity-meta-20261113.test.mjs'
+      - '.github/workflows/legal-identity-meta-20261113.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Conferir identidade juridica, rodape e pagina
+        run: node --test tests/legal-identity-meta-20261113.test.mjs
+      - name: Instalar dependencias do lockfile
+        run: npm ci --no-audit --no-fund
+      - name: Compilar vinext sem publicar
+        run: npm run build
