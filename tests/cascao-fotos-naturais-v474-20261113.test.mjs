@@ -30,11 +30,11 @@ test("capa da categoria usa trio atualizado e mantém fallback", () => {
   assert.ok(!home.includes("cascao-trufado-trio-home-20261112-v44.webp"));
 });
 
-test("fotos históricas, valores e seleção continuam intactos", () => {
+test("outros três sabores preservam identidade e preço com fotos padronizadas", () => {
   for (const file of [
-    "cone-trufado-prestigio-20261108-v2.webp",
-    "cone-trufado-dois-amores-20261108.webp",
-    "cone-trufado-ferrero-rocher-20261108.webp",
+    "cone-trufado-prestigio-20261113-v475.webp",
+    "cone-trufado-dois-amores-20261113-v475.webp",
+    "cone-trufado-ferrero-rocher-20261113-v475.webp",
   ]) assert.ok(catalog.includes(file), `Arquivo histórico preservado: ${file}`);
   assert.ok(home.includes('<RadioGroup className="cone-flavor-grid"'));
   assert.ok(home.includes("cone.cardImage ?? cone.image"));
