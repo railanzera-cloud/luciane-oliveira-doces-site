@@ -9,10 +9,10 @@ test("Prestígio V4.7.7 usa somente a foto branca aprovada, sem alterar preço o
   assert.ok(prestige);
   assert.equal(prestige.name,"Prestígio");
   assert.equal(prestige.variants[0].price,18);
-  assert.equal(prestige.image,"/images/cone-trufado-prestigio-20261113-v477.webp");
-  assert.equal(prestige.cardImage,"/images/cone-trufado-prestigio-card-20261113-v477.webp");
-  assert.match(prestige.imageAlt,/totalmente branco/);
-  assert.match(prestige.imageAlt,/tampa branca/);
+  assert.equal(prestige.image,"/images/cone-trufado-prestigio-20261113-v478.webp");
+  assert.equal(prestige.cardImage,"/images/cone-trufado-prestigio-card-20261113-v478.webp");
+  assert.match(prestige.imageAlt,/casca branca coberta de coco/);
+  assert.match(prestige.imageAlt,/beijinho/);
   const entry=catalog.split('id: "cone-trufado-prestigio"')[1].split("options: [],")[0];
   assert.ok(!entry.includes("prestigio-20261113-v475.webp"));
 });
@@ -28,9 +28,9 @@ test("Prestígio mantém 6 SKUs e os outros cinco sabores/valores permanecem int
   ]);
   for (const [id,version] of [
     ["cone-trufado-dois-amores","v475"],
-    ["cone-trufado-ferrero-rocher","v475"],
+    ["cone-trufado-ferrero-rocher","v478"],
     ["cascao-trufado-kinder-bueno","v476"],
-    ["cascao-trufado-ninho-morango","v475"],
+    ["cascao-trufado-ninho-morango","v478"],
     ["cascao-trufado-ninho-nutella-chocotone","v476"]
   ]) assert.match(CONES.find(p=>p.id===id).cardImage,new RegExp(version+"\\.webp$"));
 });
