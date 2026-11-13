@@ -213,9 +213,16 @@
 }
 .storefront .natal-product-info {padding:10px 10px 11px;gap:6px;}
 .storefront .natal-product-heading {
-  display:flex;flex-direction:column;gap:3px;min-height:57px;
+  display:flex;flex-direction:column;gap:3px;min-height:80px;
 }
 .storefront .natal-product-info h4 {min-height:0;line-height:1.21;letter-spacing:-.016em;}
+/* Origem da massa: uma linha discreta abaixo do sabor, sem sugerir parceria comercial. */
+.storefront .natal-product-base {
+  display:block;
+  color:#e4c6a2;
+  font:500 clamp(10px,2.7vw,11px)/1.3 system-ui,sans-serif;
+  letter-spacing:.005em;
+}
 .storefront .natal-product-note {font-size:11px;color:#e4c8ae;}
 .storefront .natal-product-price-row {
   display:flex;align-items:baseline;flex-wrap:wrap;column-gap:6px;row-gap:1px;
@@ -246,10 +253,10 @@
   .storefront .natal-home-title {font-size:15px;}
   .storefront .natal-home-image {flex-basis:67px;width:67px;height:69px;}
   .storefront .natal-product-grid {gap:8px;}
-  .storefront .natal-product-heading {min-height:60px;}
+  .storefront .natal-product-heading {min-height:94px;}
   .storefront .natal-quantity-control button {min-width:44px;min-height:44px;}
 }
 @media (min-width:700px) {
   .storefront .natal-product-grid {gap:14px;}
-  .storefront .natal-product-heading {min-height:65px;}
+  .storefront .natal-product-heading {min-height:82px;}
 }
