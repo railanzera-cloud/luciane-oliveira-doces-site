@@ -18,7 +18,7 @@ test("seis sabores mantêm identificadores e preços, mas agora apontam para fot
     const parts = catalog.split(`id: "${id}"`);
     assert.equal(parts.length, 2, `SKU único ${id}`);
     const entry = parts[1].split("options: [],")[0];
-    const edition = id === "cascao-trufado-kinder-bueno" || id === "cascao-trufado-ninho-nutella-chocotone" ? "v476" : "v475";
+    const edition = id === "cone-trufado-prestigio" ? "v477" : id === "cascao-trufado-kinder-bueno" || id === "cascao-trufado-ninho-nutella-chocotone" ? "v476" : "v475";
     assert.match(entry, new RegExp(`price: ${price}, available: true`), `Preço ${id}`);
     assert.ok(entry.includes(`/images/${prefix}-20261113-${edition}.webp`), `Foto ${id}`);
     assert.ok(entry.includes(`/images/${prefix}-card-20261113-${edition}.webp`), `Card ${id}`);
