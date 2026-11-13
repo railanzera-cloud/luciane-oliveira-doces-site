@@ -11,30 +11,33 @@ const flavors = [
   ["cascao-trufado-ninho-nutella-chocotone", "ninho-nutella-chocotone", "Ninho Nutella e Chocotone"],
 ];
 
-test("os três sabores novos têm fotos V4.7.4 únicas no catálogo, sem alterar seus preços", () => {
+test("cada sabor novo mantém id, preço e fotos isoladas V4.7.4", () => {
   for (const [id, slug, name] of flavors) {
-    const entry = catalog.match(new RegExp(`id: "${id}"[\\s\\S]*?options: \\[\\],`))?.[0];
-    assert.ok(entry, `Produto não encontrado: ${name}`);
-    assert.match(entry, /price: 20, available: true/);
+    const parts = catalog.split(`id: "${id}"`);
+    assert.equal(parts.length, 2, `ID único: ${name}`);
+    const entry = parts[1].split("options: [],")[0];
+    assert.ok(entry.includes("price: 20, available: true"), `Preço preservado: ${name}`);
     assert.ok(entry.includes(`/images/cascao-trufado-${slug}-20261113-v474.webp`));
     assert.ok(entry.includes(`/images/cascao-trufado-${slug}-card-20261113-v474.webp`));
-    assert.ok(!entry.includes("20261112-v44"), `Imagem antiga em ${name}`);
+    assert.ok(!entry.includes("20261112-v44"), `Sem foto antiga: ${name}`);
   }
 });
 
-test("home preserva fallback e usa trio natural com variante de 360 px", () => {
-  assert.match(home, /cascao-trufado-trio-home-20261113-v474\\.webp/);
-  assert.match(home, /photo\\.replace\\("\\.webp", "-360.webp"\\)/);
-  assert.match(home, /cone-trufado-prestigio-20261108-v2\\.webp/);
-  assert.doesNotMatch(home, /cascao-trufado-trio-home-20261112-v44\\.webp/);
+test("capa da categoria usa trio atualizado e mantém fallback", () => {
+  assert.ok(home.includes("cascao-trufado-trio-home-20261113-v474.webp"));
+  assert.ok(home.includes('photo.replace(".webp", "-360.webp")'));
+  assert.ok(home.includes("cone-trufado-prestigio-20261108-v2.webp"));
+  assert.ok(!home.includes("cascao-trufado-trio-home-20261112-v44.webp"));
 });
 
-test("somente três fotos dos sabores novos são trocadas", () => {
-  assert.match(catalog, /cone-trufado-prestigio-20261108-v2\\.webp/);
-  assert.match(catalog, /cone-trufado-dois-amores-20261108\\.webp/);
-  assert.match(catalog, /cone-trufado-ferrero-rocher-20261108\\.webp/);
-  assert.match(home, /<RadioGroup className="cone-flavor-grid"/);
-  assert.match(home, /cone\\.cardImage \\?\\? cone\\.image/);
-  assert.match(home, /setConeQuantity\\(1\\)/);
-  assert.match(home, /price=\\{currency\\.format\\(Math\\.min/);
+test("fotos históricas, valores e seleção continuam intactos", () => {
+  for (const file of [
+    "cone-trufado-prestigio-20261108-v2.webp",
+    "cone-trufado-dois-amores-20261108.webp",
+    "cone-trufado-ferrero-rocher-20261108.webp",
+  ]) assert.ok(catalog.includes(file), `Arquivo histórico preservado: ${file}`);
+  assert.ok(home.includes('<RadioGroup className="cone-flavor-grid"'));
+  assert.ok(home.includes("cone.cardImage ?? cone.image"));
+  assert.ok(home.includes("setConeQuantity(1)"));
+  assert.ok(home.includes("Math.min(...CONES.map(cone => cone.variants[0].price))"));
 });
