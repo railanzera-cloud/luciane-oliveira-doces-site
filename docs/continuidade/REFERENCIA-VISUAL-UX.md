@@ -399,3 +399,10 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - Não modificar visual nem imagens dos outros três sabores (Prestígio, Dois Amores, Ferrero Rocher). Conservam 6 sabores no grid, preços 18/18/20/20/20/20 e disponibilidade remota individual.
 - Arquivos: `images/cascao-trufado-trio-home-20261113-v474.webp` + `-360.webp`; para os três novos sabores `images/cascao-trufado-{slug}-20261113-v474.webp`, `-card-20261113-v474.webp` e `-20261113-v474-360.webp`.
 - O padrão adotado substitui **somente as quatro fotos visíveis no contexto aprovado**, não reabre outras categorias nem altera a experiência de compra. Consultar `docs/continuidade/FOTOS-CASCAO-NATURAIS-V474.md` para as fontes/limites.
+
+## Cascões V4.7.6 — remover blur de Kinder e Ninho Nutella (13/11/2026)
+
+- **Área exata:** segunda linha do grid 3×2 de Cascões Trufados, card Kinder Bueno (esquerda) e Ninho Nutella e Chocotone (direita). Imagens substitutas fornecidas em 13/11 pelo proprietário, sem faixas laterais ampliadas ou fundo artificial.
+- **Enquadramento preservado:** mesma proporção de cartão 4:5 da V4.7.5, foco na tampa artesanal e parte superior da casca, cenário realista de bancada/parede ao redor; recorte 600×750, sem desfoque, em vez de colagem com fundo borrado.
+- **Arquivos atualizados:** `images/cascao-trufado-kinder-bueno-{20261113-v476,card-20261113-v476,20261113-v476-360}.webp` e equivalentes `cascao-trufado-ninho-nutella-chocotone`. A entrada da categoria mantém `cascao-trufado-trio-home-20261113-v474.webp` e os demais quatro sabores continuam v475, sem substituição.
+- **Preço no botão:** mostrar `Seu cascão — A partir de R$ 18,00` quando não há escolha, consistente com os cartões visíveis e vitrine; após escolher sabor, apresentar subtotal real conforme fluxo existente. Priorizar fonte única para evitar preço desatualizado.
