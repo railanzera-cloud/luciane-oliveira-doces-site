@@ -406,3 +406,9 @@ O projeto já teve incidente de foto aprovada disponível em ZIP e ausente no Gi
 - **Enquadramento preservado:** mesma proporção de cartão 4:5 da V4.7.5, foco na tampa artesanal e parte superior da casca, cenário realista de bancada/parede ao redor; recorte 600×750, sem desfoque, em vez de colagem com fundo borrado.
 - **Arquivos atualizados:** `images/cascao-trufado-kinder-bueno-{20261113-v476,card-20261113-v476,20261113-v476-360}.webp` e equivalentes `cascao-trufado-ninho-nutella-chocotone`. A entrada da categoria mantém `cascao-trufado-trio-home-20261113-v474.webp` e os demais quatro sabores continuam v475, sem substituição.
 - **Preço no botão:** mostrar `Seu cascão — A partir de R$ 18,00` quando não há escolha, consistente com os cartões visíveis e vitrine; após escolher sabor, apresentar subtotal real conforme fluxo existente. Priorizar fonte única para evitar preço desatualizado.
+
+## Cascões V4.7.8 — padrão visual aprovado para três sabores (13/11/2026)
+
+As imagens aprovadas de **Ninho com Morango**, **Prestígio** e **Ferrero Rocher** adotam bancada de granito cinza, parede bege clara com textura discreta, luz natural sem artificialidade e suporte de acrílico transparente. Reproduzir o mesmo cenário nas versões principais e cards sem introduzir mãos, faixas borradas, sombras excessivas ou novos elementos. Foto principal inteira e crop mobile 4:5 com tampas/topos protagonizando, mantendo cerca de 70–80% da casca; acabamento caseiro intencional.
+
+Produtos aprovados: Ninho com Morango com morango inteiro e casca de chocolate escuro (Ninho é recheio interior); Prestígio com casca branca coberta de coco, chocolate e beijinho no topo; Ferrero Rocher com casca crocante de castanhas e bombom partido. **Não reverter** Prestígio à tampa branca lisa da V477 nem modificar a capa trio V474. Nomes de arquivos e fontes em `FOTOS-CASCAO-TRES-NATURAIS-V478.md`.
