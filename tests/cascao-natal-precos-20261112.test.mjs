@@ -35,8 +35,9 @@ test("Cascão Trufado: 6 sabores, 3 novos a R$20, fotos V4.7.4 e IDs exclusivos"
     assert.equal(front.variants[0].price, 20);
     assert.equal(front.variants[0].label, "1 cascão");
     assert.equal(front.options.length, 0);
-    assert.match(front.image, new RegExp("^/images/" + id + "-20261113-v475\\.webp$"));
-    assert.match(front.cardImage, new RegExp("^/images/" + id + "-card-20261113-v475\\.webp$"));
+    const imageVersion = id === "cascao-trufado-ninho-morango" ? "v475" : "v476";
+    assert.match(front.image, new RegExp("^/images/" + id + "-20261113-" + imageVersion + "\\.webp$"));
+    assert.match(front.cardImage, new RegExp("^/images/" + id + "-card-20261113-" + imageVersion + "\\.webp$"));
     assert.ok(read("app/menu-availability.ts").includes(`"${id}": "${key}"`));
     assert.equal(SERVER_CONES[id].itemKey, key);
     assert.equal(SERVER_CONES[id].priceCents, 2000);
