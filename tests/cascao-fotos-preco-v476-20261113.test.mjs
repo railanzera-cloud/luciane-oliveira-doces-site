@@ -17,7 +17,7 @@ test("V4.7.6: troca somente as fotos de Kinder e Ninho Nutella sem lateral desfo
     assert.match(entry, new RegExp(`price: ${id === "cascao-trufado-kinder-bueno" ? 22 : 20}, available: true`));
   }
   assert.ok(page.includes("cascao-trufado-kinder-bueno-card-20261113-v476.webp"));
-  assert.ok(page.includes("cascao-trufado-trio-home-20261113-v474.webp"));
+  assert.ok(page.includes("cascao-trufado-trio-home-20261114-v4713.webp"));
 });
 
 test("V4.7.6: preço do botão e da vitrine vem da mesma fonte comercial", () => {
