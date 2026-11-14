@@ -2221,7 +2221,7 @@ export default function Home() {
     }
     const retrying = orderContextRef.current?.handoff_fingerprint === checkoutFingerprint;
     if (!availability.ordersOpen && !retrying) { setCheckoutAvailabilityMessage(STORE_CONFIG.closedMessage); return; }
-    syncManualMetaMatching();
+    // O nome é vinculado no blur ou antes de AddPaymentInfo, sem alterar esta rotina de registro.
     finalizationLockRef.current = true;
     setIsFinalizing(true);
     setWhatsAppRetryAvailable(false);
