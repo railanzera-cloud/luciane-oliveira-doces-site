@@ -2,6 +2,7 @@ name: V4.7.13 - Cascões Folheado, Kinder e Ferrero (sem deploy)
 on:
   pull_request:
     paths:
+      - 'app/page.tsx'
       - 'app/catalog.ts'
       - 'app/menu-availability.ts'
       - 'supabase/functions/_shared/commerce-catalog.mjs'
