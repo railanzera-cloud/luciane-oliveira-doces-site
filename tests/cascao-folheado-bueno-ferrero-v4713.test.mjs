@@ -33,8 +33,8 @@ test("Kinder Bueno e Nutella: nome comercial e preço mudam sem mudar IDs",()=>{
 test("Ferrero: novo arquivo de foto, sem mudar preço, SKU, WhatsApp, Meta ou Tintim",()=>{
  const f=frontend.find(p=>p.id==="cone-trufado-ferrero-rocher");
  assert.equal(f.variants[0].price,20);
- assert.match(f.image,/20261114-v4713\\.webp$/);
- assert.match(f.cardImage,/card-20261114-v4713\\.webp$/);
+ assert.match(f.image,/20261114-v4713\.webp$/);
+ assert.match(f.cardImage,/card-20261114-v4713\.webp$/);
  assert.match(f.imageAlt,/bombom cortado/);
  assert.match(read("app/page.tsx"),/tintimWhatsAppUrl/);
  assert.match(read("app/layout.tsx"),/1491655855979140/);
