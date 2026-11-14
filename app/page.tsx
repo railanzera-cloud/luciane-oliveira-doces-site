@@ -3344,7 +3344,7 @@ export default function Home() {
                               : id === "trufadas" ? "Escolher sabor e tamanho"
                               : id === "natal" ? (addedNotice?.category === "natal" ? "Escolher mais sabores" : "Fatias recheadas · 4 sabores")
                                 : "Ver acompanhamentos";
-                          const photo = id === "cones" ? (coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-kinder-bueno-nutella-real-20261114-v47142-card.webp" : "/images/cones-trufados-trio-card-20261108.webp")
+                          const photo = id === "cones" ? (coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-kinder-inteiro-card-20261114-v47143.webp" : "/images/cones-trufados-trio-card-20261108.webp")
                             : id === "gourmet" ? "/images/categoria-pipocas-editorial-enquadrada-v107.webp"
                             : id === "fatias" ? "/images/categoria-fatias-editorial.webp"
                               : id === "trufadas" ? "/images/pipocas-trufadas-ninho-20261101.webp"
