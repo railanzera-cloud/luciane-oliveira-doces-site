@@ -44,7 +44,7 @@ test("uses the real optimized Prestígio photo while keeping it selectable", () 
 });
 
 test("preserva assets do catálogo na origem e assinala o novo card exclusivo do ZIP manual", async () => {
-  // Os três cards de Cones e este novo card de Abacaxi são fornecidos no ZIP
+  // Os seis cards dos Cascões e este card de Abacaxi são fornecidos no ZIP
   // de Cloudflare aprovado; a sincronização binária com o GitHub é pendência
   // explícita e não deve autorizar outros arquivos ausentes.
   const packagedOnlyCard = "/fatia-abacaxi-brigadeiro-branco-card-20261108.webp";
@@ -53,7 +53,10 @@ test("preserva assets do catálogo na origem e assinala o novo card exclusivo do
   // Os oito assets natalinos serão acoplados ao ZIP conectado durante o empacotamento final;
   // não afirmar que existam no GitHub enquanto os binários permanecerem externos.
   assert.equal([...catalog.matchAll(/cardImage: "\/images\/chocotone-[^"]+"/g)].length, 4);
-  // Seis fotografias de card (4:5) fornecidas no ZIP completo, sem binários no GitHub.\n  assert.equal([...catalog.matchAll(/cardImage: "\\/images\\/cascao-[^"]+-inteiro-card-20261114-v47143\\.webp"/g)].length, 6);\n  assert.ok(cardImages.includes(packagedOnlyCard));
+  // Todos os seis cards inteiros 4:5 estão no ZIP manual com arquivos foto reais.
+  const allCardPaths = [...catalog.matchAll(/cardImage: "([^"]+)"/g)].map(match => match[1]);
+  assert.equal(allCardPaths.filter(path => path.startsWith("/images/cascao-") && path.endsWith("-inteiro-card-20261114-v47143.webp")).length, 6);
+  assert.ok(cardImages.includes(packagedOnlyCard));
   assert.match(catalog, /image: "\/fatia-abacaxi-brigadeiro-branco-20261108\.jpeg"/);
   assert.match(catalog,/id: "cone-trufado-prestigio"/);
   for (const cardImage of cardImages.filter(path => path !== packagedOnlyCard)) {
