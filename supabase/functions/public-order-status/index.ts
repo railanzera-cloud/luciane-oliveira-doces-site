@@ -20,6 +20,8 @@ function allowedOrigins(): Set<string> {
   const configured = Deno.env.get("CHECKOUT_ALLOWED_ORIGINS")
     ?.split(",").map((value) => value.trim()).filter(Boolean);
   const origins = new Set(configured?.length ? configured : DEFAULT_ALLOWED_ORIGINS);
+  // Dominio principal autorizado sem ampliar para origens arbitrarias.
+  origins.add("https://lucianeoliveiradoces.com.br");
   // Exact supervised preview only, while payments remain in test and the
   // public checkout is closed. This grants no access without a tracking token.
   if (Deno.env.get("PAYMENTS_ENVIRONMENT") === "test"
