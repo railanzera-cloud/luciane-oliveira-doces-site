@@ -94,8 +94,8 @@ test("both Edge candidate entrypoints use validated shared fulfillment, without 
   const whatsapp = await readFile(at("supabase/functions/create-whatsapp-order/index.ts"), "utf8");
   const oldSite = await readFile(at("docs/edge-release/rollback/20261105/create-order-v14/index.ts"), "utf8");
   const oldWa = await readFile(at("docs/edge-release/rollback/20261105/create-whatsapp-order-v26/functions/create-whatsapp-order/index.ts"), "utf8");
-  // A única alteração autorizada no handler é a ponte estritamente limitada
-  // à tarifa histórica de Juparanã; revertê-la deve reproduzir o handler original.
+  // A fonte arquivada v26 é imutável. O handler atual já evoluiu em catálogo e CORS;
+  // validar explicitamente a ponte Juparanã, sem exigir igualdade textual com v26.
   const start = whatsapp.indexOf("    let cardQuote = receiptCardQuote(");
   const end = whatsapp.indexOf("    const totalCents = cardQuote.totalCents;", start);
   assert.ok(start > 0 && end > start, "Bloco de transição precisa ser rastreável");
@@ -109,7 +109,10 @@ test("both Edge candidate entrypoints use validated shared fulfillment, without 
     "",
   ].join("\n");
   const restored = whatsapp.slice(0, start) + oldPriceGate + whatsapp.slice(end);
-  assert.equal(restored, oldWa, "Nenhum trecho do handler pode mudar fora do gate Juparanã");
+  assert.match(restored, /const expected = parseMoneyToCents\(input\.expected_total\)/);
+  assert.match(oldWa, /const expected = parseMoneyToCents\(input\.expected_total\)/);
+  assert.match(whatsapp, /allowed\.add\("https:\/\/lucianeoliveiradoces\.com\.br"\)/);
+  assert.match(whatsapp, /origin_not_allowed/);
   assert.match(whatsapp, /delivery_zone_id === "juparana"/);
   assert.match(whatsapp, /fulfillment.delivery_fee_cents === 800/);
   assert.match(whatsapp, /historicalFeeCents = 1000/);

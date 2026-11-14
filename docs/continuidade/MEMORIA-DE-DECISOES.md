@@ -477,3 +477,7 @@ O responsável aprovou o refinamento textual da coleção de **Fatias de Chocott
 
 ### D-C56 (14/11/2026) — composição de Cascões V4.7.13
 Sabor **Dois Amores** é retirado da vitrine de Cascões sem reatribuir/deletar seu SKU histórico; não é o Casadinho do Natal. Em seu lugar entra **Folheado — Geleia de Morango com Ninho** R$22, com SKU próprio e disponibilidade inicial hidden. **Kinder Bueno** passa a **Kinder Bueno e Nutella** R$22, conservando identificador e estado real de disponibilidade. **Ferrero Rocher** mantém R$20 e recebe somente segunda fotografia enviada. As duas fotos mantêm cenário neutro, bancada de granito, suporte transparente, crop 4:5 e composição natural. Sem ativação de preço/SKU em produção até autorização independente para SQL/Edge/Cloudflare.
+
+
+### D-C57 (14/11/2026) — Correspondência avançada manual do Pixel
+Proprietário autorizou correspondência avançada manual com Pixel 1491655855979140: nome no checkout WhatsApp; nome/telefone/e-mail somente no checkout site quando legitimamente informados, com normalização e atualizações de init sem eventos novos. Tintim, CAPI, Pixel PageView inicial e funil existente intocados. Proprietário determinou preservar literalmente o aviso "Usaremos seus dados somente para processar e acompanhar este pedido.". A conformidade desta redação com compartilhamento publicitário segue pendente de análise independente, mesmo com autorização interna alegada. O diagnóstico Meta só se encerra com evidência real na plataforma.
