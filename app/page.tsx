@@ -100,6 +100,7 @@ import { SiteOrderResultView } from "@/components/site-order-result";
 import { deliveryZoneMismatchMessage } from "@/supabase/functions/_shared/commerce-catalog.mjs";
 import { RECEIPT_CARD_NOTICE, receiptCardQuote } from "@/lib/manual-payment-policy";
 import { getCommercePublicConfiguration } from "@/lib/commerce-config";
+import { createManualMetaMatchingUpdater } from "@/lib/meta-advanced-matching";
 import {
   createSiteOrder, createWhatsAppOrder, rememberOrder, lastOrderToken,
   isGatewayFailed,
@@ -682,6 +683,19 @@ export default function Home() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
+  // Uma única atualização de identificação por conjunto válido de dados.
+  // Não emite PageView/Purchase e não impede compras se o Pixel estiver bloqueado.
+  const manualMetaMatchingRef = useRef(createManualMetaMatchingUpdater());
+  function syncManualMetaMatching(emailOverride?: string) {
+    if (typeof window === "undefined") return;
+    manualMetaMatchingRef.current(window.fbq, {
+      name: customerName,
+      ...(checkoutChannel === "site" ? {
+        phone: customerPhone,
+        email: emailOverride ?? customerEmail,
+      } : {}),
+    });
+  }
   const [siteResult, setSiteResult] = useState<SiteOrderResult | null>(null);
   const [newPaymentAttempt, setNewPaymentAttempt] = useState(false);
   const [needsChange, setNeedsChange] = useState(false);
@@ -1678,6 +1692,7 @@ export default function Home() {
 
   function trackPaymentInfo(paymentMethod: Payment) {
     if (!availability.ordersOpen || paymentInfoTrackedRef.current || cart.length === 0) return;
+    syncManualMetaMatching();
     const didTrack = trackMetaEvent("AddPaymentInfo", {
       ...cartMetaPayload(hasEstimatedTotal ? orderTotal : cartSubtotal),
       payment_method: paymentMethod,
@@ -2099,6 +2114,7 @@ export default function Home() {
       throw new Error("Informe um e-mail válido no pagamento seguro.");
     }
 
+    syncManualMetaMatching(effectiveEmail);
     finalizationLockRef.current = true;
     setIsFinalizing(true);
     setOpeningWhatsApp(false);
@@ -2205,6 +2221,7 @@ export default function Home() {
     }
     const retrying = orderContextRef.current?.handoff_fingerprint === checkoutFingerprint;
     if (!availability.ordersOpen && !retrying) { setCheckoutAvailabilityMessage(STORE_CONFIG.closedMessage); return; }
+    syncManualMetaMatching();
     finalizationLockRef.current = true;
     setIsFinalizing(true);
     setWhatsAppRetryAvailable(false);
@@ -3429,8 +3446,8 @@ export default function Home() {
               <section className="order-card customer-card" id="identificacao" aria-labelledby="customer-title">
                 <div className="order-card-heading"><div><p className="eyebrow">Identificação</p><h2 id="customer-title">Quem está fazendo o pedido?</h2></div></div>
                 <div className="customer-fields">
-                  <div className="field-group"><label htmlFor="customer-name"><UserRound size={15} aria-hidden="true" /> Nome do cliente</label><Input required id="customer-name" value={customerName} onChange={(event) => setCustomerName(event.target.value)} placeholder="Seu nome" autoComplete="name" maxLength={100} aria-invalid={Boolean(customerName && !customerNameReady)} /></div>
-                  {checkoutChannel === "site" && <div className="field-group"><label htmlFor="customer-phone"><Phone size={15} aria-hidden="true" /> Celular com DDD</label><Input id="customer-phone" value={customerPhone} onChange={(event) => setCustomerPhone(event.target.value)} placeholder="(91) 99999-9999" inputMode="tel" autoComplete="tel" maxLength={24} aria-invalid={Boolean(customerPhone && !customerPhoneReady)} /></div>}
+                  <div className="field-group"><label htmlFor="customer-name"><UserRound size={15} aria-hidden="true" /> Nome do cliente</label><Input required id="customer-name" value={customerName} onChange={(event) => setCustomerName(event.target.value)} onBlur={() => syncManualMetaMatching()} placeholder="Seu nome" autoComplete="name" maxLength={100} aria-invalid={Boolean(customerName && !customerNameReady)} /></div>
+                  {checkoutChannel === "site" && <div className="field-group"><label htmlFor="customer-phone"><Phone size={15} aria-hidden="true" /> Celular com DDD</label><Input id="customer-phone" value={customerPhone} onChange={(event) => setCustomerPhone(event.target.value)} onBlur={() => syncManualMetaMatching()} placeholder="(91) 99999-9999" inputMode="tel" autoComplete="tel" maxLength={24} aria-invalid={Boolean(customerPhone && !customerPhoneReady)} /></div>}
                   <div className="boutique-notes">
                     <button type="button" className="boutique-notes-toggle" aria-expanded={notesExpanded} aria-controls="order-notes-content" onClick={() => setNotesExpanded((current) => !current)}>
                       <span>{notesExpanded ? "Ocultar observação" : notes.trim() ? "Editar observação" : "Adicionar observação (opcional)"}</span>
@@ -3485,7 +3502,7 @@ export default function Home() {
                   ))}
                 </RadioGroup>
               )}
-              {payment === "mercado_pago_pix" && <div className="online-email-field field-group"><label htmlFor="online-email"><Mail size={15} aria-hidden="true" /> E-mail para processar o Pix</label><Input id="online-email" value={customerEmail} onChange={(event) => setCustomerEmail(event.target.value)} placeholder="voce@exemplo.com" inputMode="email" type="email" autoComplete="email" maxLength={254} aria-invalid={Boolean(customerEmail && !customerEmailReady)} /><p className="field-note">O Mercado Pago exige este dado para gerar a cobrança. Não enviaremos marketing.</p></div>}
+              {payment === "mercado_pago_pix" && <div className="online-email-field field-group"><label htmlFor="online-email"><Mail size={15} aria-hidden="true" /> E-mail para processar o Pix</label><Input id="online-email" value={customerEmail} onChange={(event) => setCustomerEmail(event.target.value)} onBlur={() => syncManualMetaMatching()} placeholder="voce@exemplo.com" inputMode="email" type="email" autoComplete="email" maxLength={254} aria-invalid={Boolean(customerEmail && !customerEmailReady)} /><p className="field-note">O Mercado Pago exige este dado para gerar a cobrança. Não enviaremos marketing.</p></div>}
               {payment === "mercado_pago_card" && COMMERCE_CONFIG.onlinePaymentsEnabled && (
                 <MercadoPagoCardForm publicKey={COMMERCE_CONFIG.mercadoPagoPublicKey} amount={orderTotal} disabled={isFinalizing || !customerReady || !addressReady || cartIssues.length > 0} onSubmit={finishOnSite} />
               )}
