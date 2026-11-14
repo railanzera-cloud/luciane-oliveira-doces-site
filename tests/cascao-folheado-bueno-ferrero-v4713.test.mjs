@@ -26,6 +26,9 @@ test("Folheado com Ninho e Morango: preço R$22 e identificadores originais nas 
 test("Kinder Bueno e Nutella: nome comercial e preço mudam sem mudar IDs",()=>{
  const id="cascao-trufado-kinder-bueno",f=frontend.find(p=>p.id===id),b=backend[id];
  assert.equal(f.name,"Kinder Bueno e Nutella");assert.equal(b.name,f.name);
+ assert.equal(f.image,"/images/cascao-trufado-kinder-bueno-nutella-real-20261114-v47142.webp");
+ assert.equal(f.cardImage,"/images/cascao-trufado-kinder-bueno-nutella-real-20261114-v47142-card.webp");
+ assert.match(read("app/page.tsx"),/cascao-trufado-kinder-bueno-nutella-real-20261114-v47142-card\\.webp/);
  assert.equal(f.variants[0].price,22); assert.equal(b.priceCents,2200);
  assert.equal(b.itemKey,"cascao_kinder_bueno");
  assert.equal(quoteCartItems([{product_id:id,variant_id:"unidade",quantity:1}]).subtotalCents,2200);
