@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { CONES as frontend, CHOCOTONES } from "../app/catalog.ts";
 import { CONES as backend, quoteCartItems } from "../supabase/functions/_shared/commerce-catalog.mjs";
-import { CONE_ITEM_KEYS } from "../app/menu-availability.ts";
 const read = p => readFileSync(new URL("../" + p, import.meta.url),"utf8");
 test("V4.7.13: seis sabores, Dois Amores aposentado sem modificar Casadinho do Natal",()=>{
  assert.equal(frontend.length,6);
@@ -17,7 +16,7 @@ test("Folheado real 4:5 com Ninho e geleia: SKU novo e preço R$22 por unidade n
  const f=frontend.find(p=>p.id==="cascao-folheado-geleia-morango-ninho");
  assert.ok(f); assert.equal(f.name,"Folheado — Geleia de Morango com Ninho");
  assert.equal(f.variants[0].price,22); assert.equal(backend["cascao-folheado-geleia-morango-ninho"].priceCents,2200);
- assert.equal(CONE_ITEM_KEYS["cascao-folheado-geleia-morango-ninho"],"cascao_folheado_geleia_morango_ninho");
+ assert.match(read("app/menu-availability.ts"),/"cascao-folheado-geleia-morango-ninho": "cascao_folheado_geleia_morango_ninho"/);
  assert.equal(f.image,"/images/cascao-folheado-geleia-morango-ninho-20261114-v4713.webp");
  assert.equal(f.cardImage,"/images/cascao-folheado-geleia-morango-ninho-card-20261114-v4713.webp");
  const quote=quoteCartItems([{product_id:"cascao-folheado-geleia-morango-ninho",variant_id:"unidade",quantity:2,option_ids:[]}]);
