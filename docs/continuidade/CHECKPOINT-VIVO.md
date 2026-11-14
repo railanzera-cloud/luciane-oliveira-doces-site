@@ -1070,3 +1070,12 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - Mesma identidade não gera re-init repetido no componente; falha de Pixel não bloqueia pedidos. Sem alteração de Tintim, CAPI, fluxos de pedidos, checkout, preço, disponibilidade, Edge e Supabase.
 - Transparência: proprietário declarou autorização prévia dos clientes e solicitou não modificar o aviso, que ainda usa "somente". Essa possível divergência de finalidades deverá ser revisada juridicamente separadamente. Não declarar conformidade apenas pela autorização verbal nem aviso diagnóstico resolvido sem conferência na Meta.
 - Release: CI/ZIP/deploy devem ser registrados separadamente; fotos da capa aprovada PR #53 não são versionadas no GitHub. Não publicar artefato que não contenha as fotografias originais.
+
+
+### Validação do candidato de correspondência manual (14/11/2026)
+- Commit de homologação f2fc747d23516c13472e6ea815402843edd68a6b; PR #56.
+- GitHub Actions comercial 43617799649: **905/905 testes aprovados**, build e pacote-base estático aprovados.
+- Identidade jurídica 43617799840: sucesso; governança 43617799676 e documentação 43617799617: sucesso.
+- Homologação de entregas 43617799578: teste dos handlers e tipos/build aprovados; demais jobs em processamento na leitura.
+- Nenhuma mudança no Supabase de produção, Cloudflare, Meta Events Manager ou Tintim. O Pixel manual somente estará ativo após publicação do frontend.
+- Atenção: ZIP de build-base do CI NÃO é publicável sem a mídia exata da capa aprovada, que é externa ao repositório (pacote de outra conversa: LODC_SITE_V4_7_13_CAPA_CASCAO_APROVADA.zip). Arquivo localizado na Biblioteca, mas tentativa de materialização retornou ausência de autorização para acesso aos bytes; não substituir por arte sintética ou antiga.
