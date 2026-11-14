@@ -133,9 +133,9 @@ export const PRODUCTS: Product[] = [
   {
     id: "cascao-trufado-kinder-bueno", kind: "cone", category: "Cascão Trufado",
     name: "Kinder Bueno e Nutella", available: true,
-    image: "/images/cascao-trufado-kinder-bueno-20261113-v476.webp",
-    cardImage: "/images/cascao-trufado-kinder-bueno-card-20261113-v476.webp",
-    imageAlt: "Cascão Kinder Bueno e Nutella com cobertura cremosa de chocolate e pedaços crocantes",
+    image: "/images/cascao-trufado-kinder-bueno-nutella-real-20261114-v47142.webp",
+    cardImage: "/images/cascao-trufado-kinder-bueno-nutella-real-20261114-v47142-card.webp",
+    imageAlt: "Cascão de chocolate Kinder Bueno e Nutella, com dois pedaços de Kinder Bueno sobre recheio cremoso, fotografado no suporte transparente sobre granito",
     variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 22, available: true }],
     options: [],
   },
