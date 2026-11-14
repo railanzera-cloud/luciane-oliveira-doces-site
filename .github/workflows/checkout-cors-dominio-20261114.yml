@@ -1,0 +1,38 @@
+name: Checkout CORS hotfix - preflight REAL sem pedidos
+on:
+  pull_request:
+    paths:
+      - 'supabase/functions/create-whatsapp-order/index.ts'
+      - 'supabase/functions/public-order-status/index.ts'
+      - 'tests/checkout-cors-dominio-20261114.test.mjs'
+      - '.github/workflows/checkout-cors-dominio-20261114.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificacao estatica do allowlist estrito
+        run: node --test tests/checkout-cors-dominio-20261114.test.mjs
+      - name: Preflight CORS real no dominio comercial, sem registrar pedidos
+        shell: bash
+        run: |
+          set -euo pipefail
+          for endpoint in create-whatsapp-order public-order-status; do
+            url="https://edqiwvccmboyayojvuea.supabase.co/functions/v1/$endpoint"
+            code=$(curl --fail-with-body --silent --show-error --retry 2 --retry-delay 1 --max-time 20 --request OPTIONS \
+              --header 'Origin: https://lucianeoliveiradoces.com.br' \
+              --header 'Access-Control-Request-Method: POST' \
+              --header 'Access-Control-Request-Headers: apikey, authorization, content-type, x-client-info' \
+              --dump-header /tmp/cors_headers -o /dev/null -w '%{http_code}' "$url")
+            echo "$endpoint status=$code"
+            test "$code" = "204"
+            grep -iq 'access-control-allow-origin: https://lucianeoliveiradoces.com.br' /tmp/cors_headers
+            grep -iq 'access-control-allow-methods:.*POST' /tmp/cors_headers
+          done
