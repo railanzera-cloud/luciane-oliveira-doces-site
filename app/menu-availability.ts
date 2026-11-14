@@ -102,7 +102,8 @@ export function drinkStatus(snapshot: AvailabilitySnapshot, productId:string): A
 
 export const CONE_ITEM_KEYS: Record<string, string> = {
   "cone-trufado-prestigio": "cone_prestigio",
-  "cone-trufado-dois-amores": "cone_dois_amores",
+  "cone-trufado-dois-amores": "cone_dois_amores", // chave histórica; não aparece mais em CONES
+  "cascao-folheado-geleia-morango-ninho": "cascao_folheado_geleia_morango_ninho",
   "cone-trufado-ferrero-rocher": "cone_ferrero_rocher",
   "cascao-trufado-kinder-bueno": "cascao_kinder_bueno",
   "cascao-trufado-ninho-morango": "cascao_ninho_morango",

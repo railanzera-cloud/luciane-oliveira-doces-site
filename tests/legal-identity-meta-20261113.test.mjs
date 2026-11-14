@@ -33,3 +33,10 @@ test("página institucional é pública, possui metadata e apresenta dados comer
   assert.match(page, /Contato comercial/);
   assert.match(layout, /import "\.\/company-identity\.css"/);
 });
+
+
+test("empacotamento estático inclui a rota institucional completa", () => {
+  const script = read("scripts/package-cloudflare.mjs");
+  assert.match(script, /renderRoute\("\/informacoes-da-empresa", "\/?.*informacoes-da-empresa\/index\.html"\)/);
+  assert.match(script, /"informacoes-da-empresa\/index\.html"/);
+});

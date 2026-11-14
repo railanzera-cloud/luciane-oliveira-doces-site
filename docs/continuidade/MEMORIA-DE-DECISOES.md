@@ -473,3 +473,7 @@ O responsável aprovou o refinamento textual da coleção de **Fatias de Chocott
 - **Decisão:** manter vitrine e conversão prioritárias, com nome empresarial, CNPJ e link Informações da empresa discretamente no rodapé e página pública própria. Expor email no domínio, telefone comercial já público e cidade/UF. Não publicar endereço residencial completo por suposição.
 - **Fronteiras:** sem alterar fotos, catálogo, SKUs, preços, checkout, pagamentos, Meta Pixel/CAPI, Tintim, Edge, Supabase, CRM, QZ ou Cloudflare. A publicação depende de ZIP manual compatível com a produção.
 - **Limite:** a identificação facilita associação empresa/domínio, sem garantir aprovação da Meta; conferir CCMEI, nome, endereço no cadastro e documentos antes da submissão.
+
+
+### D-C56 (14/11/2026) — composição de Cascões V4.7.13
+Sabor **Dois Amores** é retirado da vitrine de Cascões sem reatribuir/deletar seu SKU histórico; não é o Casadinho do Natal. Em seu lugar entra **Folheado — Geleia de Morango com Ninho** R$22, com SKU próprio e disponibilidade inicial hidden. **Kinder Bueno** passa a **Kinder Bueno e Nutella** R$22, conservando identificador e estado real de disponibilidade. **Ferrero Rocher** mantém R$20 e recebe somente segunda fotografia enviada. As duas fotos mantêm cenário neutro, bancada de granito, suporte transparente, crop 4:5 e composição natural. Sem ativação de preço/SKU em produção até autorização independente para SQL/Edge/Cloudflare.

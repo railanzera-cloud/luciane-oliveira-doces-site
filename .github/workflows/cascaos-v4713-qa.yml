@@ -1,0 +1,67 @@
+name: V4.7.13 - Cascões Folheado, Kinder e Ferrero (sem deploy)
+on:
+  pull_request:
+    paths:
+      - 'app/catalog.ts'
+      - 'app/menu-availability.ts'
+      - 'supabase/functions/_shared/commerce-catalog.mjs'
+      - 'supabase/migrations/20261114080000_cascao_folheado_bueno_nutella.sql'
+      - 'tests/cascao-*'
+      - 'tests/cones-*'
+      - 'scripts/package-cloudflare.mjs'
+      - 'tests/legal-identity-meta-20261113.test.mjs'
+      - '.github/workflows/cascaos-v4713-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  commercial-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      SITE_ORDERING_ENABLED: 'false'
+      SUPABASE_URL: https://edqiwvccmboyayojvuea.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_69flK5d9m8Oe3HHVnmKWdA_omNIuIcl
+      MP_PUBLIC_KEY_TEST: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Dependencias fixadas
+        run: npm ci --no-audit --no-fund
+      - name: Build conectado sem publicacao
+        run: npm run build
+      - name: Teste do contrato Folheado e regressões comerciais
+        run: |
+          node --test tests/cascao-folheado-bueno-ferrero-v4713.test.mjs
+          node --test tests/*.test.mjs
+      - name: ZIP-base Cloudflare sem fotografias nao versionadas
+        run: |
+          node scripts/package-cloudflare.mjs --require-supabase
+          python3 - <<'PY'
+          from zipfile import ZipFile
+          from pathlib import Path
+          p=Path("outputs/luciane-oliveira-doces-cloudflare-pages.zip")
+          assert p.exists() and p.stat().st_size > 300_000
+          with ZipFile(p) as z:
+              assert z.testzip() is None
+              names=set(z.namelist())
+              assert {"index.html","admin/index.html","pedido/index.html","informacoes-da-empresa/index.html","_worker.js","_routes.json","_headers"} <= names
+              legal=z.read("informacoes-da-empresa/index.html").decode("utf-8","replace")
+              for needle in ("Informações da empresa","Razão social","69.806.739/0001-91","contato@lucianeoliveiradoces.com.br"):
+                  assert needle in legal,needle
+              scripts="\n".join(z.read(x).decode("utf-8","replace") for x in names if x.endswith(".js"))
+              assert "cascao-folheado-geleia-morango-ninho" in scripts
+              assert "Kinder Bueno e Nutella" in scripts
+              assert "cone-trufado-ferrero-rocher-20261114-v4713.webp" in scripts
+              assert "tintim.link" in scripts or "tintimWhatsAppUrl" in scripts
+          PY
+      - name: Exportar build-base NAO PUBLICAR sem midias historicas
+        uses: actions/upload-artifact@v4
+        with:
+          name: LUCIANE-V4713-BASE-CONECTADA-NAO-PUBLICAR-ISOLADO
+          path: outputs/luciane-oliveira-doces-cloudflare-pages.zip
+          if-no-files-found: error
+          retention-days: 7
