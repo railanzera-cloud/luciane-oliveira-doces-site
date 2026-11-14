@@ -418,3 +418,7 @@ Produtos aprovados: Ninho com Morango com morango inteiro e casca de chocolate e
 - **Imagem de origem aprovada:** `a_crisp_high_detail_studio_lit_close_up_product.png`, cascão escuro sobre suporte transparente, na bancada de granito com parede bege suave; cobertura de chocolate e pedaço de chocottone cortado exibindo miolo no topo, mantendo irregularidades artesanais.
 - **Padronização mobile:** imagem principal sem corte 1122×1402; card 600×750 em proporção 4:5, recorte central/superior como demais Cascões; miniatura 360×450. Não criar bordas desfocadas nem trocar cenário.
 - **Nome na interface:** `Ninho Nutella e Chocottone` (dois T). **Não** mudar os identificadores internos `chocotone`; eles são contratos comerciais estáveis. Outros cinco sabores e a capa trio permanecem intocados.
+
+
+### 14/11/2026 — direção fotográfica V4.7.13
+Originais do usuário: 1ª imagem Cascão Folheado (geleia de morango com Ninho); 2ª imagem Ferrero Rocher com bombom aberto no topo. Conservar textura, granulado, fundo bege, granito e pedestal translúcido. Centralizar o corpo integral nos cards existentes (4:5), sem perfeccionismo sintético, sem aumentar brilho ou trocar cenário. Ativos WebP exclusivos 20261114-v4713: principal 1120×1400, card 600×750, mobile 360×450. Fotos e enquadramentos dos outros sabores preservados. Capa do trio anterior não alterada neste escopo.
