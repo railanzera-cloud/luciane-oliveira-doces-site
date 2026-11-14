@@ -10,7 +10,7 @@ const menu=fs.readFileSync("app/menu-availability.ts","utf8");
 const server=fs.readFileSync("supabase/functions/_shared/commerce-catalog.mjs","utf8");
 
 test("V4.7.4: home mantém trio de três cascões com fotografia natural",()=>{
- assert.match(page,/photo=\{coneIsVisible\("cascao-trufado-kinder-bueno"\) \? "\/images\/cascao-trufado-trio-home-20261113-v474\.webp"/);
+ assert.match(page,/photo=\{coneIsVisible\("cascao-trufado-kinder-bueno"\) \? "\/images\/cascao-trufado-trio-home-20261114-v4713\.webp"/);
  assert.match(page,/photo\.replace\("\.webp", "-360\.webp"\)/);
  assert.match(page,/id === "cones" \? \(coneIsVisible\("cascao-trufado-kinder-bueno"\)/);
  assert.match(page,/\/images\/cones-trufados-trio-20261108\.webp/);
