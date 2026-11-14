@@ -29,12 +29,12 @@ jobs:
           cache: npm
       - name: Dependencias fixadas
         run: npm ci --no-audit --no-fund
+      - name: Build conectado sem publicacao
+        run: npm run build
       - name: Teste do contrato Folheado e regressões comerciais
         run: |
           node --test tests/cascao-folheado-bueno-ferrero-v4713.test.mjs
           node --test tests/*.test.mjs
-      - name: Build conectado sem publicacao
-        run: npm run build
       - name: ZIP-base Cloudflare sem fotografias nao versionadas
         run: |
           node scripts/package-cloudflare.mjs --require-supabase
