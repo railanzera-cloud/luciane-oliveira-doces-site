@@ -2477,7 +2477,7 @@ export default function Home() {
               <div className="collection-menu" role="group" aria-label="Escolha uma categoria">
                 {conesVisible && (
                   <CollectionChoice format="Novidade no cardápio" name="Cascão Trufado"
-                    photo={coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-trio-home-20261113-v474.webp" : "/images/cones-trufados-trio-20261108.webp"} photoWidth={1122}
+                    photo={coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-trio-home-20261114-v4713.webp" : "/images/cones-trufados-trio-20261108.webp"} photoWidth={1122}
                     fallback="/images/cone-trufado-prestigio-20261108-v2.webp"
                     description="Escolha entre os sabores disponíveis"
                     price={currency.format(coneStartingPrice)}

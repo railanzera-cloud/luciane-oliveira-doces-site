@@ -27,7 +27,7 @@ test("seis sabores mantêm identificadores e preços, mas agora apontam para fot
 });
 
 test("capa com trio fica aprovada e complemento recebe miniatura nova sem alterar lógica", () => {
-  assert.ok(home.includes("cascao-trufado-trio-home-20261113-v474.webp"));
+  assert.ok(home.includes("cascao-trufado-trio-home-20261114-v4713.webp"));
   assert.ok(home.includes("cascao-trufado-kinder-bueno-card-20261113-v476.webp"));
   assert.ok(home.includes('photo.replace(".webp", "-360.webp")'));
   assert.ok(home.includes('<RadioGroup className="cone-flavor-grid"'));
