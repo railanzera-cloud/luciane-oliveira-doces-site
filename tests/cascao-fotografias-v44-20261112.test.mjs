@@ -24,10 +24,10 @@ test("V4.7.5: seis imagens de sabor atualizadas sem mudar o grid",()=>{
    assert.match(catalog,new RegExp("image: \"/images/cascao-trufado-"+flavor+"-20261113-"+edition+"\\.webp\""));
    assert.match(catalog,new RegExp("cardImage: \"/images/cascao-trufado-"+flavor+"-card-20261113-"+edition+"\\.webp\""));
  }
- for(const flavor of ["prestigio","dois-amores","ferrero-rocher"]) {
-   const photoEdition = flavor === "prestigio" || flavor === "ferrero-rocher" ? "v478" : "v475";
-   assert.ok(catalog.includes(`image: "/images/cone-trufado-${flavor}-20261113-${photoEdition}.webp"`));
-   assert.ok(catalog.includes(`cardImage: "/images/cone-trufado-${flavor}-card-20261113-${photoEdition}.webp"`));
+ for(const flavor of ["prestigio","ferrero-rocher"]) {
+   const version = flavor === "prestigio" ? "20261113-v478" : "20261114-v4713";
+   assert.ok(catalog.includes(`image: "/images/cone-trufado-${flavor}-${version}.webp"`));
+   assert.ok(catalog.includes(`cardImage: "/images/cone-trufado-${flavor}-card-${version}.webp"`));
  }
  assert.match(style,/\.cone-flavor-photo \{/);
  assert.match(style,/aspect-ratio: 4 \/ 5/);
@@ -47,13 +47,13 @@ test("V4.4: montagem preserva fotos de Natal e originais e aplica apenas crop/re
 });
 
 test("V4.4: preços/checkout/códigos de disponibilidade não são alterados pela troca visual",()=>{
- assert.match(catalog,/name: "Kinder Bueno", available: true/);
+ assert.match(catalog,/name: "Kinder Bueno e Nutella", available: true/);
  assert.match(catalog,/name: "Ninho com Morango", available: true/);
  assert.match(catalog,/name: "Ninho Nutella e Chocottone", available: true/);
  for(const id of ["cascao-trufado-kinder-bueno","cascao-trufado-ninho-morango","cascao-trufado-ninho-nutella-chocotone"]){
   const start=catalog.indexOf('id: "'+id+'"');
   assert.ok(start>=0,id);
-  assert.match(catalog.slice(start,start+650),/price: 20, available: true/,id);
+  assert.match(catalog.slice(start,start+650),new RegExp(`price: ${id === "cascao-trufado-kinder-bueno" ? 22 : 20}, available: true`),id);
  }
  assert.match(server,/priceCents: 2000/);
  assert.match(server,/priceCents: 2200/);

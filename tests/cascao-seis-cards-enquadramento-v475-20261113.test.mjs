@@ -6,9 +6,9 @@ const catalog = await readFile(new URL("../app/catalog.ts", import.meta.url), "u
 const home = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 const items = [
   ["cone-trufado-prestigio", "cone-trufado-prestigio", 18],
-  ["cone-trufado-dois-amores", "cone-trufado-dois-amores", 18],
+  ["cascao-folheado-geleia-morango-ninho", "cascao-folheado-geleia-morango-ninho", 22],
   ["cone-trufado-ferrero-rocher", "cone-trufado-ferrero-rocher", 20],
-  ["cascao-trufado-kinder-bueno", "cascao-trufado-kinder-bueno", 20],
+  ["cascao-trufado-kinder-bueno", "cascao-trufado-kinder-bueno", 22],
   ["cascao-trufado-ninho-morango", "cascao-trufado-ninho-morango", 20],
   ["cascao-trufado-ninho-nutella-chocotone", "cascao-trufado-ninho-nutella-chocotone", 20],
 ];
@@ -18,10 +18,10 @@ test("seis sabores mantêm identificadores e preços, mas agora apontam para fot
     const parts = catalog.split(`id: "${id}"`);
     assert.equal(parts.length, 2, `SKU único ${id}`);
     const entry = parts[1].split("options: [],")[0];
-    const edition = ["cone-trufado-prestigio", "cone-trufado-ferrero-rocher", "cascao-trufado-ninho-morango"].includes(id) ? "v478" : id === "cascao-trufado-ninho-nutella-chocotone" ? "v479" : id === "cascao-trufado-kinder-bueno" ? "v476" : "v475";
+    const edition = ["cone-trufado-ferrero-rocher", "cascao-folheado-geleia-morango-ninho"].includes(id) ? "20261114-v4713" : ["cone-trufado-prestigio", "cascao-trufado-ninho-morango"].includes(id) ? "20261113-v478" : id === "cascao-trufado-ninho-nutella-chocotone" ? "20261113-v479" : "20261113-v476";
     assert.match(entry, new RegExp(`price: ${price}, available: true`), `Preço ${id}`);
-    assert.ok(entry.includes(`/images/${prefix}-20261113-${edition}.webp`), `Foto ${id}`);
-    assert.ok(entry.includes(`/images/${prefix}-card-20261113-${edition}.webp`), `Card ${id}`);
+    assert.ok(entry.includes(`/images/${prefix}-${edition}.webp`), `Foto ${id}`);
+    assert.ok(entry.includes(`/images/${prefix}-card-${edition}.webp`), `Card ${id}`);
     assert.ok(!entry.includes("20261108.webp") && !entry.includes("20261113-v474.webp"), `Sem refs antigas ${id}`);
   }
 });
