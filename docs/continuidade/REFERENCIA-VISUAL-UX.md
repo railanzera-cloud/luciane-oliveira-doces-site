@@ -418,3 +418,10 @@ Produtos aprovados: Ninho com Morango com morango inteiro e casca de chocolate e
 - **Imagem de origem aprovada:** `a_crisp_high_detail_studio_lit_close_up_product.png`, cascão escuro sobre suporte transparente, na bancada de granito com parede bege suave; cobertura de chocolate e pedaço de chocottone cortado exibindo miolo no topo, mantendo irregularidades artesanais.
 - **Padronização mobile:** imagem principal sem corte 1122×1402; card 600×750 em proporção 4:5, recorte central/superior como demais Cascões; miniatura 360×450. Não criar bordas desfocadas nem trocar cenário.
 - **Nome na interface:** `Ninho Nutella e Chocottone` (dois T). **Não** mudar os identificadores internos `chocotone`; eles são contratos comerciais estáveis. Outros cinco sabores e a capa trio permanecem intocados.
+
+## Capa Cascão Trufado V4.7.13 — imagem aprovada (14/11/2026)
+
+- Arquivo exato aprovado: `3FA1E744-6520-442E-9965-B06BDC2AC3D3.jpeg` 1448×1086, com `Prestígio` (coco branco) à esquerda, `Ninho com Morango` **ligeiramente mais à frente e central** e `Ferrero Rocher` (castanhas) à direita.
+- Cenário: bancada de granito, parede bege neutra, três suportes transparentes; preservar o aspecto natural dos produtos. Não usar a geração com alinhamento rígido de todos os topos.
+- Usar na **capa da categoria na homepage**, e não nos seis cards individuais. Resultado WebP principal 1122×842 `/images/cascao-trufado-trio-home-20261114-v4713.webp`, pequena versão 360×270 com sufixo `-360.webp`. Preservar fallback histórico condicional `cones-trufados-trio-20261108.webp` e visibilidade remota.
+- A foto é uma composição gerada/assistida, derivada de referências reais dos Cascões, e não evidência documental de três produtos físicos fotografados juntos.
