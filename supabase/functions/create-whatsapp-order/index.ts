@@ -23,6 +23,8 @@ function allowedOrigins(): Set<string> {
     .map((value) => value.trim())
     .filter(Boolean);
   const allowed = new Set(configured?.length ? configured : DEFAULT_ALLOWED_ORIGINS);
+  // Dominio canonico da loja: autorizar mesmo quando a variavel de ambiente contem a lista antiga.
+  allowed.add("https://lucianeoliveiradoces.com.br");
   return allowed;
 }
 
