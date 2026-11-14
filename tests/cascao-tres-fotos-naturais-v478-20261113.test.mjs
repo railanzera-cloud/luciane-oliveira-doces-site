@@ -18,7 +18,7 @@ test("V4.7.8 substitui somente três fotografias pelos arquivos aprovados", () =
     assert.equal(product.name, name);
     assert.equal(product.variants[0].price, price);
     assert.equal(product.image, `/images/${id}-${id === "cone-trufado-ferrero-rocher" ? "20261114-v4713" : "20261113-v478"}.webp`);
-    assert.equal(product.cardImage, `/images/${id}-card-${id === "cone-trufado-ferrero-rocher" ? "20261114-v4713" : "20261113-v478"}.webp`);
+    assert.equal(product.cardImage, `/images/cascao-${id === "cone-trufado-prestigio" ? "prestigio" : id === "cone-trufado-ferrero-rocher" ? "ferrero" : "ninho-morango"}-inteiro-card-20261114-v47143.webp`);
     assert.ok(product.imageAlt.includes(expectedAlt), name);
     const entry = catalog.split(`id: "${id}"`)[1]?.split("options: [],")[0];
     assert.ok(entry, id);
@@ -35,7 +35,7 @@ test("V4.7.8 preserva os três outros sabores e a tabela de preços", () => {
     ["cascao-trufado-ninho-morango", 20],
     ["cascao-trufado-ninho-nutella-chocotone", 20],
   ]);
-  assert.equal(CONES.find(p=>p.id==="cascao-folheado-geleia-morango-ninho")?.cardImage, "/images/cascao-folheado-geleia-morango-ninho-card-20261114-v4713.webp");
-  assert.equal(CONES.find(p=>p.id==="cascao-trufado-kinder-bueno")?.cardImage, "/images/cascao-trufado-kinder-bueno-card-20261113-v476.webp");
-  assert.equal(CONES.find(p=>p.id==="cascao-trufado-ninho-nutella-chocotone")?.cardImage, "/images/cascao-trufado-ninho-nutella-chocotone-card-20261113-v479.webp");
+  assert.equal(CONES.find(p=>p.id==="cascao-folheado-geleia-morango-ninho")?.cardImage, "/images/cascao-folheado-inteiro-card-20261114-v47143.webp");
+  assert.equal(CONES.find(p=>p.id==="cascao-trufado-kinder-bueno")?.cardImage, "/images/cascao-kinder-inteiro-card-20261114-v47143.webp");
+  assert.equal(CONES.find(p=>p.id==="cascao-trufado-ninho-nutella-chocotone")?.cardImage, "/images/cascao-ninho-nutella-chocottone-inteiro-card-20261114-v47143.webp");
 });

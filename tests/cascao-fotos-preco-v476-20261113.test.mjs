@@ -11,12 +11,16 @@ test("V4.7.6: troca somente as fotos de Kinder e Ninho Nutella sem lateral desfo
     const entry = catalog.split(`id: "${id}"`)[1]?.split("options: [],")[0];
     assert.ok(entry, id);
     const edition = id === "cascao-trufado-ninho-nutella-chocotone" ? "v479" : "v476";
-    assert.ok(entry.includes(`/images/${id}-20261113-${edition}.webp`), id);
-    assert.ok(entry.includes(`/images/${id}-card-20261113-${edition}.webp`), id);
+    const fullPhoto = id === "cascao-trufado-kinder-bueno"
+      ? "/images/cascao-trufado-kinder-bueno-nutella-real-20261114-v47142.webp"
+      : `/images/${id}-20261113-${edition}.webp`;
+    const cardName = id === "cascao-trufado-kinder-bueno" ? "kinder" : "ninho-nutella-chocottone";
+    assert.ok(entry.includes(fullPhoto), id);
+    assert.ok(entry.includes(`/images/cascao-${cardName}-inteiro-card-20261114-v47143.webp`), id);
     assert.doesNotMatch(entry, /20261113-v475/);
     assert.match(entry, new RegExp(`price: ${id === "cascao-trufado-kinder-bueno" ? 22 : 20}, available: true`));
   }
-  assert.ok(page.includes("cascao-trufado-kinder-bueno-card-20261113-v476.webp"));
+  assert.ok(page.includes("cascao-kinder-inteiro-card-20261114-v47143.webp"));
   assert.ok(page.includes("cascao-trufado-trio-home-20261114-v4713.webp"));
 });
 

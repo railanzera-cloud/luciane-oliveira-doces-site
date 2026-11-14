@@ -10,10 +10,10 @@ const layout=readFileSync("app/layout.tsx","utf8");
 test("Vitrine usa foto de três sabores, Prestígio usa nova imagem",()=>{
   // Foto nova só na vitrine quando o SKU Kinder estiver visível; fallback preserva trio antigo.
   assert.ok(page.includes('coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-trio-home-20261114-v4713.webp"'));
-  assert.ok(page.includes('id === "cones" ? (coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-kinder-bueno-card-20261113-v476.webp"'));
+  assert.ok(page.includes('id === "cones" ? (coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-kinder-inteiro-card-20261114-v47143.webp"'));
   const prestigio=CONES.find(p=>p.id==="cone-trufado-prestigio");
   assert.equal(prestigio?.image,"/images/cone-trufado-prestigio-20261113-v478.webp");
-  assert.equal(prestigio?.cardImage,"/images/cone-trufado-prestigio-card-20261113-v478.webp");
+  assert.equal(prestigio?.cardImage,"/images/cascao-prestigio-inteiro-card-20261114-v47143.webp");
   assert.equal(prestigio?.variants[0].price,18);
   assert.equal(CONES.find(p=>p.id==="cascao-folheado-geleia-morango-ninho")?.variants[0].price,22);
   assert.equal(CONES.find(p=>p.id==="cone-trufado-ferrero-rocher")?.variants[0].price,20);
