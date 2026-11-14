@@ -15,7 +15,7 @@ test("Vitrine usa foto de três sabores, Prestígio usa nova imagem",()=>{
   assert.equal(prestigio?.image,"/images/cone-trufado-prestigio-20261113-v478.webp");
   assert.equal(prestigio?.cardImage,"/images/cone-trufado-prestigio-card-20261113-v478.webp");
   assert.equal(prestigio?.variants[0].price,18);
-  assert.equal(CONES.find(p=>p.id==="cone-trufado-dois-amores")?.variants[0].price,18);
+  assert.equal(CONES.find(p=>p.id==="cascao-folheado-geleia-morango-ninho")?.variants[0].price,22);
   assert.equal(CONES.find(p=>p.id==="cone-trufado-ferrero-rocher")?.variants[0].price,20);
 });
 
