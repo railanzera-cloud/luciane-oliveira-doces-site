@@ -32,9 +32,9 @@ test("V4.7.9: contrato Edge de origem só ajusta rótulo, preservando chave e pr
 test("V4.7.9: outros cinco sabores mantêm preços e versões de fotos", () => {
   const untouched = [
     ["cone-trufado-prestigio",18,"v478"],
-    ["cone-trufado-dois-amores",18,"v475"],
-    ["cone-trufado-ferrero-rocher",20,"v478"],
-    ["cascao-trufado-kinder-bueno",20,"v476"],
+    ["cascao-folheado-geleia-morango-ninho",22,"v4713"],
+    ["cone-trufado-ferrero-rocher",20,"v4713"],
+    ["cascao-trufado-kinder-bueno",22,"v476"],
     ["cascao-trufado-ninho-morango",20,"v478"],
   ];
   assert.equal(FRONT_CONES.length,6);

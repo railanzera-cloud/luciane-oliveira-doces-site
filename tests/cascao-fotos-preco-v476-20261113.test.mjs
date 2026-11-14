@@ -14,7 +14,7 @@ test("V4.7.6: troca somente as fotos de Kinder e Ninho Nutella sem lateral desfo
     assert.ok(entry.includes(`/images/${id}-20261113-${edition}.webp`), id);
     assert.ok(entry.includes(`/images/${id}-card-20261113-${edition}.webp`), id);
     assert.doesNotMatch(entry, /20261113-v475/);
-    assert.match(entry, /price: 20, available: true/);
+    assert.match(entry, new RegExp(`price: ${id === "cascao-trufado-kinder-bueno" ? 22 : 20}, available: true`));
   }
   assert.ok(page.includes("cascao-trufado-kinder-bueno-card-20261113-v476.webp"));
   assert.ok(page.includes("cascao-trufado-trio-home-20261113-v474.webp"));
@@ -22,7 +22,7 @@ test("V4.7.6: troca somente as fotos de Kinder e Ninho Nutella sem lateral desfo
 
 test("V4.7.6: preço do botão e da vitrine vem da mesma fonte comercial", () => {
   assert.equal(Math.min(...CONES.map(cone => cone.variants[0].price)), 18);
-  assert.deepEqual(CONES.map(cone => cone.variants[0].price), [18, 18, 20, 20, 20, 20]);
+  assert.deepEqual(CONES.map(cone => cone.variants[0].price), [18, 22, 20, 22, 20, 20]);
   assert.ok(page.includes("const coneStartingPrice = Math.min("));
   assert.ok(page.includes('activeCategory === "cones" ? `A partir de ${currency.format(coneStartingPrice)}`'));
   assert.ok(page.includes("price={currency.format(coneStartingPrice)}"));

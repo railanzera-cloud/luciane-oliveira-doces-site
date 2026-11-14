@@ -16,9 +16,9 @@ test("Catálogo permanente preserva três sabores antigos e adiciona três casc�
   assert.equal(STORE_CONFIG.enabledCategories.cones,true);
   assert.deepEqual(CONES.map(p=>[p.id,p.kind,p.name,p.variants[0].id,p.variants[0].price]),[
     ["cone-trufado-prestigio","cone","Prestígio","unidade",18],
-    ["cone-trufado-dois-amores","cone","Dois Amores","unidade",18],
+    ["cascao-folheado-geleia-morango-ninho","cone","Folheado — Geleia de Morango com Ninho","unidade",22],
     ["cone-trufado-ferrero-rocher","cone","Ferrero Rocher","unidade",20],
-    ["cascao-trufado-kinder-bueno","cone","Kinder Bueno","unidade",20],
+    ["cascao-trufado-kinder-bueno","cone","Kinder Bueno e Nutella","unidade",22],
     ["cascao-trufado-ninho-morango","cone","Ninho com Morango","unidade",20],
     ["cascao-trufado-ninho-nutella-chocotone","cone","Ninho Nutella e Chocottone","unidade",20],
   ]);
@@ -28,9 +28,9 @@ test("Catálogo permanente preserva três sabores antigos e adiciona três casc�
 test("Cotação autoritativa reconhece os cones e cobra o preço correto", () => {
   const cases=[
     ["cone-trufado-prestigio","cone_prestigio",1800],
-    ["cone-trufado-dois-amores","cone_dois_amores",1800],
+    ["cascao-folheado-geleia-morango-ninho","cascao_folheado_geleia_morango_ninho",2200],
     ["cone-trufado-ferrero-rocher","cone_ferrero_rocher",2000],
-    ["cascao-trufado-kinder-bueno","cascao_kinder_bueno",2000],
+    ["cascao-trufado-kinder-bueno","cascao_kinder_bueno",2200],
     ["cascao-trufado-ninho-morango","cascao_ninho_morango",2000],
     ["cascao-trufado-ninho-nutella-chocotone","cascao_ninho_nutella_chocotone",2000],
   ];
@@ -52,7 +52,7 @@ test("Catálogo público, URL e disponibilidade não reutilizam chaves das pipoc
   assert.match(navigation,/id: "cones", name: "Cascão Trufado"/);
   assert.match(navigation,/category === "cones"/);
   assert.match(menu,/cones: "category_cones"/);
-  for(const id of ["cone_prestigio","cone_dois_amores","cone_ferrero_rocher","cascao_kinder_bueno","cascao_ninho_morango","cascao_ninho_nutella_chocotone"])
+  for(const id of ["cone_prestigio","cascao_folheado_geleia_morango_ninho","cone_ferrero_rocher","cascao_kinder_bueno","cascao_ninho_morango","cascao_ninho_nutella_chocotone"])
     assert.ok(menu.includes(id));
   assert.match(menu,/\[CATEGORY_ITEM_KEYS\.cones\]: "hidden"/);
   assert.match(menu,/for \(const cone of CONE_ITEMS\) statuses\[cone\.itemKey\] = "hidden"/);

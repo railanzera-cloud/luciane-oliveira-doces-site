@@ -2,7 +2,7 @@ import { deliveryLocalityById, deliveryLegacyReviewState, deliveryLegacySpecific
 import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
-export const CATALOG_VERSION = "2026-11-12.cascao-tabela-nova";
+export const CATALOG_VERSION = "2026-11-14.cascaos-folheado-bueno-nutella";
 import { DRINKS } from "./drinks-catalog.mjs";
 import { TRUFADAS_VARIANTS, getTrufadaVariant } from "./trufadas-variants.mjs";
 
@@ -42,9 +42,10 @@ export const POPCORN_FLAVORS = Object.freeze({
 // Cascões vendidos por unidade. Preservar IDs históricos; preços atuais homologados em 12/11.
 export const CONES = Object.freeze({
   "cone-trufado-prestigio": Object.freeze({ id: "cone-trufado-prestigio", itemKey: "cone_prestigio", name: "Prestígio", priceCents: 1800 }),
-  "cone-trufado-dois-amores": Object.freeze({ id: "cone-trufado-dois-amores", itemKey: "cone_dois_amores", name: "Dois Amores", priceCents: 1800 }),
+  "cone-trufado-dois-amores": Object.freeze({ id: "cone-trufado-dois-amores", itemKey: "cone_dois_amores", name: "Dois Amores", priceCents: 1800, retired: true }),
+  "cascao-folheado-geleia-morango-ninho": Object.freeze({ id: "cascao-folheado-geleia-morango-ninho", itemKey: "cascao_folheado_geleia_morango_ninho", name: "Folheado — Geleia de Morango com Ninho", priceCents: 2200 }),
   "cone-trufado-ferrero-rocher": Object.freeze({ id: "cone-trufado-ferrero-rocher", itemKey: "cone_ferrero_rocher", name: "Ferrero Rocher", priceCents: 2000 }),
-  "cascao-trufado-kinder-bueno": Object.freeze({ id: "cascao-trufado-kinder-bueno", itemKey: "cascao_kinder_bueno", name: "Kinder Bueno", priceCents: 2000 }),
+  "cascao-trufado-kinder-bueno": Object.freeze({ id: "cascao-trufado-kinder-bueno", itemKey: "cascao_kinder_bueno", name: "Kinder Bueno e Nutella", priceCents: 2200 }),
   "cascao-trufado-ninho-morango": Object.freeze({ id: "cascao-trufado-ninho-morango", itemKey: "cascao_ninho_morango", name: "Ninho com Morango", priceCents: 2000 }),
   "cascao-trufado-ninho-nutella-chocotone": Object.freeze({ id: "cascao-trufado-ninho-nutella-chocotone", itemKey: "cascao_ninho_nutella_chocotone", name: "Ninho Nutella e Chocottone", priceCents: 2000 }),
 });
@@ -201,6 +202,7 @@ export function quoteCartItems(rawItems, now = Date.now()) {
     // de tamanho. A cotação autoritativa protege valor, SKU e disponibilidade.
     if (Object.hasOwn(CONES, productId)) {
       const cone = CONES[productId];
+      if (cone.retired) throw new Error("Este sabor foi descontinuado. Atualize o carrinho para continuar.");
       if (variantId !== "unidade" || optionIds.length !== 0)
         throw new Error("Escolha um Cascão Trufado válido.");
       availabilityKeys.add(CATEGORY_ITEM_KEYS.cones);

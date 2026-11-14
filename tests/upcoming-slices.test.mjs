@@ -49,12 +49,14 @@ test("preserva assets do catálogo na origem e assinala o novo card exclusivo do
   // explícita e não deve autorizar outros arquivos ausentes.
   const packagedOnlyCard = "/fatia-abacaxi-brigadeiro-branco-card-20261108.webp";
   const cardImages = [...catalog.matchAll(/cardImage: "([^"]+)"/g)].map(match => match[1])
-    .filter(path => !path.startsWith("/images/cone-trufado-") && !path.startsWith("/images/chocotone-") && !path.startsWith("/images/cascao-trufado-"));
+    .filter(path => !path.startsWith("/images/cone-trufado-") && !path.startsWith("/images/chocotone-") && !path.startsWith("/images/cascao-trufado-") && !path.startsWith("/images/cascao-folheado-"));
   // Os oito assets natalinos serão acoplados ao ZIP conectado durante o empacotamento final;
   // não afirmar que existam no GitHub enquanto os binários permanecerem externos.
   assert.equal([...catalog.matchAll(/cardImage: "\/images\/chocotone-[^"]+"/g)].length, 4);
   // 3 cards de Cascão vêm das fotografias originais e entram apenas no ZIP final manual.
   assert.equal([...catalog.matchAll(/cardImage: "\/images\/cascao-trufado-[^"]+"/g)].length, 3);
+  // O card Folheado é fornecido no kit de mídias WebP manual V4.7.13 e validado no ZIP consolidado.
+  assert.equal([...catalog.matchAll(/cardImage: "\/images\/cascao-folheado-[^"]+"/g)].length, 1);
   assert.ok(cardImages.includes(packagedOnlyCard));
   assert.match(catalog, /image: "\/fatia-abacaxi-brigadeiro-branco-20261108\.jpeg"/);
   assert.match(catalog,/id: "cone-trufado-prestigio"/);

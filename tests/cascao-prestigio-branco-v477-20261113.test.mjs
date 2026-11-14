@@ -20,15 +20,15 @@ test("Prestígio V4.7.7 usa somente a foto branca aprovada, sem alterar preço o
 test("Prestígio mantém 6 SKUs e os outros cinco sabores/valores permanecem intactos",()=>{
   assert.deepEqual(CONES.map(p=>[p.id,p.variants[0].price]),[
     ["cone-trufado-prestigio",18],
-    ["cone-trufado-dois-amores",18],
+    ["cascao-folheado-geleia-morango-ninho",22],
     ["cone-trufado-ferrero-rocher",20],
-    ["cascao-trufado-kinder-bueno",20],
+    ["cascao-trufado-kinder-bueno",22],
     ["cascao-trufado-ninho-morango",20],
     ["cascao-trufado-ninho-nutella-chocotone",20]
   ]);
   for (const [id,version] of [
-    ["cone-trufado-dois-amores","v475"],
-    ["cone-trufado-ferrero-rocher","v478"],
+    ["cascao-folheado-geleia-morango-ninho","v4713"],
+    ["cone-trufado-ferrero-rocher","v4713"],
     ["cascao-trufado-kinder-bueno","v476"],
     ["cascao-trufado-ninho-morango","v478"],
     ["cascao-trufado-ninho-nutella-chocotone","v479"]

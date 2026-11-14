@@ -1034,3 +1034,22 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - **Dados informados:** nome empresarial 69.806.739 LUCIANE GALVAO DE OLIVEIRA, CNPJ 69.806.739/0001-91; conferidos contra PDF CCMEI enviado, com CNPJ e razão social coincidentes; certificado indica situação ATIVA em 26/10/2026. Confirmar que não houve alteração cadastral desde a emissão antes do reenvio. Sem rua/número/CEP residencial, sem presumir que precisam aparecer publicamente.
 - **Preservação:** checkout, catálogo, fotos, preços, Pixel, Tintim, CAPI, Supabase, Edge, QZ, CRM e estoques intactos. Nenhum deploy ou envio à Meta executado.
 - **Gate:** CI do HEAD; conciliar versão fonte e último ZIP manual com todas as imagens, gerar pacote íntegro, validar iPhone/Safari e página pública HTTPS, conferir documentos/cadastro Meta e só então reenviar.
+
+
+## 81. V4.7.13 — substituição de sabores Cascões, fotos e contrato comercial (14/11/2026)
+- Usuário autorizou novo Cascão **Folheado — Geleia de Morango com Ninho** R$22, **Kinder Bueno e Nutella** R$22 (mesmo SKU anterior), retirada de **Dois Amores** exclusivamente dos Cascões; o **Casadinho** de Natal não muda. Ferrero R$20 recebe a nova fotografia original; as demais fotos e a capa com trio continuam preservadas.
+- Branch `feat/cascao-folheado-bueno-nutella-ferrero-v4713-20261114` derivada do PR #51 `feat/meta-identificacao-legal-20261113` no SHA `e8d1be595d61def50b0dba01647fe9a69f725d96`. **Sem merge, Edge deploy, SQL de produção ou Cloudflare deploy.**
+- Frontend `app/catalog.ts`, disponibilidade `app/menu-availability.ts`, cotação backend `commerce-catalog.mjs`, migração somente preparada `20261114080000_cascao_folheado_bueno_nutella.sql`, testes atualizados. Fotos WebP 4:5 e respectivos hashes produzidos de duas fotografias enviadas; recursos binários não versionados seguem dependentes do ZIP integral.
+- **Bloqueio formal:** Edge create-whatsapp-order v38 ativa cobra Kinder R$20 e não aceita Folheado. O novo produto não deve aparecer disponível nem o frontend ser publicado sem preparar e autorizar atualização Edge + migração (SKU começa hidden). Fazer validação de CI e arquivo ZIP de publicação por corte controlado, e registrar Cloudflare real após upload manual.
+- Metadados de Meta Pixel, CAPI, Tintim, WhatsApp, QZ e finanças não foram modificados. Referência técnica detalhada em `docs/continuidade/CASCOES-FOLHEADO-V4713-20261114.md`.
+
+
+### Checkpoint 82 — corte pré-publicação V4.7.13 (14/11/2026)
+
+**Status:** frontend compilado e ZIP íntegro, backend Supabase sincronizado, **Cloudflare NÃO publicado** e homologação física pendente. A nota 81 anterior descreve o estado pré-corte e é supersedida quanto a Edge e SQL.
+
+- Desenvolvimento: PR #52 em rascunho, derivado do PR #51. Código compilado de 46bfeeab8e6fa331acaa755bed864cb11a273f12. CI comercial 43587784933: 896/896 testes e build aprovados; CI institucional 43587784925 aprovada; rota institucional estática gerada.
+- Publicação manual preparada: LUCIANE_OLIVEIRA_DOCES_V4_7_13_PUBLICACAO_MANUAL.zip; SHA-256 4aeb32b711c9208396e40683fc74d2ca5a950e4a49daa5b99616a295038f0b15; 173 entradas; 112 imagens históricas preservadas byte a byte + 6 imagens 4:5; integridade ZIP/CRC, referências de 35 imagens, sintaxe dos 15 arquivos JS, HTML das rotas /, /admin, /pedido, /informacoes-da-empresa.
+- Backend produtivo: create-whatsapp-order v39 ACTIVE, SHA 9bac8a98ec443fc6a01843482f1641b325d4d44c8cf07d8a7d6fab04792f4685; catálogo igual ao GitHub, demais seis fontes preservadas. V38 anterior SHA 9ed726b0f3ce3185456287dc37f9e6329cf3d26dc151d51d1676dc5d2233a706 para rollback coordenado.
+- Banco: cascao_folheado_geleia_morango_ninho=available; cascao_kinder_bueno=sold_out com novo nome; cone_dois_amores=hidden com histórico; cone_ferrero_rocher=available. Loja orders_open=false na última verificação; manter fechada até corte manual e homologação.
+- **Sequência restante:** proprietário publica ZIP final no Cloudflare Pages; identificar deployment e revisar assets reais; verificar rota institucional, sabores, fotos, preços, CAPI/Tintim/WhatsApp, carrinho e navegação mobile; só depois reabrir loja. CI não prova produção.

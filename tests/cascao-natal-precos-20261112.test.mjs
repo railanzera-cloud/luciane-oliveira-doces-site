@@ -7,13 +7,13 @@ import { CONES as SERVER_CONES, CHOCOTONES as SERVER_NATAL, quoteCartItems } fro
 
 const read = (p) => readFileSync(new URL("../" + p, import.meta.url), "utf8");
 const novos = [
-  ["cascao-trufado-kinder-bueno", "cascao_kinder_bueno", "Kinder Bueno"],
+  ["cascao-trufado-kinder-bueno", "cascao_kinder_bueno", "Kinder Bueno e Nutella"],
   ["cascao-trufado-ninho-morango", "cascao_ninho_morango", "Ninho com Morango"],
   ["cascao-trufado-ninho-nutella-chocotone", "cascao_ninho_nutella_chocotone", "Ninho Nutella e Chocottone"],
 ];
 const anteriores = [
   ["cone-trufado-prestigio", 1800],
-  ["cone-trufado-dois-amores", 1800],
+  ["cascao-folheado-geleia-morango-ninho", 2200],
   ["cone-trufado-ferrero-rocher", 2000],
 ];
 const natal = [
@@ -25,14 +25,14 @@ const natal = [
 
 test("Cascão Trufado: 6 sabores, 3 novos a R$20, fotos V4.7.4 e IDs exclusivos", () => {
   assert.equal(FRONT_CONES.length, 6);
-  assert.equal(Object.keys(SERVER_CONES).length, 6);
+  assert.equal(Object.keys(SERVER_CONES).length, 7); // registro aposentado preservado no backend
   for (const [id, key, name] of novos) {
     const front = FRONT_CONES.find(p => p.id === id);
     assert.ok(front, id);
     assert.equal(front.name, name);
     assert.equal(front.category, "Cascão Trufado");
     assert.equal(front.kind, "cone");
-    assert.equal(front.variants[0].price, 20);
+    assert.equal(front.variants[0].price, id === "cascao-trufado-kinder-bueno" ? 22 : 20);
     assert.equal(front.variants[0].label, "1 cascão");
     assert.equal(front.options.length, 0);
     const imageVersion = id === "cascao-trufado-ninho-morango" ? "v478" : id === "cascao-trufado-ninho-nutella-chocotone" ? "v479" : "v476";
@@ -40,9 +40,9 @@ test("Cascão Trufado: 6 sabores, 3 novos a R$20, fotos V4.7.4 e IDs exclusivos"
     assert.match(front.cardImage, new RegExp("^/images/" + id + "-card-20261113-" + imageVersion + "\\.webp$"));
     assert.ok(read("app/menu-availability.ts").includes(`"${id}": "${key}"`));
     assert.equal(SERVER_CONES[id].itemKey, key);
-    assert.equal(SERVER_CONES[id].priceCents, 2000);
+    assert.equal(SERVER_CONES[id].priceCents, id === "cascao-trufado-kinder-bueno" ? 2200 : 2000);
     const quote = quoteCartItems([{ product_id: id, variant_id: "unidade", option_ids: [], quantity: 2 }]);
-    assert.equal(quote.subtotalCents, 4000);
+    assert.equal(quote.subtotalCents, id === "cascao-trufado-kinder-bueno" ? 4400 : 4000);
     assert.deepEqual(quote.availabilityKeys, ["category_cones", key].sort());
     assert.equal(quote.items[0].size_label, "1 cascão");
     assert.match(quote.items[0].name, /^Cascão Trufado — /);
@@ -76,7 +76,7 @@ test("As quatro fatias de Chocottone são R$22 em frontend e servidor", () => {
     { product_id: "cascao-trufado-kinder-bueno", variant_id: "unidade", quantity: 1 },
     { product_id: "chocotone-casadinho", variant_id: "porcao", quantity: 1 },
   ]);
-  assert.equal(mix.subtotalCents, 4200);
+  assert.equal(mix.subtotalCents, 4400);
 });
 
 test("Admin, vitrine e banco reutilizam category_cones sem liberar novos sabores automaticamente", () => {

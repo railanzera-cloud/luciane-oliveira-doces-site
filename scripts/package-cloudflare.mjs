@@ -81,6 +81,7 @@ async function renderRoute(route, targetFile) {
 const homeHtml = await renderRoute("/", "index.html");
 await renderRoute("/admin", "admin/index.html");
 await renderRoute("/pedido", "pedido/index.html");
+await renderRoute("/informacoes-da-empresa", "informacoes-da-empresa/index.html");
 await writeFile(path.join(packageDirectory, "404.html"), homeHtml, "utf8");
 
 // Keep the existing static Pages output; run edge code only for organic links.
@@ -103,6 +104,7 @@ const requiredFiles = [
   "index.html",
   "admin/index.html",
   "pedido/index.html",
+  "informacoes-da-empresa/index.html",
   "404.html",
   "pipoca-gourmet.jpeg",
   "fatia-prestigio-card.webp",
