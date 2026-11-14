@@ -43,7 +43,7 @@ export const POPCORN_FLAVORS = Object.freeze({
 export const CONES = Object.freeze({
   "cone-trufado-prestigio": Object.freeze({ id: "cone-trufado-prestigio", itemKey: "cone_prestigio", name: "Prestígio", priceCents: 1800 }),
   "cone-trufado-dois-amores": Object.freeze({ id: "cone-trufado-dois-amores", itemKey: "cone_dois_amores", name: "Dois Amores", priceCents: 1800, retired: true }),
-  "cascao-folheado-geleia-morango-ninho": Object.freeze({ id: "cascao-folheado-geleia-morango-ninho", itemKey: "cascao_folheado_geleia_morango_ninho", name: "Folheado — Geleia de Morango com Ninho", priceCents: 2200 }),
+  "cascao-folheado-geleia-morango-ninho": Object.freeze({ id: "cascao-folheado-geleia-morango-ninho", itemKey: "cascao_folheado_geleia_morango_ninho", name: "Folheado com Ninho e Morango", priceCents: 2200 }),
   "cone-trufado-ferrero-rocher": Object.freeze({ id: "cone-trufado-ferrero-rocher", itemKey: "cone_ferrero_rocher", name: "Ferrero Rocher", priceCents: 2000 }),
   "cascao-trufado-kinder-bueno": Object.freeze({ id: "cascao-trufado-kinder-bueno", itemKey: "cascao_kinder_bueno", name: "Kinder Bueno e Nutella", priceCents: 2200 }),
   "cascao-trufado-ninho-morango": Object.freeze({ id: "cascao-trufado-ninho-morango", itemKey: "cascao_ninho_morango", name: "Ninho com Morango", priceCents: 2000 }),

@@ -12,9 +12,9 @@ test("V4.7.13: seis sabores, Dois Amores aposentado sem modificar Casadinho do N
  assert.throws(()=>quoteCartItems([{product_id:"cone-trufado-dois-amores",variant_id:"unidade",quantity:1}]),/descontinuado/);
  assert.ok(CHOCOTONES.some(p=>p.id==="chocotone-casadinho"));
 });
-test("Folheado real 4:5 com Ninho e geleia: SKU novo e preço R$22 por unidade nas duas camadas",()=>{
+test("Folheado com Ninho e Morango: preço R$22 e identificadores originais nas duas camadas",()=>{
  const f=frontend.find(p=>p.id==="cascao-folheado-geleia-morango-ninho");
- assert.ok(f); assert.equal(f.name,"Folheado — Geleia de Morango com Ninho");
+ assert.ok(f); assert.equal(f.name,"Folheado com Ninho e Morango"); assert.equal(backend["cascao-folheado-geleia-morango-ninho"].name,f.name);
  assert.equal(f.variants[0].price,22); assert.equal(backend["cascao-folheado-geleia-morango-ninho"].priceCents,2200);
  assert.match(read("app/menu-availability.ts"),/"cascao-folheado-geleia-morango-ninho": "cascao_folheado_geleia_morango_ninho"/);
  assert.equal(f.image,"/images/cascao-folheado-geleia-morango-ninho-20261114-v4713.webp");

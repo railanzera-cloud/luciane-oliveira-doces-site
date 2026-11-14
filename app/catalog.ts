@@ -111,10 +111,10 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: "cascao-folheado-geleia-morango-ninho", kind: "cone", category: "Cascão Trufado",
-    name: "Folheado — Geleia de Morango com Ninho", available: true,
+    name: "Folheado com Ninho e Morango", available: true,
     image: "/images/cascao-folheado-geleia-morango-ninho-20261114-v4713.webp",
     cardImage: "/images/cascao-folheado-geleia-morango-ninho-card-20261114-v4713.webp",
-    imageAlt: "Cascão folheado com casquinhas crocantes, recheio cremoso de Ninho e geleia de morango, em suporte transparente sobre granito",
+    imageAlt: "Cascão folheado com casquinhas crocantes e recheio cremoso de Ninho com morango, em suporte transparente sobre granito",
     variants: [{ id: "unidade", label: "1 cascão", whatsappLabel: "1 cascão", price: 22, available: true }],
     options: [],
   },
