@@ -3,8 +3,10 @@ import type { AdminOrder } from "@/lib/admin-orders-client";
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 function html(value: unknown): string {
-  return String(value ?? "").replace(/[&<>"']/g, ch =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch] ?? ch);
+  const replacements: Record<string, string> = {
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  };
+  return String(value ?? "").replace(/[&<>"']/g, ch => replacements[ch] ?? ch);
 }
 
 function localDate(iso: string): string {
