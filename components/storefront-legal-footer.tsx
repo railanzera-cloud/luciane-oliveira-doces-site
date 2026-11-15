@@ -10,9 +10,12 @@ export function StorefrontLegalFooter() {
           <span>{BUSINESS_IDENTITY.city}–{BUSINESS_IDENTITY.state}</span>
           <span className="footer-legal-id">Razão social: {BUSINESS_IDENTITY.legalName}</span>
           <span className="footer-legal-id">CNPJ: {BUSINESS_IDENTITY.taxId}</span>
-          <a className="footer-company-link" href="/informacoes-da-empresa">
-            Informações da empresa
-          </a>
+          <nav className="footer-legal-links" aria-label="Informações legais">
+            <a className="footer-company-link" href="/informacoes-da-empresa">Informações da empresa</a>
+            <a className="footer-company-link" href="/politica-de-privacidade">Política de Privacidade</a>
+            <a className="footer-company-link" href="/termos-de-uso">Termos de Uso</a>
+            <a className="footer-company-link" href="/exclusao-de-dados">Exclusão de Dados</a>
+          </nav>
         </div>
         <div className="footer-details">
           <span className="footer-phone">

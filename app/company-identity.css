@@ -147,3 +147,23 @@
   .company-page__brand { max-width: 155px; }
   .company-page__back { font-size: .78rem; }
 }
+
+/* Acesso público às políticas, sem interferir nos controles do catálogo. */
+.storefront .footer-legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 18px;
+  row-gap: 2px;
+  margin-top: 10px;
+}
+.storefront .footer-legal-links .footer-company-link { margin-top: 0; }
+.company-page__card p {
+  margin: 0 0 13px;
+  color: #e1d2c1;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+.company-page__card p:last-child { margin-bottom: 0; }
+.company-page__card a { color: #e8bc80; text-decoration: underline; text-underline-offset: 3px; }
+.company-page__card a:hover { color: #ffe0b3; }
