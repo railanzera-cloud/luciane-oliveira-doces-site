@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Check, ChevronDown, Clock3, MessageCircle, RefreshCw, Search, ShieldCheck, UserPlus } from "lucide-react";
 import { crmAdSliceHint, crmMentionedProductName, crmSuggestedMessage, crmWhatsAppLink, crmQueueBucket } from "@/lib/crm-follow-up";
-import { assistedReviewProblems, assistedTiming, type AssistedReview } from "@/lib/crm-assisted";
+import { assistedReviewProblems, type AssistedReview } from "@/lib/crm-assisted";
+import { crmCatalogAvailability, crmFriendlyAge, crmFriendlyReminder, crmRecentlyActive, type CrmAvailabilityRow } from "@/lib/crm-operacao";
 import "./admin-crm-panel.css";
 
 type Opportunity = {
@@ -28,7 +29,7 @@ type Candidate = {
   stage_label: string | null; source_label: string | null;
   campaign_name: string | null; last_seen_at: string; imported: boolean;
 };
-type View = "due" | "review" | "new" | "active" | "history" | "tintim";
+type View = "recent" | "due" | "review" | "new" | "active" | "history" | "tintim";
 type ProductMention = {
   conversation_id: string;
   product_id: string;
@@ -95,12 +96,14 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   const [mentions, setMentions] = useState<Record<string,ProductMention>>({});
   const [automation, setAutomation] = useState<AutomationReport | null>(null);
   const [automationQueue, setAutomationQueue] = useState<Record<string,AutomationQueueItem>>({});
+  const [catalog, setCatalog] = useState<CrmAvailabilityRow[] | null>(null);
+  const [listLimited, setListLimited] = useState(false);
 
   const actionLock = useRef(false);
   const refreshVersion = useRef(0);
   const [reviewed, setReviewed] = useState<Record<string,string>>({});
   const [opened, setOpened] = useState<Record<string,boolean>>({});
-  const [view, setView] = useState<View>("due");
+  const [view, setView] = useState<View>("recent");
   const [loading, setLoading] = useState(true);
   const [dataStale, setDataStale] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -117,6 +120,29 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   const [listLimit, setListLimit] = useState(15);
   const [expanded, setExpanded] = useState<Record<string,boolean>>({});
 
+  // Busca integral paginada, com fallback seguro durante a implantação da RPC nova.
+  const loadOpportunities = useCallback(async () => {
+    const collected: Opportunity[] = [];
+    const pageSize = 250;
+    for (let page = 0; page < 20; page++) {
+      const result = await rpc("crm_list_opportunities_page", {
+        p_offset: collected.length, p_limit: pageSize,
+      });
+      if (result.error) {
+        if (page !== 0 || !/PGRST202|Could not find the function|schema cache/i.test(result.error.message)) {
+          throw result.error;
+        }
+        const legacy = await rpc("crm_list_opportunities");
+        if (legacy.error) throw legacy.error;
+        return { rows: (legacy.data ?? []) as Opportunity[], limited: true };
+      }
+      const batch = (result.data ?? []) as Opportunity[];
+      collected.push(...batch);
+      if (batch.length < pageSize) return { rows: collected, limited: false };
+    }
+    return { rows: collected, limited: true };
+  }, [rpc]);
+
   const refresh = useCallback(async () => {
     const version = ++refreshVersion.current;
     setRefreshing(true);
@@ -129,15 +155,15 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       }
       const hold = await rpc("crm_hold_tintim_purchase_signals");
       if (hold.error) throw hold.error;
-      const [list,candidatesResult,signalsResult,mentionsResult,reportResult,queueResult] = await Promise.all([
-        rpc("crm_list_opportunities"),
+      const [list,candidatesResult,signalsResult,mentionsResult,reportResult,queueResult,catalogResult] = await Promise.all([
+        loadOpportunities(),
         rpc("crm_list_tintim_candidates", { p_limit: 40 }),
         rpc("crm_list_tintim_signals"),
         rpc("crm_list_tintim_product_hints"),
         rpc("crm_automation_operational_report"),
         rpc("crm_automation_queue_items"),
+        client.from("menu_availability").select("item_key,name,item_type,status,category_key"),
       ]);
-      if (list.error) throw list.error;
       if (candidatesResult.error) throw candidatesResult.error;
       if (signalsResult.error) throw signalsResult.error;
       // Migração aditiva: durante homologação uma instalação anterior pode não
@@ -146,7 +172,9 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         throw mentionsResult.error;
       }
       if (version !== refreshVersion.current) return;
-      setItems((list.data ?? []) as Opportunity[]);
+      setItems(list.rows);
+      setListLimited(list.limited);
+      setCatalog(catalogResult.error ? null : (catalogResult.data ?? []) as CrmAvailabilityRow[]);
       setCandidates((candidatesResult.data ?? []) as Candidate[]);
       setSignals(Object.fromEntries(((signalsResult.data ?? []) as TintimSignal[])
         .map(signal => [signal.conversation_id,signal])));
@@ -163,7 +191,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       setError("");
     } catch (e) { if (version === refreshVersion.current) { setDataStale(true); setError(displayError(e)); } }
     finally { if (version === refreshVersion.current) { setLoading(false); setRefreshing(false); } }
-  }, [rpc]);
+  }, [rpc,client,loadOpportunities]);
 
   useEffect(() => { void refresh(); }, [refresh]);
   useEffect(() => { setListLimit(15); }, [view, search, onlyWithProduct]);
@@ -192,12 +220,13 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
     possible_purchase: hasPurchaseSignal(signals[item.conversation_id]?.stage_label)
   }, now), [signals, now]);
   // "Para agora" = revisão manual possível, NÃO autorização para envio Meta.
+  const recent = waiting.filter(item => crmRecentlyActive(item.last_inbound_at,now));
   const due = waiting.filter(item => bucketOf(item) === "review_now");
   const review = waiting.filter(item => bucketOf(item) === "blocked_due");
   const scheduled = waiting.filter(item => bucketOf(item) === "scheduled");
   const newLeads = waiting.filter(item => item.status==="in_progress" && !item.last_outbound_at);
   const history = items.filter(item => ["converted","lost","closed"].includes(item.status) || item.follow_up_status === "sent_manually");
-  const visible = view === "history" ? history : view === "due" ? due : view === "review" ? review :
+  const visible = view === "history" ? history : view === "recent" ? recent : view === "due" ? due : view === "review" ? review :
     view === "new" ? newLeads : waiting;
   const filteredVisible = useMemo(() => {
     const term = search.trim().toLocaleLowerCase("pt-BR");
@@ -220,6 +249,8 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         Date.parse(b.last_outbound_at ?? b.last_inbound_at ?? b.created_at) -
         Date.parse(a.last_outbound_at ?? a.last_inbound_at ?? a.created_at);
     });
+    if (view === "recent") return [...shortlist].sort((a,b) =>
+      Date.parse(b.last_inbound_at ?? b.created_at) - Date.parse(a.last_inbound_at ?? a.created_at));
     if (view === "new") return [...shortlist].sort((a,b) =>
       new Date(signals[b.conversation_id]?.last_observed_at ?? 0).getTime() -
       new Date(signals[a.conversation_id]?.last_observed_at ?? 0).getTime());
