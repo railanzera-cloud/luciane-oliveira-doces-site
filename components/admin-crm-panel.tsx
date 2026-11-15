@@ -389,13 +389,15 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
           Pendências <b>{review.length}</b></button>
         <button type="button" className={view==="active"?"is-active":""} onClick={()=>setView("active")}>
           Todos <b>{waiting.length}</b></button>
-        <button type="button" className={view==="history"?"is-active":""} onClick={()=>setView("history")}>
-          Finalizados <b>{history.length}</b></button>
-        <button type="button" className={view==="new"?"is-active":""} onClick={()=>setView("new")}>
-          Novos <b>{newLeads.length}</b></button>
-        <button type="button" className={view==="tintim"?"is-active":""} onClick={()=>setView("tintim")}>
-          Contatos Tintim</button>
       </div>
+      <details className="crm-navigation-extra">
+        <summary>Outras listas: finalizados, novos contatos e Tintim</summary>
+        <div className="crm-navigation-extra-actions">
+          <button type="button" className={view==="history"?"is-active":""} onClick={()=>setView("history")}>Finalizados ({history.length})</button>
+          <button type="button" className={view==="new"?"is-active":""} onClick={()=>setView("new")}>Sem resposta da loja ({newLeads.length})</button>
+          <button type="button" className={view==="tintim"?"is-active":""} onClick={()=>setView("tintim")}>Contatos Tintim</button>
+        </div>
+      </details>
       <p className="crm-guidance">
         {view==="recent" ? "Conversas com mensagem recebida nas últimas 48 horas. Estar aqui não significa permissão de envio." :
          view==="due" ? "Lembretes vencidos com permissão registrada: ainda é preciso validar janela, produto e compra no atendimento." :
