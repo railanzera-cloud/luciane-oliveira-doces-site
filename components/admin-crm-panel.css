@@ -272,3 +272,30 @@
 .crm-stock-unverified{font-size:.78rem;color:#ffcc9f;margin:0;line-height:1.5}
 .crm-confirm-product{align-items:end}
 @media(max-width:700px){.crm-product-fields{width:100%}.crm-confirm-product>.crm-button{width:100%}}
+
+/* Homologação Safari 15/11: contato primeiro, justificativas apenas sob demanda. */
+.crm-observed-times{border-bottom:1px solid #654a3e;margin-bottom:12px;padding-bottom:5px}
+.crm-observed-times>summary,.crm-manual-product>summary{
+  font-size:.8rem;color:#e9c5a4;cursor:pointer;
+  padding:9px 2px;list-style-position:inside;min-height:38px
+}
+.crm-observed-times>summary:focus-visible,.crm-manual-product>summary:focus-visible{
+  outline:2px solid #e8b48b;outline-offset:2px
+}
+.crm-observed-times .crm-due-info{font-size:.76rem;line-height:1.5;margin:4px 0 9px}
+.crm-manual-product{border-top:1px solid #644b3c;padding:4px 0 2px}
+.crm-manual-product .crm-label{margin-top:8px}
+.crm-consent-help{font-size:.75rem;line-height:1.5;color:#e6c4a9;margin:4px 0 10px}
+@media(max-width:700px){
+  /* Os mesmos três contadores já estão presentes nas quatro abas logo abaixo.
+     Evita consumir uma tela inteira antes da primeira oportunidade. */
+  .crm-panel .crm-briefing-numbers{display:none}
+  .crm-panel .crm-briefing{padding:14px;margin-bottom:12px}
+  .crm-panel .crm-briefing-heading{gap:6px}
+  .crm-panel .crm-briefing-heading p{font-size:.79rem;line-height:1.4}
+  .crm-panel .crm-briefing h2{font-size:1.27rem;margin:4px 0}
+  .crm-panel .crm-safety-note{margin-top:9px;font-size:.73rem;line-height:1.4}
+  .crm-panel .crm-navigation-extra{margin-bottom:8px}
+  .crm-panel .crm-navigation button{min-height:44px}
+  .crm-panel .crm-card header{padding-bottom:8px}
+}

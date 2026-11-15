@@ -1110,3 +1110,14 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - `/politica-de-privacidade/`, `/termos-de-uso/`, `/exclusao-de-dados/` também responderam HTTP 200.
 - **Conclusão de evidência:** os últimos pacotes V4.7.14.2 e V4.7.14.3 não correspondem à linha de JS anunciada pelo HTML da home atual. O ID interno do deployment Cloudflare ainda não foi obtido; não pressupor identidade de todos os bytes do site somente pela home.
 - O ZIP CRM candidato reconciliado tem fotos V4.7.14.3 e páginas legais para corrigir a divergência, mas **não publicar ainda** sem validação de login/CRM, Safari e operação real.
+
+
+## Homologação real iPhone — CRM após ZIP candidato (15/11/2026)
+
+- Evidência visual: gravação de 153,6 segundos e quatro capturas do painel `/admin/` no iPhone com sessão autenticada, fornecidas pelo usuário.
+- UI carregou sem travamentos observados; 70 entradas recentes, 0 elegíveis para revisão, 212 pendências com impedimentos, 658 em andamento e 1 finalizado (659 totais).
+- Supabase comercial read-only confirmou 659 conversas, 70 com última entrada registrada em 48 horas, 212 vencidos, **0 consentimentos comerciais comprovados**, eventos oficiais Meta inbound de um único telefone, 0 tentativas de envio e automação desabilitada. Não confundir dados observados Tintim com mensagem Meta de provedor verificado.
+- UX encontrada: repetição dos indicadores no topo e abas; muita rolagem dentro de atendimento; origem/horários técnicos ocupam espaço; rótulo "Sem resposta da loja" inferia ausência de resposta sem prova; campo de texto manual sobreposto à seleção do catálogo.
+- Branch `refine/crm-mobile-sinais-e-clareza-20261115` PR #64 draft (base #63): renomear atividades recentes e sem saída registrada, aviso de recência observada não confirmada, horários históricos e texto manual recolhidos, orientação explícita para consentimento demonstrável, ocultar somente no mobile contadores duplicados (continuam nas abas).
+- CI PR #64 SHA `0705d4f073db08e4d1d1e05c3ac393d931f0a6be` passou: 7/7 testes CRM, 918/918 regressões comerciais, TypeScript CRM e build do frontend. [Run 43721177602](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/43721177602).
+- **Sem merge, sem ZIP novo, sem Cloudflare deploy, sem envio e sem alterações no Supabase.** Próxima frente: comprovar opt-ins, origem/timestamp das mensagens e fluxo real assistido com contato de teste autorizado. Manter bloqueios atuais; não promover backlog antigo a oportunidade pronta.

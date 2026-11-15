@@ -15,7 +15,7 @@ test("CRM tem triagem compacta, busca e resumo sem abrir todos os contatos",()=>
  assert.match(view,/crm-card-compact/);
  assert.match(css,/\.crm-card-compact/);
  assert.match(css,/\.crm-search/);
- assert.match(view,/Sem resposta da loja/);
+ assert.match(view,/Sem saída registrada/);
 });
 test("acoes sensiveis sao explicitas e backend continua proprietario do follow-up",()=>{
  const view=read("components/admin-crm-panel.tsx");

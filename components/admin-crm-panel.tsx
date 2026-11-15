@@ -378,8 +378,8 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
           <span className="crm-manual-state"><ShieldCheck size={16}/> Somente assistido</span>
         </div>
         <div className="crm-briefing-numbers">
-          <button type="button" onClick={()=>setView("recent")} aria-label="Ver conversas recentes">
-            <strong>{recent.length}</strong><span>Conversas recentes</span>
+          <button type="button" onClick={()=>setView("recent")} aria-label="Ver atividades recentes">
+            <strong>{recent.length}</strong><span>Atividade recente</span>
           </button>
           <button type="button" onClick={()=>setView("due")} aria-label="Ver lembretes para revisão">
             <strong>{due.length}</strong><span>Revisar agora</span>
@@ -407,17 +407,17 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         <summary>Outras listas: finalizados, novos contatos e Tintim</summary>
         <div className="crm-navigation-extra-actions">
           <button type="button" className={view==="history"?"is-active":""} onClick={()=>setView("history")}>Finalizados ({history.length})</button>
-          <button type="button" className={view==="new"?"is-active":""} onClick={()=>setView("new")}>Sem resposta da loja ({newLeads.length})</button>
+          <button type="button" className={view==="new"?"is-active":""} onClick={()=>setView("new")}>Sem saída registrada ({newLeads.length})</button>
           <button type="button" className={view==="tintim"?"is-active":""} onClick={()=>setView("tintim")}>Contatos Tintim</button>
         </div>
       </details>
       <p className="crm-guidance">
-        {view==="recent" ? "Conversas com mensagem recebida nas últimas 48 horas. Estar aqui não significa permissão de envio." :
+        {view==="recent" ? "Registros de entrada das últimas 48 horas. Confirme as mensagens reais no WhatsApp; recência não significa autorização para contato." :
          view==="due" ? "Lembretes vencidos com permissão registrada: ainda é preciso validar janela, produto e compra no atendimento." :
          view==="review" ? "Há algum impedimento ou dado não confirmado. Confira o motivo antes de pensar em uma mensagem." :
          view==="active" ? "Todos os atendimentos em curso, inclusive os antigos. Priorize os mais recentes e específicos." :
          view==="history" ? "Ações finalizadas ou enviadas manualmente. Envio registrado não é prova de entrega ou venda." :
-         view==="new" ? "Contatos sem resposta da loja identificada. Verifique a conversa real." :
+         view==="new" ? "Sem mensagem de saída observada pelo CRM. Isso NÃO significa que a loja deixou de responder; confira a conversa no WhatsApp." :
          "Contatos identificados pelo Tintim. Origem e campanha não comprovam consentimento ou intenção final."}
       </p>
       <details className="crm-technical-details">
@@ -506,7 +506,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
                   mentionedName ? "Cliente mencionou: " + mentionedName :
                   "Anúncio relacionado: " + adHint?.name}
               </small>}
-              <small className="crm-recency">Última entrada observada: {crmFriendlyAge(item.last_inbound_at,now)}</small>
+              <small className="crm-recency">Entrada registrada: {crmFriendlyAge(item.last_inbound_at,now)}</small>
               {signal?.last_observed_at &&
                 <small className="crm-signal-detail">Tintim atualizado: {fmtTime(signal.last_observed_at)}</small>}
               <small className="crm-next-step">{possiblePurchase ? "Próximo passo: conferir possível compra" :
@@ -533,7 +533,10 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
           </header>
           {isExpanded && <>
           {item.follow_up_status==="sent_manually" && <p className="crm-due-info">Envio informado pela atendente. Não comprova entrega nem pagamento.</p>}
-          <p className="crm-due-info">{item.last_inbound_at ? "Última entrada observada: " + fmtTime(item.last_inbound_at) : "Sem mensagem de entrada observada"}<br/>{item.last_outbound_at ? "Última saída observada: " + fmtTime(item.last_outbound_at) : "Sem resposta da loja observada"}<br/>Horários observados não comprovam o horário original do provedor. Revise o conteúdo no WhatsApp Business.</p>
+          <details className="crm-observed-times">
+            <summary>Consultar horários registrados</summary>
+            <p className="crm-due-info">{item.last_inbound_at ? "Última entrada observada: " + fmtTime(item.last_inbound_at) : "Sem entrada registrada no CRM"}<br/>{item.last_outbound_at ? "Última saída observada: " + fmtTime(item.last_outbound_at) : "Sem saída registrada no CRM"}<br/>Estes horários não comprovam o horário original do provedor. Confira a conversa no WhatsApp Business antes de entrar em contato.</p>
+          </details>
           {item.interest_label && <p className={"crm-stock-status"+(catalogUnavailable ? " crm-stock-unavailable" : "")}>
              {catalogMatch?.status==="available" ? "Catálogo indica disponibilidade. Confirme quantidade física antes de oferecer." :
               catalogUnavailable ? "Produto indisponível no catálogo. Oferta deste item bloqueada neste acompanhamento." :
@@ -576,13 +579,16 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
                   </option>)}
                 </select>
               </label>
-              <label className="crm-label">Descrição manual (quando necessário)
-                <input type="text" maxLength={80} placeholder="Ex.: Chocolate com Morango"
-                  value={inputInterest}
-                  disabled={locked || isFinished}
-                  onChange={e=>setInterest(old=>({...old,[item.conversation_id]:e.target.value}))}/>
-                <small>Produto fora do catálogo ou ambíguo não libera acompanhamento. Salvar não cria nem altera lembretes.</small>
-              </label>
+              <details className="crm-manual-product">
+                <summary>Produto não encontrado? Informar manualmente</summary>
+                <label className="crm-label">Descrição manual
+                  <input type="text" maxLength={80} placeholder="Ex.: Chocolate com Morango"
+                    value={inputInterest}
+                    disabled={locked || isFinished}
+                    onChange={e=>setInterest(old=>({...old,[item.conversation_id]:e.target.value}))}/>
+                  <small>Produtos sem SKU ou ambíguos permanecem bloqueados para contato. Salvar não cria nem altera lembretes.</small>
+                </label>
+              </details>
               {catalog===null && <p className="crm-stock-unverified">Catálogo indisponível. Mensagens contextuais permanecem bloqueadas.</p>}
             </div>
             <button type="button" className="crm-button crm-secondary"
@@ -650,6 +656,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
                  placeholder="Ex.: cliente autorizou lembretes na conversa de hoje"
                  onChange={(e)=>setEvidence(old=>({...old,[item.conversation_id]:e.target.value}))}/>
             </label>
+            <p className="crm-consent-help">Registre somente autorização comercial explícita, com evidência verificável na conversa. Visitar o site ou comprar não autoriza mensagens promocionais por si só.</p>
             <button className="crm-button crm-secondary" type="button"
               disabled={locked || (evidence[item.conversation_id] ?? "").trim().length<8}
               onClick={()=>void invoke(item.conversation_id,"consent_granted")}>Registrar autorização</button>
