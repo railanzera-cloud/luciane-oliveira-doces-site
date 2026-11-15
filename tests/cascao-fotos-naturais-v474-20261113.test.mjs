@@ -18,8 +18,12 @@ test("cada sabor novo mantém id, preço e fotos isoladas V4.7.4", () => {
     const entry = parts[1].split("options: [],")[0];
     const edition = slug === "ninho-morango" ? "v478" : slug === "ninho-nutella-chocotone" ? "v479" : "v476";
     assert.ok(entry.includes(`price: ${id === "cascao-trufado-kinder-bueno" ? 22 : 20}, available: true`), `Preço preservado: ${name}`);
-    assert.ok(entry.includes(`/images/cascao-trufado-${slug}-20261113-${edition}.webp`));
-    assert.ok(entry.includes(`/images/cascao-trufado-${slug}-card-20261113-${edition}.webp`));
+    const mainPhoto = id === "cascao-trufado-kinder-bueno"
+      ? "/images/cascao-trufado-kinder-bueno-nutella-real-20261114-v47142.webp"
+      : `/images/cascao-trufado-${slug}-20261113-${edition}.webp`;
+    const cardKey = id === "cascao-trufado-kinder-bueno" ? "kinder" : slug === "ninho-nutella-chocotone" ? "ninho-nutella-chocottone" : slug;
+    assert.ok(entry.includes(`image: "${mainPhoto}"`), `Foto principal ${id}`);
+    assert.ok(entry.includes(`cardImage: "/images/cascao-${cardKey}-inteiro-card-20261114-v47143.webp"`), `Card completo ${id}`);
     assert.ok(!entry.includes("20261112-v44"), `Sem foto antiga: ${name}`);
   }
 });

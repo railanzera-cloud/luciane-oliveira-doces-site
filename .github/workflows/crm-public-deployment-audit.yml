@@ -1,0 +1,47 @@
+name: CRM - auditoria publica do dominio (somente leitura)
+on:
+  push:
+    branches: [integrate/crm-v47143-legal-comercial-20261115]
+    paths: ['.github/workflows/crm-public-deployment-audit.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch public HTML only, with zero writes to store
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import urllib.request,urllib.error,hashlib,json,re
+          base="https://lucianeoliveiradoces.com.br"
+          paths=["/","/admin/","/politica-de-privacidade/","/termos-de-uso/","/exclusao-de-dados/"]
+          result={"base":base,"routes":[]}
+          for path in paths:
+              req=urllib.request.Request(base+path,headers={"User-Agent":"Mozilla/5.0 (compatible; Luciane-ReadOnly-QA/1.0)","Accept":"text/html"})
+              try:
+                  with urllib.request.urlopen(req,timeout=20) as response:
+                      raw=response.read(900000)
+                      html=raw.decode("utf-8","replace")
+                      assets=sorted(set(re.findall(r"/assets/[^\\\"'<>\\s]+",html)))
+                      status={"path":path,"code":response.status,"final_url":response.url,
+                          "sha256_excerpt":hashlib.sha256(raw).hexdigest(),
+                          "assets":assets[:25],
+                          "has_cascao_v47143":("v47143" in html),
+                          "has_legal_footer":all(x in html for x in ["politica-de-privacidade","termos-de-uso"])}
+                      result["routes"].append(status)
+              except Exception as e:
+                  result["routes"].append({"path":path,"error":str(e)[:180]})
+          text=json.dumps(result,ensure_ascii=False,indent=2)
+          print(text)
+          open("public-deployment-audit.json","w").write(text+"\\n")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CRM_PUBLIC_SITE_READONLY_EVIDENCE
+          path: public-deployment-audit.json
+          if-no-files-found: error
+          retention-days: 7

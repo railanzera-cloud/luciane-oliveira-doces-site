@@ -4,8 +4,11 @@ on:
   push:
     branches:
       - feature/crm-operacao-comercial-priorizada-20261114
+      - integrate/crm-v47143-legal-comercial-20261115
     paths:
       - components/admin-crm-panel.*
+      - app/catalog.ts
+      - app/page.tsx
       - lib/crm-operacao.ts
       - lib/crm-follow-up.ts
       - tests/crm-operacao.test.mjs
@@ -15,6 +18,8 @@ on:
   pull_request:
     paths:
       - components/admin-crm-panel.*
+      - app/catalog.ts
+      - app/page.tsx
       - lib/crm-operacao.ts
       - lib/crm-follow-up.ts
       - tests/crm-operacao.test.mjs
@@ -44,3 +49,5 @@ jobs:
         run: npx tsc --project tsconfig.crm-check.json --noEmit
       - name: Build frontend (without deploy)
         run: npm run build
+      - name: Commercial regression suite (without sending or deploying)
+        run: node --experimental-strip-types --test --test-concurrency=1 tests/*.test.mjs

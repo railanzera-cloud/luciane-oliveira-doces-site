@@ -18,7 +18,7 @@ test("Folheado com Ninho e Morango: preço R$22 e identificadores originais nas 
  assert.equal(f.variants[0].price,22); assert.equal(backend["cascao-folheado-geleia-morango-ninho"].priceCents,2200);
  assert.match(read("app/menu-availability.ts"),/"cascao-folheado-geleia-morango-ninho": "cascao_folheado_geleia_morango_ninho"/);
  assert.equal(f.image,"/images/cascao-folheado-geleia-morango-ninho-20261114-v4713.webp");
- assert.equal(f.cardImage,"/images/cascao-folheado-geleia-morango-ninho-card-20261114-v4713.webp");
+ assert.equal(f.cardImage,"/images/cascao-folheado-inteiro-card-20261114-v47143.webp");
  const quote=quoteCartItems([{product_id:"cascao-folheado-geleia-morango-ninho",variant_id:"unidade",quantity:2,option_ids:[]}]);
  assert.equal(quote.subtotalCents,4400);
  assert.deepEqual(quote.availabilityKeys,["category_cones","cascao_folheado_geleia_morango_ninho"].sort());
@@ -26,6 +26,9 @@ test("Folheado com Ninho e Morango: preço R$22 e identificadores originais nas 
 test("Kinder Bueno e Nutella: nome comercial e preço mudam sem mudar IDs",()=>{
  const id="cascao-trufado-kinder-bueno",f=frontend.find(p=>p.id===id),b=backend[id];
  assert.equal(f.name,"Kinder Bueno e Nutella");assert.equal(b.name,f.name);
+ assert.equal(f.image,"/images/cascao-trufado-kinder-bueno-nutella-real-20261114-v47142.webp");
+ assert.equal(f.cardImage,"/images/cascao-kinder-inteiro-card-20261114-v47143.webp");
+ assert.match(read("app/page.tsx"),/cascao-kinder-inteiro-card-20261114-v47143/);
  assert.equal(f.variants[0].price,22); assert.equal(b.priceCents,2200);
  assert.equal(b.itemKey,"cascao_kinder_bueno");
  assert.equal(quoteCartItems([{product_id:id,variant_id:"unidade",quantity:1}]).subtotalCents,2200);
@@ -34,7 +37,7 @@ test("Ferrero: novo arquivo de foto, sem mudar preço, SKU, WhatsApp, Meta ou Ti
  const f=frontend.find(p=>p.id==="cone-trufado-ferrero-rocher");
  assert.equal(f.variants[0].price,20);
  assert.match(f.image,/20261114-v4713\.webp$/);
- assert.match(f.cardImage,/card-20261114-v4713\.webp$/);
+ assert.equal(f.cardImage,"/images/cascao-ferrero-inteiro-card-20261114-v47143.webp");
  assert.match(f.imageAlt,/bombom cortado/);
  assert.match(read("app/page.tsx"),/tintimWhatsAppUrl/);
  assert.match(read("app/layout.tsx"),/1491655855979140/);

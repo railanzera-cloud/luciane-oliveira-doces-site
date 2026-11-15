@@ -29,9 +29,11 @@ test("proteção: o admin autenticado deve estar na ACL da equipe",()=>{
 test("rascunho aparece antes do vencimento, sem disponibilizar link de envio",()=>{
  assert.match(ui,/item\.status==="waiting_customer" && item\.follow_up_status==="pending"/);
  assert.match(ui,/!isDue && <p className="crm-due-info">Rascunho preparado para revisão/);
- assert.match(ui,/canPrepare = isDue && eligible && !possiblePurchase && !!item\.interest_label/);
+ assert.match(ui,/canPrepare = isDue && eligible && !possiblePurchase && !catalogUnconfirmed/);
  assert.match(ui,/crmSuggestedMessage\(draftInterest,signal\?\.ad_name,mention\?\.product_id\)/);
  assert.match(ui,/crmWhatsAppLink\(result\.phone_e164!, result\.interest_label\)/);
+ assert.match(ui,/crmCatalogAvailability\(result\.interest_label,catalog/);
+ assert.match(ui,/live\.data\?\.status !== "available"/);
  assert.match(ui,/const draftInterest = item\.interest_label/);
 });
 test("cards compactos exibem produto e pesquisa encontra menção identificada",()=>{
@@ -44,7 +46,7 @@ test("cards compactos exibem produto e pesquisa encontra menção identificada",
  assert.match(css,/\.crm-confirm-product/);
 });
 test("aviso não afirma que automação envia mensagens nem que menção é compra",()=>{
- assert.match(ui,/nenhuma mensagem é enviada automaticamente/);
+ assert.match(ui,/nenhuma mensagem é enviada automaticamente/i);
  assert.match(ui,/Não confirma pedido, escolha final nem autorização para disparo/);
  assert.doesNotMatch(ui,/graph\.facebook\.com|automatic_sends_enabled\s*=\s*true/);
 });

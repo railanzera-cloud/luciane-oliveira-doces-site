@@ -1,0 +1,43 @@
+name: CRM build core - candidato sem deploy
+on:
+  push:
+    branches:
+      - integrate/crm-v47143-legal-comercial-20261115
+    paths:
+      - 'app/**'
+      - 'components/admin-crm-panel.*'
+      - 'lib/crm-*'
+      - 'scripts/build-crm-commercial-core.mjs'
+      - '.github/workflows/crm-build-core-candidate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SUPABASE_URL: https://edqiwvccmboyayojvuea.supabase.co
+      # This public publishable key is already committed to the existing
+      # package-cloudflare-mensuracao.yml and used by an older public bundle.
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_69flK5d9m8Oe3HHVnmKWdA_omNIuIcl
+      SITE_ORDERING_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Compile new frontend without publishing
+        run: npm run build
+      - name: Render core routes for offline reconciliation
+        run: node scripts/build-crm-commercial-core.mjs
+      - name: Save candidate core only
+        uses: actions/upload-artifact@v4
+        with:
+          name: CRM_CORE_NOT_PUBLISH_COMMIT
+          path: outputs/crm-commercial-core-NOT-PUBLISH.zip
+          if-no-files-found: error
+          retention-days: 7

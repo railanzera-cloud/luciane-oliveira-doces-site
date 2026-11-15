@@ -33,7 +33,7 @@ test("nao colocar atendimento encerrado, respondido ou futuro na fila vencida",(
 });
 test("navegacao informa vencidos bloqueados, preserva triagem, lista geral e Tintim",()=>{
  const ui=read("components/admin-crm-panel.tsx");
- for(const label of ["Para agora","Revisar","Triagem","Acompanhar","Contatos Tintim"])
+ for(const label of ["Recentes","Para conferir","Pendências","Todos","Contatos Tintim"])
   assert.ok(ui.includes(label),label);
  assert.match(ui,/view==="review"/);
  assert.match(ui,/crmQueueBucket\(/);
