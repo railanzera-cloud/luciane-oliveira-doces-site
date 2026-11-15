@@ -322,3 +322,9 @@
  .crm-inspect-conversation{padding:11px;margin-top:0}
  .crm-inspect-link{max-width:100%;width:100%}
 }
+
+.crm-evidence-summary{
+ font-size:.76rem;line-height:1.5;color:#e9caaf;margin:10px 0 2px;
+ border-top:1px solid #7e5b48;padding-top:9px
+}
+@media(max-width:700px){.crm-evidence-summary{font-size:.72rem;line-height:1.38}}
