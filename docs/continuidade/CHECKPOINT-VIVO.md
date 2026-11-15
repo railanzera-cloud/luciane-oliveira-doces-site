@@ -1090,3 +1090,14 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - Dois runs do QA unitário e typecheck CRM **SUCCESS** no SHA `a3b687fd95f3fa67c7169d60f87eebac2ca6ede8`; referências `43670393913` (PR) e `43670385323` (push). Testes globais de TypeScript possuem erros preexistentes fora do CRM e não equivalem à validação deste módulo.
 - Estado remoto preservado: `automatic_sends_enabled=false`, 0 tentativas de envio, 0 consentimentos concedidos, 213 lembretes pendentes. Nenhuma compra, mensagem, opt-in, preço, estoque, Edge ou Supabase Gestão foi alterado.
 - **Cloudflare NÃO publicado**; fonte candidatada não é a versão em uso. Novos componentes precisam de validação Safari físico, RPC de equipe no PostgREST e reconciliação do ZIP manual com mídias preservadas antes de qualquer publicação. Detalhes em `docs/CRM-OPERACAO-COMERCIAL-20261115.md`.
+
+
+## CRM — integração V4.7.14.3 e ZIP candidato (15/11/2026)
+
+- Branch `integrate/crm-v47143-legal-comercial-20261115` PR #63 sobre CRM PR #62 e legais PR #61. Aplicadas ao código as referências exatas de imagens do PR #60 (incluindo #59) e testes correspondentes, sem merge em `main`/Cloudflare.
+- Correção de SKU: Folheado alias → `cascao_folheado_geleia_morango_ninho`, prestígio diferenciado por fatia/cascão, itens sem correspondência confiável bloqueados no CRM, consulta recente de disponibilidade antes de abrir WhatsApp.
+- GitHub CI SHA `2e08778e6175951f00130c0ad0f3e5efee3f53a2` SUCCESS com 914/914 regressões, 7/7 CRM, build e TypeScript CRM ([run 43717494213](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/43717494213)).
+- Recuperados na Library ZIP completo V4.7.14.3 e pacote legal V4.7.14.1; 145 mídias comuns idênticas, 9 mídias novas específicas da V4.7.14.3.
+- **ZIP CANDIDATO NÃO PUBLICAR:** `LUCIANE_CRM_V47143_INTEGRADO_CANDIDATO_NAO_PUBLICAR_20261115.zip`, SHA256 `3410673c7982e29d34f6dc5edb12bfc74e0d6ebf13a7e3a92be61f1978df74c3`, 16.072.355 bytes / 187 arquivos, 157 mídias preservadas, sete páginas HTML e referências de mídia validadas.
+- **GATE BLOQUEADO:** não comprovados ID/hash de produção Cloudflare, teste CRM autenticado e Safari físico, envio assistido real e atribuição opt-in/timestamp original. Chromium de QA neste ambiente retorna `ERR_BLOCKED_BY_ADMINISTRATOR`; não equivale a falha da aplicação. Nenhum novo deploy/Edge/estoque/financeiro/WhatsApp efetuado.
+- Detalhes e rastreabilidade em `docs/CRM-INTEGRACAO-RELEASE-20261115.md`.
