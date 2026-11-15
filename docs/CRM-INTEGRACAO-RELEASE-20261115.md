@@ -38,3 +38,12 @@
 5. Depois de todos os gates, promover o candidato a pacote de produção e validar o deploy. Work/Cloud Browser pode ajudar na confirmação visual/Cloudflare.
 
 **Atenção:** CI verde, arquivo ZIP íntegro e a disponibilidade do Supabase são provas diferentes de pedido entregue, mensagem enviada, pagamento e uso real no Safari.
+
+
+### Verificação externa posterior — 15/11/2026
+- Auditoria pública GET-only via GitHub Actions: [run 43718771689](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/43718771689), sem autenticação, pedidos ou alterações externas.
+- Domínio `https://lucianeoliveiradoces.com.br/` respondeu HTTP 200; HTML referencia `/assets/page-CmnTtcMF-v47141.js`, **linha V4.7.14.1**, sem referência V4.7.14.3 na página inicial.
+- `/admin/` HTTP 200; SHA256 do HTML publicado `65ea718da1d8263601c8cbb773f0b7fd03bb8f9`, idêntico ao `admin/index.html` do ZIP legal V4.7.14.1 recuperado.
+- `/politica-de-privacidade/`, `/termos-de-uso/`, `/exclusao-de-dados/` também responderam HTTP 200.
+- **Conclusão de evidência:** os últimos pacotes V4.7.14.2 e V4.7.14.3 não correspondem à linha de JS anunciada pelo HTML da home atual. O ID interno do deployment Cloudflare ainda não foi obtido; não pressupor identidade de todos os bytes do site somente pela home.
+- O ZIP CRM candidato reconciliado tem fotos V4.7.14.3 e páginas legais para corrigir a divergência, mas **não publicar ainda** sem validação de login/CRM, Safari e operação real.
