@@ -49,7 +49,7 @@ test("mobile recolhe ajustes manuais e bloqueia reagendamento involuntario",()=>
  const css=read("components/admin-crm-panel.css");
  assert.match(ui,/<details className="crm-manual-controls">/);
  assert.match(ui,/Correções manuais do atendimento/);
- assert.match(ui,/Lembrete automático já ativo/);
+ assert.match(ui,/Lembrete de 45 min já agendado/);
  assert.match(ui,/item\.status==="waiting_customer" && item\.follow_up_status==="pending"\)/);
  assert.match(ui,/window\.confirm\("Você realmente enviou esta mensagem fora do CRM/);
  assert.match(css,/\.crm-manual-controls/);
