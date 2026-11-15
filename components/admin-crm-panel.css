@@ -185,3 +185,78 @@
 .crm-followup>.crm-whatsapp{min-height:48px}
 @media(max-width:700px){.crm-navigation button:last-child{grid-column:auto}
  .crm-followup>.crm-whatsapp{flex-basis:100%}}
+
+
+/* CRM V5 — leitura comercial primeiro, diagnóstico técnico apenas sob demanda. */
+.crm-panel .crm-head{margin-bottom:17px}
+.crm-panel .crm-head h1{letter-spacing:-.035em;line-height:1.15}
+.crm-briefing{
+  background:linear-gradient(139deg,#473022 0%,#35241f 55%,#2d211c 100%);
+  border:1px solid #8d664b;border-radius:20px;padding:22px;margin-bottom:18px;
+  box-shadow:0 13px 35px #1c100b2e
+}
+.crm-briefing-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.crm-briefing h2{font:500 clamp(1.22rem,3vw,1.56rem) Georgia,serif;
+  color:#fff1e3;margin:7px 0}
+.crm-briefing-heading p{font-size:.87rem;color:#e1c6b2;line-height:1.55;margin:0;max-width:600px}
+.crm-manual-state{display:inline-flex;align-items:center;gap:6px;border:1px solid #b17e58;
+  border-radius:999px;padding:8px 11px;color:#ffdcba;background:#64412e;font-size:.75rem;
+  font-weight:650;white-space:nowrap}
+.crm-briefing-numbers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:19px}
+.crm-briefing-numbers button{
+  display:grid;gap:7px;text-align:left;min-width:0;cursor:pointer;
+  background:#251d19a6;border:1px solid #927058;border-radius:13px;padding:14px 15px;
+  color:#e8cdb8;font:inherit
+}
+.crm-briefing-numbers button:hover{border-color:#deb28c}
+.crm-briefing-numbers button:focus-visible,
+.crm-navigation-extra button:focus-visible{outline:2px solid #ffdeb6;outline-offset:3px}
+.crm-briefing-numbers strong{font-size:1.7rem;font-variant-numeric:tabular-nums;line-height:1;color:#ffebd6}
+.crm-briefing-numbers span{font-size:.8rem;line-height:1.3}
+.crm-safety-note{font-size:.78rem;color:#dec2a8;margin:14px 0 0;line-height:1.5}
+.crm-list-warning{border-left:3px solid #e2b185;color:#ffe0c2;background:#533727;
+  font-size:.79rem;line-height:1.5;padding:10px 11px;margin:11px 0 0}
+.crm-panel .crm-navigation{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:8px}
+.crm-panel .crm-navigation button{min-height:50px;padding:11px 8px;font-size:.82rem}
+.crm-navigation-extra{margin-bottom:13px}
+.crm-navigation-extra summary{padding:10px 3px;min-height:40px;cursor:pointer;color:#d6b79d;font-size:.78rem}
+.crm-navigation-extra-actions{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 13px}
+.crm-navigation-extra-actions button{border:1px solid #795b48;background:#382923;
+  color:#ead1bb;border-radius:10px;padding:9px 13px;font:inherit;font-size:.79rem;cursor:pointer}
+.crm-navigation-extra-actions button.is-active{background:#e9c49e;color:#38251e}
+.crm-technical-details{margin:9px 0 15px;border-top:1px solid #604739;border-bottom:1px solid #604739}
+.crm-technical-details>summary{font-size:.82rem;color:#e4c4a9;font-weight:600;
+  cursor:pointer;min-height:45px;padding:12px 5px}
+.crm-technical-details .crm-engine-panel{margin:5px 0 13px}
+.crm-panel .crm-guidance{border-radius:10px;padding:10px 12px;margin-bottom:14px}
+.crm-next-step{color:#ffe3c5!important;font-size:.78rem!important;line-height:1.4;
+  padding:7px 0 1px}
+.crm-recency{color:#d4bda8!important}
+.crm-signal-detail{color:#aa8e7a!important;font-weight:400}
+.crm-stock-status{margin:0;border-left:3px solid #779a83;background:#2d3c31;color:#d9eadd;
+  border-radius:0 9px 9px 0;padding:11px 13px;font-size:.83rem;line-height:1.4}
+.crm-stock-status.crm-stock-unavailable{border-color:#d8a375;background:#4c3024;color:#ffe0bf}
+.crm-panel .crm-card{border-radius:16px;background:#30231e}
+.crm-panel .crm-card-compact .crm-name strong{font-size:1.08rem}
+.crm-panel .crm-card-controls .crm-expand{min-height:44px}
+.crm-panel .crm-followup{align-items:stretch;gap:10px}
+.crm-panel .crm-followup .crm-ad-signal{flex-basis:100%}
+.crm-panel .crm-review-check{flex-basis:100%}
+@media(max-width:700px){
+  .crm-briefing{padding:16px 14px;border-radius:17px}
+  .crm-briefing-heading{flex-direction:column;gap:9px}
+  .crm-briefing h2{font-size:1.38rem}
+  .crm-manual-state{padding:6px 9px;font-size:.72rem}
+  .crm-briefing-numbers{gap:6px;margin-top:14px}
+  .crm-briefing-numbers button{padding:10px 8px;border-radius:10px;gap:5px}
+  .crm-briefing-numbers strong{font-size:1.35rem}
+  .crm-briefing-numbers span{font-size:.71rem}
+  .crm-panel .crm-navigation{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .crm-panel .crm-navigation button{min-height:48px;font-size:.81rem}
+  .crm-panel .crm-navigation button:last-child{grid-column:auto}
+  .crm-navigation-extra-actions button{flex:1 1 150px}
+  .crm-panel .crm-card header{gap:8px}
+  .crm-panel .crm-card-controls{align-items:center}
+  .crm-panel .crm-next-step{line-height:1.5}
+}
+@media(prefers-reduced-motion:reduce){.crm-panel .crm-button{transition:none}}

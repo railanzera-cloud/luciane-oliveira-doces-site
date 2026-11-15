@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Check, ChevronDown, Clock3, MessageCircle, RefreshCw, Search, ShieldCheck, UserPlus } from "lucide-react";
 import { crmAdSliceHint, crmMentionedProductName, crmSuggestedMessage, crmWhatsAppLink, crmQueueBucket } from "@/lib/crm-follow-up";
-import { assistedReviewProblems, assistedTiming, type AssistedReview } from "@/lib/crm-assisted";
+import { assistedReviewProblems, type AssistedReview } from "@/lib/crm-assisted";
+import { crmCatalogAvailability, crmFriendlyAge, crmFriendlyReminder, crmRecentlyActive, type CrmAvailabilityRow } from "@/lib/crm-operacao";
 import "./admin-crm-panel.css";
 
 type Opportunity = {
@@ -28,7 +29,7 @@ type Candidate = {
   stage_label: string | null; source_label: string | null;
   campaign_name: string | null; last_seen_at: string; imported: boolean;
 };
-type View = "due" | "review" | "new" | "active" | "history" | "tintim";
+type View = "recent" | "due" | "review" | "new" | "active" | "history" | "tintim";
 type ProductMention = {
   conversation_id: string;
   product_id: string;
@@ -95,12 +96,14 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   const [mentions, setMentions] = useState<Record<string,ProductMention>>({});
   const [automation, setAutomation] = useState<AutomationReport | null>(null);
   const [automationQueue, setAutomationQueue] = useState<Record<string,AutomationQueueItem>>({});
+  const [catalog, setCatalog] = useState<CrmAvailabilityRow[] | null>(null);
+  const [listLimited, setListLimited] = useState(false);
 
   const actionLock = useRef(false);
   const refreshVersion = useRef(0);
   const [reviewed, setReviewed] = useState<Record<string,string>>({});
   const [opened, setOpened] = useState<Record<string,boolean>>({});
-  const [view, setView] = useState<View>("due");
+  const [view, setView] = useState<View>("recent");
   const [loading, setLoading] = useState(true);
   const [dataStale, setDataStale] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -117,6 +120,29 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   const [listLimit, setListLimit] = useState(15);
   const [expanded, setExpanded] = useState<Record<string,boolean>>({});
 
+  // Busca integral paginada, com fallback seguro durante a implantação da RPC nova.
+  const loadOpportunities = useCallback(async () => {
+    const collected: Opportunity[] = [];
+    const pageSize = 250;
+    for (let page = 0; page < 20; page++) {
+      const result = await rpc("crm_list_opportunities_page", {
+        p_offset: collected.length, p_limit: pageSize,
+      });
+      if (result.error) {
+        if (page !== 0 || !/PGRST202|Could not find the function|schema cache/i.test(result.error.message)) {
+          throw result.error;
+        }
+        const legacy = await rpc("crm_list_opportunities");
+        if (legacy.error) throw legacy.error;
+        return { rows: (legacy.data ?? []) as Opportunity[], limited: true };
+      }
+      const batch = (result.data ?? []) as Opportunity[];
+      collected.push(...batch);
+      if (batch.length < pageSize) return { rows: collected, limited: false };
+    }
+    return { rows: collected, limited: true };
+  }, [rpc]);
+
   const refresh = useCallback(async () => {
     const version = ++refreshVersion.current;
     setRefreshing(true);
@@ -129,15 +155,15 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       }
       const hold = await rpc("crm_hold_tintim_purchase_signals");
       if (hold.error) throw hold.error;
-      const [list,candidatesResult,signalsResult,mentionsResult,reportResult,queueResult] = await Promise.all([
-        rpc("crm_list_opportunities"),
+      const [list,candidatesResult,signalsResult,mentionsResult,reportResult,queueResult,catalogResult] = await Promise.all([
+        loadOpportunities(),
         rpc("crm_list_tintim_candidates", { p_limit: 40 }),
         rpc("crm_list_tintim_signals"),
         rpc("crm_list_tintim_product_hints"),
         rpc("crm_automation_operational_report"),
         rpc("crm_automation_queue_items"),
+        client.from("menu_availability").select("item_key,name,item_type,status,category_key"),
       ]);
-      if (list.error) throw list.error;
       if (candidatesResult.error) throw candidatesResult.error;
       if (signalsResult.error) throw signalsResult.error;
       // Migração aditiva: durante homologação uma instalação anterior pode não
@@ -146,7 +172,9 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         throw mentionsResult.error;
       }
       if (version !== refreshVersion.current) return;
-      setItems((list.data ?? []) as Opportunity[]);
+      setItems(list.rows);
+      setListLimited(list.limited);
+      setCatalog(catalogResult.error ? null : (catalogResult.data ?? []) as CrmAvailabilityRow[]);
       setCandidates((candidatesResult.data ?? []) as Candidate[]);
       setSignals(Object.fromEntries(((signalsResult.data ?? []) as TintimSignal[])
         .map(signal => [signal.conversation_id,signal])));
@@ -163,7 +191,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       setError("");
     } catch (e) { if (version === refreshVersion.current) { setDataStale(true); setError(displayError(e)); } }
     finally { if (version === refreshVersion.current) { setLoading(false); setRefreshing(false); } }
-  }, [rpc]);
+  }, [rpc,client,loadOpportunities]);
 
   useEffect(() => { void refresh(); }, [refresh]);
   useEffect(() => { setListLimit(15); }, [view, search, onlyWithProduct]);
@@ -192,12 +220,13 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
     possible_purchase: hasPurchaseSignal(signals[item.conversation_id]?.stage_label)
   }, now), [signals, now]);
   // "Para agora" = revisão manual possível, NÃO autorização para envio Meta.
+  const recent = waiting.filter(item => crmRecentlyActive(item.last_inbound_at,now));
   const due = waiting.filter(item => bucketOf(item) === "review_now");
   const review = waiting.filter(item => bucketOf(item) === "blocked_due");
   const scheduled = waiting.filter(item => bucketOf(item) === "scheduled");
   const newLeads = waiting.filter(item => item.status==="in_progress" && !item.last_outbound_at);
   const history = items.filter(item => ["converted","lost","closed"].includes(item.status) || item.follow_up_status === "sent_manually");
-  const visible = view === "history" ? history : view === "due" ? due : view === "review" ? review :
+  const visible = view === "history" ? history : view === "recent" ? recent : view === "due" ? due : view === "review" ? review :
     view === "new" ? newLeads : waiting;
   const filteredVisible = useMemo(() => {
     const term = search.trim().toLocaleLowerCase("pt-BR");
@@ -220,6 +249,8 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         Date.parse(b.last_outbound_at ?? b.last_inbound_at ?? b.created_at) -
         Date.parse(a.last_outbound_at ?? a.last_inbound_at ?? a.created_at);
     });
+    if (view === "recent") return [...shortlist].sort((a,b) =>
+      Date.parse(b.last_inbound_at ?? b.created_at) - Date.parse(a.last_inbound_at ?? a.created_at));
     if (view === "new") return [...shortlist].sort((a,b) =>
       new Date(signals[b.conversation_id]?.last_observed_at ?? 0).getTime() -
       new Date(signals[a.conversation_id]?.last_observed_at ?? 0).getTime());
@@ -315,69 +346,93 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   return (
     <section className="crm-panel" aria-label="Acompanhamento comercial">
       <div className="crm-head">
-        <div><span className="crm-eyebrow">RELACIONAMENTO</span>
-          <h1>Oportunidades de venda</h1>
-          <p>Quem demonstrou interesse não precisa ficar esquecido no WhatsApp.</p>
+        <div><span className="crm-eyebrow">CENTRAL DE RELACIONAMENTO</span>
+          <h1>Vendas em conversa</h1>
+          <p>Encontre quem conversou com a loja, entenda o interesse e decida o próximo passo.</p>
         </div>
-        <button className="crm-button crm-secondary" type="button" disabled={loading || refreshing || !!pending} onClick={() => void refresh()}>
+        <button className="crm-button crm-secondary" type="button"
+          disabled={loading || refreshing || !!pending} onClick={() => void refresh()}>
           <RefreshCw size={16}/> {refreshing ? "Atualizando…" : "Atualizar"}
         </button>
       </div>
-      <div className="crm-info"><ShieldCheck size={18} aria-hidden="true"/>
-        <span>CRM conectado: <strong>nenhuma mensagem é enviada automaticamente.</strong> Abrir o WhatsApp não comprova envio.</span>
-      </div>
-      <section className="crm-engine-panel" aria-label="Saúde da automação de 45 minutos">
-        <div className="crm-engine-heading">
+      <section className="crm-briefing" aria-label="Resumo da operação">
+        <div className="crm-briefing-heading">
           <div>
-            <span className="crm-eyebrow">MOTOR DE ACOMPANHAMENTO</span>
-            <h2>Acompanhamento de 45 minutos</h2>
-            <p>Observa, agenda e cancela lembretes sem enviar mensagens indevidas.</p>
+            <span className="crm-eyebrow">VISÃO COMERCIAL</span>
+            <h2>Quem merece atenção?</h2>
+            <p>Comece pelas conversas recentes. Lembretes antigos precisam de nova conferência, não de disparo.</p>
           </div>
-          <strong className="crm-engine-state">Envio desligado</strong>
+          <span className="crm-manual-state"><ShieldCheck size={16}/> Somente assistido</span>
         </div>
-        {automation ? <>
-          <div className="crm-engine-stats">
-            <div><strong>{automation.pending}</strong><span>Pendentes</span></div>
-            <div><strong>{automation.overdue}</strong><span>Vencidos</span></div>
-            <div><strong>{automation.blocked}</strong><span>Bloqueados na auditoria</span></div>
-            <div><strong>{automation.scheduled}</strong><span>Programados</span></div>
-          </div>
-          <p className="crm-engine-timestamp">
-            Auditoria da fila: {automation.last_evaluated_at
-              ? fmtTime(automation.last_evaluated_at)+" (Paragominas)"
-              : "ainda não executada"}
-          </p>
-          <details className="crm-engine-details">
-            <summary>O que falta para ativar o envio automático?</summary>
-            <div className="crm-engine-blockers">
-            <span>{automation.consented_customers===0
-              ? "Nenhum cliente tem consentimento comercial comprovado no CRM."
-              : automation.consented_customers+" clientes têm consentimento documentado; cada contato ainda depende de validação."}</span>
-            <span>{automation.provider_timestamps===0 && automation.official_webhook_events===0
-              ? "Sem horários originais confirmados pelo provedor/Meta."
-              : "Existem eventos do provedor para validação individual da janela de atendimento."}</span>
-            <span>Integração de envio com a Coexistence do Tintim não homologada. Nada é disparado por esta tela.</span>
-            </div>
-          </details>
-        </> : <p className="crm-engine-timestamp">
-          Monitor de automação ainda indisponível neste deploy. A ausência de dados não autoriza disparos.
+        <div className="crm-briefing-numbers">
+          <button type="button" onClick={()=>setView("recent")} aria-label="Ver conversas recentes">
+            <strong>{recent.length}</strong><span>Conversas recentes</span>
+          </button>
+          <button type="button" onClick={()=>setView("due")} aria-label="Ver lembretes para revisão">
+            <strong>{due.length}</strong><span>Revisar agora</span>
+          </button>
+          <button type="button" onClick={()=>setView("review")} aria-label="Ver contatos que exigem cuidado">
+            <strong>{review.length}</strong><span>Exigem conferência</span>
+          </button>
+        </div>
+        <p className="crm-safety-note">O CRM não envia mensagens sozinho. Todo contato precisa de contexto, autorização válida e conferência de compra.</p>
+        {listLimited && <p role="status" className="crm-list-warning">
+          Lista parcial: este ambiente ainda usa o limite legado de 150 contatos. A paginação nova precisa ser ativada no banco.
         </p>}
       </section>
-      {/* Os números do motor e das abas já exibem contagens. Evitar cartões duplicados. */}
       <div className="crm-navigation" role="group" aria-label="Filtrar atendimentos">
-        <button type="button" className={view==="due"?"is-active":""} onClick={()=>setView("due")}>Para agora <b>{due.length}</b></button>
-        <button type="button" className={view==="review"?"is-active":""} onClick={()=>setView("review")}>Revisar <b>{review.length}</b></button>
-        <button type="button" className={view==="new"?"is-active":""} onClick={()=>setView("new")}>Triagem <b>{newLeads.length}</b></button>
-        <button type="button" className={view==="active"?"is-active":""} onClick={()=>setView("active")}>Acompanhar <b>{waiting.length}</b></button>
-        <button type="button" className={view==="history"?"is-active":""} onClick={()=>setView("history")}>Finalizados <b>{history.length}</b></button>
-        <button type="button" className={view==="tintim"?"is-active":""} onClick={()=>setView("tintim")}>Contatos Tintim</button>
+        <button type="button" className={view==="recent"?"is-active":""} onClick={()=>setView("recent")}>
+          Recentes <b>{recent.length}</b></button>
+        <button type="button" className={view==="due"?"is-active":""} onClick={()=>setView("due")}>
+          Para conferir <b>{due.length}</b></button>
+        <button type="button" className={view==="review"?"is-active":""} onClick={()=>setView("review")}>
+          Pendências <b>{review.length}</b></button>
+        <button type="button" className={view==="active"?"is-active":""} onClick={()=>setView("active")}>
+          Todos <b>{waiting.length}</b></button>
       </div>
+      <details className="crm-navigation-extra">
+        <summary>Outras listas: finalizados, novos contatos e Tintim</summary>
+        <div className="crm-navigation-extra-actions">
+          <button type="button" className={view==="history"?"is-active":""} onClick={()=>setView("history")}>Finalizados ({history.length})</button>
+          <button type="button" className={view==="new"?"is-active":""} onClick={()=>setView("new")}>Sem resposta da loja ({newLeads.length})</button>
+          <button type="button" className={view==="tintim"?"is-active":""} onClick={()=>setView("tintim")}>Contatos Tintim</button>
+        </div>
+      </details>
       <p className="crm-guidance">
-        <strong>Fila inteligente:</strong> o Tintim agenda e cancela lembretes automaticamente.
-        <strong> Para agora</strong> exige revisão humana antes de qualquer contato;
-        <strong> Revisar</strong> guarda vencidos com consentimento ausente, opt-out ou possível compra.
-        A abertura também exige produto confirmado, horário original verificado e conferência da conversa no WhatsApp Business. Um anúncio ou uma menção de fatia não comprovam autorização.
+        {view==="recent" ? "Conversas com mensagem recebida nas últimas 48 horas. Estar aqui não significa permissão de envio." :
+         view==="due" ? "Lembretes vencidos com permissão registrada: ainda é preciso validar janela, produto e compra no atendimento." :
+         view==="review" ? "Há algum impedimento ou dado não confirmado. Confira o motivo antes de pensar em uma mensagem." :
+         view==="active" ? "Todos os atendimentos em curso, inclusive os antigos. Priorize os mais recentes e específicos." :
+         view==="history" ? "Ações finalizadas ou enviadas manualmente. Envio registrado não é prova de entrega ou venda." :
+         view==="new" ? "Contatos sem resposta da loja identificada. Verifique a conversa real." :
+         "Contatos identificados pelo Tintim. Origem e campanha não comprovam consentimento ou intenção final."}
       </p>
+      <details className="crm-technical-details">
+        <summary>Monitor de automação e segurança</summary>
+        <section className="crm-engine-panel" aria-label="Saúde da automação de 45 minutos">
+          <div className="crm-engine-heading">
+            <div><span className="crm-eyebrow">MOTOR DE ACOMPANHAMENTO</span>
+              <h2>Revisão após 45 minutos</h2>
+              <p>Agenda e cancela lembretes; não envia mensagens automaticamente.</p></div>
+            <strong className="crm-engine-state">Envio desligado</strong>
+          </div>
+          {automation ? <>
+            <div className="crm-engine-stats">
+              <div><strong>{automation.pending}</strong><span>Pendentes na base</span></div>
+              <div><strong>{automation.overdue}</strong><span>Lembretes vencidos</span></div>
+              <div><strong>{automation.blocked}</strong><span>Bloqueios auditados</span></div>
+              <div><strong>{automation.scheduled}</strong><span>Programados</span></div>
+            </div>
+            <p className="crm-engine-timestamp">Auditoria: {automation.last_evaluated_at
+                ? fmtTime(automation.last_evaluated_at)+" (Paragominas)" : "ainda não executada"}</p>
+            <div className="crm-engine-blockers">
+              <span>{automation.consented_customers} clientes com autorização comprovada no CRM. Permissão não é inferida pelo anúncio.</span>
+              <span>O horário original da mensagem e a compra precisam ser conferidos individualmente.</span>
+              <span>Canal de envio automático ainda não homologado. O acompanhamento assistido permanece separado.</span>
+            </div>
+          </> : <p className="crm-engine-timestamp">Monitor indisponível. Nenhum envio pode ser presumido seguro.</p>}
+        </section>
+      </details>
       {view==="due" && due.length===0 && review.length>0 && <div className="crm-empty-attention">
         Nenhum atendimento habilitado para revisão imediata. Existem {review.length} lembretes
         vencidos que exigem conferência ou autorização — não devem ser enviados automaticamente.
@@ -398,7 +453,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       {loading && <div role="status" className="crm-loading">Carregando oportunidades…</div>}
 
       {view!=="tintim" && !loading && filteredVisible.length===0 && !error && (
-        <div className="crm-empty"><Clock3 size={24}/><strong>{search?"Nenhum contato encontrado":view==="due"?"Nenhum follow-up para revisão imediata":view==="review"?"Nenhuma pendência bloqueada":view==="new"?"Nenhum contato aguardando triagem":"Nenhuma oportunidade em acompanhamento"}</strong>
+        <div className="crm-empty"><Clock3 size={24}/><strong>{search?"Nenhum contato encontrado":view==="recent"?"Nenhuma mensagem recente observada":view==="due"?"Nenhum follow-up para revisão imediata":view==="review"?"Nenhuma pendência bloqueada":view==="new"?"Nenhum contato aguardando triagem":"Nenhuma oportunidade em acompanhamento"}</strong>
           <p>Os contatos recentes do Tintim entram automaticamente quando esta aba é aberta. As mensagens continuam no aplicativo da Luciane.</p></div>
       )}
       {view!=="tintim" && !loading && !error && <p className="crm-list-count">
@@ -419,7 +474,9 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         const possiblePurchase = hasPurchaseSignal(signal?.stage_label);
         const audit = item.follow_up_id ? automationQueue[item.follow_up_id] : undefined;
         const isReviewed = reviewed[item.conversation_id] === reviewKey(item);
-        const canPrepare = isDue && eligible && !possiblePurchase && !!item.interest_label?.trim() && !unsavedInterest;
+        const catalogMatch = crmCatalogAvailability(item.interest_label,catalog ?? []);
+        const catalogUnavailable = catalogMatch?.status === "sold_out" || catalogMatch?.status === "hidden";
+        const canPrepare = isDue && eligible && !possiblePurchase && !catalogUnavailable && !!item.interest_label?.trim() && !unsavedInterest;
         const isFinished = ["converted","lost","closed"].includes(item.status);
         const isExpanded = expanded[item.conversation_id] ??
           (view==="due" && isDue && eligible && !possiblePurchase);
@@ -432,8 +489,15 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
                   mentionedName ? "Cliente mencionou: " + mentionedName :
                   "Anúncio relacionado: " + adHint?.name}
               </small>}
+              <small className="crm-recency">Última entrada observada: {crmFriendlyAge(item.last_inbound_at,now)}</small>
               {signal?.last_observed_at &&
-                <small>Cadastro/etapa Tintim atualizada: {fmtTime(signal.last_observed_at)}</small>}
+                <small className="crm-signal-detail">Tintim atualizado: {fmtTime(signal.last_observed_at)}</small>}
+              <small className="crm-next-step">{possiblePurchase ? "Próximo passo: conferir possível compra" :
+                item.commercial_opt_out ? "Cliente não deseja contato comercial" :
+                catalogUnavailable ? "Próximo passo: produto indisponível · não oferecer" :
+                item.interest_label ? "Próximo passo: revisar conversa e possível retorno" :
+                mentionedName || adHint ? "Próximo passo: confirmar qual produto chamou atenção" :
+                "Próximo passo: identificar o pedido antes de abordar"}</small>
             </div>
             <div className="crm-card-controls">
               <span className={"crm-pill "+(isDue?"crm-due":"")}>
@@ -452,7 +516,12 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
           {isExpanded && <>
           {item.follow_up_status==="sent_manually" && <p className="crm-due-info">Envio informado pela atendente. Não comprova entrega nem pagamento.</p>}
           <p className="crm-due-info">{item.last_inbound_at ? "Última entrada observada: " + fmtTime(item.last_inbound_at) : "Sem mensagem de entrada observada"}<br/>{item.last_outbound_at ? "Última saída observada: " + fmtTime(item.last_outbound_at) : "Sem resposta da loja observada"}<br/>Horários observados não comprovam o horário original do provedor. Revise o conteúdo no WhatsApp Business.</p>
-          {possiblePurchase && <p className="crm-purchase-review" role="note">
+          {item.interest_label && <p className={"crm-stock-status"+(catalogUnavailable ? " crm-stock-unavailable" : "")}>
+             {catalogMatch?.status==="available" ? "Catálogo indica disponibilidade. Confirme quantidade física antes de oferecer." :
+              catalogUnavailable ? "Produto indisponível no catálogo. Oferta deste item bloqueada neste acompanhamento." :
+              "Disponibilidade não confirmada: confirme o produto e o estoque físico antes de oferecer."}
+           </p>}
+           {possiblePurchase && <p className="crm-purchase-review" role="note">
             O Tintim sinalizou “Comprou”. Confira esse registro antes de fazer novo follow-up.
             O CRM não confirmou pagamento nem registrou faturamento.
           </p>}
@@ -489,8 +558,8 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               onClick={()=>void saveConfirmedInterest(item.conversation_id)}>Salvar produto confirmado</button>
           </div>
           {item.follow_up_status==="pending" && item.follow_up_due_at &&
-            <p className="crm-due-info">Lembrete: {fmtTime(item.follow_up_due_at)} (Paragominas)
-              <strong> · {assistedTiming(item.follow_up_due_at,item.last_outbound_at,now)}</strong>
+            <p className="crm-due-info">Acompanhamento: <strong>{crmFriendlyReminder(item.follow_up_due_at,now)}</strong>
+              <small className="crm-signal-detail"> · horário registrado {fmtTime(item.follow_up_due_at)}</small>
             </p>}
           {!isFinished && <details className="crm-manual-controls">
             <summary>Correções manuais do atendimento</summary>
@@ -528,10 +597,10 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               <label className="crm-review-check">
                 <input type="checkbox" checked={isReviewed} disabled={locked || !canPrepare}
                   onChange={e=>setReviewed(previous=>({...previous,[item.conversation_id]:e.target.checked?reviewKey(item):""}))}/>
-                Conferi a conversa no WhatsApp Business, o telefone e o produto salvo. Não houve resposta nem compra posterior.
+                Conferi a conversa, o telefone, a disponibilidade física e o produto salvo. Não houve resposta nem compra posterior.
               </label>
               <p className="crm-due-info">Destino: {item.phone_e164} · Produto: {item.interest_label || "não confirmado"}</p>
-              {!canPrepare && <p>{possiblePurchase ? "Follow-up suspenso: possível compra sinalizada no Tintim." : !eligible ? "Mensagem comercial indisponível: autorização não registrada ou contato bloqueado." : unsavedInterest ? "Salve a confirmação do produto antes de continuar." : "Confirme o produto antes de preparar o contato."}</p>}
+              {!canPrepare && <p>{possiblePurchase ? "Follow-up suspenso: possível compra sinalizada no Tintim." : catalogUnavailable ? "Este produto está indisponível no catálogo. Confirme outra opção antes de oferecer." : !eligible ? "Mensagem comercial indisponível: autorização não comprovada ou contato bloqueado." : unsavedInterest ? "Salve a confirmação do produto antes de continuar." : "Confirme o produto antes de preparar o contato."}</p>}
               <button className="crm-button crm-whatsapp" type="button"
                 disabled={locked || !canPrepare || !isReviewed}
                 onClick={()=>openAssisted(item)}><MessageCircle size={17}/> Conferir elegibilidade e abrir WhatsApp</button>

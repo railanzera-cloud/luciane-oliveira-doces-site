@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false
+  },
+  "include": [
+    "next-env.d.ts",
+    "components/admin-crm-panel.tsx",
+    "lib/crm-assisted.ts",
+    "lib/crm-follow-up.ts",
+    "lib/crm-operacao.ts"
+  ],
+  "exclude": ["node_modules", ".next", "db", "worker"]
+}

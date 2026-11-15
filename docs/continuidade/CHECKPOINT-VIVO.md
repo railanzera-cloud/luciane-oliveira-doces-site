@@ -1079,3 +1079,14 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - Homologação de entregas 43617799578: teste dos handlers e tipos/build aprovados; demais jobs em processamento na leitura.
 - Nenhuma mudança no Supabase de produção, Cloudflare, Meta Events Manager ou Tintim. O Pixel manual somente estará ativo após publicação do frontend.
 - Atenção: ZIP de build-base do CI NÃO é publicável sem a mídia exata da capa aprovada, que é externa ao repositório (pacote de outra conversa: LODC_SITE_V4_7_13_CAPA_CASCAO_APROVADA.zip). Arquivo localizado na Biblioteca, mas tentativa de materialização retornou ausência de autorização para acesso aos bytes; não substituir por arte sintética ou antiga.
+
+
+## CRM — central comercial e paginação segura (15/11/2026)
+
+- Autorização: redesenho de Clientes → Oportunidades, priorização comercial, personalização contextual e preparação de follow-up eficiente; sem envio indiscriminado.
+- Fonte: branch `feature/crm-operacao-comercial-priorizada-20261114`, PR draft #62, sobre `feat/paginas-lgpd-meta-20261114` (PR #61), não `main`.
+- Foi criada e aplicada somente a migração aditiva `20261115025757_crm_staff_paginated_opportunities_readonly` no Supabase comercial. Teste read-only paginou 659/659 IDs únicos com 250+250+159 registros; função permite apenas equipe autenticada verificada, não `anon`.
+- Código do CRM passa a distinguir conversas recentes, compromissos a revisar, bloqueios e contatos antigos, com resumo de próxima ação e contexto do catálogo; sem inventar estoque físico ou escassez.
+- Dois runs do QA unitário e typecheck CRM **SUCCESS** no SHA `a3b687fd95f3fa67c7169d60f87eebac2ca6ede8`; referências `43670393913` (PR) e `43670385323` (push). Testes globais de TypeScript possuem erros preexistentes fora do CRM e não equivalem à validação deste módulo.
+- Estado remoto preservado: `automatic_sends_enabled=false`, 0 tentativas de envio, 0 consentimentos concedidos, 213 lembretes pendentes. Nenhuma compra, mensagem, opt-in, preço, estoque, Edge ou Supabase Gestão foi alterado.
+- **Cloudflare NÃO publicado**; fonte candidatada não é a versão em uso. Novos componentes precisam de validação Safari físico, RPC de equipe no PostgREST e reconciliação do ZIP manual com mídias preservadas antes de qualquer publicação. Detalhes em `docs/CRM-OPERACAO-COMERCIAL-20261115.md`.
