@@ -299,3 +299,26 @@
   .crm-panel .crm-navigation button{min-height:44px}
   .crm-panel .crm-card header{padding-bottom:8px}
 }
+
+/* Evidência observada e consulta do WhatsApp sem mensagem pré-preenchida. */
+.crm-evidence-kind{
+ display:block;margin-top:4px;color:#ebcaa9!important;font-size:.71rem!important;
+ line-height:1.45;font-weight:600;
+}
+.crm-evidence-kind.crm-evidence-official{color:#a6d4b6!important}
+.crm-inspect-conversation{
+ display:grid;gap:8px;background:#3b2a22;border-left:3px solid #c49c7b;
+ border-radius:0 10px 10px 0;padding:12px 13px;margin:6px 0 12px;
+}
+.crm-inspect-conversation>strong{font-size:.86rem;color:#ffdec1}
+.crm-inspect-conversation>p{font-size:.76rem;color:#ddc3ae;margin:0;line-height:1.5}
+.crm-inspect-link{
+ display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ text-decoration:none;font-weight:650;font-size:.84rem;max-width:max-content;
+ min-height:42px;padding:9px 14px;
+}
+.crm-inspect-link:focus-visible{outline:2px solid #efc39d;outline-offset:3px}
+@media(max-width:700px){
+ .crm-inspect-conversation{padding:11px;margin-top:0}
+ .crm-inspect-link{max-width:100%;width:100%}
+}
