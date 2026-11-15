@@ -346,69 +346,91 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   return (
     <section className="crm-panel" aria-label="Acompanhamento comercial">
       <div className="crm-head">
-        <div><span className="crm-eyebrow">RELACIONAMENTO</span>
-          <h1>Oportunidades de venda</h1>
-          <p>Quem demonstrou interesse não precisa ficar esquecido no WhatsApp.</p>
+        <div><span className="crm-eyebrow">CENTRAL DE RELACIONAMENTO</span>
+          <h1>Vendas em conversa</h1>
+          <p>Encontre quem conversou com a loja, entenda o interesse e decida o próximo passo.</p>
         </div>
-        <button className="crm-button crm-secondary" type="button" disabled={loading || refreshing || !!pending} onClick={() => void refresh()}>
+        <button className="crm-button crm-secondary" type="button"
+          disabled={loading || refreshing || !!pending} onClick={() => void refresh()}>
           <RefreshCw size={16}/> {refreshing ? "Atualizando…" : "Atualizar"}
         </button>
       </div>
-      <div className="crm-info"><ShieldCheck size={18} aria-hidden="true"/>
-        <span>CRM conectado: <strong>nenhuma mensagem é enviada automaticamente.</strong> Abrir o WhatsApp não comprova envio.</span>
-      </div>
-      <section className="crm-engine-panel" aria-label="Saúde da automação de 45 minutos">
-        <div className="crm-engine-heading">
+      <section className="crm-briefing" aria-label="Resumo da operação">
+        <div className="crm-briefing-heading">
           <div>
-            <span className="crm-eyebrow">MOTOR DE ACOMPANHAMENTO</span>
-            <h2>Acompanhamento de 45 minutos</h2>
-            <p>Observa, agenda e cancela lembretes sem enviar mensagens indevidas.</p>
+            <span className="crm-eyebrow">VISÃO COMERCIAL</span>
+            <h2>Quem merece atenção?</h2>
+            <p>Comece pelas conversas recentes. Lembretes antigos precisam de nova conferência, não de disparo.</p>
           </div>
-          <strong className="crm-engine-state">Envio desligado</strong>
+          <span className="crm-manual-state"><ShieldCheck size={16}/> Somente assistido</span>
         </div>
-        {automation ? <>
-          <div className="crm-engine-stats">
-            <div><strong>{automation.pending}</strong><span>Pendentes</span></div>
-            <div><strong>{automation.overdue}</strong><span>Vencidos</span></div>
-            <div><strong>{automation.blocked}</strong><span>Bloqueados na auditoria</span></div>
-            <div><strong>{automation.scheduled}</strong><span>Programados</span></div>
-          </div>
-          <p className="crm-engine-timestamp">
-            Auditoria da fila: {automation.last_evaluated_at
-              ? fmtTime(automation.last_evaluated_at)+" (Paragominas)"
-              : "ainda não executada"}
-          </p>
-          <details className="crm-engine-details">
-            <summary>O que falta para ativar o envio automático?</summary>
-            <div className="crm-engine-blockers">
-            <span>{automation.consented_customers===0
-              ? "Nenhum cliente tem consentimento comercial comprovado no CRM."
-              : automation.consented_customers+" clientes têm consentimento documentado; cada contato ainda depende de validação."}</span>
-            <span>{automation.provider_timestamps===0 && automation.official_webhook_events===0
-              ? "Sem horários originais confirmados pelo provedor/Meta."
-              : "Existem eventos do provedor para validação individual da janela de atendimento."}</span>
-            <span>Integração de envio com a Coexistence do Tintim não homologada. Nada é disparado por esta tela.</span>
-            </div>
-          </details>
-        </> : <p className="crm-engine-timestamp">
-          Monitor de automação ainda indisponível neste deploy. A ausência de dados não autoriza disparos.
+        <div className="crm-briefing-numbers">
+          <button type="button" onClick={()=>setView("recent")} aria-label="Ver conversas recentes">
+            <strong>{recent.length}</strong><span>Conversas recentes</span>
+          </button>
+          <button type="button" onClick={()=>setView("due")} aria-label="Ver lembretes para revisão">
+            <strong>{due.length}</strong><span>Revisar agora</span>
+          </button>
+          <button type="button" onClick={()=>setView("review")} aria-label="Ver contatos que exigem cuidado">
+            <strong>{review.length}</strong><span>Exigem conferência</span>
+          </button>
+        </div>
+        <p className="crm-safety-note">O CRM não envia mensagens sozinho. Todo contato precisa de contexto, autorização válida e conferência de compra.</p>
+        {listLimited && <p role="status" className="crm-list-warning">
+          Lista parcial: este ambiente ainda usa o limite legado de 150 contatos. A paginação nova precisa ser ativada no banco.
         </p>}
       </section>
-      {/* Os números do motor e das abas já exibem contagens. Evitar cartões duplicados. */}
       <div className="crm-navigation" role="group" aria-label="Filtrar atendimentos">
-        <button type="button" className={view==="due"?"is-active":""} onClick={()=>setView("due")}>Para agora <b>{due.length}</b></button>
-        <button type="button" className={view==="review"?"is-active":""} onClick={()=>setView("review")}>Revisar <b>{review.length}</b></button>
-        <button type="button" className={view==="new"?"is-active":""} onClick={()=>setView("new")}>Triagem <b>{newLeads.length}</b></button>
-        <button type="button" className={view==="active"?"is-active":""} onClick={()=>setView("active")}>Acompanhar <b>{waiting.length}</b></button>
-        <button type="button" className={view==="history"?"is-active":""} onClick={()=>setView("history")}>Finalizados <b>{history.length}</b></button>
-        <button type="button" className={view==="tintim"?"is-active":""} onClick={()=>setView("tintim")}>Contatos Tintim</button>
+        <button type="button" className={view==="recent"?"is-active":""} onClick={()=>setView("recent")}>
+          Recentes <b>{recent.length}</b></button>
+        <button type="button" className={view==="due"?"is-active":""} onClick={()=>setView("due")}>
+          Para conferir <b>{due.length}</b></button>
+        <button type="button" className={view==="review"?"is-active":""} onClick={()=>setView("review")}>
+          Pendências <b>{review.length}</b></button>
+        <button type="button" className={view==="active"?"is-active":""} onClick={()=>setView("active")}>
+          Todos <b>{waiting.length}</b></button>
+        <button type="button" className={view==="history"?"is-active":""} onClick={()=>setView("history")}>
+          Finalizados <b>{history.length}</b></button>
+        <button type="button" className={view==="new"?"is-active":""} onClick={()=>setView("new")}>
+          Novos <b>{newLeads.length}</b></button>
+        <button type="button" className={view==="tintim"?"is-active":""} onClick={()=>setView("tintim")}>
+          Contatos Tintim</button>
       </div>
       <p className="crm-guidance">
-        <strong>Fila inteligente:</strong> o Tintim agenda e cancela lembretes automaticamente.
-        <strong> Para agora</strong> exige revisão humana antes de qualquer contato;
-        <strong> Revisar</strong> guarda vencidos com consentimento ausente, opt-out ou possível compra.
-        A abertura também exige produto confirmado, horário original verificado e conferência da conversa no WhatsApp Business. Um anúncio ou uma menção de fatia não comprovam autorização.
+        {view==="recent" ? "Conversas com mensagem recebida nas últimas 48 horas. Estar aqui não significa permissão de envio." :
+         view==="due" ? "Lembretes vencidos com permissão registrada: ainda é preciso validar janela, produto e compra no atendimento." :
+         view==="review" ? "Há algum impedimento ou dado não confirmado. Confira o motivo antes de pensar em uma mensagem." :
+         view==="active" ? "Todos os atendimentos em curso, inclusive os antigos. Priorize os mais recentes e específicos." :
+         view==="history" ? "Ações finalizadas ou enviadas manualmente. Envio registrado não é prova de entrega ou venda." :
+         view==="new" ? "Contatos sem resposta da loja identificada. Verifique a conversa real." :
+         "Contatos identificados pelo Tintim. Origem e campanha não comprovam consentimento ou intenção final."}
       </p>
+      <details className="crm-technical-details">
+        <summary>Monitor de automação e segurança</summary>
+        <section className="crm-engine-panel" aria-label="Saúde da automação de 45 minutos">
+          <div className="crm-engine-heading">
+            <div><span className="crm-eyebrow">MOTOR DE ACOMPANHAMENTO</span>
+              <h2>Revisão após 45 minutos</h2>
+              <p>Agenda e cancela lembretes; não envia mensagens automaticamente.</p></div>
+            <strong className="crm-engine-state">Envio desligado</strong>
+          </div>
+          {automation ? <>
+            <div className="crm-engine-stats">
+              <div><strong>{automation.pending}</strong><span>Pendentes na base</span></div>
+              <div><strong>{automation.overdue}</strong><span>Lembretes vencidos</span></div>
+              <div><strong>{automation.blocked}</strong><span>Bloqueios auditados</span></div>
+              <div><strong>{automation.scheduled}</strong><span>Programados</span></div>
+            </div>
+            <p className="crm-engine-timestamp">Auditoria: {automation.last_evaluated_at
+                ? fmtTime(automation.last_evaluated_at)+" (Paragominas)" : "ainda não executada"}</p>
+            <div className="crm-engine-blockers">
+              <span>{automation.consented_customers} clientes com autorização comprovada no CRM. Permissão não é inferida pelo anúncio.</span>
+              <span>O horário original da mensagem e a compra precisam ser conferidos individualmente.</span>
+              <span>Canal de envio automático ainda não homologado. O acompanhamento assistido permanece separado.</span>
+            </div>
+          </> : <p className="crm-engine-timestamp">Monitor indisponível. Nenhum envio pode ser presumido seguro.</p>}
+        </section>
+      </details>
       {view==="due" && due.length===0 && review.length>0 && <div className="crm-empty-attention">
         Nenhum atendimento habilitado para revisão imediata. Existem {review.length} lembretes
         vencidos que exigem conferência ou autorização — não devem ser enviados automaticamente.
