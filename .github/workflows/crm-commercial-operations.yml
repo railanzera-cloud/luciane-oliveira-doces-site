@@ -50,4 +50,4 @@ jobs:
       - name: Build frontend (without deploy)
         run: npm run build
       - name: Commercial regression suite (without sending or deploying)
-        run: node --test tests/*.test.mjs
+        run: node --experimental-strip-types --test --test-concurrency=1 tests/*.test.mjs
