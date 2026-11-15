@@ -61,14 +61,17 @@ export type CrmTriageInput = {
 };
 export function crmTriagePriority(input: CrmTriageInput): number {
   if (input.optedOut || input.possiblePurchase) return -1;
+  // Interesse comercial verificável é mais útil para a triagem do
+  // que a mera origem técnica. Um número de teste Meta não deve dominar
+  // um cliente real que mencionou o produto.
   const evidencePoints =
-    input.evidence === "official_matching" ? 30 :
-    input.evidence === "tintim_provider_matching" ? 22 :
-    input.evidence === "tintim_webhook_matching" ? 10 :
+    input.evidence === "official_matching" ? 12 :
+    input.evidence === "tintim_provider_matching" ? 8 :
+    input.evidence === "tintim_webhook_matching" ? 1 :
     0;
-  const interestPoints = input.confirmedInterest ? 18 :
-    input.mentionedProduct ? 8 :
-    input.adHint ? 2 : 0;
+  const interestPoints = input.confirmedInterest ? 30 :
+    input.mentionedProduct ? 18 :
+    input.adHint ? 4 : 0;
   return evidencePoints + interestPoints;
 }
 
