@@ -451,7 +451,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       {loading && <div role="status" className="crm-loading">Carregando oportunidades…</div>}
 
       {view!=="tintim" && !loading && filteredVisible.length===0 && !error && (
-        <div className="crm-empty"><Clock3 size={24}/><strong>{search?"Nenhum contato encontrado":view==="due"?"Nenhum follow-up para revisão imediata":view==="review"?"Nenhuma pendência bloqueada":view==="new"?"Nenhum contato aguardando triagem":"Nenhuma oportunidade em acompanhamento"}</strong>
+        <div className="crm-empty"><Clock3 size={24}/><strong>{search?"Nenhum contato encontrado":view==="recent"?"Nenhuma mensagem recente observada":view==="due"?"Nenhum follow-up para revisão imediata":view==="review"?"Nenhuma pendência bloqueada":view==="new"?"Nenhum contato aguardando triagem":"Nenhuma oportunidade em acompanhamento"}</strong>
           <p>Os contatos recentes do Tintim entram automaticamente quando esta aba é aberta. As mensagens continuam no aplicativo da Luciane.</p></div>
       )}
       {view!=="tintim" && !loading && !error && <p className="crm-list-count">
@@ -472,7 +472,9 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         const possiblePurchase = hasPurchaseSignal(signal?.stage_label);
         const audit = item.follow_up_id ? automationQueue[item.follow_up_id] : undefined;
         const isReviewed = reviewed[item.conversation_id] === reviewKey(item);
-        const canPrepare = isDue && eligible && !possiblePurchase && !!item.interest_label?.trim() && !unsavedInterest;
+        const catalogMatch = crmCatalogAvailability(item.interest_label,catalog ?? []);
+        const catalogUnavailable = catalogMatch?.status === "sold_out" || catalogMatch?.status === "hidden";
+        const canPrepare = isDue && eligible && !possiblePurchase && !catalogUnavailable && !!item.interest_label?.trim() && !unsavedInterest;
         const isFinished = ["converted","lost","closed"].includes(item.status);
         const isExpanded = expanded[item.conversation_id] ??
           (view==="due" && isDue && eligible && !possiblePurchase);
@@ -485,8 +487,15 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
                   mentionedName ? "Cliente mencionou: " + mentionedName :
                   "Anúncio relacionado: " + adHint?.name}
               </small>}
+              <small className="crm-recency">Última mensagem do cliente: {crmFriendlyAge(item.last_inbound_at,now)}</small>
               {signal?.last_observed_at &&
-                <small>Cadastro/etapa Tintim atualizada: {fmtTime(signal.last_observed_at)}</small>}
+                <small className="crm-signal-detail">Tintim atualizado: {fmtTime(signal.last_observed_at)}</small>}
+              <small className="crm-next-step">{possiblePurchase ? "Próximo passo: conferir possível compra" :
+                item.commercial_opt_out ? "Cliente não deseja contato comercial" :
+                catalogUnavailable ? "Próximo passo: produto indisponível · não oferecer" :
+                item.interest_label ? "Próximo passo: revisar conversa e possível retorno" :
+                mentionedName || adHint ? "Próximo passo: confirmar qual produto chamou atenção" :
+                "Próximo passo: identificar o pedido antes de abordar"}</small>
             </div>
             <div className="crm-card-controls">
               <span className={"crm-pill "+(isDue?"crm-due":"")}>
@@ -505,7 +514,12 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
           {isExpanded && <>
           {item.follow_up_status==="sent_manually" && <p className="crm-due-info">Envio informado pela atendente. Não comprova entrega nem pagamento.</p>}
           <p className="crm-due-info">{item.last_inbound_at ? "Última entrada observada: " + fmtTime(item.last_inbound_at) : "Sem mensagem de entrada observada"}<br/>{item.last_outbound_at ? "Última saída observada: " + fmtTime(item.last_outbound_at) : "Sem resposta da loja observada"}<br/>Horários observados não comprovam o horário original do provedor. Revise o conteúdo no WhatsApp Business.</p>
-          {possiblePurchase && <p className="crm-purchase-review" role="note">
+          {item.interest_label && <p className={"crm-stock-status"+(catalogUnavailable ? " crm-stock-unavailable" : "")}>
+             {catalogMatch?.status==="available" ? "Catálogo indica disponibilidade. Confirme quantidade física antes de oferecer." :
+              catalogUnavailable ? "Produto indisponível no catálogo. Oferta deste item bloqueada neste acompanhamento." :
+              "Disponibilidade não confirmada: confirme o produto e o estoque físico antes de oferecer."}
+           </p>}
+           {possiblePurchase && <p className="crm-purchase-review" role="note">
             O Tintim sinalizou “Comprou”. Confira esse registro antes de fazer novo follow-up.
             O CRM não confirmou pagamento nem registrou faturamento.
           </p>}
@@ -542,8 +556,8 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               onClick={()=>void saveConfirmedInterest(item.conversation_id)}>Salvar produto confirmado</button>
           </div>
           {item.follow_up_status==="pending" && item.follow_up_due_at &&
-            <p className="crm-due-info">Lembrete: {fmtTime(item.follow_up_due_at)} (Paragominas)
-              <strong> · {assistedTiming(item.follow_up_due_at,item.last_outbound_at,now)}</strong>
+            <p className="crm-due-info">Acompanhamento: <strong>{crmFriendlyReminder(item.follow_up_due_at,now)}</strong>
+              <small className="crm-signal-detail"> · horário registrado {fmtTime(item.follow_up_due_at)}</small>
             </p>}
           {!isFinished && <details className="crm-manual-controls">
             <summary>Correções manuais do atendimento</summary>
@@ -581,10 +595,10 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               <label className="crm-review-check">
                 <input type="checkbox" checked={isReviewed} disabled={locked || !canPrepare}
                   onChange={e=>setReviewed(previous=>({...previous,[item.conversation_id]:e.target.checked?reviewKey(item):""}))}/>
-                Conferi a conversa no WhatsApp Business, o telefone e o produto salvo. Não houve resposta nem compra posterior.
+                Conferi a conversa, o telefone, a disponibilidade física e o produto salvo. Não houve resposta nem compra posterior.
               </label>
               <p className="crm-due-info">Destino: {item.phone_e164} · Produto: {item.interest_label || "não confirmado"}</p>
-              {!canPrepare && <p>{possiblePurchase ? "Follow-up suspenso: possível compra sinalizada no Tintim." : !eligible ? "Mensagem comercial indisponível: autorização não registrada ou contato bloqueado." : unsavedInterest ? "Salve a confirmação do produto antes de continuar." : "Confirme o produto antes de preparar o contato."}</p>}
+              {!canPrepare && <p>{possiblePurchase ? "Follow-up suspenso: possível compra sinalizada no Tintim." : catalogUnavailable ? "Este produto está indisponível no catálogo. Confirme outra opção antes de oferecer." : !eligible ? "Mensagem comercial indisponível: autorização não comprovada ou contato bloqueado." : unsavedInterest ? "Salve a confirmação do produto antes de continuar." : "Confirme o produto antes de preparar o contato."}</p>}
               <button className="crm-button crm-whatsapp" type="button"
                 disabled={locked || !canPrepare || !isReviewed}
                 onClick={()=>openAssisted(item)}><MessageCircle size={17}/> Conferir elegibilidade e abrir WhatsApp</button>
