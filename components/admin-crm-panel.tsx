@@ -234,6 +234,12 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   }, now), [signals, now]);
   // "Para agora" = revisão manual possível, NÃO autorização para envio Meta.
   const recent = waiting.filter(item => crmRecentlyActive(item.last_inbound_at,now));
+  // Comparar evento à entrada exibida; evento Meta histórico não valida
+  // a atividade recente desta conversa.
+  const officialRecentCount = evidenceLoaded ? recent.filter(item =>
+    crmEvidenceKind(item.last_inbound_at,evidenceRows[item.conversation_id],true)==="official_matching").length : 0;
+  const observedTintimRecentCount = evidenceLoaded ? recent.filter(item =>
+    crmEvidenceKind(item.last_inbound_at,evidenceRows[item.conversation_id],true)==="tintim_webhook_matching").length : 0;
   const due = waiting.filter(item => bucketOf(item) === "review_now");
   const review = waiting.filter(item => bucketOf(item) === "blocked_due");
   const scheduled = waiting.filter(item => bucketOf(item) === "scheduled");
@@ -411,6 +417,12 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
           </button>
         </div>
         <p className="crm-safety-note">Nenhuma mensagem é enviada automaticamente. Todo contato precisa de contexto, autorização válida e conferência de compra.</p>
+        <p className="crm-evidence-summary">
+          {evidenceLoaded ? <>
+            Entre {recent.length} entradas recentes: {officialRecentCount} com evento Meta alinhado e {observedTintimRecentCount} com sinal Tintim no horário do webhook.
+            Os demais horários e origens precisam ser conferidos no WhatsApp.
+          </> : "Origem das mensagens indisponível nesta consulta; não considere os horários automaticamente verificados."}
+        </p>
         {listLimited && <p role="status" className="crm-list-warning">
           Lista parcial: este ambiente ainda usa o limite legado de 150 contatos. A paginação nova precisa ser ativada no banco.
         </p>}
