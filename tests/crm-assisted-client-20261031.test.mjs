@@ -26,9 +26,11 @@ test('cliente: relógio distingue prazo futuro, vencido e datas inválidas',()=>
 });
 test('UI: todo acesso WhatsApp exige revisão e a gravação usa RPC transacional',()=>{
  const ui=read('components/admin-crm-panel.tsx');
- assert.match(ui,/const result = await checkAssisted\(item\);\s*tab.location.replace/);
+ assert.match(ui,/const result = await checkAssisted\(item\);[\s\S]*?tab.location.replace/);
  assert.match(ui,/if \(problems.length\) throw/);
  assert.match(ui,/tab.close\(\); throw e/);
+ assert.match(ui,/live\.data\?\.status !== "available"/);
+ assert.match(ui,/crmCatalogAvailability\(result\.interest_label,catalog/);
  assert.match(ui,/crm_assisted_record_send/);
  assert.match(ui,/p_follow_up_id:item.follow_up_id/);
  assert.match(ui,/disabled=\{locked \|\| !canPrepare \|\| !isReviewed\}/);
