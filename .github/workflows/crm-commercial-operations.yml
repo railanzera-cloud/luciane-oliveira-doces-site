@@ -1,0 +1,40 @@
+name: CRM comercial - testes de fila e tipagem
+
+on:
+  push:
+    branches:
+      - feature/crm-operacao-comercial-priorizada-20261114
+    paths:
+      - components/admin-crm-panel.*
+      - lib/crm-operacao.ts
+      - lib/crm-follow-up.ts
+      - tests/crm-operacao.test.mjs
+      - .github/workflows/crm-commercial-operations.yml
+  pull_request:
+    paths:
+      - components/admin-crm-panel.*
+      - lib/crm-operacao.ts
+      - lib/crm-follow-up.ts
+      - tests/crm-operacao.test.mjs
+      - .github/workflows/crm-commercial-operations.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  crm-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - name: Unit tests for safe CRM operations
+        run: node --experimental-strip-types --test tests/crm-operacao.test.mjs
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: TypeScript check
+        run: npx tsc --noEmit
