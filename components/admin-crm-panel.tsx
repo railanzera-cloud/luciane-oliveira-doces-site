@@ -642,12 +642,20 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               <button className="crm-button crm-secondary" type="button"
                 disabled={locked || item.commercial_opt_out || possiblePurchase ||
                   (item.status==="waiting_customer" && item.follow_up_status==="pending")}
-                onClick={()=>void invoke(item.conversation_id,"waiting")}>
+                onClick={()=>{
+                  if (window.confirm("Você já respondeu manualmente a este cliente no WhatsApp? Esta ação registra sua confirmação e agenda um lembrete interno para 45 minutos; não envia mensagem.")) {
+                    void invoke(item.conversation_id,"waiting");
+                  }
+                }}>
                 {item.status==="waiting_customer" && item.follow_up_status==="pending"
-                  ? "Lembrete automático já ativo" : "Registrar resposta manual · 45 min"}
+                  ? "Lembrete de 45 min já agendado" : "Já respondi · lembrar em 45 min"}
               </button>
               <button className="crm-button crm-secondary" type="button" disabled={locked}
-                onClick={()=>void invoke(item.conversation_id,"replied")}>Registrar resposta do cliente</button>
+                onClick={()=>{
+                  if (window.confirm("Você verificou no WhatsApp que o cliente realmente respondeu? Isso registra a informação manualmente e cancela lembretes pendentes.")) {
+                    void invoke(item.conversation_id,"replied");
+                  }
+                }}>Cliente respondeu · registrar</button>
               <button className="crm-button crm-secondary" type="button" disabled={locked}
                 onClick={()=>{ if(window.confirm("Confirmar que este cliente comprou? Isso registra apenas uma conversão manual, sem alterar o pedido ou o faturamento.")) void invoke(item.conversation_id,"converted"); }}>Registrar compra manual</button>
             </div>
@@ -696,7 +704,11 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
             <p className="crm-consent-help">Registre somente autorização comercial explícita, com evidência verificável na conversa. Visitar o site ou comprar não autoriza mensagens promocionais por si só.</p>
             <button className="crm-button crm-secondary" type="button"
               disabled={locked || (evidence[item.conversation_id] ?? "").trim().length<8}
-              onClick={()=>void invoke(item.conversation_id,"consent_granted")}>Registrar autorização</button>
+              onClick={()=>{
+                if (window.confirm("Você conferiu autorização comercial explícita deste cliente e registrou uma evidência verdadeira da conversa? Isso NÃO envia mensagens.")) {
+                  void invoke(item.conversation_id,"consent_granted");
+                }
+              }}>Registrar autorização</button>
           </div>}
 
           </>}
