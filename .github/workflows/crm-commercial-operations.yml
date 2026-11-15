@@ -49,3 +49,5 @@ jobs:
         run: npx tsc --project tsconfig.crm-check.json --noEmit
       - name: Build frontend (without deploy)
         run: npm run build
+      - name: Commercial regression suite (without sending or deploying)
+        run: node --test tests/*.test.mjs
