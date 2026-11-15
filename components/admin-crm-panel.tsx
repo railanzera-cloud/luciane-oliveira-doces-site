@@ -489,7 +489,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
                   mentionedName ? "Cliente mencionou: " + mentionedName :
                   "Anúncio relacionado: " + adHint?.name}
               </small>}
-              <small className="crm-recency">Última mensagem do cliente: {crmFriendlyAge(item.last_inbound_at,now)}</small>
+              <small className="crm-recency">Última entrada observada: {crmFriendlyAge(item.last_inbound_at,now)}</small>
               {signal?.last_observed_at &&
                 <small className="crm-signal-detail">Tintim atualizado: {fmtTime(signal.last_observed_at)}</small>}
               <small className="crm-next-step">{possiblePurchase ? "Próximo passo: conferir possível compra" :
