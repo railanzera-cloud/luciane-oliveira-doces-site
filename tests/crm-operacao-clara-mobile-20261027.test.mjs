@@ -45,6 +45,6 @@ test("sinal tintim diferente de mensagem e automacao permanece desligada",()=>{
  assert.match(ui,/Salvar produto confirmado/);
  assert.match(ui,/crm_automation_operational_report/);
  assert.match(ui,/crm_automation_queue_items/);
- assert.match(ui,/nenhuma mensagem é enviada automaticamente/);
+ assert.match(ui,/nenhuma mensagem é enviada automaticamente/i);
  assert.doesNotMatch(ui,/graph\.facebook\.com|automatic_sends_enabled\s*=\s*true/i);
 });
