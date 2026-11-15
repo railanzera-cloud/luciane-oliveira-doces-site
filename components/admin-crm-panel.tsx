@@ -388,7 +388,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
             <strong>{review.length}</strong><span>Exigem conferência</span>
           </button>
         </div>
-        <p className="crm-safety-note">O CRM não envia mensagens sozinho. Todo contato precisa de contexto, autorização válida e conferência de compra.</p>
+        <p className="crm-safety-note">Nenhuma mensagem é enviada automaticamente. Todo contato precisa de contexto, autorização válida e conferência de compra.</p>
         {listLimited && <p role="status" className="crm-list-warning">
           Lista parcial: este ambiente ainda usa o limite legado de 150 contatos. A paginação nova precisa ser ativada no banco.
         </p>}
@@ -443,7 +443,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               <span>O horário original da mensagem e a compra precisam ser conferidos individualmente.</span>
               <span>Canal de envio automático ainda não homologado. O acompanhamento assistido permanece separado.</span>
             </div>
-          </> : <p className="crm-engine-timestamp">Monitor indisponível. Nenhum envio pode ser presumido seguro.</p>}
+          </> : <p className="crm-engine-timestamp">Monitor de automação ainda indisponível. Nenhum envio pode ser presumido seguro.</p>}
         </section>
       </details>
       {view==="due" && due.length===0 && review.length>0 && <div className="crm-empty-attention">
@@ -581,7 +581,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
                   value={inputInterest}
                   disabled={locked || isFinished}
                   onChange={e=>setInterest(old=>({...old,[item.conversation_id]:e.target.value}))}/>
-                <small>Produto fora do catálogo ou ambíguo não libera acompanhamento. Salvar não cria lembrete.</small>
+                <small>Produto fora do catálogo ou ambíguo não libera acompanhamento. Salvar não cria nem altera lembretes.</small>
               </label>
               {catalog===null && <p className="crm-stock-unverified">Catálogo indisponível. Mensagens contextuais permanecem bloqueadas.</p>}
             </div>
