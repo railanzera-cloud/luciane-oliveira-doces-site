@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - integrate/crm-v47143-legal-comercial-20261115
+      - feat/crm-triagem-evidencias-assistida-20261115
     paths:
       - 'app/**'
       - 'components/admin-crm-panel.*'

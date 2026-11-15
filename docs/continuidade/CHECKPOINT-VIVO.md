@@ -1121,3 +1121,14 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - Branch `refine/crm-mobile-sinais-e-clareza-20261115` PR #64 draft (base #63): renomear atividades recentes e sem saída registrada, aviso de recência observada não confirmada, horários históricos e texto manual recolhidos, orientação explícita para consentimento demonstrável, ocultar somente no mobile contadores duplicados (continuam nas abas).
 - CI PR #64 SHA `0705d4f073db08e4d1d1e05c3ac393d931f0a6be` passou: 7/7 testes CRM, 918/918 regressões comerciais, TypeScript CRM e build do frontend. [Run 43721177602](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/43721177602).
 - **Sem merge, sem ZIP novo, sem Cloudflare deploy, sem envio e sem alterações no Supabase.** Próxima frente: comprovar opt-ins, origem/timestamp das mensagens e fluxo real assistido com contato de teste autorizado. Manter bloqueios atuais; não promover backlog antigo a oportunidade pronta.
+
+
+## CRM — Triagem por provas e inspeção humana (15/11/2026)
+
+- PR #65 `feat/crm-triagem-evidencias-assistida-20261115` sobre PR #64 (mobile) / #63 (integração comercial) / #62 (CRM), mantendo fluxo manual e o código da linha V4.7.14.3.
+- Adicionada **RPC de leitura somente** `crm_list_conversation_evidence()` em Supabase comercial `edqiwvccmboyayojvuea`; staff-only com ACL anon=false/public=false, `crm_require_staff`, verificada com 565 conversas com evidências: 1 Meta, 564 Tintim e 0 timestamps `provider_timestamp` Tintim. Sem leitura de conteúdo e sem alterar consentimento.
+- UI distingue sinais Meta oficiais e Tintim (recebido pelo webhook) em cada contato, organiza inspeção por interesse confirmado/mencionado, permite abrir `wa.me/telefone` **sem mensagem pré-preenchida**, e exige confirmação explícita ao registrar resposta manual, resposta do cliente ou opt-in. Sem envio/automação.
+- CI [run 43722699911](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/43722699911) verde: 925/925 testes comerciais + 7/7 CRM, TypeScript e build.
+- Core build [run 43722692780](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/43722692780). ZIP candidato gerado fora do GitHub: `LUCIANE_CRM_TRIAGEM_EVIDENCIAS_V47143_CANDIDATO_NAO_PUBLICAR_20261115.zip`, SHA256 `dc5878fabf4d83a0743069135052c152f7591b034c111c7c5801607aaae1099d`, 187 arquivos, 157 mídias preservadas bit a bit, 15 JS com sintaxe validada.
+- **Não houve novo deploy**. Próximo gate: publicar somente após decisão de release; validar login Safari iPhone e processo controlado com número próprio autorizado. Zero opt-ins comprovados e automação desligada — backlog antigo não é fila para envio.
+- Documento detalhado: `docs/CRM-TRIAGEM-EVIDENCIAS-20261115.md`.

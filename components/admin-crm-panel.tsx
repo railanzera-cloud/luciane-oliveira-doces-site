@@ -6,6 +6,7 @@ import { Check, ChevronDown, Clock3, MessageCircle, RefreshCw, Search, ShieldChe
 import { crmAdSliceHint, crmMentionedProductName, crmSuggestedMessage, crmWhatsAppLink, crmQueueBucket } from "@/lib/crm-follow-up";
 import { assistedReviewProblems, type AssistedReview } from "@/lib/crm-assisted";
 import { crmCatalogAvailability, crmCatalogOptions, crmFriendlyAge, crmFriendlyReminder, crmRecentlyActive, type CrmAvailabilityRow } from "@/lib/crm-operacao";
+import { crmEvidenceKind,crmEvidenceCopy,crmTriagePriority,crmInspectWhatsAppNumber, type CrmConversationEvidence } from "@/lib/crm-triagem";
 import "./admin-crm-panel.css";
 
 type Opportunity = {
@@ -97,6 +98,8 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   const [automation, setAutomation] = useState<AutomationReport | null>(null);
   const [automationQueue, setAutomationQueue] = useState<Record<string,AutomationQueueItem>>({});
   const [catalog, setCatalog] = useState<CrmAvailabilityRow[] | null>(null);
+  const [evidenceRows, setEvidenceRows] = useState<Record<string,CrmConversationEvidence>>({});
+  const [evidenceLoaded, setEvidenceLoaded] = useState(false);
   const [listLimited, setListLimited] = useState(false);
   const productOptions = useMemo(() => crmCatalogOptions(catalog ?? []), [catalog]);
 
@@ -156,7 +159,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       }
       const hold = await rpc("crm_hold_tintim_purchase_signals");
       if (hold.error) throw hold.error;
-      const [list,candidatesResult,signalsResult,mentionsResult,reportResult,queueResult,catalogResult] = await Promise.all([
+      const [list,candidatesResult,signalsResult,mentionsResult,reportResult,queueResult,catalogResult,evidenceResult] = await Promise.all([
         loadOpportunities(),
         rpc("crm_list_tintim_candidates", { p_limit: 40 }),
         rpc("crm_list_tintim_signals"),
@@ -164,6 +167,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         rpc("crm_automation_operational_report"),
         rpc("crm_automation_queue_items"),
         client.from("menu_availability").select("item_key,name,item_type,status,category_key"),
+        rpc("crm_list_conversation_evidence"),
       ]);
       if (candidatesResult.error) throw candidatesResult.error;
       if (signalsResult.error) throw signalsResult.error;
@@ -176,6 +180,14 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       setItems(list.rows);
       setListLimited(list.limited);
       setCatalog(catalogResult.error ? null : (catalogResult.data ?? []) as CrmAvailabilityRow[]);
+      // Se a RPC de evidência falhar, não converter sinais Tintim em
+      // provas de mensagens originais; exibir "não verificada".
+      const evidenceList = !evidenceResult.error && Array.isArray(evidenceResult.data)
+        ? evidenceResult.data as CrmConversationEvidence[] : null;
+      setEvidenceLoaded(evidenceList !== null);
+      setEvidenceRows(Object.fromEntries((evidenceList ?? [])
+        .filter(row => row?.conversation_id)
+        .map(row => [row.conversation_id,row])));
       setCandidates((candidatesResult.data ?? []) as Candidate[]);
       setSignals(Object.fromEntries(((signalsResult.data ?? []) as TintimSignal[])
         .map(signal => [signal.conversation_id,signal])));
@@ -222,6 +234,12 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   }, now), [signals, now]);
   // "Para agora" = revisão manual possível, NÃO autorização para envio Meta.
   const recent = waiting.filter(item => crmRecentlyActive(item.last_inbound_at,now));
+  // Comparar evento à entrada exibida; evento Meta histórico não valida
+  // a atividade recente desta conversa.
+  const officialRecentCount = evidenceLoaded ? recent.filter(item =>
+    crmEvidenceKind(item.last_inbound_at,evidenceRows[item.conversation_id],true)==="official_matching").length : 0;
+  const observedTintimRecentCount = evidenceLoaded ? recent.filter(item =>
+    crmEvidenceKind(item.last_inbound_at,evidenceRows[item.conversation_id],true)==="tintim_webhook_matching").length : 0;
   const due = waiting.filter(item => bucketOf(item) === "review_now");
   const review = waiting.filter(item => bucketOf(item) === "blocked_due");
   const scheduled = waiting.filter(item => bucketOf(item) === "scheduled");
@@ -250,14 +268,24 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         Date.parse(b.last_outbound_at ?? b.last_inbound_at ?? b.created_at) -
         Date.parse(a.last_outbound_at ?? a.last_inbound_at ?? a.created_at);
     });
-    if (view === "recent") return [...shortlist].sort((a,b) =>
-      Date.parse(b.last_inbound_at ?? b.created_at) - Date.parse(a.last_inbound_at ?? a.created_at));
+    if (view === "recent") {
+      const priority = (item: Opportunity) => crmTriagePriority({
+        evidence: crmEvidenceKind(item.last_inbound_at,evidenceRows[item.conversation_id],evidenceLoaded),
+        confirmedInterest: Boolean(item.interest_label),
+        mentionedProduct: Boolean(crmMentionedProductName(mentions[item.conversation_id]?.product_id)),
+        adHint: Boolean(crmAdSliceHint(signals[item.conversation_id]?.ad_name)),
+        possiblePurchase: hasPurchaseSignal(signals[item.conversation_id]?.stage_label),
+        optedOut: item.commercial_opt_out,
+      });
+      return [...shortlist].sort((a,b) => priority(b)-priority(a) ||
+        Date.parse(b.last_inbound_at ?? b.created_at) - Date.parse(a.last_inbound_at ?? a.created_at));
+    }
     if (view === "new") return [...shortlist].sort((a,b) =>
       new Date(signals[b.conversation_id]?.last_observed_at ?? 0).getTime() -
       new Date(signals[a.conversation_id]?.last_observed_at ?? 0).getTime());
     return [...shortlist].sort((a,b) =>
       Date.parse(a.follow_up_due_at ?? "")-Date.parse(b.follow_up_due_at ?? ""));
-  }, [visible,search,signals,mentions,view,onlyWithProduct]);
+  }, [visible,search,signals,mentions,view,onlyWithProduct,evidenceRows,evidenceLoaded]);
 
   // Paginação visual inclusive para lembretes antigos: 213 cards abertos
   // simultaneamente não devem sobrecarregar o iPhone da operadora.
@@ -389,6 +417,12 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
           </button>
         </div>
         <p className="crm-safety-note">Nenhuma mensagem é enviada automaticamente. Todo contato precisa de contexto, autorização válida e conferência de compra.</p>
+        <p className="crm-evidence-summary">
+          {evidenceLoaded ? <>
+            Entre {recent.length} entradas recentes: {officialRecentCount} com evento Meta alinhado e {observedTintimRecentCount} com sinal Tintim no horário do webhook.
+            Os demais horários e origens precisam ser conferidos no WhatsApp.
+          </> : "Origem das mensagens indisponível nesta consulta; não considere os horários automaticamente verificados."}
+        </p>
         {listLimited && <p role="status" className="crm-list-warning">
           Lista parcial: este ambiente ainda usa o limite legado de 150 contatos. A paginação nova precisa ser ativada no banco.
         </p>}
@@ -485,6 +519,8 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         const inputInterest = interest[item.conversation_id] ?? item.interest_label ?? "";
         const unsavedInterest = inputInterest.trim() !== (item.interest_label ?? "").trim();
         const possiblePurchase = hasPurchaseSignal(signal?.stage_label);
+        const evidenceKind = crmEvidenceKind(item.last_inbound_at,evidenceRows[item.conversation_id],evidenceLoaded);
+        const inspectUrl = crmInspectWhatsAppNumber(item.phone_e164);
         const audit = item.follow_up_id ? automationQueue[item.follow_up_id] : undefined;
         const isReviewed = reviewed[item.conversation_id] === reviewKey(item);
         const catalogMatch = crmCatalogAvailability(item.interest_label,catalog ?? []);
@@ -507,6 +543,9 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
                   "Anúncio relacionado: " + adHint?.name}
               </small>}
               <small className="crm-recency">Entrada registrada: {crmFriendlyAge(item.last_inbound_at,now)}</small>
+              <small className={"crm-evidence-kind"+(evidenceKind==="official_matching"?" crm-evidence-official":"")}>
+                {crmEvidenceCopy(evidenceKind)}
+              </small>
               {signal?.last_observed_at &&
                 <small className="crm-signal-detail">Tintim atualizado: {fmtTime(signal.last_observed_at)}</small>}
               <small className="crm-next-step">{possiblePurchase ? "Próximo passo: conferir possível compra" :
@@ -532,6 +571,16 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
             </div>
           </header>
           {isExpanded && <>
+          <div className="crm-inspect-conversation">
+            <strong>Primeiro: confira a conversa no WhatsApp</strong>
+            <p>Abre somente o número no aplicativo, sem texto preparado e sem registrar envio.
+              O histórico depende da conta conectada no aparelho. Não mande promoção sem autorização válida.</p>
+            {inspectUrl ? <a className="crm-button crm-secondary crm-inspect-link"
+                href={inspectUrl} target="_blank" rel="noopener noreferrer">
+                <MessageCircle size={17}/> Abrir número para consultar
+              </a> : <p className="crm-stock-unverified">Número indisponível para abertura segura.</p>}
+            {item.commercial_opt_out && <p className="crm-stock-unverified">Cliente pediu para não receber contato comercial. Apenas confira o histórico.</p>}
+          </div>
           {item.follow_up_status==="sent_manually" && <p className="crm-due-info">Envio informado pela atendente. Não comprova entrega nem pagamento.</p>}
           <details className="crm-observed-times">
             <summary>Consultar horários registrados</summary>
@@ -605,12 +654,20 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               <button className="crm-button crm-secondary" type="button"
                 disabled={locked || item.commercial_opt_out || possiblePurchase ||
                   (item.status==="waiting_customer" && item.follow_up_status==="pending")}
-                onClick={()=>void invoke(item.conversation_id,"waiting")}>
+                onClick={()=>{
+                  if (window.confirm("Você já respondeu manualmente a este cliente no WhatsApp? Esta ação registra sua confirmação e agenda um lembrete interno para 45 minutos; não envia mensagem.")) {
+                    void invoke(item.conversation_id,"waiting");
+                  }
+                }}>
                 {item.status==="waiting_customer" && item.follow_up_status==="pending"
-                  ? "Lembrete automático já ativo" : "Registrar resposta manual · 45 min"}
+                  ? "Lembrete de 45 min já agendado" : "Já respondi · lembrar em 45 min"}
               </button>
               <button className="crm-button crm-secondary" type="button" disabled={locked}
-                onClick={()=>void invoke(item.conversation_id,"replied")}>Registrar resposta do cliente</button>
+                onClick={()=>{
+                  if (window.confirm("Você verificou no WhatsApp que o cliente realmente respondeu? Isso registra a informação manualmente e cancela lembretes pendentes.")) {
+                    void invoke(item.conversation_id,"replied");
+                  }
+                }}>Cliente respondeu · registrar</button>
               <button className="crm-button crm-secondary" type="button" disabled={locked}
                 onClick={()=>{ if(window.confirm("Confirmar que este cliente comprou? Isso registra apenas uma conversão manual, sem alterar o pedido ou o faturamento.")) void invoke(item.conversation_id,"converted"); }}>Registrar compra manual</button>
             </div>
@@ -659,7 +716,11 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
             <p className="crm-consent-help">Registre somente autorização comercial explícita, com evidência verificável na conversa. Visitar o site ou comprar não autoriza mensagens promocionais por si só.</p>
             <button className="crm-button crm-secondary" type="button"
               disabled={locked || (evidence[item.conversation_id] ?? "").trim().length<8}
-              onClick={()=>void invoke(item.conversation_id,"consent_granted")}>Registrar autorização</button>
+              onClick={()=>{
+                if (window.confirm("Você conferiu autorização comercial explícita deste cliente e registrou uma evidência verdadeira da conversa? Isso NÃO envia mensagens.")) {
+                  void invoke(item.conversation_id,"consent_granted");
+                }
+              }}>Registrar autorização</button>
           </div>}
 
           </>}

@@ -19,8 +19,8 @@ test("CRM tem triagem compacta, busca e resumo sem abrir todos os contatos",()=>
 });
 test("acoes sensiveis sao explicitas e backend continua proprietario do follow-up",()=>{
  const view=read("components/admin-crm-panel.tsx");
- assert.match(view,/Registrar resposta manual · 45 min/);
- assert.match(view,/Lembrete automático já ativo/);
+ assert.match(view,/Já respondi · lembrar em 45 min/);
+ assert.match(view,/Lembrete de 45 min já agendado/);
  assert.match(view,/Correções manuais do atendimento/);
  assert.match(view,/window\.confirm\("Confirmar que este cliente comprou/);
  assert.match(view,/window\.confirm\("O cliente pediu para não receber mensagens/);
