@@ -259,8 +259,9 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
       Date.parse(a.follow_up_due_at ?? "")-Date.parse(b.follow_up_due_at ?? ""));
   }, [visible,search,signals,mentions,view,onlyWithProduct]);
 
-  const displayedVisible = view === "due" || view === "review"
-    ? filteredVisible : filteredVisible.slice(0, listLimit);
+  // Paginação visual inclusive para lembretes antigos: 213 cards abertos
+  // simultaneamente não devem sobrecarregar o iPhone da operadora.
+  const displayedVisible = filteredVisible.slice(0,listLimit);
 
   const run = async (key: string, operation: () => Promise<void>, success: string) => {
     if (actionLock.current) return;
@@ -631,7 +632,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
                 Conferi a conversa, o telefone, a disponibilidade física e o produto salvo. Não houve resposta nem compra posterior.
               </label>
               <p className="crm-due-info">Destino: {item.phone_e164} · Produto: {item.interest_label || "não confirmado"}</p>
-              {!canPrepare && <p>{possiblePurchase ? "Follow-up suspenso: possível compra sinalizada no Tintim." : catalogUnavailable ? "Este produto está indisponível no catálogo. Confirme outra opção antes de oferecer." : catalogUnconfirmed ? "Selecione e confirme o SKU exato e a disponibilidade antes de preparar a mensagem." : !eligible ? "Mensagem comercial indisponível: autorização não comprovada ou contato bloqueado." : unsavedInterest ? "Salve a confirmação do produto antes de continuar." : "Confirme o produto antes de preparar o contato."}</p>}
+              {!canPrepare && <p>{possiblePurchase ? "Follow-up suspenso: possível compra sinalizada no Tintim." : !eligible ? "Mensagem comercial indisponível: autorização não comprovada ou contato bloqueado." : catalogUnavailable ? "Este produto está indisponível no catálogo. Confirme outra opção antes de oferecer." : catalogUnconfirmed ? "Selecione e confirme o SKU exato e a disponibilidade antes de preparar a mensagem." : unsavedInterest ? "Salve a confirmação do produto antes de continuar." : "Confirme o produto antes de preparar o contato."}</p>}
               <button className="crm-button crm-whatsapp" type="button"
                 disabled={locked || !canPrepare || !isReviewed}
                 onClick={()=>openAssisted(item)}><MessageCircle size={17}/> Conferir elegibilidade e abrir WhatsApp</button>
