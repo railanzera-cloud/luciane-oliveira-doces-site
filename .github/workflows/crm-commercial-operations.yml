@@ -10,6 +10,8 @@ on:
       - lib/crm-follow-up.ts
       - tests/crm-operacao.test.mjs
       - .github/workflows/crm-commercial-operations.yml
+      - docs/CRM-OPERACAO-COMERCIAL-20261115.md
+      - docs/continuidade/CHECKPOINT-VIVO.md
   pull_request:
     paths:
       - components/admin-crm-panel.*
@@ -17,6 +19,8 @@ on:
       - lib/crm-follow-up.ts
       - tests/crm-operacao.test.mjs
       - .github/workflows/crm-commercial-operations.yml
+      - docs/CRM-OPERACAO-COMERCIAL-20261115.md
+      - docs/continuidade/CHECKPOINT-VIVO.md
   workflow_dispatch:
 
 permissions:
@@ -38,3 +42,5 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: CRM-only TypeScript check (isolated from pre-existing errors)
         run: npx tsc --project tsconfig.crm-check.json --noEmit
+      - name: Build frontend (without deploy)
+        run: npm run build
