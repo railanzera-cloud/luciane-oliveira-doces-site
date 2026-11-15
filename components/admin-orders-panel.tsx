@@ -37,6 +37,7 @@ import {
   type KitchenPrintIssue,
 } from "@/lib/kitchen-print-health";
 import { formatAdminOrderItem } from "@/lib/admin-order-item-display";
+import { openKitchenManualReceipt } from "@/lib/kitchen-manual-receipt";
 import {
   confirmOfflinePayment,
   createReprint,
@@ -206,6 +207,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
   const audioRef = useRef<AudioContext | null>(null);
   const printingRef = useRef(false);
   const connectingRef = useRef(false);
+  const consecutivePrinterCheckFailuresRef = useRef(0);
   const lastReconnectAttemptRef = useRef(0);
   const effectsRunningRef = useRef(false);
   const loadSequenceRef = useRef(0);
@@ -573,6 +575,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       setDetectedPrinters(getDiscoveredKitchenPrinters());
       setPrinterChoice(printer);
       setPrinterName(printer);
+      consecutivePrinterCheckFailuresRef.current = 0;
       setPrinterReady(true);
       setPrinterOnline(true);
       setPrinterLastVerifiedAt(Date.now());
@@ -593,7 +596,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
         setPrinterChoice(previous => found.includes(previous) ? previous : found.find(name => /(?:pos[ -]?58|58[ -]?mm|thermal|xp[ -]?58)/i.test(name)) ?? "");
       } catch { /* Se QZ nem carregou, nenhum dispositivo foi listado. */ }
       if (background) {
-        setPrinterReconnectInfo("Impressora desconectada; o painel tentará novamente em até 1 minuto.");
+        setPrinterReconnectInfo(`Reconexão pendente: ${explanation} Nova tentativa em até 1 minuto.`);
       } else {
         setPrinterConnectError(explanation);
         setError(explanation);
@@ -611,7 +614,7 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
     if (!kitchenMode?.enabled) return;
     let active = true;
     const check = async () => {
-      if (!active || document.visibilityState !== "visible" || connectingRef.current) return;
+      if (!active || document.visibilityState !== "visible" || connectingRef.current || printingRef.current) return;
       let remembered = false;
       try {
         remembered = window.localStorage.getItem(PRINTER_RECONNECT_KEY) === "true"
@@ -625,8 +628,16 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
         if (!active) return;
         setPrinterLastVerifiedAt(Date.now());
         if (online) {
+          consecutivePrinterCheckFailuresRef.current = 0;
           setPrinterOnline(true);
           setPrinterReconnectInfo("");
+          return;
+        }
+        consecutivePrinterCheckFailuresRef.current += 1;
+        // Uma consulta à lista do Windows pode falhar temporariamente sem que
+        // a sessão QZ ou a POS-58 tenham realmente desaparecido.
+        if (printerReady && consecutivePrinterCheckFailuresRef.current < 2) {
+          setPrinterReconnectInfo("Conexão oscilou: confirmando em nova verificação antes de reconectar.");
           return;
         }
         setPrinterOnline(false);
@@ -750,6 +761,23 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
       await refreshPrintHealth();
     } finally {
       setRecoveringPrintId("");
+    }
+  }
+
+  function printManual(order: AdminOrder) {
+    if (["payment_pending", "cancelled"].includes(order.order_status)
+        || ["failed", "cancelled", "refunded"].includes(order.payment_status)
+        || (order.sales_channel === "site" && order.payment_status !== "paid")) {
+      setError("Este pedido não está liberado para comanda manual. Confira o pagamento e a situação.");
+      return;
+    }
+    try {
+      // Contingência explícita no navegador: não insere print_jobs nem muda pedido/Pix.
+      openKitchenManualReceipt(order);
+      setNotice(`Comanda manual do pedido #${order.order_number} aberta para conferência. Só o botão Imprimir envia ao Windows.`);
+      setError("");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Não foi possível abrir a comanda manual.");
     }
   }
 
@@ -1138,6 +1166,12 @@ export function AdminOrdersPanel({ client, session }: { client: SupabaseClient; 
                           <AlertCircle size={16} /> Recuperar comanda travada
                         </Button>
                       : <Button type="button" variant="outline" onClick={() => void reprint(order)} disabled={pending}><RotateCcw size={16} /> Reimprimir comanda</Button>)}
+                  {["new", "confirmed", "preparing", "ready", "ready_for_pickup", "out_for_delivery", "completed"].includes(order.order_status)
+                    && !["failed", "cancelled", "refunded"].includes(order.payment_status)
+                    && (order.sales_channel !== "site" || order.payment_status === "paid")
+                    && <Button type="button" variant="outline" onClick={() => printManual(order)} disabled={pending}>
+                      <Printer size={16} /> Comanda manual (sem QZ)
+                    </Button>}
                   {!['completed', 'cancelled'].includes(order.order_status) && <Button type="button" variant="ghost" className="admin-cancel-order" onClick={() => void runOrderAction(order, "cancelled", `Pedido #${order.order_number} cancelado.`)} disabled={pending}><X size={16} /> Cancelar</Button>}
                 </div>
               </article>
