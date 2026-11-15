@@ -260,3 +260,15 @@
   .crm-panel .crm-next-step{line-height:1.5}
 }
 @media(prefers-reduced-motion:reduce){.crm-panel .crm-button{transition:none}}
+
+/* Confirmar o SKU pelo catálogo é uma etapa de equipe, não inferência de anúncio. */
+.crm-product-fields{display:grid;gap:13px;flex:1 1 300px;min-width:0}
+.crm-product-fields .crm-label{min-width:0}
+.crm-product-fields select{width:100%;min-width:0;padding:12px 11px;min-height:46px;
+  border-radius:10px;border:1px solid #80634f;background:#251b17;color:#fff0e2;
+  font:inherit;font-size:.87rem}
+.crm-product-fields select:focus-visible{outline:2px solid #ddb78c;outline-offset:2px}
+.crm-product-fields select:disabled{opacity:.58}
+.crm-stock-unverified{font-size:.78rem;color:#ffcc9f;margin:0;line-height:1.5}
+.crm-confirm-product{align-items:end}
+@media(max-width:700px){.crm-product-fields{width:100%}.crm-confirm-product>.crm-button{width:100%}}
