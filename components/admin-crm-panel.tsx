@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { Check, ChevronDown, Clock3, MessageCircle, RefreshCw, Search, ShieldCheck, UserPlus } from "lucide-react";
 import { crmAdSliceHint, crmMentionedProductName, crmSuggestedMessage, crmWhatsAppLink, crmQueueBucket } from "@/lib/crm-follow-up";
 import { assistedReviewProblems, type AssistedReview } from "@/lib/crm-assisted";
-import { crmCatalogAvailability, crmFriendlyAge, crmFriendlyReminder, crmRecentlyActive, type CrmAvailabilityRow } from "@/lib/crm-operacao";
+import { crmCatalogAvailability, crmCatalogOptions, crmFriendlyAge, crmFriendlyReminder, crmRecentlyActive, type CrmAvailabilityRow } from "@/lib/crm-operacao";
 import "./admin-crm-panel.css";
 
 type Opportunity = {
@@ -98,6 +98,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
   const [automationQueue, setAutomationQueue] = useState<Record<string,AutomationQueueItem>>({});
   const [catalog, setCatalog] = useState<CrmAvailabilityRow[] | null>(null);
   const [listLimited, setListLimited] = useState(false);
+  const productOptions = useMemo(() => crmCatalogOptions(catalog ?? []), [catalog]);
 
   const actionLock = useRef(false);
   const refreshVersion = useRef(0);
@@ -326,6 +327,17 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
     void run(item.conversation_id+"open", async () => {
       try {
         const result = await checkAssisted(item);
+        // Consulta atualizada no momento da abertura: a UI nunca é prova
+        // suficiente de estoque. Não abre wa.me quando mudou a disponibilidade.
+        const matched = crmCatalogAvailability(result.interest_label,catalog ?? []);
+        if (!matched || matched.status !== "available") {
+          throw new Error("Produto indisponível ou não identificado no catálogo. Atualize a conversa.");
+        }
+        const live = await client.from("menu_availability").select("status")
+          .eq("item_key",matched.item_key).maybeSingle();
+        if (live.error || live.data?.status !== "available") {
+          throw new Error("A disponibilidade do produto mudou ou não pôde ser verificada. Atualize o CRM.");
+        }
         tab.location.replace(crmWhatsAppLink(result.phone_e164!, result.interest_label));
         setOpened(previous=>({...previous,[item.follow_up_id!]:true}));
       } catch (e) { tab.close(); throw e; }
@@ -476,7 +488,11 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
         const isReviewed = reviewed[item.conversation_id] === reviewKey(item);
         const catalogMatch = crmCatalogAvailability(item.interest_label,catalog ?? []);
         const catalogUnavailable = catalogMatch?.status === "sold_out" || catalogMatch?.status === "hidden";
-        const canPrepare = isDue && eligible && !possiblePurchase && !catalogUnavailable && !!item.interest_label?.trim() && !unsavedInterest;
+        const catalogUnconfirmed = !catalogMatch || catalogMatch.status !== "available";
+        // Não permitir rascunho de envio para produtos fora do catálogo ou
+        // com nome ambíguo; confirmar SKU e disponibilidade antes.
+        const canPrepare = isDue && eligible && !possiblePurchase && !catalogUnconfirmed &&
+          !!item.interest_label?.trim() && !unsavedInterest;
         const isFinished = ["converted","lost","closed"].includes(item.status);
         const isExpanded = expanded[item.conversation_id] ??
           (view==="due" && isDue && eligible && !possiblePurchase);
@@ -495,6 +511,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
               <small className="crm-next-step">{possiblePurchase ? "Próximo passo: conferir possível compra" :
                 item.commercial_opt_out ? "Cliente não deseja contato comercial" :
                 catalogUnavailable ? "Próximo passo: produto indisponível · não oferecer" :
+                item.interest_label && catalogUnconfirmed ? "Próximo passo: confirmar o SKU no catálogo" :
                 item.interest_label ? "Próximo passo: revisar conversa e possível retorno" :
                 mentionedName || adHint ? "Próximo passo: confirmar qual produto chamou atenção" :
                 "Próximo passo: identificar o pedido antes de abordar"}</small>
@@ -519,7 +536,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
           {item.interest_label && <p className={"crm-stock-status"+(catalogUnavailable ? " crm-stock-unavailable" : "")}>
              {catalogMatch?.status==="available" ? "Catálogo indica disponibilidade. Confirme quantidade física antes de oferecer." :
               catalogUnavailable ? "Produto indisponível no catálogo. Oferta deste item bloqueada neste acompanhamento." :
-              "Disponibilidade não confirmada: confirme o produto e o estoque físico antes de oferecer."}
+              "SKU ou disponibilidade não confirmado. Selecione o produto exato do catálogo antes de preparar mensagem."}
            </p>}
            {possiblePurchase && <p className="crm-purchase-review" role="note">
             O Tintim sinalizou “Comprou”. Confira esse registro antes de fazer novo follow-up.
@@ -545,14 +562,28 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
             </li>)}</ul>
             <small>Diagnóstico técnico; não constitui autorização de envio.</small>
           </details>}
-                    <div className="crm-confirm-product">
-            <label className="crm-label">Produto confirmado pela equipe
-              <small>Salvar não cria nem altera lembretes. Menções e anúncios continuam como sugestões.</small>
-              <input type="text" maxLength={80} placeholder="Ex.: Chocolate com Morango"
-                value={inputInterest}
-                disabled={locked}
-                onChange={(e)=>setInterest(old=>({...old,[item.conversation_id]:e.target.value}))}/>
-            </label>
+          <div className="crm-confirm-product">
+            <div className="crm-product-fields">
+              <label className="crm-label">Selecione o produto confirmado na conversa
+                <small>Sabores iguais em categorias diferentes aparecem separados. O anúncio é apenas uma pista.</small>
+                <select value={productOptions.some(option=>option.label===inputInterest)?inputInterest:""}
+                  disabled={locked || isFinished || productOptions.length===0}
+                  onChange={(e)=>setInterest(old=>({...old,[item.conversation_id]:e.target.value}))}>
+                  <option value="">Escolha um produto do catálogo</option>
+                  {productOptions.map(option=><option key={option.item_key} value={option.label}>
+                    {option.label}{option.status!=="available" ? option.status==="sold_out"?" · Esgotado":" · Oculto" : ""}
+                  </option>)}
+                </select>
+              </label>
+              <label className="crm-label">Descrição manual (quando necessário)
+                <input type="text" maxLength={80} placeholder="Ex.: Chocolate com Morango"
+                  value={inputInterest}
+                  disabled={locked || isFinished}
+                  onChange={e=>setInterest(old=>({...old,[item.conversation_id]:e.target.value}))}/>
+                <small>Produto fora do catálogo ou ambíguo não libera acompanhamento. Salvar não cria lembrete.</small>
+              </label>
+              {catalog===null && <p className="crm-stock-unverified">Catálogo indisponível. Mensagens contextuais permanecem bloqueadas.</p>}
+            </div>
             <button type="button" className="crm-button crm-secondary"
               disabled={locked || isFinished || !unsavedInterest || inputInterest.trim().length<2}
               onClick={()=>void saveConfirmedInterest(item.conversation_id)}>Salvar produto confirmado</button>
@@ -600,7 +631,7 @@ export function AdminCrmPanel({ client }: { client: SupabaseClient }) {
                 Conferi a conversa, o telefone, a disponibilidade física e o produto salvo. Não houve resposta nem compra posterior.
               </label>
               <p className="crm-due-info">Destino: {item.phone_e164} · Produto: {item.interest_label || "não confirmado"}</p>
-              {!canPrepare && <p>{possiblePurchase ? "Follow-up suspenso: possível compra sinalizada no Tintim." : catalogUnavailable ? "Este produto está indisponível no catálogo. Confirme outra opção antes de oferecer." : !eligible ? "Mensagem comercial indisponível: autorização não comprovada ou contato bloqueado." : unsavedInterest ? "Salve a confirmação do produto antes de continuar." : "Confirme o produto antes de preparar o contato."}</p>}
+              {!canPrepare && <p>{possiblePurchase ? "Follow-up suspenso: possível compra sinalizada no Tintim." : catalogUnavailable ? "Este produto está indisponível no catálogo. Confirme outra opção antes de oferecer." : catalogUnconfirmed ? "Selecione e confirme o SKU exato e a disponibilidade antes de preparar a mensagem." : !eligible ? "Mensagem comercial indisponível: autorização não comprovada ou contato bloqueado." : unsavedInterest ? "Salve a confirmação do produto antes de continuar." : "Confirme o produto antes de preparar o contato."}</p>}
               <button className="crm-button crm-whatsapp" type="button"
                 disabled={locked || !canPrepare || !isReviewed}
                 onClick={()=>openAssisted(item)}><MessageCircle size={17}/> Conferir elegibilidade e abrir WhatsApp</button>
