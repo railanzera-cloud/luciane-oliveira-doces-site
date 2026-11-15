@@ -10,7 +10,7 @@ test("Prestígio V4.7.7 usa somente a foto branca aprovada, sem alterar preço o
   assert.equal(prestige.name,"Prestígio");
   assert.equal(prestige.variants[0].price,18);
   assert.equal(prestige.image,"/images/cone-trufado-prestigio-20261113-v478.webp");
-  assert.equal(prestige.cardImage,"/images/cone-trufado-prestigio-card-20261113-v478.webp");
+  assert.equal(prestige.cardImage,"/images/cascao-prestigio-inteiro-card-20261114-v47143.webp");
   assert.match(prestige.imageAlt,/casca branca coberta de coco/);
   assert.match(prestige.imageAlt,/beijinho/);
   const entry=catalog.split('id: "cone-trufado-prestigio"')[1].split("options: [],")[0];
@@ -26,11 +26,10 @@ test("Prestígio mantém 6 SKUs e os outros cinco sabores/valores permanecem int
     ["cascao-trufado-ninho-morango",20],
     ["cascao-trufado-ninho-nutella-chocotone",20]
   ]);
-  for (const [id,version] of [
-    ["cascao-folheado-geleia-morango-ninho","v4713"],
-    ["cone-trufado-ferrero-rocher","v4713"],
-    ["cascao-trufado-kinder-bueno","v476"],
-    ["cascao-trufado-ninho-morango","v478"],
-    ["cascao-trufado-ninho-nutella-chocotone","v479"]
-  ]) assert.match(CONES.find(p=>p.id===id).cardImage,new RegExp(version+"\\.webp$"));
+  for (const id of [
+    "cascao-folheado-geleia-morango-ninho", "cone-trufado-ferrero-rocher",
+    "cascao-trufado-kinder-bueno", "cascao-trufado-ninho-morango",
+    "cascao-trufado-ninho-nutella-chocotone"
+  ]) assert.match(CONES.find(p=>p.id===id).cardImage, /-inteiro-card-20261114-v47143[.]webp$/);
+
 });

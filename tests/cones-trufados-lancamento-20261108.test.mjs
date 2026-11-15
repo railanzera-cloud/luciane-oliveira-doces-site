@@ -16,7 +16,7 @@ test("Catálogo permanente preserva três sabores antigos e adiciona três casc�
   assert.equal(STORE_CONFIG.enabledCategories.cones,true);
   assert.deepEqual(CONES.map(p=>[p.id,p.kind,p.name,p.variants[0].id,p.variants[0].price]),[
     ["cone-trufado-prestigio","cone","Prestígio","unidade",18],
-    ["cascao-folheado-geleia-morango-ninho","cone","Folheado — Geleia de Morango com Ninho","unidade",22],
+    ["cascao-folheado-geleia-morango-ninho","cone","Folheado com Ninho e Morango","unidade",22],
     ["cone-trufado-ferrero-rocher","cone","Ferrero Rocher","unidade",20],
     ["cascao-trufado-kinder-bueno","cone","Kinder Bueno e Nutella","unidade",22],
     ["cascao-trufado-ninho-morango","cone","Ninho com Morango","unidade",20],
@@ -102,7 +102,7 @@ test("UX: segundo cone usa o mesmo cartão de complementos, sem botão ilegível
   assert.ok(page.includes('cones: conesCanBeAdded'));
   assert.ok(page.includes('id === "cones" ? (addedNotice?.category === "cones" ? "Escolher outro cascão" : "Adicionar cascão trufado")'));
   assert.ok(page.includes('id === "cones" ? (addedNotice?.category === "cones" ? "Adicionar mais um sabor" : "Conhecer sabores")'));
-  assert.ok(page.includes('id === "cones" ? (coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-kinder-bueno-card-20261113-v476.webp" : "/images/cones-trufados-trio-card-20261108.webp")'));
+  assert.ok(page.includes('id === "cones" ? (coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-kinder-inteiro-card-20261114-v47143.webp" : "/images/cones-trufados-trio-card-20261108.webp")'));
   assert.ok(page.includes('if (id === "cones") startAnother("cones")'));
   assert.ok(page.includes('className="boutique-complement-choice"'));
   assert.ok(!page.includes('className="cone-cross-sell"'));

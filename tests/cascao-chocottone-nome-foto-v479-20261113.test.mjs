@@ -11,7 +11,7 @@ test("V4.7.9: nome visível Chocottone com dois T e imagens individuais v479", (
   assert.ok(product);
   assert.equal(product.name,"Ninho Nutella e Chocottone");
   assert.equal(product.image,`/images/${id}-20261113-v479.webp`);
-  assert.equal(product.cardImage,`/images/${id}-card-20261113-v479.webp`);
+  assert.equal(product.cardImage,"/images/cascao-ninho-nutella-chocottone-inteiro-card-20261114-v47143.webp");
   assert.match(product.imageAlt,/Chocottone/);
   assert.match(product.imageAlt,/pedaço de chocottone no topo/);
   assert.equal(product.variants[0].price,20);
@@ -42,6 +42,6 @@ test("V4.7.9: outros cinco sabores mantêm preços e versões de fotos", () => {
     const p=FRONT_CONES.find(item=>item.id===productId);
     assert.ok(p,productId);
     assert.equal(p.variants[0].price,price);
-    assert.ok(p.cardImage.endsWith(`-${edition}.webp`),productId);
+    assert.ok(p.cardImage.endsWith("-inteiro-card-20261114-v47143.webp"),productId);
   }
 });

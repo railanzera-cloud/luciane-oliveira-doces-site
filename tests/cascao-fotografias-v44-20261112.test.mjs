@@ -17,17 +17,21 @@ test("V4.7.4: home mantém trio de três cascões com fotografia natural",()=>{
  assert.doesNotMatch(page,/photo=\{coneIsVisible\("cascao-trufado-kinder-bueno"\) \? "\/images\/cascao-trufado-kinder-bueno-20261112\.webp"/);
 });
 
-test("V4.7.5: seis imagens de sabor atualizadas sem mudar o grid",()=>{
- const flavors=["kinder-bueno","ninho-morango","ninho-nutella-chocotone"];
- for(const flavor of flavors){
-   const edition = flavor === "ninho-morango" ? "v478" : flavor === "ninho-nutella-chocotone" ? "v479" : "v476";
-   assert.match(catalog,new RegExp("image: \"/images/cascao-trufado-"+flavor+"-20261113-"+edition+"\\.webp\""));
-   assert.match(catalog,new RegExp("cardImage: \"/images/cascao-trufado-"+flavor+"-card-20261113-"+edition+"\\.webp\""));
- }
- for(const flavor of ["prestigio","ferrero-rocher"]) {
-   const version = flavor === "prestigio" ? "20261113-v478" : "20261114-v4713";
-   assert.ok(catalog.includes(`image: "/images/cone-trufado-${flavor}-${version}.webp"`));
-   assert.ok(catalog.includes(`cardImage: "/images/cone-trufado-${flavor}-card-${version}.webp"`));
+test("V4.7.14.3: seis fotos principais preservadas e cards inteiros 4:5",()=>{
+ const assets=[
+   ["cascao-trufado-kinder-bueno", "cascao-trufado-kinder-bueno-nutella-real-20261114-v47142.webp", "kinder"],
+   ["cascao-trufado-ninho-morango", "cascao-trufado-ninho-morango-20261113-v478.webp", "ninho-morango"],
+   ["cascao-trufado-ninho-nutella-chocotone", "cascao-trufado-ninho-nutella-chocotone-20261113-v479.webp", "ninho-nutella-chocottone"],
+   ["cone-trufado-prestigio", "cone-trufado-prestigio-20261113-v478.webp", "prestigio"],
+   ["cascao-folheado-geleia-morango-ninho", "cascao-folheado-geleia-morango-ninho-20261114-v4713.webp", "folheado"],
+   ["cone-trufado-ferrero-rocher", "cone-trufado-ferrero-rocher-20261114-v4713.webp", "ferrero"],
+ ];
+ for (const [id, main, card] of assets){
+   const parts=catalog.split(`id: "${id}"`);
+   assert.equal(parts.length,2,id);
+   const source=parts[1].split("options: [],")[0];
+   assert.ok(source.includes(`image: "/images/${main}"`), "Principal "+id);
+   assert.ok(source.includes(`cardImage: "/images/cascao-${card}-inteiro-card-20261114-v47143.webp"`),"Card "+id);
  }
  assert.match(style,/\.cone-flavor-photo \{/);
  assert.match(style,/aspect-ratio: 4 \/ 5/);
