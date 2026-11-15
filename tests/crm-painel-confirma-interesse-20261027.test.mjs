@@ -46,7 +46,7 @@ test("cards compactos exibem produto e pesquisa encontra menção identificada",
  assert.match(css,/\.crm-confirm-product/);
 });
 test("aviso não afirma que automação envia mensagens nem que menção é compra",()=>{
- assert.match(ui,/nenhuma mensagem é enviada automaticamente/);
+ assert.match(ui,/nenhuma mensagem é enviada automaticamente/i);
  assert.match(ui,/Não confirma pedido, escolha final nem autorização para disparo/);
  assert.doesNotMatch(ui,/graph\.facebook\.com|automatic_sends_enabled\s*=\s*true/);
 });
