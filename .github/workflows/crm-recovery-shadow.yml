@@ -1,0 +1,32 @@
+name: CRM recovery shadow - isolated checks
+on:
+  pull_request:
+    paths:
+      - 'supabase/functions/_shared/recovery-*.mjs'
+      - 'supabase/functions/_shared/commerce-catalog.mjs'
+      - 'supabase/functions/_shared/trufadas-variants.mjs'
+      - 'supabase/functions/_shared/drinks-catalog.mjs'
+      - 'supabase/functions/crm-whatsapp-webhook/core.mjs'
+      - 'scripts/recovery-shadow-replay.mjs'
+      - 'tests/crm-recovery-shadow-20261115.test.mjs'
+      - '.github/workflows/crm-recovery-shadow.yml'
+  push:
+    branches: ['feat/crm-recovery-shadow-20261115']
+permissions:
+  contents: read
+jobs:
+  shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Catalog, business decisions and signed webhook replay
+        run: >-
+          node --test tests/crm-recovery-shadow-20261115.test.mjs
+          tests/crm-observabilidade-meta-20261026.test.mjs
+          tests/crm-tintim-receipt-time-20261026.test.mjs
+          tests/crm-meta-delivery-status-20261027.test.mjs
+          tests/crm-whatsapp-official-transport-20261027.test.mjs

@@ -1132,3 +1132,12 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - Core build [run 43722692780](https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/43722692780). ZIP candidato gerado fora do GitHub: `LUCIANE_CRM_TRIAGEM_EVIDENCIAS_V47143_CANDIDATO_NAO_PUBLICAR_20261115.zip`, SHA256 `dc5878fabf4d83a0743069135052c152f7591b034c111c7c5801607aaae1099d`, 187 arquivos, 157 mídias preservadas bit a bit, 15 JS com sintaxe validada.
 - **Não houve novo deploy**. Próximo gate: publicar somente após decisão de release; validar login Safari iPhone e processo controlado com número próprio autorizado. Zero opt-ins comprovados e automação desligada — backlog antigo não é fila para envio.
 - Documento detalhado: `docs/CRM-TRIAGEM-EVIDENCIAS-20261115.md`.
+
+## Recuperação WhatsApp — núcleo de avaliação silenciosa, incremento 1 (15/11/2026)
+
+- Autorizado desenvolvimento em branch isolada, sem envios ou alterações produtivas. Base PR #65 `8bf903388379b9c2783aca2d11bec6bead096ec9`; branch `feat/crm-recovery-shadow-20261115`.
+- Novos módulos puros `recovery-interest`, `recovery-shadow`, `recovery-meta-observation`: índice derivado do catálogo real, decisões comerciais sem envio e adapter de webhook assinado vinculado aos IDs esperados. Replayer local processa snapshots autorizados sem imprimir chat/telefone.
+- A seleção automática distingue Cascão/Fatia Prestígio, preserva tamanhos P/M/G e componentes Gourmet. Recência de webhook, identidade ambígua, consulta incompleta de compras, ausência de permissão ou disponibilidade bloqueiam candidatura silenciosa. Resposta posterior vira atendimento pendente, não abandono.
+- Não integrado aos webhooks ativos, não implantado no Supabase/Cloudflare. Resultado sempre `send_authorized=false`; fixtures não comprovam integração real. Não promove booleans públicos a evidência nem preenche consentimento.
+- Próxima etapa: conferir ativos Meta e mensagens reais autorizadas, montar snapshots no servidor e preparar persistência privada de decisões; modo sombra produtivo depende de deploy separado. Detalhes e instruções exatas para a conferência Meta em `docs/CRM-RECOVERY-SHADOW-20261115.md`.
+- Validação final: 36/36 testes direcionados locais (20 novos + 16 adjacentes), incluindo replay assinado inbound+echo. Sem CI remoto/PR novo; branch local aguarda autorização explícita de divulgação ao repositório público exigida pela revisão automática. Sem implantação ou envio.
