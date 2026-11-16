@@ -1176,3 +1176,11 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - Preflight operacional do agente confirmou envio desligado, ausência de tentativas, Edge ativa e suporte a echo/RPC. Orientação: proprietário pode ativar somente smb_message_echoes, preservando messages/callback; nenhuma alteração Meta foi realizada pelo agente.
 - Linha de base e probe somente leitura preparados; aguardar confirmação de ativação e testes autorizados para consultar os eventos. Não há monitor em segundo plano.
 - Correção de isolamento de clientes em lotes assinados no montador; 54/54 testes direcionados locais. Homologação de transporte precede corte separado de classificação/persistência no ingresso ativo. Detalhes: `docs/CRM-ECHO-HOMOLOGATION-READY.md`.
+
+## Ingresso de recuperação candidato — primeiro ciclo silencioso (16/11/2026)
+
+- Primeiro teste de transporte aceito, segundo telefone adiado sem bloquear implementação isolada; segue obrigatório antes de envios automáticos.
+- Webhook candidato conecta observer após persistência core, com waitUntil/timeout e portas OFF por padrão. Escopo privado de até cinco telefones; erro do motor não muda o HTTP core. Client REST nativo permite somente SELECTs e RPCs privadas.
+- Persistência/classificação recuperadas na resposta/echo; decisões internas incluem prazo, permissões, compra e disponibilidade. Sem classificação manual ou autorização artificial. Reavaliação periódica após o prazo ainda é incremento futuro, sem alegar ciclo de recuperação financeira concluído.
+- 62/62 testes direcionados locais e tipagem Deno estrita com declaração local de runtime. Deploy direto ainda requer verificação no runtime implantado; pacote JSR de tipos não carregou por rede. Sem nova dependência de SDK no webhook.
+- Proposta de retenção horária e corte/rollback em `docs/CRM-RECOVERY-INGRESS-CUT.md`. Nada implantado: Edge produtiva permanece v8, nenhum novo cron ou disparo ativado.

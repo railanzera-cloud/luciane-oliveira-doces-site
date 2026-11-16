@@ -7,9 +7,12 @@ on:
       - 'supabase/functions/_shared/trufadas-variants.mjs'
       - 'supabase/functions/_shared/drinks-catalog.mjs'
       - 'supabase/functions/crm-whatsapp-webhook/core.mjs'
+      - 'supabase/functions/crm-whatsapp-webhook/index.ts'
       - 'scripts/recovery-shadow-replay.mjs'
       - 'tests/crm-recovery-shadow-20261115.test.mjs'
       - 'tests/crm-recovery-snapshot-20261116.test.mjs'
+      - 'tests/crm-recovery-ingress-20261116.test.mjs'
+      - 'tests/crm-recovery-server-client-20261116.test.mjs'
       - 'tests/crm-recovery-private-20261116.test.mjs'
       - 'supabase/prepared/recovery-private-observations.sql'
       - '.github/workflows/crm-recovery-shadow.yml'
@@ -30,6 +33,8 @@ jobs:
         run: >-
           node --test tests/crm-recovery-shadow-20261115.test.mjs
           tests/crm-recovery-snapshot-20261116.test.mjs
+          tests/crm-recovery-ingress-20261116.test.mjs
+          tests/crm-recovery-server-client-20261116.test.mjs
           tests/crm-observabilidade-meta-20261026.test.mjs
           tests/crm-tintim-receipt-time-20261026.test.mjs
           tests/crm-meta-delivery-status-20261027.test.mjs

@@ -8,7 +8,7 @@ test('private persistence: real PostgreSQL ACL, idempotency, expiry, no raw body
  const db=new PGlite();
  try {
  await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
- CREATE SCHEMA auth; CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql AS $$ SELECT current_setting('request.jwt.claim.role',true) $$;
+ CREATE SCHEMA auth; CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql AS $$ SELECT nullif(current_setting('request.jwt.claim.role',true),'') $$;
  CREATE TABLE public.crm_conversations(id uuid PRIMARY KEY);
  INSERT INTO public.crm_conversations VALUES('00000000-0000-4000-8000-000000000001');`);
  await db.exec(fs.readFileSync(new URL('../supabase/prepared/recovery-private-observations.sql',import.meta.url),'utf8'));
@@ -56,6 +56,12 @@ test('private persistence: real PostgreSQL ACL, idempotency, expiry, no raw body
  assert.deepEqual(await store.read(cid),[]);
  assert.equal((await db.query('select public.crm_recovery_purge_expired() n')).rows[0].n,1);
  assert.equal((await db.query('select public.crm_recovery_purge_expired() n')).rows[0].n,0);
+
+ const retention=fs.readFileSync(new URL('../supabase/prepared/recovery-retention-cron.sql',import.meta.url),'utf8').split('-- SCHEDULER:')[0];
+ await db.exec(retention+'COMMIT;');
+ await db.exec("SELECT set_config('request.jwt.claim.role','',false)");
+ assert.equal((await db.query('select public.crm_recovery_purge_expired() n')).rows[0].n,0);
+ assert.equal((await db.query("select has_function_privilege('anon','public.crm_recovery_purge_expired()','EXECUTE') allowed")).rows[0].allowed,false);
  const rls=await db.query("select relrowsecurity from pg_class where oid='crm_recovery_private.observations'::regclass");assert.equal(rls.rows[0].relrowsecurity,true);
  }finally{await db.close();}
 });
