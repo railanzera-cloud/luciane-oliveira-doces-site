@@ -27,6 +27,7 @@ test('private persistence: real PostgreSQL ACL, idempotency, expiry, no raw body
  const event={id:'wamid.syntheticprivate',verified:true,direction:'inbound',time_basis:'provider_timestamp',content_origin:'customer_text',conversation_key:cid,occurred_at:new Date().toISOString(),text:'Quero cascão de Prestígio'};
  assert.equal((await store.capture(cid,event)).stored,true);
  assert.equal((await store.capture(cid,event)).reason,'duplicate');
+ await assert.rejects(store.capture(cid,{...event,text:'Já paguei'}));
  const rows=await store.read(cid);assert.equal(rows.length,1);assert.equal(rows[0].semantic.candidates[0].product_id,'cone-trufado-prestigio');
  assert.ok(!JSON.stringify(rows).includes('Quero cascão'));
  await assert.rejects(db.query('select public.crm_recovery_store_observation($1,$2,$3,$4)',[cid,'wamid.syntheticbad',event.occurred_at,JSON.stringify({...classifyRecoveryInterest(event.text),raw_text:'PRIVATE'})]));
@@ -38,6 +39,8 @@ test('private persistence: real PostgreSQL ACL, idempotency, expiry, no raw body
  await db.exec("SET request.jwt.claim.role='authenticated'");await assert.rejects(store.read(cid));
  await db.exec("SET request.jwt.claim.role='service_role'; UPDATE crm_recovery_private.observations SET expires_at=now()-interval '1 second'");
  assert.deepEqual(await store.read(cid),[]);
+ assert.equal((await db.query('select public.crm_recovery_purge_expired() n')).rows[0].n,1);
+ assert.equal((await db.query('select public.crm_recovery_purge_expired() n')).rows[0].n,0);
  const rls=await db.query("select relrowsecurity from pg_class where oid='crm_recovery_private.observations'::regclass");assert.equal(rls.rows[0].relrowsecurity,true);
  }finally{await db.close();}
 });

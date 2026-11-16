@@ -27,6 +27,10 @@ BEGIN
  INSERT INTO crm_recovery_private.observations(conversation_id,message_id,occurred_at,semantic)
  VALUES(p_conversation_id,p_message_id,p_occurred_at,p_semantic) ON CONFLICT DO NOTHING;
  GET DIAGNOSTICS inserted = ROW_COUNT;
+ IF inserted=0 AND NOT EXISTS (
+   SELECT 1 FROM crm_recovery_private.observations o WHERE o.conversation_id=p_conversation_id
+   AND o.message_id=p_message_id AND o.occurred_at=p_occurred_at AND o.semantic=p_semantic
+ ) THEN RAISE EXCEPTION 'observation_conflict'; END IF;
  RETURN inserted=1;
 END; $$;
 CREATE FUNCTION public.crm_recovery_read_observations(p_conversation_id uuid)
@@ -35,11 +39,24 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
 BEGIN
  IF auth.role() IS DISTINCT FROM 'service_role' THEN RAISE EXCEPTION 'provider_only' USING ERRCODE='42501'; END IF;
  RETURN QUERY SELECT o.message_id,o.occurred_at,o.semantic FROM crm_recovery_private.observations o
- WHERE o.conversation_id=p_conversation_id AND o.expires_at>now() AND o.occurred_at>=now()-interval '24 hours'
+ WHERE o.conversation_id=p_conversation_id AND o.expires_at>now() AND o.occurred_at>=now()-interval '24 hours' AND o.occurred_at<=now()
  ORDER BY o.occurred_at,o.message_id LIMIT 1001;
 END; $$;
 REVOKE ALL ON FUNCTION public.crm_recovery_store_observation(uuid,text,timestamptz,jsonb),public.crm_recovery_read_observations(uuid) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.crm_recovery_store_observation(uuid,text,timestamptz,jsonb),public.crm_recovery_read_observations(uuid) TO service_role;
--- Retention maintenance, to be scheduled only in a separately authorized cut:
--- DELETE FROM crm_recovery_private.observations WHERE expires_at<=now();
+CREATE FUNCTION public.crm_recovery_purge_expired()
+RETURNS integer LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE deleted integer;
+BEGIN
+ IF auth.role() IS DISTINCT FROM 'service_role' THEN RAISE EXCEPTION 'provider_only' USING ERRCODE='42501'; END IF;
+ WITH expired AS (
+  SELECT conversation_id,message_id FROM crm_recovery_private.observations
+  WHERE expires_at<=now() ORDER BY expires_at,conversation_id,message_id LIMIT 1000 FOR UPDATE SKIP LOCKED
+ ) DELETE FROM crm_recovery_private.observations o USING expired e
+ WHERE o.conversation_id=e.conversation_id AND o.message_id=e.message_id;
+ GET DIAGNOSTICS deleted = ROW_COUNT; RETURN deleted;
+END; $$;
+REVOKE ALL ON FUNCTION public.crm_recovery_purge_expired() FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.crm_recovery_purge_expired() TO service_role;
+-- No scheduler is created. Calling purge in production requires an authorized cut.
 COMMIT;

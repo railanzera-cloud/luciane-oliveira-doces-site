@@ -1156,3 +1156,9 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - 50/50 testes direcionados locais, incluindo SQL real em PostgreSQL/PGlite: ACL, RLS, idempotência, expiração, rejeição de corpo bruto e recuperação semântica. Fixtures sintéticas.
 - Suporte a app_echo confirmado no código ativo e RPC; recepção de echo pode reagendar lembretes. Não tratar ativação como operação sem efeitos no CRM. Vinculação dos ativos e elegibilidade Coexistence continuam gates de homologação.
 - Roteiro, limites de retenção e procedimento condicional de ativação em `docs/CRM-RECOVERY-PRIVATE-20261116.md`. Nenhuma assinatura alterada pelo agente. Não publicar identificadores privados ou capturas no repositório.
+
+## Recuperação — preparo de corte e diagnóstico Graph (16/11/2026)
+
+- Adicionado verificador Graph GET-only com configuração privada por ambiente e saída sem tokens/IDs. Não executado contra conta real: conexão Graph autenticada indisponível. Overrides de callback e comparação interna da Edge permanecem verificações explícitas.
+- Persistência preparada agora rejeita conflito no mesmo ID e oferece expurgo service-only limitado a registros expirados; sem scheduler. 52/52 testes direcionados locais aprovados.
+- Impacto e reversão da instalação privada em `docs/CRM-RECOVERY-HOMOLOGATION-CUT.md`; nenhuma migração produtiva aplicada, nenhuma assinatura Meta ou envio alterado. Sem repetição de verificação cadastral.
