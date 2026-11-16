@@ -64,7 +64,8 @@ export function evaluateRecoveryShadow({events=[],now,follow_up_minutes=45,
   if (clock-lastIn.at >= 24*3600000) result.blockers.push('outside_service_window');
   if (!result.interest) result.blockers.push('interest_unconfirmed');
   if (!consent_verified) result.blockers.push('permission_unverified');
-  if (store_open !== true) result.blockers.push('store_not_verified_open');
+  if (store_open === false) result.blockers.push('store_closed');
+  else if (store_open !== true) result.blockers.push('store_not_verified_open');
   for (const key of result.interest?.availability_keys ?? [])
     if (availability[key] !== 'available') result.blockers.push(`availability_unverified:${key}`);
   if (result.interest?.status !== 'resolved') result.blockers.push('product_or_variant_unresolved');

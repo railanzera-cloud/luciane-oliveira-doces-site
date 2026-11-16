@@ -100,7 +100,7 @@ test('cancellation, opt-out and client purchase statement prevent recovery', () 
   assert.ok(evaluate({...snapshot(),events:[{...inbound,text:'Já paguei'},outbound]}).blockers.includes('purchase_or_order_requires_reconciliation'));
 });
 test('missing snapshots, permissions, closed store and category availability fail closed', () => {
-  for (const [key,reason] of [['consent_verified','permission_unverified'],['store_open','store_not_verified_open'],
+  for (const [key,reason] of [['consent_verified','permission_unverified'],['store_open','store_closed'],
     ['order_check_complete','order_check_incomplete'],['history_complete','conversation_history_incomplete']])
     assert.ok(evaluate({...snapshot(),[key]:false}).blockers.includes(reason));
   assert.ok(evaluate({...snapshot(),availability:{cone_prestigio:'available'}}).blockers.includes('availability_unverified:category_cones'));
@@ -158,4 +158,9 @@ test('CLI replay emits only decisions and rejects malformed input without echoin
   assert.ok(!r.stdout.includes('Quero um'));
   const bad = run('PRIVATE_INVALID_INPUT');
   assert.equal(bad.status,1);assert.ok(!bad.stderr.includes('PRIVATE_INVALID_INPUT'));
+});
+
+test('unknown store state is distinguished from an explicit checkout closure',()=>{
+ const r=evaluate({...snapshot(),store_open:null});
+ assert.ok(r.blockers.includes('store_not_verified_open'));assert.ok(!r.blockers.includes('store_closed'));
 });

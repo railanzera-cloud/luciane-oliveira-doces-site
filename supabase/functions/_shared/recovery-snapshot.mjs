@@ -1,6 +1,10 @@
 // Server-only read model. No HTTP endpoint, writes, credentials or send capability.
 import { evaluateRecoveryShadow } from './recovery-shadow.mjs';
 import { normalizeSignedRecoveryWebhook } from './recovery-meta-observation.mjs';
+import { recoveryPermission } from './recovery-permission.mjs';
+import { classifyRecoveryInterest } from './recovery-interest.mjs';
+import { recoveryAvailability } from './recovery-availability.mjs';
+const classifyInterest=text=>classifyRecoveryInterest(text).intent==='interest';
 
 const uuid = value => typeof value === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(value);
 const phone = value => {
@@ -61,7 +65,7 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
     // Bounded recent episode, not a claim of complete lifetime chat history.
     const since = new Date(Math.max(Date.parse(c.created_at),clock-24*3600000)).toISOString();
     const dates = [['gte','occurred_at',since],['lte','occurred_at',now]];
-    const [official,tintim,links,recentOrders,availability,settings,followups,stages,automation] = await Promise.all([
+    const [official,tintim,links,recentOrders,availability,settings,followups,stages,automation,recentPaidOrders] = await Promise.all([
       read('crm_whatsapp_message_events','id,message_id,conversation_id,phone_e164,direction,occurred_at,received_at',
         [['eq','conversation_id',conversationId],...dates]),
       read('crm_tintim_message_events','id,fingerprint,conversation_id,phone_e164,direction,occurred_at,received_at,time_basis',
@@ -77,6 +81,8 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
       read('tintim_conversations','id,phone_digits,stage_label,last_observed_at',
         [['in','phone_digits',[customerPhone,customerPhone.slice(2)]],['gte','last_observed_at',since],['lte','last_observed_at',now]]),
       read('crm_automation_settings','singleton,follow_up_minutes',[['eq','singleton',true]],'singleton'),
+      read('orders','id,customer_phone,created_at,payment_status,order_status,paid_at',
+        [['gte','paid_at',since],['lte','paid_at',now]]),
     ]);
     if (automation.length !== 1) return failed('automation_settings_unavailable');
     const sourceProblems = [];
@@ -92,9 +98,9 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
         if (e) Object.assign(e,{content_origin:'private_semantic',semantic_interest:row.semantic});
       }
     }
-    // Receipt-time Tintim is retained as a blocking coverage signal, not upgraded.
+    // Receipt-time Tintim is retained separately, never upgraded to provider time.
     for (const e of tintim) {
-      if (e.time_basis !== 'provider_timestamp') {sourceProblems.push('tintim_time_unverified');continue;}
+      if (e.time_basis !== 'provider_timestamp') continue;
       events.push({id:'tintim:'+e.fingerprint,conversation_key:conversationId,direction:e.direction,
         occurred_at:e.occurred_at,received_at:e.received_at,time_basis:e.time_basis,
         verified:phone(e.phone_e164) === customerPhone,content_origin:'unsupported',text:null});
@@ -119,6 +125,18 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
       }
       if (!matchedIdentity) return failed('signed_observation_identity_mismatch');
     }
+    // A newly observed interest starts a bounded episode. Older opaque history
+    // cannot certify this episode, nor permanently contaminate its completeness.
+    const interestStart=events.filter(e=>e.verified && e.direction==='inbound' &&
+      (e.content_origin==='private_semantic'?e.semantic_interest?.intent==='interest':
+       e.content_origin==='customer_text' && classifyInterest(e.text)))
+      .map(e=>Date.parse(e.occurred_at)).sort((a,b)=>b-a)[0];
+    const episodeStart=Number.isFinite(interestStart)?interestStart:Date.parse(since);
+    const episodeEvents=events.filter(e=>Date.parse(e.occurred_at)>=episodeStart);
+    if(episodeEvents.some(e=>e.direction==='inbound' && !['customer_text','private_semantic'].includes(e.content_origin)))
+      sourceProblems.push('inbound_content_unverified');
+    if(tintim.some(e=>e.time_basis!=='provider_timestamp' && Date.parse(e.received_at)>=episodeStart))
+      sourceProblems.push('tintim_time_unverified');
     for (const [field,direction] of [['last_inbound_at','inbound'],['last_outbound_at','business_outbound']]) {
       const recorded = Date.parse(c[field]);
       const observed = Math.max(-Infinity,...events.filter(e => e.direction === direction && e.verified)
@@ -131,15 +149,15 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
       'id,customer_phone,created_at,payment_status,order_status,paid_at',[['in','id',associatedIds]]) : [];
     if (associatedIds.some(id => !associatedOrders.some(o => o.id === id))) sourceProblems.push('linked_order_unavailable');
     const orders = new Map();
-    for (const o of [...recentOrders,...associatedOrders]) {
-      const inWindow = Date.parse(o.created_at)>=Date.parse(since) && Date.parse(o.created_at)<=clock;
+    for (const o of [...recentOrders,...recentPaidOrders,...associatedOrders]) {
+      const inWindow = [o.created_at,o.paid_at].some(t=>Date.parse(t)>=Date.parse(since) && Date.parse(t)<=clock);
       const direct = inWindow && phone(o.customer_phone) === customerPhone;
       const linked = associatedIds.includes(o.id);
       if (direct || linked) orders.set(o.id,{conversation_key:conversationId,
         identity_basis:direct ? 'verified' : 'candidate',payment_status:o.payment_status,status:o.order_status});
     }
     // Unattributed orders cannot prove that this contact did not buy.
-    if (recentOrders.some(o => !phone(o.customer_phone) && !associatedIds.includes(o.id)))
+    if ([...recentOrders,...recentPaidOrders].some(o => !phone(o.customer_phone) && !associatedIds.includes(o.id)))
       sourceProblems.push('unattributed_orders_in_window');
     if (stages.some(t => ['comprou','convertido','vendido','venda realizada'].includes(String(t.stage_label).trim().toLowerCase())))
       orders.set('stage',{conversation_key:conversationId,identity_basis:'candidate',payment_status:'unknown'});
@@ -153,25 +171,30 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
     if (!['in_progress','waiting_customer'].includes(c.status)) return failed('conversation_not_active');
     const lastSent = followups.filter(f => ['sent','sent_manually'].includes(f.status) && Number.isFinite(Date.parse(f.sent_at)))
       .sort((a,b) => Date.parse(b.sent_at)-Date.parse(a.sent_at))[0]?.sent_at ?? null;
+    const permission=await recoveryPermission(client,customer,now);
+    const storeOpen=settings.length===1 && typeof settings[0].value==='boolean'?settings[0].value:null;
     const result = evaluateRecoveryShadow({now,events,orders:[...orders.values()],
       follow_up_minutes:automation[0].follow_up_minutes,
-      consent_verified:customer.consent_status === 'granted' &&
-        Boolean(customer.consent_evidence?.trim()) && Number.isFinite(Date.parse(customer.consent_at)) && Date.parse(customer.consent_at)<=clock,
+      consent_verified:permission.verified,
       opt_out:customer.commercial_opt_out !== false,
-      store_open:settings.length === 1 && settings[0].value === true,
-      availability:Object.fromEntries(availability.map(a => [a.item_key,a.status])),
+      store_open:storeOpen,
+      availability:await recoveryAvailability(client,availability),
       recovery_contacted_at:lastSent,
       history_complete:rollout.channel_identity_verified === true &&
         Number.isFinite(Date.parse(rollout.channel_verified_since)) &&
-        Date.parse(rollout.channel_verified_since)<=Date.parse(since) && !sourceProblems.some(p =>
-        ['tintim_time_unverified','conversation_activity_not_covered'].includes(p)),
+        Date.parse(rollout.channel_verified_since)<=episodeStart && !sourceProblems.some(p =>
+        ['tintim_time_unverified','conversation_activity_not_covered','inbound_content_unverified'].includes(p)),
       order_check_complete:rollout.purchase_coverage_verified === true && !sourceProblems.some(p => p.includes('order')),
     });
     if (sourceProblems.length) {
       result.blockers = [...new Set([...result.blockers,...sourceProblems])];
       if (result.classification === 'shadow_candidate') result.classification = 'blocked';
     }
-    return {...result,snapshot_scope:'recent_24h',source_counts:{official:official.length,tintim:tintim.length},
+    return {...result,snapshot_scope:'recent_24h',permission_basis:permission.basis,
+      commerce_checks:{site_orders_read:true,unattributed_orders:sourceProblems.includes('unattributed_orders_in_window'),
+        external_purchase_coverage:rollout.purchase_coverage_verified===true,
+        store_basis:'checkout_orders_open',store_open:storeOpen},
+      source_counts:{official:official.length,tintim:tintim.length},
       consistency:'optimistic_shadow_only'};
   } catch {return failed('snapshot_source_unavailable_or_incomplete');}
 }

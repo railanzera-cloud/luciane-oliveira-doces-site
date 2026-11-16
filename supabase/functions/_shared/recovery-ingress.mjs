@@ -6,13 +6,13 @@ const interestStates=new Set(['resolved','partial','ambiguous','unconfirmed']);
 const reasons=new Set(['invalid_clock_or_delay','unverified_or_invalid_event','order_check_incomplete',
   'conversation_history_incomplete','conversation_identity_unresolved','opt_out','paid_order','canceled_order',
   'purchase_or_order_requires_reconciliation','declined','no_verified_inbound','store_response_pending',
-  'outside_service_window','interest_unconfirmed','permission_unverified','store_not_verified_open',
+  'outside_service_window','interest_unconfirmed','permission_unverified','store_closed','store_not_verified_open',
   'availability_unverified','product_or_variant_unresolved','not_due','already_contacted_since_reply',
   'snapshot_configuration_invalid','conversation_unavailable','conversation_time_invalid','customer_identity_unavailable',
   'automation_settings_unavailable','tintim_time_unverified','signed_observation_rejected',
   'signed_observation_identity_mismatch','message_identity_conflict','conversation_activity_not_covered',
   'linked_order_unavailable','unattributed_orders_in_window','snapshot_changed_during_read',
-  'conversation_not_active','snapshot_source_unavailable_or_incomplete']);
+  'conversation_not_active','inbound_content_unverified','snapshot_source_unavailable_or_incomplete']);
 
 // Internal post-ingress observer; NEVER an HTTP endpoint or send worker.
 /**

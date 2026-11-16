@@ -36,7 +36,7 @@ const options = () => ({conversationId:cid,now,pageSize:1,maxRows:100,
 // Supabase query contract fake: SELECT/filters/order/range only; no write methods.
 function db(tables,hook=()=>{}) {
   const calls=[];
-  return {calls,from(table) {
+  return {calls,rpc:async(name)=>{assert.equal(name,'crm_recovery_permission_evidence');return {data:true,error:null};},from(table) {
     const filters=[];let columns,from=0,to=0,sortKey='id';
     const q={select(c,opts){columns=c;assert.equal(opts.count,'exact');return q;},
       eq(k,v){filters.push(r=>r[k]===v);return q;},in(k,vs){filters.push(r=>vs.includes(r[k]));return q;},
@@ -133,7 +133,7 @@ test('opt-out and missing or future permission, closed store and prior recovery 
   assert.ok((await assemble(db(tables),options())).blockers.includes('permission_unverified'));
   tables.store_settings[0].value=false;tables.crm_follow_ups=[{id:'f',conversation_id:cid,status:'sent_manually',sent_at:time('14:00')}];
   const r=await assemble(db(tables),options());
-  assert.ok(r.blockers.includes('store_not_verified_open'));assert.ok(r.blockers.includes('already_contacted_since_reply'));
+  assert.ok(r.blockers.includes('store_closed'));assert.ok(r.blockers.includes('already_contacted_since_reply'));
 });
 test('optional private store restores semantic history and capture requires a matching signed envelope',async()=>{
  const semantic=(await import('../supabase/functions/_shared/recovery-interest.mjs')).classifyRecoveryInterest('Quero cascão Prestígio');
@@ -153,4 +153,24 @@ test('signed batches isolate customers without rejecting a valid episode or pers
  const captured=[];
  const r=await assemble(db(fixture()),{...options(),signedWebhook:{raw,signature},observationStore:{read:async()=>[],capture:async(c,e)=>captured.push(e.id)}});
  assert.equal(r.classification,'shadow_candidate');assert.deepEqual(captured,['wamid.synthetic_in']);
+});
+
+test('new certified episode resolves old history gap; opaque later inbound still blocks',async()=>{
+ const tables=fixture(),opts=options();opts.rollout.channel_verified_since=time('12:59');
+ let r=await assemble(db(tables),opts);
+ assert.ok(!r.blockers.includes('conversation_history_incomplete'));
+ tables.crm_whatsapp_message_events.push({id:'c',message_id:'wamid.syntheticopaque',conversation_id:cid,phone_e164:customerPhone,direction:'inbound',occurred_at:time('13:01'),received_at:time('13:01')});
+ r=await assemble(db(tables),opts);
+ assert.ok(r.blockers.includes('inbound_content_unverified'));assert.ok(r.blockers.includes('conversation_history_incomplete'));
+});
+test('existing checkout closure and missing permission audit stay blocked while site reads succeed',async()=>{
+ const tables=fixture();tables.store_settings[0].value=false;const c=db(tables);c.rpc=async()=>({data:false});
+ const r=await assemble(c,options());
+ assert.ok(r.blockers.includes('store_closed'));assert.ok(r.blockers.includes('permission_unverified'));
+ assert.equal(r.commerce_checks.site_orders_read,true);assert.equal(r.permission_basis,'audit_unverified');
+});
+
+test('an older site order paid during the episode suppresses recovery',async()=>{
+ const tables=fixture();tables.orders.push({id:'old-paid',customer_phone:customerPhone,created_at:'2026-11-01T10:00:00Z',paid_at:time('13:02'),payment_status:'paid',order_status:'accepted'});
+ const r=await assemble(db(tables),options());assert.equal(r.classification,'suppressed');assert.deepEqual(r.blockers,['paid_order']);
 });

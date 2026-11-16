@@ -3,10 +3,11 @@
 const tables=new Set(['crm_customers','crm_conversations','crm_whatsapp_message_events',
   'crm_tintim_message_events','tintim_order_links','orders','menu_availability',
   'store_settings','crm_follow_ups','tintim_conversations','crm_automation_settings']);
-const rpcs=new Set(['crm_recovery_store_observation','crm_recovery_read_observations','crm_recovery_purge_expired']);
+const rpcs=new Set(['crm_recovery_store_observation','crm_recovery_read_observations','crm_recovery_purge_expired','crm_recovery_permission_evidence','public_crocante_inventory']);
+const dueRpcs=new Set(['crm_recovery_claim_due','crm_recovery_finish_due','crm_recovery_read_due']);
 const atom=value=>{const s=String(value);if(!/^[A-Za-z0-9_.:+-]+$/.test(s))throw Error('invalid_filter');return s;};
-/** @param {string} url @param {string} key @param {{fetchImpl?:typeof fetch,signal?:AbortSignal}} options */
-export function createRecoveryServerClient(url,key,{fetchImpl=fetch,signal}={}) {
+/** @param {string} url @param {string} key @param {{fetchImpl?:typeof fetch,signal?:AbortSignal,allowDueRpc?:boolean}} options */
+export function createRecoveryServerClient(url,key,{fetchImpl=fetch,signal,allowDueRpc=false}={}) {
   const origin=new URL(url);
   if(origin.protocol!=='https:' || origin.username || origin.password || origin.search || origin.hash || !key)
     throw Error('server_configuration_invalid');
@@ -37,6 +38,6 @@ export function createRecoveryServerClient(url,key,{fetchImpl=fetch,signal}={}) 
         then(resolve,reject){return request(table,params).then(resolve,reject);}};
       return q;
     },
-    rpc(name,args={}){if(!rpcs.has(name))throw Error('rpc_not_allowed');return request('rpc/'+name,new URLSearchParams(),args);},
+    rpc(name,args={}){if(!rpcs.has(name) && !(allowDueRpc && dueRpcs.has(name)))throw Error('rpc_not_allowed');return request('rpc/'+name,new URLSearchParams(),args);},
   };
 }
