@@ -10,6 +10,8 @@ on:
       - 'scripts/recovery-shadow-replay.mjs'
       - 'tests/crm-recovery-shadow-20261115.test.mjs'
       - 'tests/crm-recovery-snapshot-20261116.test.mjs'
+      - 'tests/crm-recovery-private-20261116.test.mjs'
+      - 'supabase/prepared/recovery-private-observations.sql'
       - '.github/workflows/crm-recovery-shadow.yml'
   push:
     branches: ['feat/crm-recovery-shadow-20261115']

@@ -40,8 +40,9 @@ export function evaluateRecoveryShadow({events=[],now,follow_up_minutes=45,
   let declined = false, possiblePurchase = false;
   for (const e of inbound) {
     // Referral, forwarded content and quoted messages cannot confirm interest.
-    if (e.content_origin !== 'customer_text') continue;
-    const observation = classifyRecoveryInterest(e.text);
+    if (!['customer_text','private_semantic'].includes(e.content_origin)) continue;
+    const observation = e.content_origin === 'private_semantic' ? e.semantic_interest : classifyRecoveryInterest(e.text);
+    if (!observation || observation.version !== RECOVERY_VERSION) continue;
     if (observation.intent === 'opt_out') opt_out = true;
     if (observation.intent === 'possible_purchase') possiblePurchase = true;
     if (observation.intent === 'declined') {declined = true;result.interest = null;}

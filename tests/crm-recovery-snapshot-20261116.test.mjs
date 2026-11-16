@@ -135,3 +135,14 @@ test('opt-out and missing or future permission, closed store and prior recovery 
   const r=await assemble(db(tables),options());
   assert.ok(r.blockers.includes('store_not_verified_open'));assert.ok(r.blockers.includes('already_contacted_since_reply'));
 });
+test('optional private store restores semantic history and capture requires a matching signed envelope',async()=>{
+ const semantic=(await import('../supabase/functions/_shared/recovery-interest.mjs')).classifyRecoveryInterest('Quero cascão Prestígio');
+ const saved=[{message_id:'wamid.synthetic_in',occurred_at:time('13:00'),semantic}];
+ let captures=0;
+ const store={read:async()=>saved,capture:async()=>{captures++;return {stored:true};}};
+ const recovered=await assemble(db(fixture()),{...options(),signedWebhook:null,observationStore:store});
+ assert.equal(recovered.classification,'shadow_candidate');assert.equal(captures,0);
+ await assemble(db(fixture()),{...options(),observationStore:store});assert.equal(captures,1);
+ await assemble(db(fixture()),{...options(),signedWebhook:signed('Quero Prestígio','5592000000000'),observationStore:store});
+ assert.equal(captures,1);
+});

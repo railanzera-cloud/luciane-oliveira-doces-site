@@ -39,7 +39,7 @@ async function readRows(client,table,columns,filters,{pageSize,maxRows,idKey='id
  * Signed text remains in memory; only the redacted evaluation is returned.
  */
 export async function assembleRecoveryEvaluation(client,{conversationId,now,
-  signedWebhook=null,metaConfig=null,rollout={},pageSize=200,maxRows=2000}={}) {
+  signedWebhook=null,metaConfig=null,rollout={},pageSize=200,maxRows=2000,observationStore=null}={}) {
   if (!uuid(conversationId) || !Number.isFinite(Date.parse(now)) || !client?.from ||
     !Number.isInteger(pageSize) || pageSize<1 || pageSize>500 ||
     !Number.isInteger(maxRows) || maxRows<pageSize || maxRows>10000)
@@ -84,6 +84,14 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
       direction:e.direction === 'app_echo' ? 'business_outbound' : e.direction,
       occurred_at:e.occurred_at,received_at:e.received_at,time_basis:'provider_timestamp',
       verified:phone(e.phone_e164) === customerPhone,content_origin:'unsupported',text:null}));
+    if (observationStore) {
+      const saved = await observationStore.read(conversationId);
+      for (const row of saved) {
+        const e = events.find(e => e.verified && e.id === row.message_id && e.direction === 'inbound' &&
+          Date.parse(e.occurred_at) === Date.parse(row.occurred_at));
+        if (e) Object.assign(e,{content_origin:'private_semantic',semantic_interest:row.semantic});
+      }
+    }
     // Receipt-time Tintim is retained as a blocking coverage signal, not upgraded.
     for (const e of tintim) {
       if (e.time_basis !== 'provider_timestamp') {sourceProblems.push('tintim_time_unverified');continue;}
@@ -101,6 +109,7 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
         if (Date.parse(e.occurred_at)<Date.parse(since)) continue;
         const old = events.find(x => x.id === e.id && x.direction === e.direction);
         if (old && Date.parse(old.occurred_at) !== Date.parse(e.occurred_at)) return failed('message_identity_conflict');
+        if (observationStore) await observationStore.capture(conversationId,{...e,conversation_key:conversationId});
         if (old) Object.assign(old,{content_origin:e.content_origin,text:e.text});
         else events.push({...e,conversation_key:conversationId});
       }

@@ -1149,3 +1149,10 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - Não considera consulta de compra completa quando há pedidos sem identidade ou vínculos ausentes. Cobertura de canal exige homologação com data de início; sem liberação retroativa de históricos. Casos incompletos permanecem silenciosos, sem criar tarefas manuais.
 - Schema consultado somente para verificar contratos, sem copiar linhas de clientes para fixtures/documentação. Sem migration, SQL de escrita, deploy Edge/Cloudflare, merge ou disparo. Documentação: `docs/CRM-RECOVERY-SNAPSHOT-20261116.md`.
 - O montador e sua paginação são testados com cliente sintético de SELECT, não equivalem à homologação Meta ou execução produtiva. Persistência privada/retencão de interesse e conciliação definitiva de identidade continuam etapas futuras.
+
+## Recuperação — persistência privada preparada (16/11/2026)
+
+- PR #67 evolui com store service-only de observações sem texto bruto, captura autenticada opcional no montador e reutilização do interesse entre execuções. SQL de preparo isolado, sem aplicação produtiva ou cron. Sem alteração dos webhooks ativos, Meta, pedidos, consentimento ou envios.
+- 50/50 testes direcionados locais, incluindo SQL real em PostgreSQL/PGlite: ACL, RLS, idempotência, expiração, rejeição de corpo bruto e recuperação semântica. Fixtures sintéticas.
+- Suporte a app_echo confirmado no código ativo e RPC; recepção de echo pode reagendar lembretes. Não tratar ativação como operação sem efeitos no CRM. Vinculação dos ativos e elegibilidade Coexistence continuam gates de homologação.
+- Roteiro, limites de retenção e procedimento condicional de ativação em `docs/CRM-RECOVERY-PRIVATE-20261116.md`. Nenhuma assinatura alterada pelo agente. Não publicar identificadores privados ou capturas no repositório.
