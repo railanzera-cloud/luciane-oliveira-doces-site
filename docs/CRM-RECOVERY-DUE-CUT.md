@@ -1,6 +1,6 @@
 # Reavaliação privada após o prazo — candidato PR #67
 
-Código preparado em 16/11/2026. Não instalado. Produção continua na v13 e somente no telefone já homologado. Não aplicar a migration nem instalar/ativar cron com base neste documento sem a autorização específica do proprietário.
+Atualização do corte autorizado em 16/11/2026: estrutura privada instalada e Edge autenticada implantada OFF. A ativação periódica foi interrompida por ACLs de pg_net que o usuário SQL postgres não consegue revogar. pg_net foi removida por rollback antes de guardar credenciais ou enviar requisições. Nenhum cron novo foi criado. Webhook mantém exatamente o código homologado da v13 (versão de implantação 15 após mudança/restauração de flags), no telefone original. Ver detalhes no final. As seções de fluxo/corte abaixo descrevem a preparação, não uma homologação periódica concluída.
 
 ## Fluxo preparado
 
@@ -28,7 +28,7 @@ A cobertura certificada é recente e delimitada. Não promete histórico integra
 
 ## Privacidade e instalação SQL
 
-Migration candidata `20261116150549_crm_recovery_due_shadow.sql`, gerada pela CLI e testada somente em PostgreSQL local:
+Migration candidata `20261116155426_crm_recovery_due_shadow.sql`, gerada pela CLI e testada somente em PostgreSQL local:
 
 - Uma tabela `crm_recovery_private.due_checks`, RLS e sem acesso direto de anon/authenticated/service_role. Retenção de sete dias. Sem JSON arbitrário, texto de conversa, telefone, nome ou evidência livre. Classificação e array de motivos têm vocabulário fechado; send_authorized possui CHECK=false.
 - RPCs service-only para permissão, reserva, conclusão e leitura; função interna de revisão sem EXECUTE para chamadores da API. Evidência e autor da permissão permanecem na auditoria existente e não são copiados.
@@ -54,3 +54,15 @@ Migration candidata `20261116150549_crm_recovery_due_shadow.sql`, gerada pela CL
 ## Validação
 
 72 testes direcionados locais passaram: permissões/RLS em PostgreSQL/PGlite real, vencimento, escopo, lease, reenvio do mesmo token, mudanças de fonte, retry, leitura de resultado obsoleto, expiração, permissão auditada, estoque, pagamento recente de pedido antigo, histórico e transporte. Typecheck Deno da nova Edge passou sem o import de tipos JSR na cópia temporária; fonte original permanece com o import, sem implantação. Tipagem não substitui homologação de runtime/cron.
+
+
+## Resultado efetivo do corte autorizado
+
+- Migrations no registro comercial: 20261116155425 (tentativa pg_net), 20261116155426 (estrutura privada) e 20261116155821 (rollback pg_net). Arquivos foram renomeados dos timestamps gerados pela CLI para os timestamps registrados pelo servidor; conteúdo operacional reconciliado. Não repetir migrations já instaladas.
+- pg_net 0.20.4 criou objetos pertencentes a supabase_admin. REVOKEs emitidos pelo postgres não retiraram grants do proprietário; consultas has_*_privilege continuaram true para papéis públicos. Postgres não é membro do proprietário e não tem grant option. Não interpretar sucesso da ferramenta de migração como hardening comprovado.
+- Sem credencial no Vault/filas, sem requisições pg_net e sem cron novo. DROP EXTENSION RESTRICT autorizado executou com sucesso após conferir filas vazias. Nenhum dado comercial foi removido.
+- RLS/ACL e testes transacionais produtivos passaram: apenas service_role executa as RPCs; anon/authenticated não acessam tabela/RPC, reserva duplicada recusada, token inválido e lease expirado recusados, retomada e expurgo da linha de teste comprovados. ROLLBACK deixou zero avaliações; prazos/permissões/pagamentos comerciais não foram alterados.
+- Edge crm-recovery-reevaluate v2 ACTIVE, verify_jwt=true, flag DUE=false. POST sem Authorization retornou 401 no gateway. Nenhuma chamada autenticada nem decisão periódica real foi executada. Sempre send_authorized=false no código e CHECK da tabela.
+- Webhook não recebeu módulos candidatos neste corte interrompido. Código e hash homologados preservados; SHADOW=true restaurado para o mesmo escopo, RETENTION=true, DUE=false. Três jobs anteriores intactos, envios false, zero tentativas.
+- Dependência concreta: suporte/plataforma deve aplicar ACLs com o proprietário dos objetos pg_net, preservando administração interna e concedendo ao postgres somente os acessos necessários ao job. Não conceder supabase_admin ao agente. Conferir negação efetiva para anon/authenticated/service_role e privilégios do executor antes de inserir credencial ou instalar job. O SQL preparado agora falha se essas ACLs não estiverem restritas.
+- Não pedir nova mensagem ou alterar o vencimento para produzir uma prova artificial. A oportunidade original continua a única referência; ainda não houve homologação periódica.

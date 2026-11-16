@@ -26,7 +26,7 @@ test('PostgreSQL due leases: due time, scope, stale sources, replay, retry, expi
  INSERT INTO public.crm_conversations VALUES('${cid}','${uid}',NULL,'waiting_customer',now()-interval '2 hours',now(),now()-interval '1 hour',now()-interval '55 minutes');
  INSERT INTO public.crm_follow_ups VALUES('${fid}','${cid}','pending',now()+interval '5 minutes',NULL);`);
  await db.exec(fs.readFileSync(new URL('../supabase/prepared/recovery-private-observations.sql',import.meta.url),'utf8'));
- await db.exec(fs.readFileSync(new URL('../supabase/migrations/20261116150549_crm_recovery_due_shadow.sql',import.meta.url),'utf8'));
+ await db.exec(fs.readFileSync(new URL('../supabase/migrations/20261116155426_crm_recovery_due_shadow.sql',import.meta.url),'utf8'));
  await db.exec("set request.jwt.claim.role='service_role'");
  await db.query('select public.crm_recovery_store_observation($1,$2,now()-interval \'1 hour\',$3)',[cid,'wamid.syntheticdue',JSON.stringify(classifyRecoveryInterest('Quero cascão de Prestígio'))]);
  const claim=async()=> (await db.query('select * from public.crm_recovery_claim_due($1)',[[phone]])).rows;

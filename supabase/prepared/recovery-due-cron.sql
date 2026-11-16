@@ -5,6 +5,12 @@ BEGIN;
 DO $$ BEGIN
  IF NOT EXISTS(SELECT 1 FROM pg_extension WHERE extname='pg_net') THEN
   RAISE EXCEPTION 'pg_net_requires_separate_authorized_setup'; END IF;
+ IF EXISTS(SELECT 1 FROM (VALUES('anon'),('authenticated'),('service_role')) r(role_name)
+  WHERE has_schema_privilege(r.role_name,'net','USAGE')
+   OR has_table_privilege(r.role_name,'net.http_request_queue','SELECT')
+   OR has_table_privilege(r.role_name,'net.http_request_queue','INSERT')
+   OR has_function_privilege(r.role_name,'net.http_post(text,jsonb,jsonb,jsonb,integer)','EXECUTE'))
+ THEN RAISE EXCEPTION 'pg_net_acl_not_restricted'; END IF;
  IF EXISTS(SELECT 1 FROM cron.job WHERE jobname='lod-recovery-shadow-due-5min') THEN
   RAISE EXCEPTION 'due_job_already_exists'; END IF;
  IF (SELECT count(*) FROM vault.decrypted_secrets WHERE name='crm_recovery_project_url')<>1 OR
