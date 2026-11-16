@@ -1185,3 +1185,20 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - 62/62 testes direcionados locais e tipagem Deno estrita com declaração local de runtime. Deploy direto ainda requer verificação no runtime implantado; pacote JSR de tipos não carregou por rede. Sem nova dependência de SDK no webhook.
 - Proposta de retenção horária e corte/rollback em `docs/CRM-RECOVERY-INGRESS-CUT.md`. Nada implantado: Edge produtiva permanece v8, nenhum novo cron ou disparo ativado.
 - Complemento de observabilidade: contadores fechados de interesse reconhecido e impedimentos (sem SKU/valores arbitrários), para distinguir falha de reconhecimento de bloqueio comercial. 63/63 testes locais, tipagem Deno estrita com declaração local de runtime aprovada. Sem implantação.
+
+## Corte autorizado em andamento — 16/11/2026
+
+- Autorização específica recebida para expurgo horário, backup v8, deploy inicial OFF e posterior sombra exclusivamente no telefone do proprietário já homologado. Sem Meta/Tintim, outros clientes, merge, Cloudflare ou envios.
+- Migration `20261116141254_crm_recovery_retention_hourly.sql` aplicada no comercial: nova função de expurgo com execução interna postgres e job `lod-recovery-private-retention-hourly`, minuto 17 de cada hora. Migration criada por CLI; timestamp reconciliado com o registro remoto. Os dois jobs anteriores permaneceram iguais.
+- Consulta manual de expurgo retornou zero; nenhum registro privado ou vencido existia. EXECUTE anon/authenticated=false, service_role=true. Execução real pelo cron às 14:17:00 UTC (11:17 America/Belem) terminou succeeded/DO, sem erro. Falhas não são absorvidas: a transação reverte e o cron registra failed; a próxima execução repete o expurgo, e a captura continua condicionada à retenção pronta/purga defensiva. Nenhuma falha foi provocada em produção.
+- Backup local privado dos três arquivos/metadados v8 confirmado; fonte restaurável também permanece no SHA base já documentado. verify_jwt=false preservado. automatic_sends_enabled=false e follow_up_minutes=45 reconfirmados.
+- Reexecução local neste corte: 60/60 testes no conjunto recuperação/persistência/core/transporte selecionado; nenhuma falha. O total anterior 63 corresponde ao conjunto anterior, não a esta seleção.
+- Webhook AINDA v8; nenhum deploy ou flag alterada. Gestão de secrets não disponível no conector; painel exige sessão. Proprietário escolheu login direto e preencheu via formulário seguro; CAPTCHA bloqueou conclusão. Aguardar autenticação compartilhada antes de configurar OFF e prosseguir. Não inferir login concluído ou flags verificadas.
+
+### Continuação do corte: autenticação e deploy OFF
+
+- Login pelo ChatGPT confirmado no painel do projeto comercial. A tentativa anterior por senha não concluiu; nenhuma credencial foi copiada para código/documentação.
+- Flags `CRM_RECOVERY_SHADOW_ENABLED=false` e `CRM_RECOVERY_RETENTION_READY=false` criadas no painel. Digests conferidos com SHA-256 de false. Segredos Meta existentes permaneceram sem alterações.
+- Deploy candidato concluído: webhook v10 ACTIVE, verify_jwt=false, hash de bundle `3c78c51c855926c2ecafabc73e4440a3c0c577b048f0170c6c91984ba84d9c55`, quinze arquivos transitivos. Comparar fontes recuperadas antes de qualquer ativação.
+- Smoke remoto na v10: POST sem HMAC retornou 401/bad_signature; GET sem verificação retornou 403/verification_failed; PUT retornou 405/method_not_allowed. Logs confirmaram boot em 19ms e essas três rejeições esperadas. Não há prova de mensagem autenticada nova nesta versão ainda.
+- Avaliação permanece OFF. Próximo requisito: proprietário enviar uma mensagem e a loja responder pelo Business App para validar core/echo na nova versão; só depois habilitar sombra para o único número já homologado e iniciar teste de interesse. Não afirmar sucesso do ciclo comercial antes disso.
