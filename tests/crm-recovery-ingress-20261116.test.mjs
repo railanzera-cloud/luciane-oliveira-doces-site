@@ -43,6 +43,13 @@ test('observer failures are contained without propagating payloads or credential
  const r=await observe(client(),options(),{makeStore:()=>({}),evaluate:async()=>{throw Error('PRIVATE');}});
  assert.equal(r.state,'observation_failed');assert.ok(!JSON.stringify(r).includes('PRIVATE'));
 });
+test('internal metrics show known impediments and recognized interest without arbitrary values',async()=>{
+ const r=await observe(client(),options(),{makeStore:()=>({}),evaluate:async()=>({classification:'blocked',
+  interest:{status:'resolved'},blockers:['permission_unverified','availability_unverified:private_sku','CUSTOMER_PRIVATE']})});
+ assert.equal(r.interest_counts.resolved,1);assert.equal(r.blocker_counts.permission_unverified,1);
+ assert.equal(r.blocker_counts.availability_unverified,1);assert.equal(r.blocker_counts.other,1);
+ assert.ok(!JSON.stringify(r).includes('private_sku'));assert.ok(!JSON.stringify(r).includes('CUSTOMER_PRIVATE'));
+});
 test('candidate webhook hooks observer after core persistence; no send endpoint or public extra response',()=>{
  const s=fs.readFileSync(new URL('../supabase/functions/crm-whatsapp-webhook/index.ts',import.meta.url),'utf8');
  assert.ok(s.indexOf('const summary=await observeRecoveryIngress')>s.indexOf('crm_record_meta_message'));

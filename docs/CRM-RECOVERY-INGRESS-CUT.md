@@ -15,7 +15,7 @@ Client servidor usa fetch/PostgREST nativo, como o webhook atual. Não acrescent
 - `CRM_RECOVERY_CHANNEL_VERIFIED_SINCE`: data efetiva da cobertura comprovada; não transforma histórico anterior em verificado.
 - Permissão/opt-out vêm do banco. Compra continua com `purchase_coverage_verified=false` neste corte; não afirmar ausência de compra quando o vínculo é incompleto.
 - Observer valida novamente HMAC, resolve cliente e atendimento único, isola identidades por lote e reaproveita as observações privadas. Contatos/atendimentos ambíguos são ignorados com contagem; não se pede classificação à operadora.
-- Cada resultado mantém `send_authorized=false`. Logs expõem somente estado e contagens por classificação, sem telefone, mensagem, ID de conversa ou credenciais.
+- Cada resultado mantém `send_authorized=false`. Logs expõem somente estado e contagens por classificação, interesse reconhecido e motivos de impedimento com vocabulário fechado, sem telefone, mensagem, ID de conversa ou credenciais.
 - Na entrada de interesse, reconhecer produto e salvar metadados; na resposta da loja, recuperar o interesse persistido e avaliar compra/permissão/disponibilidade/prazo. `not_due`, permissão desconhecida e compra não conciliada são impedimentos esperados, não falha do classificador.
 
 O observer avalia em eventos; não é um executor periódico de acompanhamentos. A mesma função montadora aceita reavaliação sem novo payload, mas o executor periódico dessa avaliação ainda precisa de outro incremento. Não apresentar processamento de um echo como uma oportunidade elegível após o prazo ou como venda recuperada.
@@ -44,6 +44,6 @@ Nenhum job ou alteração de função foi instalado por este incremento.
 
 ## Testes
 
-62/62 testes direcionados locais aprovados: ingresso habilitado/desabilitado, retenção, assinatura, escopo autorizado, ambiguidades, falha contida, protocolo PostgREST, core de mensagens/status e PostgreSQL real para a persistência. Tipagem Deno estrita passou com declaração local de EdgeRuntime: o carregamento direto do pacote de tipos JSR falhou por rede neste ambiente; a substituição temporária foi removida e não altera o fonte. Não equivale a teste de runtime implantado.
+63/63 testes direcionados locais aprovados: ingresso habilitado/desabilitado, retenção, assinatura, escopo autorizado, ambiguidades, falha contida, protocolo PostgREST, core de mensagens/status e PostgreSQL real para a persistência. Tipagem Deno estrita passou com declaração local de EdgeRuntime: o carregamento direto do pacote de tipos JSR falhou por rede neste ambiente; a substituição temporária foi removida e não altera o fonte. Não equivale a teste de runtime implantado.
 
 Sem implantação, agendamento, mensagem real, merge ou Cloudflare neste incremento.
