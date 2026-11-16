@@ -1202,3 +1202,12 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - Deploy candidato concluído: webhook v10 ACTIVE, verify_jwt=false, hash de bundle `3c78c51c855926c2ecafabc73e4440a3c0c577b048f0170c6c91984ba84d9c55`, quinze arquivos transitivos. Comparar fontes recuperadas antes de qualquer ativação.
 - Smoke remoto na v10: POST sem HMAC retornou 401/bad_signature; GET sem verificação retornou 403/verification_failed; PUT retornou 405/method_not_allowed. Logs confirmaram boot em 19ms e essas três rejeições esperadas. Não há prova de mensagem autenticada nova nesta versão ainda.
 - Avaliação permanece OFF. Próximo requisito: proprietário enviar uma mensagem e a loja responder pelo Business App para validar core/echo na nova versão; só depois habilitar sombra para o único número já homologado e iniciar teste de interesse. Não afirmar sucesso do ciclo comercial antes disso.
+
+### Modo sombra habilitado em escopo único — 16/11/2026
+
+- Verificação produtiva pós-v10 aceita: inbound 11:35:17 e app_echo 11:36:29 America/Belem, mesmo telefone/atendimento; HTTP 200 nos eventos e ambas visíveis no Tintim segundo o proprietário. Sem duplicidade de eventos nesta consulta. Identificadores e telefone não publicados.
+- Após autorização reiterada, configuração privada gravada: allowlist de um único telefone já homologado, cobertura certificada a partir de 14:35:17 UTC, RETENTION_READY=true e SHADOW_ENABLED=true. Última ativação registrada pelo painel em 14:43:42 UTC (11:43:42 local). Somente flags/configuração; fonte do webhook não alterada nesta etapa.
+- Digests das quatro configurações conferidos no painel; envios automáticos reconfirmados false. Base privada ainda com zero observações na checagem inicial. Nenhuma mensagem foi enviada pelo motor.
+- Próximo teste: mensagem autorizada mencionando produto de forma inequívoca, depois resposta pelo Business App; consultar observação semântica, conciliação/impedimentos e logs redigidos. Ainda NÃO declarar reconhecimento real ou oportunidade recuperável validada.
+- Limitação observada em replay local de preparação: a expressão de interesse sem verbo reconhecido pode gerar commercial_intent_missing. Manter como falso negativo a melhorar em incremento isolado; não presumir cobertura linguística completa por existir catálogo completo.
+- Reversão imediata: CRM_RECOVERY_SHADOW_ENABLED=false; se houver regressão de ingresso, restaurar três fontes v8, preservando verify_jwt/segredos. Segundo telefone e piloto de envios permanecem pendentes; nenhum merge/Cloudflare/Meta/Tintim alterado.
