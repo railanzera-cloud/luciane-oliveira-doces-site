@@ -104,8 +104,12 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
         {...metaConfig,signature:signedWebhook.signature,receivedAt:now});
       if (!incoming.accepted) return failed('signed_observation_rejected');
       const expected = `${metaConfig.wabaId}:${metaConfig.phoneNumberId}:${customerPhone}`;
+      let matchedIdentity = false;
       for (const e of incoming.events) {
-        if (e.conversation_key !== expected) return failed('signed_observation_identity_mismatch');
+        // Meta can batch several customers in one signed envelope. Scope strictly
+        // to this episode; never persist another customer's semantic observation.
+        if (e.conversation_key !== expected) continue;
+        matchedIdentity = true;
         if (Date.parse(e.occurred_at)<Date.parse(since)) continue;
         const old = events.find(x => x.id === e.id && x.direction === e.direction);
         if (old && Date.parse(old.occurred_at) !== Date.parse(e.occurred_at)) return failed('message_identity_conflict');
@@ -113,6 +117,7 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
         if (old) Object.assign(old,{content_origin:e.content_origin,text:e.text});
         else events.push({...e,conversation_key:conversationId});
       }
+      if (!matchedIdentity) return failed('signed_observation_identity_mismatch');
     }
     for (const [field,direction] of [['last_inbound_at','inbound'],['last_outbound_at','business_outbound']]) {
       const recorded = Date.parse(c[field]);

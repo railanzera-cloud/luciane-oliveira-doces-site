@@ -146,3 +146,11 @@ test('optional private store restores semantic history and capture requires a ma
  await assemble(db(fixture()),{...options(),signedWebhook:signed('Quero Prestígio','5592000000000'),observationStore:store});
  assert.equal(captures,1);
 });
+test('signed batches isolate customers without rejecting a valid episode or persisting foreign text',async()=>{
+ const payload=JSON.parse(signed().raw);
+ payload.entry[0].changes[0].value.messages.push({id:'wamid.foreignsynthetic',from:'5592000000000',timestamp:String(Date.parse(time('13:00'))/1000),type:'text',text:{body:'Não me mande mensagens'}});
+ const raw=JSON.stringify(payload),signature='sha256='+createHmac('sha256',secret).update(raw).digest('hex');
+ const captured=[];
+ const r=await assemble(db(fixture()),{...options(),signedWebhook:{raw,signature},observationStore:{read:async()=>[],capture:async(c,e)=>captured.push(e.id)}});
+ assert.equal(r.classification,'shadow_candidate');assert.deepEqual(captured,['wamid.synthetic_in']);
+});

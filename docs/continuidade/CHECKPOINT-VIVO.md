@@ -1169,3 +1169,10 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - Testes produtivos em transação revertida: ACL/RLS, escrita/leitura, dedupe, rejeição aninhada, expiração/expurgo e revogação/restauração. Zero dados de teste mantidos; envio continua desligado. Sem edição de clientes/conversas, webhook, pedidos ou estoque.
 - Expurgo físico é RPC em lotes; scheduler não instalado. Não iniciar captura real antes de agendar/testar a manutenção autorizada. 53/53 testes direcionados locais.
 - Guia Graph Explorer e alternativa de verificador local sem App Secret na primeira etapa em `docs/CRM-PRIVATE-INSTALLATION-AND-GRAPH-ACCESS.md`. Sem conexão Ads Manager ou alteração Meta.
+
+## Homologação de echo liberada ao proprietário (16/11/2026)
+
+- Verificações de vínculo, Coexistence, inscrição e callback concluídas pelo proprietário em consultas autenticadas GET. Aceitas sem repetir auditoria cadastral; IDs/credenciais permanecem privados.
+- Preflight operacional do agente confirmou envio desligado, ausência de tentativas, Edge ativa e suporte a echo/RPC. Orientação: proprietário pode ativar somente smb_message_echoes, preservando messages/callback; nenhuma alteração Meta foi realizada pelo agente.
+- Linha de base e probe somente leitura preparados; aguardar confirmação de ativação e testes autorizados para consultar os eventos. Não há monitor em segundo plano.
+- Correção de isolamento de clientes em lotes assinados no montador; 54/54 testes direcionados locais. Homologação de transporte precede corte separado de classificação/persistência no ingresso ativo. Detalhes: `docs/CRM-ECHO-HOMOLOGATION-READY.md`.
