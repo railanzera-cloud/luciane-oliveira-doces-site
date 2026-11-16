@@ -26,7 +26,7 @@ export function createRecoveryServerClient(url,key,{fetchImpl=fetch,signal}={}) 
     from(table){
       if(!tables.has(table))throw Error('table_not_allowed');
       const params=new URLSearchParams();
-      const q={select(columns){if(!/^[a-z_,]+$/.test(columns))throw Error('columns_invalid');params.set('select',columns);return q;},
+      const q={select(columns){if(!/^[a-z_][a-z0-9_]*(?:,[a-z_][a-z0-9_]*)*$/.test(columns))throw Error('columns_invalid');params.set('select',columns);return q;},
         eq(k,v){params.append(atom(k),'eq.'+atom(v));return q;},
         in(k,values){params.append(atom(k),'in.('+values.map(atom).join(',')+')');return q;},
         gte(k,v){params.append(atom(k),'gte.'+atom(v));return q;},
