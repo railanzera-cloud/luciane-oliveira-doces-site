@@ -1162,3 +1162,10 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - Adicionado verificador Graph GET-only com configuração privada por ambiente e saída sem tokens/IDs. Não executado contra conta real: conexão Graph autenticada indisponível. Overrides de callback e comparação interna da Edge permanecem verificações explícitas.
 - Persistência preparada agora rejeita conflito no mesmo ID e oferece expurgo service-only limitado a registros expirados; sem scheduler. 52/52 testes direcionados locais aprovados.
 - Impacto e reversão da instalação privada em `docs/CRM-RECOVERY-HOMOLOGATION-CUT.md`; nenhuma migração produtiva aplicada, nenhuma assinatura Meta ou envio alterado. Sem repetição de verificação cadastral.
+
+## Instalação privada autorizada e validada (16/11/2026)
+
+- Migration `20261116112858_crm_recovery_private_observations` aplicada exclusivamente à estrutura privada aprovada. JSON validado por vocabulário fechado gerado do catálogo, incluindo igualdade exata dos candidatos e rejeição de campos aninhados adicionais.
+- Testes produtivos em transação revertida: ACL/RLS, escrita/leitura, dedupe, rejeição aninhada, expiração/expurgo e revogação/restauração. Zero dados de teste mantidos; envio continua desligado. Sem edição de clientes/conversas, webhook, pedidos ou estoque.
+- Expurgo físico é RPC em lotes; scheduler não instalado. Não iniciar captura real antes de agendar/testar a manutenção autorizada. 53/53 testes direcionados locais.
+- Guia Graph Explorer e alternativa de verificador local sem App Secret na primeira etapa em `docs/CRM-PRIVATE-INSTALLATION-AND-GRAPH-ACCESS.md`. Sem conexão Ads Manager ou alteração Meta.

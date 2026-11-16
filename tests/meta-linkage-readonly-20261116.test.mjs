@@ -19,3 +19,8 @@ test('missing credential, failed reads and truncated listing cannot certify link
  const data=responses();data[1].paging={next:'SECRET'};
  assert.equal((await verifyMetaLinkage(config,{fetchImpl:async()=>({ok:true,json:async()=>data.shift()})})).ok,false);
 });
+test('user token alone can inspect WhatsApp assets without asking for an app secret',async()=>{
+ const data=responses();let calls=0;
+ const r=await verifyMetaLinkage({...config,appToken:null},{fetchImpl:async()=>{calls++;return {ok:true,json:async()=>data.shift()};}});
+ assert.equal(calls,3);assert.equal(r.coexistence,true);assert.equal(r.app_configuration_checked,false);assert.equal(r.ok,false);
+});

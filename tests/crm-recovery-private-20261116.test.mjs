@@ -31,6 +31,21 @@ test('private persistence: real PostgreSQL ACL, idempotency, expiry, no raw body
  const rows=await store.read(cid);assert.equal(rows.length,1);assert.equal(rows[0].semantic.candidates[0].product_id,'cone-trufado-prestigio');
  assert.ok(!JSON.stringify(rows).includes('Quero cascão'));
  await assert.rejects(db.query('select public.crm_recovery_store_observation($1,$2,$3,$4)',[cid,'wamid.syntheticbad',event.occurred_at,JSON.stringify({...classifyRecoveryInterest(event.text),raw_text:'PRIVATE'})]));
+
+ const valid=classifyRecoveryInterest(event.text);
+ for(const bad of [
+  {...valid,reason:'PRIVATE CUSTOMER TEXT'},
+  {...valid,catalog_version:'PRIVATE'},
+  {...valid,categories:[{body:'PRIVATE'}]},
+  {...valid,option_ids:['customer@example.invalid']},
+  {...valid,candidates:[{...valid.candidates[0],name:'PRIVATE'}]},
+  {...valid,candidates:[{...valid.candidates[0],nested:{text:'PRIVATE'}}]},
+  {...valid,candidates:[{product_id:valid.candidates[0].product_id}]},
+ ]) await assert.rejects(db.query('select public.crm_recovery_store_observation($1,$2,$3,$4)',[cid,'wamid.syntheticreject',event.occurred_at,JSON.stringify(bad)]));
+ await db.exec('BEGIN; REVOKE EXECUTE ON FUNCTION public.crm_recovery_read_observations(uuid) FROM service_role');
+ assert.equal((await db.query("select has_function_privilege('service_role','public.crm_recovery_read_observations(uuid)','EXECUTE') allowed")).rows[0].allowed,false);
+ await db.exec('ROLLBACK');
+ assert.equal((await db.query("select has_function_privilege('service_role','public.crm_recovery_read_observations(uuid)','EXECUTE') allowed")).rows[0].allowed,true);
  for(const role of ['anon','authenticated']) {
   const acl=await db.query(`select has_function_privilege($1,'public.crm_recovery_read_observations(uuid)','EXECUTE') allowed`,[role]);
   assert.equal(acl.rows[0].allowed,false);

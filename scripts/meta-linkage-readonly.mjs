@@ -3,7 +3,7 @@
 export async function verifyMetaLinkage(config,{fetchImpl=fetch}={}) {
   const {userToken,appToken,appId,wabaId,phoneId,callback,version}=config ?? {};
   if (![appId,wabaId,phoneId].every(v => /^\d+$/.test(v ?? '')) ||
-    !/^v\d{2}\.\d+$/.test(version ?? '') || !userToken || !appToken || !callback)
+    !/^v\d{2}\.\d+$/.test(version ?? '') || !userToken || !callback)
     return {ok:false,reason:'audit_configuration_missing'};
   const get = async (path,token) => {
     const r=await fetchImpl(`https://graph.facebook.com/${version}/${path}`,{
@@ -15,7 +15,7 @@ export async function verifyMetaLinkage(config,{fetchImpl=fetch}={}) {
     const p=await get(`${phoneId}?fields=id,is_on_biz_app,platform_type`,userToken);
     const numbers=await get(`${wabaId}/phone_numbers?fields=id&limit=100`,userToken);
     const apps=await get(`${wabaId}/subscribed_apps`,userToken);
-    const subscriptions=await get(`${appId}/subscriptions`,appToken);
+    const subscriptions=appToken ? await get(`${appId}/subscriptions`,appToken) : {data:[]};
     // Truncated listings cannot prove linkage, and paging URLs may contain tokens.
     const complete=!numbers.paging?.next && !apps.paging?.next && !subscriptions.paging?.next;
     const subscription=subscriptions.data?.find(s => s.object==='whatsapp_business_account');
@@ -24,7 +24,7 @@ export async function verifyMetaLinkage(config,{fetchImpl=fetch}={}) {
       phone_in_waba:numbers.data?.some(n=>n.id===phoneId)===true,
       app_in_waba:apps.data?.some(a=>(a.whatsapp_business_api_data?.id ?? a.id)===appId)===true,
       coexistence:p.is_on_biz_app===true && p.platform_type==='CLOUD_API',
-      callback_matches:subscription?.callback_url===callback,
+      app_configuration_checked:Boolean(appToken),callback_matches:subscription?.callback_url===callback,
       messages_subscribed:fields.includes('messages'),echoes_subscribed:fields.includes('smb_message_echoes')};
     return {ok:complete && result.phone_matches && result.phone_in_waba && result.app_in_waba &&
       result.coexistence && result.callback_matches && result.messages_subscribed,...result};
