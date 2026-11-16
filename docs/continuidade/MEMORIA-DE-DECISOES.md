@@ -481,3 +481,8 @@ Sabor **Dois Amores** é retirado da vitrine de Cascões sem reatribuir/deletar 
 
 ### D-C57 (14/11/2026) — Correspondência avançada manual do Pixel
 Proprietário autorizou correspondência avançada manual com Pixel 1491655855979140: nome no checkout WhatsApp; nome/telefone/e-mail somente no checkout site quando legitimamente informados, com normalização e atualizações de init sem eventos novos. Tintim, CAPI, Pixel PageView inicial e funil existente intocados. Proprietário determinou preservar literalmente o aviso "Usaremos seus dados somente para processar e acompanhar este pedido.". A conformidade desta redação com compartilhamento publicitário segue pendente de análise independente, mesmo com autorização interna alegada. O diagnóstico Meta só se encerra com evidência real na plataforma.
+
+
+### 16/11/2026 — Substituir apenas o relógio da reavaliação
+
+Escolhido Worker Cron candidato em lugar de insistir no hardening individual de pg_net, indisponível conforme KB oficial. Corrigida recomendação anterior de suporte. Preservar processamento comercial, fila privada, leases e webhook homologado. Worker sem service_role e sem contatos, comando fixo assinado HMAC, gateway JWT mantido e replay bloqueado no banco; flags OFF e cron vazio versionados. Implantação e mudança de autenticação requerem autorização específica após apresentação dos testes e reversão. Detalhes: docs/CRM-RECOVERY-CLOUDFLARE-SCHEDULER.md.

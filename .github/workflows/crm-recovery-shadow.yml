@@ -10,6 +10,10 @@ on:
       - 'supabase/functions/crm-whatsapp-webhook/index.ts'
       - 'supabase/functions/crm-recovery-reevaluate/**'
       - 'supabase/migrations/*crm_recovery_due_shadow.sql'
+      - 'supabase/migrations/*crm_recovery_scheduler_auth.sql'
+      - 'cloudflare/recovery-scheduler/**'
+      - 'tests/crm-recovery-scheduler*.test.mjs'
+      - 'tests/fixtures/recovery-scheduler.mjs'
       - 'tests/crm-recovery-due*.test.mjs'
       - 'scripts/recovery-shadow-replay.mjs'
       - 'tests/crm-recovery-shadow-20261115.test.mjs'
@@ -43,6 +47,8 @@ jobs:
           tests/crm-recovery-private-20261116.test.mjs
           tests/crm-recovery-due-20261116.test.mjs
           tests/crm-recovery-due-postgres-20261116.test.mjs
+          tests/crm-recovery-scheduler-20261116.test.mjs
+          tests/crm-recovery-scheduler-postgres-20261116.test.mjs
           tests/crm-observabilidade-meta-20261026.test.mjs
           tests/crm-tintim-receipt-time-20261026.test.mjs
           tests/crm-meta-delivery-status-20261027.test.mjs

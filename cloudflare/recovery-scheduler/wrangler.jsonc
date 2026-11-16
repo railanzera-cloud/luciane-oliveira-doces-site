@@ -1,0 +1,10 @@
+{
+  "name": "lod-recovery-scheduler",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-11-16",
+  "workers_dev": false,
+  "preview_urls": false,
+  "vars": { "RECOVERY_SCHEDULER_ENABLED": "false" },
+  "triggers": { "crons": [] },
+  "observability": { "enabled": true }
+}

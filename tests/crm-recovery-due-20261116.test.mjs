@@ -49,20 +49,21 @@ test('permission requires preexisting grant and matching audit, no inference or 
  assert.equal((await recoveryPermission(c,{...granted,consent_at:'2099-01-01'},now)).verified,false);
 });
 
-test('worker HTTP auth, default OFF and server-only scope cannot be overridden in the request body',async()=>{
+test('worker HTTP auth requires signed scheduler request; body cannot override server scope',async()=>{
  const {createRecoveryDueHandler}=await import('../supabase/functions/_shared/recovery-due-handler.mjs');
- const config={SUPABASE_SERVICE_ROLE_KEY:'synthetic-worker-key'};let calls=0;
- const h=createRecoveryDueHandler({env:n=>config[n],evaluate:async(_,o)=>{
+ const {signSchedulerRequest}=await import('../supabase/functions/_shared/recovery-scheduler-auth.mjs');
+ const {authEnv,projectUrl,gatewayKey,secret,now,tick}=await import('./fixtures/recovery-scheduler.mjs');
+ const config={...authEnv};let calls=0,consumed=true;
+ const h=createRecoveryDueHandler({env:n=>config[n],now:()=>now,evaluate:async(_,o)=>{
   calls++;assert.deepEqual(o.authorizedPhones,[phone]);assert.equal(o.rollout.purchase_coverage_verified,false);
   return {mode:'shadow',send_authorized:false,state:'evaluated',failed:0};
- },makeClient:()=>({})});
- const req=(headers={},method='POST')=>new Request('https://example.invalid',{method,headers,body:method==='POST'?JSON.stringify({authorizedPhones:['PRIVATE-other-phone'],enabled:true}):undefined});
- assert.equal((await h(req())).status,401);assert.equal(calls,0);
- const headers={authorization:'Bearer synthetic-worker-key'};
- assert.equal((await (await h(req(headers))).json()).state,'disabled');assert.equal(calls,0);
- assert.equal((await h(req(headers,'GET'))).status,405);
+ },makeClient:()=>({rpc:async(name)=>{assert.equal(name,'crm_recovery_consume_scheduler_nonce');return {data:consumed};}})});
+ const request=()=>signSchedulerRequest({projectUrl,gatewayKey,secret,now,scheduledAt:tick});
+ assert.equal((await h(new Request(projectUrl+'/functions/v1/crm-recovery-reevaluate',{method:'POST'}))).status,401);
+ assert.equal((await(await h(await request())).json()).state,'disabled');assert.equal(calls,0);
  Object.assign(config,{CRM_RECOVERY_SHADOW_ENABLED:'true',CRM_RECOVERY_DUE_ENABLED:'true',CRM_RECOVERY_RETENTION_READY:'true',CRM_RECOVERY_AUTHORIZED_PHONES:phone});
- assert.equal((await h(req(headers))).status,200);assert.equal(calls,1);
+ assert.equal((await h(await request())).status,200);assert.equal(calls,1);
+ consumed=false;assert.equal((await h(await request())).status,409);assert.equal(calls,1);
 });
 test('packaged stock uses available units after reservations; missing stock cannot be guessed',async()=>{
  const {recoveryAvailability}=await import('../supabase/functions/_shared/recovery-availability.mjs');

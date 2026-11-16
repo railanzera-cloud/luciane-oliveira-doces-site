@@ -1,21 +1,26 @@
 import {createRecoveryServerClient} from './recovery-server-client.mjs';
 import {reevaluateDueRecovery} from './recovery-due.mjs';
-const equal=(a,b)=>{
- if(!a||!b||a.length!==b.length)return false;
- let d=0;for(let i=0;i<a.length;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0;
-};
-/** Server configuration only. Request body cannot control identity, scope or flags. */
-/** @param {{env:(name:string)=>string|undefined,makeClient?:any,evaluate?:any,log?:(tag:string,summary:string)=>void}} options */
-export function createRecoveryDueHandler({env,makeClient=createRecoveryServerClient,evaluate=reevaluateDueRecovery,log=()=>{}}){
+import {verifySchedulerRequest} from './recovery-scheduler-auth.mjs';
+// Candidate auth cut only. Gateway verify_jwt stays TRUE; HMAC is mandatory too.
+// Public gateway key is not caller authorization; no service-key bearer bypass.
+/** @param {{env:(name:string)=>string|undefined,makeClient?:any,evaluate?:any,log?:(tag:string,summary:string)=>void,now?:()=>number}} options */
+export function createRecoveryDueHandler({env,makeClient=createRecoveryServerClient,evaluate=reevaluateDueRecovery,log=()=>{},now=()=>Date.now()}){
  return async(req)=>{
-  const key=env('SUPABASE_SERVICE_ROLE_KEY')??'';
-  if(!key||!equal(req.headers.get('authorization')??'','Bearer '+key))return new Response('unauthorized',{status:401});
   if(req.method!=='POST')return new Response('method_not_allowed',{status:405});
-  const enabled=env('CRM_RECOVERY_DUE_ENABLED')==='true' && env('CRM_RECOVERY_SHADOW_ENABLED')==='true';
-  if(!enabled)return Response.json({mode:'shadow',send_authorized:false,state:'disabled'});
+  if(env('CRM_RECOVERY_AUTH_MODE')!=='scheduler_hmac_v1')return new Response('unavailable',{status:503});
+  const verified=await verifySchedulerRequest(req,{projectUrl:env('SUPABASE_URL'),
+   gatewayKey:env('CRM_RECOVERY_PUBLIC_GATEWAY_KEY'),secret:env('CRM_RECOVERY_SCHEDULER_SECRET'),now:now()});
+  if(!verified.ok)return new Response('unauthorized',{status:401});
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),25000);
   try{
+   const key=env('SUPABASE_SERVICE_ROLE_KEY')??'';
    const client=makeClient(env('SUPABASE_URL')??'',key,{signal:controller.signal,allowDueRpc:true});
+   const consumed=await client.rpc('crm_recovery_consume_scheduler_nonce',{
+    p_nonce:verified.nonce,p_signed_at:verified.signedAt,p_tick:verified.tick});
+   if(consumed.error)return new Response('unavailable',{status:503});
+   if(consumed.data!==true)return new Response('replay_rejected',{status:409});
+   const enabled=env('CRM_RECOVERY_DUE_ENABLED')==='true' && env('CRM_RECOVERY_SHADOW_ENABLED')==='true';
+   if(!enabled)return Response.json({mode:'shadow',send_authorized:false,state:'disabled'});
    const result=await evaluate(client,{enabled,
     retentionReady:env('CRM_RECOVERY_RETENTION_READY')==='true',
     authorizedPhones:(env('CRM_RECOVERY_AUTHORIZED_PHONES')??'').split(',').map(p=>p.trim()).filter(Boolean),

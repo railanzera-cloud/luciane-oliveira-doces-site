@@ -1252,3 +1252,12 @@ Pedido do proprietário: concluir o preparo de produção e fornecer ZIP manual 
 - Edge nova crm-recovery-reevaluate v2, verify_jwt=true, hash 9345fddbe03cf67b120430ae7c16eb4438bb4bc5d3e86d63234f33d88d639292; DUE false. POST sem autenticação retornou 401. Sem Vault preenchido, sem cron novo, sem avaliação periódica real. Estrutura aditiva permanece privada e vazia; manutenção segura instalada.
 - Webhook permanece byte a byte no código homologado v13, hash 5a4de4d83c60b042d2f5634b75cb7feae750339d190d004571217c15ec3a1e0a. Metadado de implantação agora v15 por atualização de secrets, sem novo fonte. SHADOW=true restaurado, mesmo allowlist privado; RETENTION=true/DUE=false. Demais integrações não alteradas.
 - Resultado NÃO é homologação do timer. Próximo passo concreto: suporte Supabase corrigir ACLs de pg_net com o proprietário; validar negação e executor postgres antes de Vault/job. Procedimento e guardas atualizados em docs/CRM-RECOVERY-DUE-CUT.md. Nenhum novo teste de mensagem solicitado.
+
+
+### Agendador Cloudflare e autenticação restrita — candidato 16/11/2026
+
+Reavaliada a premissa de ACLs pg_net com a KB oficial: não há restrição individual suportada por projeto; não depender de solicitação ao suporte. Recomendado Worker Cron cinco minutos, preservando Edge/fila/RPCs/leases/regras comerciais. Código isolado adiciona HMAC de comando fixo, gateway verify_jwt=true preservado, nonce/tick de uso único e ledger privado com expurgo existente. Nenhuma chave administrativa ou contato no Worker. Configuração versionada OFF e cron vazio.
+
+Build, 994 regressões comerciais, 82 testes direcionados, typecheck Deno e dry-run Wrangler aprovados. Ver docs/CRM-RECOVERY-CLOUDFLARE-SCHEDULER.md para segurança, impacto, homologação e reversão. Compatibilidade positiva da chave pública no gateway real ainda exige corte OFF autorizado; não presumir homologação produtiva. Estado produtivo anterior preservado: webhook v15 com código homologado v13, Edge reavaliação v2 OFF, pg_net ausente, nenhum cron novo, telefone original, envios OFF. Não houve implantação desta alternativa.
+
+Checagem global TypeScript mantém quatro erros preexistentes, reproduzidos na base em worktree separada; não declarar tsc global aprovado. Build, suíte comercial e checagens direcionadas do incremento passaram.

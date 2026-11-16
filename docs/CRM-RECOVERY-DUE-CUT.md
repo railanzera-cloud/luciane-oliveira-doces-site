@@ -1,5 +1,7 @@
 # Reavaliação privada após o prazo — candidato PR #67
 
+> Plano histórico superado para agendamento/autenticação. A recomendação de suporte para ACLs pg_net foi corrigida conforme documentação oficial. O candidato vigente é [Worker Cron com HMAC restrito](CRM-RECOVERY-CLOUDFLARE-SCHEDULER.md), ainda não implantado. As regras comerciais e a estrutura privada continuam válidas; o SQL legado de cron agora falha explicitamente.
+
 Atualização do corte autorizado em 16/11/2026: estrutura privada instalada e Edge autenticada implantada OFF. A ativação periódica foi interrompida por ACLs de pg_net que o usuário SQL postgres não consegue revogar. pg_net foi removida por rollback antes de guardar credenciais ou enviar requisições. Nenhum cron novo foi criado. Webhook mantém exatamente o código homologado da v13 (versão de implantação 15 após mudança/restauração de flags), no telefone original. Ver detalhes no final. As seções de fluxo/corte abaixo descrevem a preparação, não uma homologação periódica concluída.
 
 ## Fluxo preparado
