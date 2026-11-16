@@ -1261,3 +1261,10 @@ Reavaliada a premissa de ACLs pg_net com a KB oficial: não há restrição indi
 Build, 994 regressões comerciais, 82 testes direcionados, typecheck Deno e dry-run Wrangler aprovados. Ver docs/CRM-RECOVERY-CLOUDFLARE-SCHEDULER.md para segurança, impacto, homologação e reversão. Compatibilidade positiva da chave pública no gateway real ainda exige corte OFF autorizado; não presumir homologação produtiva. Estado produtivo anterior preservado: webhook v15 com código homologado v13, Edge reavaliação v2 OFF, pg_net ausente, nenhum cron novo, telefone original, envios OFF. Não houve implantação desta alternativa.
 
 Checagem global TypeScript mantém quatro erros preexistentes, reproduzidos na base em worktree separada; não declarar tsc global aprovado. Build, suíte comercial e checagens direcionadas do incremento passaram.
+
+
+### Corte Cloudflare autorizado — migração privada instalada, 16/11/2026
+
+Instalada e validada `20261116164957_crm_recovery_scheduler_auth.sql` (arquivo renomeado do timestamp candidato para o registro real). RLS/ACLs, nonce/tick únicos, idade, expurgo e reversão de EXECUTE comprovados em transações revertidas; ledger final vazio. Preflight gateway: sem autorização 401 do gateway; apikey pública isolada chega à Edge v2 e recebe 401 da aplicação. HMAC positivo e periodicidade ainda pendentes.
+
+Não houve troca da Edge nem criação de Worker/cron: etapa do segredo depende de entrada segura pelo usuário no painel, pois conectores disponíveis não escrevem Edge Secrets e CLI não tem autenticação. Não extrair sessão ou publicar segredos. Webhook e três jobs existentes preservados, DUE OFF, lista autorizada inalterada, envios OFF/zero tentativas. Procedimento e evidências em docs/CRM-RECOVERY-CLOUDFLARE-SCHEDULER.md.

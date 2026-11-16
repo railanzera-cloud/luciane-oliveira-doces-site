@@ -1,4 +1,4 @@
-# Agendamento Cloudflare da reavaliação — candidato, não implantado
+# Agendamento Cloudflare da reavaliação — corte parcial autorizado
 
 ## Decisão e correção da premissa anterior
 
@@ -37,7 +37,7 @@ O Worker não expõe rota HTTP (`workers_dev=false`, `preview_urls=false`, nenhu
 ## Corte proposto — exige nova autorização
 
 1. Registrar fonte, hash, versão e `verify_jwt` da Edge atual; confirmar flags de envio OFF, DUE OFF e lista privada original sem ampliá-la. Preservar webhook e três agendamentos SQL existentes.
-2. Aplicar somente `20261116162442_crm_recovery_scheduler_auth.sql`. Validar RLS/ACLs, RPC, unicidade, expiração e extensão do expurgo. Não reinstalar migrations anteriores, pg_net ou Vault.
+2. Aplicar somente `20261116164957_crm_recovery_scheduler_auth.sql`. Validar RLS/ACLs, RPC, unicidade, expiração e extensão do expurgo. Não reinstalar migrations anteriores, pg_net ou Vault.
 3. Gerar segredo aleatório em ambiente seguro autorizado; inserir diretamente em Cloudflare Secrets e Supabase Edge Secrets. Nunca usar argumento CLI, SQL versionado, commit, resposta ou log contendo o valor. Configurar chave pública e modo de autenticação; DUE continua OFF.
 4. Implantar somente a Edge de reavaliação candidata com `verify_jwt=true`. Testar: sem credenciais 401 no gateway; chamada válida 200/disabled e `send_authorized=false`; assinatura inválida ou Bearer isolado rejeitados; repetição do tick 409; falha do ledger indisponível e sem avaliação. A resposta positiva autenticada no gateway real é condição obrigatória, ainda não comprovada localmente.
 5. Implantar Worker com cron vazio e flag OFF, conforme arquivo versionado. Validar bindings, ausência de rotas e de chaves administrativas. Testar uma chamada assinada controlada com Edge OFF, sem imprimir pedido HTTP. O dry-run local não prova permissões/conta Cloudflare nem aceitação real do gateway.
@@ -60,3 +60,15 @@ Build e 994 regressões comerciais aprovados. 82 testes direcionados aprovados, 
 A homologação periódica permanece pendente. Permissão auditada ausente, loja fechada ou não comprovada, indisponibilidade, resposta posterior, identidade/pagamento sem conciliação e cobertura não certificada de vendas externas continuam bloqueios comerciais legítimos; este agendador não os remove artificialmente.
 
 Limite da checagem global: `tsc --noEmit` retorna os mesmos quatro diagnósticos na base anterior e no candidato (tipagem do seletor de estoque e tipos Cloudflare/D1/Fetcher). Comparação executada em worktree separada da base, com as mesmas dependências. Não foram introduzidos por este incremento; Deno da Edge e bundle do novo Worker passam. A suíte ampla foi repetida após instalação completa das dependências; uma tentativa anterior sem dependências completas não era uma regressão válida.
+
+## Corte autorizado — 16/11/2026, etapa privada concluída
+
+Migração registrada como `20261116164957_crm_recovery_scheduler_auth.sql`; arquivo reconciliado com timestamp do registro do Supabase, sem mudar SQL. Baseline da Edge v2/JWT obrigatório, webhook v15/código v13, flags e hashes dos três jobs preservado fora do repositório público. DUE=false, SHADOW/RETENTION=true, digest da lista privada original inalterado. Nenhuma chave HMAC foi gerada ou gravada nesta etapa.
+
+Testes reais de banco, em transação revertida: nonce válido aceito; repetição do nonce e do tick rejeitadas; timestamp expirado/futuro, tick antigo/desalinhado rejeitados; expurgo removeu somente o registro sintético vencido do teste; rollback deixou ledger vazio. RLS ligada; anon/authenticated sem EXECUTE da RPC e sem SELECT/INSERT da tabela; service_role sem acesso direto à tabela e com RPC permitida. Revogação do EXECUTE e restauração por rollback comprovadas. Três jobs com mesmos IDs, horários, flags e hashes de comando; pg_net ausente. Envios OFF e zero tentativas.
+
+Preflight HTTP real contra a Edge anterior v2: sem autorização, 401 JSON do gateway (UNAUTHORIZED_NO_AUTH_HEADER); com apikey pública somente, 401 textual da aplicação (unauthorized). Isso comprova passagem dessa chave pública pelo gateway com verify_jwt=true e recusa da aplicação, mas não comprova ainda HMAC válido, rejeição de adulteração/replay via HTTP ou execução periódica. Nenhuma avaliação foi solicitada por esses probes.
+
+Ponto de retomada: configurar o segredo dedicado. O conector Supabase não disponibiliza escrita de Edge Secrets; CLI local não está autenticada e não há credencial de implantação Cloudflare configurada. O painel Supabase está autenticado. A entrada/salvamento de nova credencial pelo navegador requer intervenção direta do usuário. Não extrair sessão do navegador nem transferir credenciais para comandos. A Edge candidata e o Worker ainda não foram implantados; cron segue inexistente e DUE OFF. Aguardar essa configuração segura, sem nova autorização de escopo.
+
+Reversão no estado atual: nenhuma restauração de Edge ou cron é necessária, pois ambos continuam anteriores. Manter tabela privada vazia e expurgo estendido; não executar DROP. Baseline privado preserva corpo anterior do expurgo caso uma reversão estrutural futura seja necessária.

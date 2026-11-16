@@ -9,7 +9,7 @@ test('scheduler authorization ledger: one tick, one nonce, bounded age, RLS and 
  create table public.crm_conversations(id uuid primary key);`);
  await db.exec(fs.readFileSync(new URL('../supabase/prepared/recovery-private-observations.sql',import.meta.url),'utf8'));
  await db.exec('create table crm_recovery_private.due_checks(follow_up_id uuid primary key,expires_at timestamptz)');
- await db.exec(fs.readFileSync(new URL('../supabase/migrations/20261116162442_crm_recovery_scheduler_auth.sql',import.meta.url),'utf8'));
+ await db.exec(fs.readFileSync(new URL('../supabase/migrations/20261116164957_crm_recovery_scheduler_auth.sql',import.meta.url),'utf8'));
  await db.exec("set request.jwt.claim.role='service_role'");
  const current=(await db.query('select now()::text stamp,(floor(extract(epoch from now())/300)*300)::bigint tick')).rows[0];
  const nonce='00000000-0000-4000-8000-000000000001',other='00000000-0000-4000-8000-000000000002';
