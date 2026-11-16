@@ -34,3 +34,15 @@ Revisão de divulgação: arquivos do incremento e histórico novo examinados pa
 3. Definir persistência privada de observações mínimas e retenção. Neste incremento o texto só existe em memória; falta histórico de interesse entre execuções.
 4. Resolver vínculo inequívoco pedido/cliente antes de liberar cobertura de compras; sem inferência por nome ou conversa de anúncio.
 5. Preparar o corte de observação produtiva separadamente. Não ativar disparos ou alterar operação comercial por este PR.
+
+## Validação do incremento publicado
+
+Código funcional remoto: `ac9ce7c2b37562681a1ace82644b1938392838cd`, árvore `4659da8cad3aa08c63c6181043f05df738a76007`, idêntica à revisão local. PR #67 continua em rascunho, sem merge.
+
+- 48/48 testes direcionados locais e workflow isolado `shadow` aprovado.
+- CI do CRM no código funcional: testes básicos 7/7, TypeScript CRM, build frontend e regressão comercial 957/957 aprovados, zero falhas.
+- Governança de release e integridade documental aprovadas no mesmo código.
+- Run comercial: https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/43848192318
+- Run direcionado: https://github.com/railanzera-cloud/luciane-oliveira-doces-site/actions/runs/43848192327
+
+Essas provas são de código e fixtures. Não há deployment, alteração da operação comercial, envio de mensagens ou validação de decisões com clientes reais neste corte.
