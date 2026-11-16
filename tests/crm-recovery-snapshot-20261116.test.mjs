@@ -1,0 +1,137 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { createHmac } from 'node:crypto';
+import { assembleRecoveryEvaluation as assemble } from '../supabase/functions/_shared/recovery-snapshot.mjs';
+
+const cid = '00000000-0000-4000-8000-000000000001';
+const uid = '00000000-0000-4000-8000-000000000002';
+const tid = '00000000-0000-4000-8000-000000000003';
+// Generated fixture only; no phone, text, ID or secret copied from a customer.
+const customerPhone = '5591000000000';
+const now = '2026-11-16T15:00:00Z';
+const time = hour => `2026-11-16T${hour}:00Z`;
+const secret = 'synthetic-snapshot-fixture-secret';
+function fixture() {return {
+  crm_conversations:[{id:cid,customer_id:uid,tintim_conversation_id:tid,status:'waiting_customer',created_at:time('12:00'),updated_at:time('13:05'),last_inbound_at:time('13:00'),last_outbound_at:time('13:05')}],
+  crm_customers:[{id:uid,phone_e164:customerPhone,consent_status:'granted',consent_at:time('12:00'),consent_evidence:'synthetic-permission',commercial_opt_out:false,updated_at:time('12:00')}],
+  crm_whatsapp_message_events:[
+    {id:'a',message_id:'wamid.synthetic_in',conversation_id:cid,phone_e164:customerPhone,direction:'inbound',occurred_at:time('13:00'),received_at:time('13:00')},
+    {id:'b',message_id:'wamid.synthetic_out',conversation_id:cid,phone_e164:customerPhone,direction:'app_echo',occurred_at:time('13:05'),received_at:time('13:05')},
+  ],
+  crm_tintim_message_events:[],tintim_order_links:[],orders:[],crm_follow_ups:[],tintim_conversations:[],
+  menu_availability:[{id:1,item_key:'category_cones',status:'available'},{id:2,item_key:'cone_prestigio',status:'available'}],
+  store_settings:[{id:1,key:'orders_open',value:true}],
+  crm_automation_settings:[{singleton:true,follow_up_minutes:45}],
+};}
+function signed(text='Quero um cascão de Prestígio',from=customerPhone) {
+  const raw = JSON.stringify({object:'whatsapp_business_account',entry:[{id:'101',changes:[{field:'messages',value:{metadata:{phone_number_id:'202'},messages:[{
+    id:'wamid.synthetic_in',from,timestamp:String(Date.parse(time('13:00'))/1000),type:'text',text:{body:text},
+  }]}}]}]});
+  return {raw,signature:'sha256='+createHmac('sha256',secret).update(raw).digest('hex')};
+}
+const options = () => ({conversationId:cid,now,pageSize:1,maxRows:100,
+  signedWebhook:signed(),metaConfig:{appSecret:secret,phoneNumberId:'202',wabaId:'101'},
+  rollout:{channel_identity_verified:true,channel_verified_since:time('12:00'),purchase_coverage_verified:true}});
+
+// Supabase query contract fake: SELECT/filters/order/range only; no write methods.
+function db(tables,hook=()=>{}) {
+  const calls=[];
+  return {calls,from(table) {
+    const filters=[];let columns,from=0,to=0,sortKey='id';
+    const q={select(c,opts){columns=c;assert.equal(opts.count,'exact');return q;},
+      eq(k,v){filters.push(r=>r[k]===v);return q;},in(k,vs){filters.push(r=>vs.includes(r[k]));return q;},
+      gte(k,v){filters.push(r=>r[k]!=null && r[k]>=v);return q;},lte(k,v){filters.push(r=>r[k]!=null && r[k]<=v);return q;},
+      order(k,o){assert.ok(['id','singleton'].includes(k));sortKey=k;assert.equal(o.ascending,true);return q;},
+      range(a,b){from=a;to=b;return q;},then(resolve,reject){
+        calls.push({table,columns,from,to});
+        const rows=(tables[table] ?? []).filter(r=>filters.every(f=>f(r))).sort((a,b)=>String(a[sortKey]).localeCompare(String(b[sortKey])));
+        const response={data:structuredClone(rows.slice(from,to+1)),count:rows.length,error:null};
+        hook(table,response,calls);
+        return Promise.resolve(response).then(resolve,reject);
+      }};return q;
+  }};
+}
+test('server assembles signed text, paged sources and permissions without returning PII',async()=>{
+  const client=db(fixture()),r=await assemble(client,options());
+  assert.equal(r.classification,'shadow_candidate');assert.equal(r.send_authorized,false);
+  assert.equal(r.interest.candidates[0].product_id,'cone-trufado-prestigio');
+  assert.ok(client.calls.some(c=>c.table==='crm_whatsapp_message_events' && c.from===1));
+  const output=JSON.stringify(r);
+  for(const value of [customerPhone,secret,'Quero um',cid,'synthetic-permission']) assert.ok(!output.includes(value));
+  for(const call of client.calls) for(const forbidden of ['tracking_token','customer_name','customer_email','notes']) assert.ok(!call.columns.includes(forbidden));
+});
+test('no signed text means no manufactured interest from product hints or ad labels',async()=>{
+  const tables=fixture();tables.crm_conversations[0].interest_label='Prestígio';
+  const r=await assemble(db(tables),{...options(),signedWebhook:null});
+  assert.ok(r.blockers.includes('interest_unconfirmed'));
+});
+test('follow-up delay comes from server settings; missing settings cannot use a silent default',async()=>{
+  const tables=fixture();tables.crm_automation_settings[0].follow_up_minutes=180;
+  assert.ok((await assemble(db(tables),options())).blockers.includes('not_due'));
+  tables.crm_automation_settings=[];
+  assert.ok((await assemble(db(tables),options())).blockers.includes('automation_settings_unavailable'));
+});
+test('receipt-time Tintim and absent rollout evidence cannot grant completeness',async()=>{
+  const tables=fixture();tables.crm_tintim_message_events=[{id:'t',fingerprint:'t',conversation_id:cid,phone_e164:customerPhone,
+    direction:'inbound',time_basis:'webhook_received',occurred_at:time('13:00'),received_at:time('13:00')}];
+  const r=await assemble(db(tables),{...options(),rollout:{}});
+  assert.ok(r.blockers.includes('tintim_time_unverified'));
+  assert.ok(r.blockers.includes('conversation_history_incomplete'));
+  assert.ok(r.blockers.includes('order_check_incomplete'));
+});
+test('a newly certified channel cannot certify older observations retroactively',async()=>{
+  const config=options();config.rollout.channel_verified_since=time('14:00');
+  assert.ok((await assemble(db(fixture()),config)).blockers.includes('conversation_history_incomplete'));
+});
+test('direct phone paid order suppresses; accepted/delivered is not invented payment',async()=>{
+  const tables=fixture();tables.orders=[{id:'o',customer_phone:customerPhone,created_at:time('13:10'),payment_status:'paid',order_status:'accepted'}];
+  assert.equal((await assemble(db(tables),options())).classification,'suppressed');
+  tables.orders[0].payment_status='pending';tables.orders[0].order_status='delivered';
+  assert.ok((await assemble(db(tables),options())).blockers.includes('purchase_or_order_requires_reconciliation'));
+});
+test('formatted local and international phones reconcile without fuzzy name matching',async()=>{
+  const tables=fixture();tables.orders=[{id:'o',customer_phone:'(91) 00000-0000',created_at:time('13:10'),payment_status:'paid'}];
+  assert.equal((await assemble(db(tables),options())).classification,'suppressed');
+});
+test('Tintim candidate paid link remains candidate, even with confirmed link label',async()=>{
+  const tables=fixture();tables.orders=[{id:'o',customer_phone:null,created_at:time('13:10'),payment_status:'paid'}];
+  tables.tintim_order_links=[{id:'l',conversation_id:tid,order_uuid:'o',created_at:time('13:10'),status:'confirmed'}];
+  const r=await assemble(db(tables),options());
+  assert.notEqual(r.classification,'suppressed');assert.ok(r.blockers.includes('purchase_or_order_requires_reconciliation'));
+});
+test('unknown phone orders, stage purchase and missing linked order block unsafe absence claims',async()=>{
+  const tables=fixture();tables.orders=[{id:'o',customer_phone:null,created_at:time('13:10'),payment_status:'paid'}];
+  assert.ok((await assemble(db(tables),options())).blockers.includes('unattributed_orders_in_window'));
+  tables.orders=[];tables.tintim_order_links=[{id:'l',conversation_id:tid,order_uuid:'missing',created_at:time('13:10'),status:'candidate'}];
+  assert.ok((await assemble(db(tables),options())).blockers.includes('linked_order_unavailable'));
+  tables.tintim_order_links=[];tables.tintim_conversations=[{id:tid,phone_digits:customerPhone,stage_label:'Comprou',last_observed_at:time('13:10')}];
+  assert.ok((await assemble(db(tables),options())).blockers.includes('purchase_or_order_requires_reconciliation'));
+});
+test('failed, truncated or over-limit reads never become empty successful snapshots',async()=>{
+  for(const mode of ['error','count','truncated','limit']) {
+    const client=db(fixture(),(table,r)=>{if(table==='crm_whatsapp_message_events') {
+      if(mode==='error')r.error={message:'PRIVATE_RAW_ERROR'};
+      if(mode==='count')r.count=null;
+      if(mode==='truncated')r.data=[];
+      if(mode==='limit')r.count=10001;
+    }});
+    const r=await assemble(client,options());
+    assert.equal(r.classification,'insufficient_evidence');assert.ok(!JSON.stringify(r).includes('PRIVATE_RAW_ERROR'));
+  }
+});
+test('versions, missing activity coverage and foreign signed identity prevent candidate',async()=>{
+  const client=db(fixture(),(table,r,calls)=>{if(table==='crm_customers' && calls.filter(c=>c.table===table).length>1)r.data[0].updated_at=now;});
+  assert.ok((await assemble(client,options())).blockers.includes('snapshot_changed_during_read'));
+  const tables=fixture();tables.crm_conversations[0].last_inbound_at=time('14:00');
+  assert.ok((await assemble(db(tables),options())).blockers.includes('conversation_activity_not_covered'));
+  assert.ok((await assemble(db(fixture()),{...options(),signedWebhook:signed('Quero Prestígio','5592000000000')})).blockers.includes('signed_observation_identity_mismatch'));
+});
+test('opt-out and missing or future permission, closed store and prior recovery remain blocked',async()=>{
+  const tables=fixture();tables.crm_customers[0].commercial_opt_out=true;
+  assert.equal((await assemble(db(tables),options())).classification,'suppressed');
+  tables.crm_customers[0].commercial_opt_out=false;tables.crm_customers[0].consent_at='2099-01-01T00:00:00Z';
+  assert.ok((await assemble(db(tables),options())).blockers.includes('permission_unverified'));
+  tables.store_settings[0].value=false;tables.crm_follow_ups=[{id:'f',conversation_id:cid,status:'sent_manually',sent_at:time('14:00')}];
+  const r=await assemble(db(tables),options());
+  assert.ok(r.blockers.includes('store_not_verified_open'));assert.ok(r.blockers.includes('already_contacted_since_reply'));
+});

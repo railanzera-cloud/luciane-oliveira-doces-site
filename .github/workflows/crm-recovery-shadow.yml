@@ -9,6 +9,7 @@ on:
       - 'supabase/functions/crm-whatsapp-webhook/core.mjs'
       - 'scripts/recovery-shadow-replay.mjs'
       - 'tests/crm-recovery-shadow-20261115.test.mjs'
+      - 'tests/crm-recovery-snapshot-20261116.test.mjs'
       - '.github/workflows/crm-recovery-shadow.yml'
   push:
     branches: ['feat/crm-recovery-shadow-20261115']
@@ -26,6 +27,7 @@ jobs:
       - name: Catalog, business decisions and signed webhook replay
         run: >-
           node --test tests/crm-recovery-shadow-20261115.test.mjs
+          tests/crm-recovery-snapshot-20261116.test.mjs
           tests/crm-observabilidade-meta-20261026.test.mjs
           tests/crm-tintim-receipt-time-20261026.test.mjs
           tests/crm-meta-delivery-status-20261027.test.mjs
