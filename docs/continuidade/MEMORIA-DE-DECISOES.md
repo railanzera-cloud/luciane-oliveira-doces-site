@@ -481,3 +481,8 @@ Sabor **Dois Amores** é retirado da vitrine de Cascões sem reatribuir/deletar 
 
 ### D-C57 (14/11/2026) — Correspondência avançada manual do Pixel
 Proprietário autorizou correspondência avançada manual com Pixel 1491655855979140: nome no checkout WhatsApp; nome/telefone/e-mail somente no checkout site quando legitimamente informados, com normalização e atualizações de init sem eventos novos. Tintim, CAPI, Pixel PageView inicial e funil existente intocados. Proprietário determinou preservar literalmente o aviso "Usaremos seus dados somente para processar e acompanhar este pedido.". A conformidade desta redação com compartilhamento publicitário segue pendente de análise independente, mesmo com autorização interna alegada. O diagnóstico Meta só se encerra com evidência real na plataforma.
+
+
+## D-UX-20261116 — revisar na vitrine e finalizar no checkout
+
+O proprietário autorizou os quatro refinamentos após análise de gravação. O preenchimento do formulário deixa de determinar sozinho a ação da barra: fora do checkout, Ver pedido leva à revisão sem registrar compra; dentro dele, mantém a finalização direta aprovada. A montagem de outro produto conserva prioridade e nenhuma etapa financeira foi acrescentada. Compactar carrinho e sugestões mantendo todas as opções elegíveis, imagens e alvos de toque. Corrigir contraste do total por escopo CSS, sem modificar valores. Proposta de repaginação geral não foi adotada neste ciclo. Execução/testes em PR #68; aceite visual final e publicação separados.
