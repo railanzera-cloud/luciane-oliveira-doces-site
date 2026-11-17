@@ -89,6 +89,8 @@ try {
   await page.getByRole('button',{name:'Limpar',exact:true}).click();
   assert.equal(await page.locator('.mobile-sticky-bar').count(),0);
   assert.ok(await footer.evaluate(el=>parseFloat(getComputedStyle(el).paddingBottom))<60,'Sem barra, o rodapé tem encerramento compacto');
+  await page.getByRole('button',{name:'Fatias Artesanais — Escolher fatia',exact:true}).click();
+  assert.equal(await page.locator('#configurador').evaluate(el=>getComputedStyle(el).paddingBottom),'32px','Checkout vazio oculto não mantém o espaço antigo antes da frase');
   assert.deepEqual(errors,[]);
   evidence.push({width,cartHeights:heights,suggestionHeights,total:beforeTotal,registrations});
   await page.screenshot({path:path.join(output,`vitrine-${width}.png`)});
