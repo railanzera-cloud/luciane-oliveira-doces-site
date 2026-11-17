@@ -1,5 +1,7 @@
 # Agendamento Cloudflare da reavaliação — corte parcial autorizado
 
+Estado em 17/11: autenticação da Edge homologada por verificador local; Cron real chegou ao Worker com flag OFF. A primeira tentativa Worker→Edge falhou com scheduler_unavailable. Correção candidata abaixo testada em workerd e preparada no PR, ainda sem homologação Cloudflare após a troca. Não ativar DUE nem envios.
+
 ## Decisão e correção da premissa anterior
 
 Usar um Worker com Cron Trigger de cinco minutos como relógio externo. Preservar a Edge de reavaliação, fila privada, RPCs comerciais, leases, deduplicação, catálogo e regras de avaliação. Não alterar o webhook homologado para implantar este mecanismo de agendamento.
@@ -72,3 +74,18 @@ Preflight HTTP real contra a Edge anterior v2: sem autorização, 401 JSON do ga
 Ponto de retomada: configurar o segredo dedicado. O conector Supabase não disponibiliza escrita de Edge Secrets; CLI local não está autenticada e não há credencial de implantação Cloudflare configurada. O painel Supabase está autenticado. A entrada/salvamento de nova credencial pelo navegador requer intervenção direta do usuário. Não extrair sessão do navegador nem transferir credenciais para comandos. A Edge candidata e o Worker ainda não foram implantados; cron segue inexistente e DUE OFF. Aguardar essa configuração segura, sem nova autorização de escopo.
 
 Reversão no estado atual: nenhuma restauração de Edge ou cron é necessária, pois ambos continuam anteriores. Manter tabela privada vazia e expurgo estendido; não executar DROP. Baseline privado preserva corpo anterior do expurgo caso uma reversão estrutural futura seja necessária.
+
+
+## Correção de compatibilidade do Worker — 17/11/2026
+
+Evidências: operador recebeu 401 para credenciais ausentes/inválidas, adulteração e expiração; assinatura válida recebeu 200/disabled com send_authorized=false; replay de nonce e do tick recebeu 409. Consulta privada independente confirmou um único consumo e zero avaliações/tentativas. Na Cloudflare, acionamento das 13h50 America/Belem registrou disabled; o das 13h55 registrou scheduler_unavailable e recovery_scheduler_failed. Nenhum novo consumo no Supabase no diagnóstico posterior. Ambos os endereços públicos do Worker foram desligados conforme relato do operador; conferir novamente antes de declarar corte concluído.
+
+Causa comprovada em teste isolado: Request com redirect:error lança TypeError no workerd antes do HTTP; o dry-run anterior somente empacotava e os testes anteriores usavam Request do Node. Documentação oficial vigente confirma a incompatibilidade: https://developers.cloudflare.com/workers/runtime-apis/request/ . Corrigidos Request e fetch para manual. Toda resposta 3xx é rejeitada explicitamente, sem seguir Location ou transferir assinatura, chave pública ou corpo a outra origem. HMAC, alvo fixo, JWT, nonce/tick, permissões e decisões comerciais inalterados.
+
+Também explicitado ignoreBOM:false com fatal:true e gerado dashboard-worker.mjs automaticamente pelos mesmos módulos, exportando somente o handler padrão. O runtime local fixado no lockfile rejeitava constantes exportadas como entrypoints; remover exports internos do bundle não modifica o protocolo. A geração tem verificação de igualdade na CI, evitando divergência por cópia manual. Falhas agora incluem apenas etapa fechada sign/fetch/read, nunca exceção, headers ou segredo.
+
+Validação executada: build e 996 regressões comerciais, incluindo 84 testes direcionados; novo teste Miniflare/workerd do lockfile (compatibilityDate 2026-05-15) reproduziu a falha legada e passou a chamada assinada real entre Worker local e handler Edge OFF sintético, além de OFF sem HTTP, fetch público 404 e rejeição de 307 sem segunda requisição. Testes Node cobrem 301/302/303/307/308 sem encaminhamento. Tudo usa dados sintéticos e intercepta a saída, sem requisição a clientes ou produção. Isso não substitui homologação no runtime Cloudflare do operador.
+
+Implantação manual restrita: definir RECOVERY_SCHEDULER_ENABLED=false na Cloudflare e manter CRM_RECOVERY_DUE_ENABLED=false; substituir integralmente pelo arquivo gerado e implantar; conferir zero diagnósticos. Depois habilitar apenas o Worker para testar o tick real com Edge OFF, esperando edge_disabled e consumo privado correspondente. Só liberar DUE após essa evidência, controle do único telefone e verificação comercial atual. Não recriar Cron, não trocar segredos, não publicar Pages nem implantar webhook/Edge por causa desta correção. A Edge existente verifica o mesmo protocolo; a função sign alterada não é usada pelo handler receptor.
+
+Reversão: Worker flag false, manter DUE false; preservar único Cron para diagnóstico desligado ou removê-lo se necessário. Não restaurar o Worker incompatível como solução nem abrir endpoints de teste em produção. Foi solicitado retorno da flag do Worker a false no diagnóstico; a execução dessa ação pelo operador ainda não foi confirmada ao preparar o candidato.

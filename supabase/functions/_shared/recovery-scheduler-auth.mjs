@@ -33,7 +33,7 @@ export async function boundedText(stream,max=512,timeoutMs=5000){
   while(true){const {done,value}=await Promise.race([reader.read(),timeout]);if(done)break;size+=value.byteLength;
    if(size>max){await reader.cancel();throw Error('body_too_large');}chunks.push(value);}
   const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
-  return new TextDecoder('utf-8',{fatal:true}).decode(bytes);
+  return new TextDecoder('utf-8',{fatal:true,ignoreBOM:false}).decode(bytes);
  }catch(error){await reader.cancel().catch(()=>{});throw error;}
  finally{clearTimeout(timer);reader.releaseLock();}
 }
@@ -46,7 +46,7 @@ export async function signSchedulerRequest({projectUrl,gatewayKey,secret,now=Dat
  const key=await crypto.subtle.importKey('raw',keyBytes(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
  const signature=Array.from(new Uint8Array(await crypto.subtle.sign('HMAC',key,message(target,timestamp,nonce,raw))),b=>b.toString(16).padStart(2,'0')).join('');
  return new Request(target,{method:'POST',headers:{'content-type':'application/json',apikey:gatewayKey,
-  'x-recovery-timestamp':timestamp,'x-recovery-nonce':nonce,'x-recovery-signature':signature},body:raw,redirect:'error'});
+  'x-recovery-timestamp':timestamp,'x-recovery-nonce':nonce,'x-recovery-signature':signature},body:raw,redirect:'manual'});
 }
 export async function verifySchedulerRequest(req,{projectUrl,gatewayKey,secret,now=Date.now()}){
  try{

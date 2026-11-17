@@ -12,6 +12,7 @@ on:
       - 'supabase/migrations/*crm_recovery_due_shadow.sql'
       - 'supabase/migrations/*crm_recovery_scheduler_auth.sql'
       - 'cloudflare/recovery-scheduler/**'
+      - 'scripts/build-recovery-scheduler-dashboard.mjs'
       - 'tests/crm-recovery-scheduler*.test.mjs'
       - 'tests/fixtures/recovery-scheduler.mjs'
       - 'tests/crm-recovery-due*.test.mjs'
@@ -38,6 +39,8 @@ jobs:
           node-version: '22.16.0'
       - name: Install locked dependencies for real PostgreSQL tests
         run: npm ci --no-audit --no-fund
+      - name: Verify generated dashboard artifact
+        run: node scripts/build-recovery-scheduler-dashboard.mjs --check
       - name: Catalog, business decisions and signed webhook replay
         run: >-
           node --test tests/crm-recovery-shadow-20261115.test.mjs
@@ -49,6 +52,7 @@ jobs:
           tests/crm-recovery-due-postgres-20261116.test.mjs
           tests/crm-recovery-scheduler-20261116.test.mjs
           tests/crm-recovery-scheduler-postgres-20261116.test.mjs
+          tests/crm-recovery-scheduler-workerd-20261117.test.mjs
           tests/crm-observabilidade-meta-20261026.test.mjs
           tests/crm-tintim-receipt-time-20261026.test.mjs
           tests/crm-meta-delivery-status-20261027.test.mjs

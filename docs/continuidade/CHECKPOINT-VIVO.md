@@ -1268,3 +1268,10 @@ Checagem global TypeScript mantém quatro erros preexistentes, reproduzidos na b
 Instalada e validada `20261116164957_crm_recovery_scheduler_auth.sql` (arquivo renomeado do timestamp candidato para o registro real). RLS/ACLs, nonce/tick únicos, idade, expurgo e reversão de EXECUTE comprovados em transações revertidas; ledger final vazio. Preflight gateway: sem autorização 401 do gateway; apikey pública isolada chega à Edge v2 e recebe 401 da aplicação. HMAC positivo e periodicidade ainda pendentes.
 
 Não houve troca da Edge nem criação de Worker/cron: etapa do segredo depende de entrada segura pelo usuário no painel, pois conectores disponíveis não escrevem Edge Secrets e CLI não tem autenticação. Não extrair sessão ou publicar segredos. Webhook e três jobs existentes preservados, DUE OFF, lista autorizada inalterada, envios OFF/zero tentativas. Procedimento e evidências em docs/CRM-RECOVERY-CLOUDFLARE-SCHEDULER.md.
+
+
+### 17/11/2026 — Autenticação homologada e correção workerd preparada
+
+Verificador local: 401 para ausências/adulterações/expiração, 200 para HMAC válido com avaliação OFF/send_authorized=false, 409 para replay nonce/tick. SQL confirmou consumo único e zero avaliações/tentativas. Worker: 13h50 disabled, 13h55 scheduler_unavailable; nenhuma nova chamada consumida no servidor.
+
+Reproduzido TypeError de redirect:error no workerd. Candidato usa manual e recusa 3xx, sem encaminhar credenciais. Bundle dashboard gerado dos módulos sem exports internos, ignoreBOM:false explícito, diagnóstico por etapas fechadas. Build/996 regressões/84 direcionados passaram, incluindo runtime workerd do lockfile. Correção somente no PR; operador precisa substituir o Worker completo OFF e depois comprovar edge_disabled com Edge OFF. Não implantar webhook, não alterar JWT nem ativar DUE/envios. Retorno da flag do Worker a false foi solicitado, ainda não confirmado. Detalhes em docs/CRM-RECOVERY-CLOUDFLARE-SCHEDULER.md.

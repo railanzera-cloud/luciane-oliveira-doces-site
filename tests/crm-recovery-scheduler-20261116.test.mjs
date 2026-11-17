@@ -59,7 +59,7 @@ test('Cron reaches unchanged due engine through HMAC and replay guard; response/
   calls++;assert.equal(o.authorizedPhones.length,1);
   return {mode:'shadow',send_authorized:false,state:'evaluated',claimed:1,recorded:1,stale:0,failed:0,unexpected:'PRIVATE'};
  }});
- const fetchImpl=async(req,init)=>{assert.equal(req.redirect,'error');assert.equal(init.redirect,'error');assert.equal(req.headers.get('authorization'),null);return edge(req);};
+ const fetchImpl=async(req,init)=>{assert.equal(req.redirect,'manual');assert.equal(init.redirect,'manual');assert.equal(req.headers.get('authorization'),null);return edge(req);};
  const controller={cron:'*/5 * * * *',scheduledTime:tick*1000};
  const result=await runRecoverySchedule(controller,env,{fetchImpl,now:()=>now});
  assert.equal(result.recorded,1);assert.equal(calls,1);assert.ok(!JSON.stringify(result).includes('PRIVATE'));
@@ -72,7 +72,7 @@ test('unexpected response, redirect and fetch failure stay opaque without retryi
  const unsafe=await runRecoverySchedule(c,env,{now:()=>now,fetchImpl:async()=>Response.json({mode:'shadow',send_authorized:true,customer:'PRIVATE'})});
  assert.equal(unsafe.state,'unexpected_response');
  const failed=await runRecoverySchedule(c,env,{now:()=>now,fetchImpl:async()=>{throw Error('PRIVATE');}});
- assert.deepEqual(failed,{state:'scheduler_unavailable'});
+ assert.deepEqual(failed,{state:'scheduler_unavailable',stage:'fetch'});
 });
 
 test('even a correctly signed envelope cannot carry scope, arbitrary fields or another action',async()=>{
@@ -100,4 +100,17 @@ test('missing nonce storage fails closed before evaluation; invalid key cannot s
  assert.equal((await h(await signed())).status,503);assert.equal(evaluated,0);
  await assert.rejects(signed({secret:'short-passphrase'}));
  await assert.rejects(signed({gatewayKey:'sb_secret_synthetic_admin_key'}));
+});
+
+
+test('redirects never forward signed headers or body to a second destination',async()=>{
+ const env={RECOVERY_SCHEDULER_ENABLED:'true',RECOVERY_PROJECT_URL:projectUrl,RECOVERY_PUBLIC_GATEWAY_KEY:gatewayKey,RECOVERY_SCHEDULER_SECRET:secret};
+ for(const status of [301,302,303,307,308]){
+  let calls=0;
+  const result=await runRecoverySchedule({cron:'*/5 * * * *',scheduledTime:tick*1000},env,{now:()=>now,fetchImpl:async(req,init)=>{
+   calls++;assert.equal(req.url,schedulerTarget(projectUrl));assert.equal(req.redirect,'manual');assert.equal(init.redirect,'manual');
+   return new Response(null,{status,headers:{location:'https://another-destination.invalid/private'}});
+  }});
+  assert.deepEqual(result,{state:'edge_redirect_rejected',status});assert.equal(calls,1);
+ }
 });
