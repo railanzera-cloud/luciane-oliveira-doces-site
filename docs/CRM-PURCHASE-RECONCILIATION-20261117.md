@@ -1,5 +1,7 @@
 # Conciliação de compra para recuperação — auditoria de 17/11/2026
 
+Atualização candidata posterior sobre c216fb7: captura/leitura conectadas no código sob CRM_RECOVERY_PURCHASE_SIGNALS_ENABLED=false por padrão; detalhes da integração e do corte abaixo. O diagnóstico inicial e seus resultados permanecem históricos. Nenhum deploy ou flag produtiva alterados neste incremento.
+
 Base: 37db24bcfc41d43926f037e527b9a88f85ed795a, PR #67 em rascunho. Escopo: leitura do Supabase comercial e implementação candidata isolada. Sem SQL produtivo, deploy, alteração do checkout, associação artificial de clientes ou pagamentos, ampliação de contatos ou envio.
 
 ## Diagnóstico comprovado
@@ -37,3 +39,25 @@ Saída fechada: detected/basis, blocker=purchase_or_order_requires_reconciliatio
 5. Apresentar impacto e reversão do novo corte de captura/leitura antes de implantá-lo: backup da Edge homologada, início OFF, único telefone, zero envios e retorno à fonte anterior/flag OFF em caso de falha. A autorização anterior do relógio não é autorização irrestrita para nova captura produtiva.
 
 Permissão aplicável e loja aberta são gates separados. Esta auditoria não altera regras da Meta ou de proteção de dados. Nenhuma oportunidade elegível, venda recuperada ou receita incremental foi comprovada por este candidato.
+
+## Integração candidata autorizada — sem ativação produtiva
+
+O proprietário esclareceu que o painel e o Tintim recebem confirmações incompletas, muitas vezes no outro dia; etapa Comprou pode ser registrada manualmente sem mensagem, e os gatilhos nem sempre contabilizam recompras conforme relato ainda não auditado na plataforma. Cerca de 80% dos pedidos passam pelo site segundo estimativa operacional, com baixo abandono relatado nesse grupo. Não usar ausência de confirmação imediata como abandono. Gatilhos novos para Meta e leitura automática de comprovantes ficaram fora da prioridade atual.
+
+O candidato reconhece agora o modelo completo já usado pela loja: cabeçalho Pedido confirmado, linha Valor dos produtos com moeda válida positiva, declaração de que corresponde somente aos produtos e agradecimento; aceita a linha conhecida de prazo de entrega opcional. Pedido confirmado isolado, escolha de Pix/cartão/dinheiro, imagem e comanda impressa não provam pagamento. O valor só valida a estrutura, sem persistência, soma financeira ou novo evento Meta.
+
+Com a flag privada CRM_RECOVERY_PURCHASE_SIGNALS_ENABLED=true, somente após o ingresso core, o snapshot inspeciona envelope HMAC no escopo original e grava confirmação em observations por message_id/horário original. Reutiliza possible_purchase/purchase_statement_not_payment, sem SQL novo. Na reavaliação, restaura somente se houver evento oficial com mesmo ID, horário, identidade e direção outbound. O interesse inbound permanece separado. A confirmação adiciona purchase_or_order_requires_reconciliation, nunca paid_order. Uma nova manifestação explícita de interesse delimita o uso de sinais antigos de conversa; isso não resolve retroativamente pedidos ou etapas Tintim sem data confiável de venda.
+
+O mesmo corte reconhece apenas o modelo completo conhecido de saudação de indisponibilidade fornecido pelo proprietário. Persiste unknown/no_evidence em evento outbound como ausência de resposta comercial efetiva; o marcador tem significado só nessa direção e só é gravado pelo adaptador interno de macro verificada. O motor exclui esse evento do cálculo da resposta efetiva e retorna pending_service/store_response_pending. Não altera a fila core ou o horário do lembrete existente. Saudações desconhecidas, mensagens manuais livres e outras automações não têm detecção universal comprovada.
+
+journey_state no snapshot diferencia purchase_confirmed, purchase_reconciliation, pending_service, conversation_opportunity e insufficient_evidence. É diagnóstico privado, sem nova UI ou coluna; blocked/suppressed e os motivos continuam o contrato persistido da fila. Estado cancelled canônico do banco passa a suprimir recuperação de pedido identificado, preservando compatibilidade com canceled legado. Aceite/completed/printed não viram pagamento.
+
+Validação: 83 testes direcionados locais aprovados, incluindo HMAC, escopo, replay, normalização de horários equivalentes, captura/restauração na reavaliação sem mensagem nova, interesse preservado, episódio novo, macro de loja fechada e flag OFF sem nova captura/leitura de sinais outbound. PostgreSQL isolado (PGlite 0.5.14 do lockfile) validou os novos marcadores com a RPC existente, dedupe, retenção/expurgo, RLS e ACL. Teste de persistência foi repetido após acrescentar explicitamente o marcador de loja fechada. Onze testes de continuidade/governança e igualdade do bundle do agendador passaram. Não houve build do site, regressão comercial global, Deno typecheck ou workerd novo; Worker/checkout/contratos HTTP não mudaram.
+
+### Impacto e reversão do próximo corte
+
+Fontes afetadas: observer compartilhado via snapshot/persistência/classificador, entrypoint webhook e handler da Edge de reavaliação; novo módulo compartilhado transitivo. Sem alteração de schema, RPC, grants, URLs, JWT/HMAC, catálogo, pagamentos, impressão, Tintim ou agendamentos. O recurso tem flag privada nova OFF por padrão nos dois caminhos; manter cobertura externa false, sombra ativa, lista original e envios OFF.
+
+Antes de implantar: recuperar os dois bundles ativos e metadados para reversão, comparar todos os arquivos transitivos com a produção e conferir ausência/false da flag nova sem expor secrets. Implantar versões compatíveis dos dois caminhos com a flag OFF. Só então ativar a flag no único telefone dentro da autorização atual e homologar uma confirmação/sinal sintético autorizado; não importar os prints históricos nem outros contatos. Conferir semântica privada e decisão após prazo, sem gerar pedido, receita ou mensagem. O conector usado nesta preparação não configurou Edge Secrets.
+
+Reversão: desligar somente CRM_RECOVERY_PURCHASE_SIGNALS_ENABLED nos dois caminhos; se houver regressão de transporte, restaurar o backup integral do webhook mantendo suas configurações. Se houver falha de continuidade/segurança, pausar também SHADOW/DUE conforme runbook existente. Preservar registros e expurgo, sem DROP. Desligar a flag não apaga evidências nem modifica pagamentos. Implantação e prova real deste incremento permanecem pendentes; autorização não equivale a instalação.

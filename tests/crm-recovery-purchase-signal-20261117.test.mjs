@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
 import {classifyRecoveryPurchaseSignal as classify,
-  inspectSignedRecoveryPurchaseSignals as inspect} from '../supabase/functions/_shared/recovery-purchase-signal.mjs';
+  inspectSignedRecoveryPurchaseSignals as inspect,isKnownServiceUnavailability} from '../supabase/functions/_shared/recovery-purchase-signal.mjs';
 
 // Synthetic only. No customer data, account asset or real secret.
 const phone='5591000000000', foreign='5592000000000';
@@ -75,6 +75,17 @@ test('absence of supported signal never certifies that the customer did not buy'
   assert.deepEqual(r.signals,[]);assert.equal(r.purchase_coverage_verified,false);
   assert.equal(r.payment_confirmed,false);assert.equal(r.send_authorized,false);
 });
+test('shop macro is a closing signal but never financial proof; incomplete text is not enough',async()=>{
+  const macro='Pedido confirmado ✅\nValor dos produtos: R$27,50\nEste valor corresponde somente aos produtos.\nObrigada pela preferência 😊';
+  for(const text of [macro,macro+'\nTempo de entrega de 15 a 20 minutos ✅',macro.replace('R$27,50','R$ 1.027,50')]) {
+    const r=await run(payload(text));assert.equal(r.signals[0].basis,'business_order_confirmation');
+    assert.equal(r.signals[0].payment_confirmed,false);assert.ok(!JSON.stringify(r).includes('27,50'));
+  }
+  for(const text of ['Pedido confirmado ✅',macro.replace('27,50','0,00'),
+    macro.replace('27,50','27.50'),macro.replace('27,50','27,500'),
+    macro.replace('Pedido confirmado','Pedido não confirmado'),macro+'\nAinda aguardando pagamento'])
+    assert.equal((await run(payload(text))).signals.length,0,text);
+});
 test('signed inbound statements stay separate from store echo and foreign text with same ID',async()=>{
   const p=payload(),change=p.entry[0].changes[0];change.field='messages';
   change.value.messages=[{id:'wamid.synthetic_inbound',from:phone,timestamp:stamp,type:'text',text:{body:'Já paguei'}}];
@@ -83,4 +94,11 @@ test('signed inbound statements stay separate from store echo and foreign text w
   change.value.messages[0].text.body='Ainda não paguei';
   change.value.messages.push({...change.value.messages[0],from:foreign,text:{body:'Já paguei'}});
   r=await run(p);assert.equal(r.signals.length,0);
+});
+test('known out-of-hours greeting is not a purchase or a substantive store response',async()=>{
+ const greeting='🍰 OLÁ! SEJA BEM-VINDO(A) À LUCIANE OLIVEIRA DOCES!\nNosso atendimento volta na quarta-feira, a partir das 12h, com muitas delícias esperando por vocês!\nAgradecemos imensamente pela preferência e pelo carinho de sempre.';
+ assert.equal(isKnownServiceUnavailability(greeting),true);
+ const r=await run(payload(greeting));assert.equal(r.signals.length,0);assert.equal(r.service_unavailability.length,1);
+ assert.equal(isKnownServiceUnavailability('Posso separar sua fatia para amanhã?'),false);
+ assert.equal(isKnownServiceUnavailability(greeting+' Recebi seu Pix'),false);
 });

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
 import { assembleRecoveryEvaluation as assemble } from '../supabase/functions/_shared/recovery-snapshot.mjs';
+import { privateRecoveryObservations } from '../supabase/functions/_shared/recovery-observation-store.mjs';
 
 const cid = '00000000-0000-4000-8000-000000000001';
 const uid = '00000000-0000-4000-8000-000000000002';
@@ -173,4 +174,89 @@ test('existing checkout closure and missing permission audit stay blocked while 
 test('an older site order paid during the episode suppresses recovery',async()=>{
  const tables=fixture();tables.orders.push({id:'old-paid',customer_phone:customerPhone,created_at:'2026-11-01T10:00:00Z',paid_at:time('13:02'),payment_status:'paid',order_status:'accepted'});
  const r=await assemble(db(tables),options());assert.equal(r.classification,'suppressed');assert.deepEqual(r.blockers,['paid_order']);
+});
+
+test('gated signed shop confirmation persists semantics and blocks timer recovery without losing product',async()=>{
+ const tables=fixture(),client=db(tables),saved=new Map();
+ const permissionRpc=client.rpc;
+ client.rpc=async(name,p)=>{
+  if(name==='crm_recovery_store_observation') {
+   if(saved.has(p.p_message_id))return {data:false};
+   saved.set(p.p_message_id,{message_id:p.p_message_id,occurred_at:p.p_occurred_at,semantic:p.p_semantic});
+   return {data:true};
+  }
+  if(name==='crm_recovery_read_observations')return {data:[...saved.values()]};
+  return permissionRpc(name,p);
+ };
+ const store=privateRecoveryObservations(client);
+ const opts={...options(),observationStore:store,rollout:{...options().rollout,purchase_signals_enabled:true}};
+ await assemble(client,opts);
+ const macro='Pedido confirmado ✅\nValor dos produtos: R$27,50\nEste valor corresponde somente aos produtos.\nObrigada pela preferência 😊';
+ const raw=JSON.stringify({object:'whatsapp_business_account',entry:[{id:'101',changes:[{
+  field:'smb_message_echoes',value:{metadata:{phone_number_id:'202'},message_echoes:[{
+   id:'wamid.synthetic_out',to:customerPhone,timestamp:String(Date.parse(time('13:05'))/1000),type:'text',text:{body:macro},
+  }]},
+ }]}]});
+ const signature='sha256='+createHmac('sha256',secret).update(raw).digest('hex');
+ let r=await assemble(client,{...opts,signedWebhook:{raw,signature}});
+ assert.equal(r.journey_state,'purchase_reconciliation');assert.equal(r.classification,'blocked');
+ assert.equal(r.interest.candidates[0].product_id,'cone-trufado-prestigio');
+ assert.ok(r.blockers.includes('purchase_or_order_requires_reconciliation'));
+ assert.equal(saved.size,2);assert.equal(saved.get('wamid.synthetic_out').semantic.intent,'possible_purchase');
+ assert.ok(!JSON.stringify([...saved.values()]).includes('27,50'));
+ assert.ok(!JSON.stringify([...saved.values()]).includes('Pedido confirmado'));
+ r=await assemble(client,{...opts,signedWebhook:null});
+ assert.equal(r.journey_state,'purchase_reconciliation');assert.equal(r.send_authorized,false);
+ // Rollback flag prevents both new captures and use of saved store signals.
+ r=await assemble(client,{...opts,signedWebhook:null,rollout:{...opts.rollout,purchase_signals_enabled:false}});
+ assert.ok(!r.blockers.includes('purchase_or_order_requires_reconciliation'));
+ // A new explicit episode does not inherit the old shop statement.
+ tables.crm_whatsapp_message_events.push({id:'c',message_id:'wamid.new_interest',conversation_id:cid,phone_e164:customerPhone,
+  direction:'inbound',occurred_at:time('14:00'),received_at:time('14:00')},
+ {id:'d',message_id:'wamid.new_reply',conversation_id:cid,phone_e164:customerPhone,direction:'app_echo',occurred_at:time('14:05'),received_at:time('14:05')});
+ tables.crm_conversations[0].last_inbound_at=time('14:00');tables.crm_conversations[0].last_outbound_at=time('14:05');
+ await store.capture(cid,{id:'wamid.new_interest',verified:true,direction:'inbound',time_basis:'provider_timestamp',
+  content_origin:'customer_text',conversation_key:cid,occurred_at:time('14:00'),text:'Quero cascão de Prestígio'});
+ r=await assemble(client,{...opts,signedWebhook:null});
+ assert.ok(!r.blockers.includes('purchase_or_order_requires_reconciliation'));
+ assert.equal(r.journey_state,'conversation_opportunity');
+});
+
+test('missing purchase persistence fails closed and flag OFF performs no extra capture',async()=>{
+ const tables=fixture(),client=db(tables),opts=options();
+ const raw=JSON.stringify({object:'whatsapp_business_account',entry:[{id:'101',changes:[{field:'smb_message_echoes',
+ value:{metadata:{phone_number_id:'202'},message_echoes:[{id:'wamid.synthetic_out',to:customerPhone,
+ timestamp:String(Date.parse(time('13:05'))/1000),type:'text',text:{body:'Recebi seu Pix'}}]}}]}]});
+ const signature='sha256='+createHmac('sha256',secret).update(raw).digest('hex');
+ const r=await assemble(client,{...opts,signedWebhook:{raw,signature},rollout:{...opts.rollout,purchase_signals_enabled:true}});
+ assert.equal(r.classification,'insufficient_evidence');assert.equal(r.send_authorized,false);
+ const off=await assemble(client,{...opts,signedWebhook:{raw,signature}});
+ assert.ok(!off.blockers.includes('purchase_or_order_requires_reconciliation'));
+});
+test('closed-service macro survives persistence and does not count as answering customer interest',async()=>{
+ const client=db(fixture()),saved=[];
+ const permission=client.rpc;
+ client.rpc=async(name,p)=>{
+  if(name==='crm_recovery_store_observation') {
+   const old=saved.find(r=>r.message_id===p.p_message_id);
+   if(!old)saved.push({message_id:p.p_message_id,occurred_at:p.p_occurred_at,semantic:p.p_semantic});
+   return {data:!old};
+  }
+  if(name==='crm_recovery_read_observations')return {data:saved};
+  return permission(name,p);
+ };
+ const store=privateRecoveryObservations(client),opts={...options(),observationStore:store,
+  rollout:{...options().rollout,purchase_signals_enabled:true}};
+ await assemble(client,opts);
+ const greeting='🍰 OLÁ! SEJA BEM-VINDO(A) À LUCIANE OLIVEIRA DOCES!\nNosso atendimento volta na quarta-feira, a partir das 12h, com muitas delícias esperando por vocês!\nAgradecemos imensamente pela preferência e pelo carinho de sempre.';
+ const raw=JSON.stringify({object:'whatsapp_business_account',entry:[{id:'101',changes:[{field:'smb_message_echoes',
+ value:{metadata:{phone_number_id:'202'},message_echoes:[{id:'wamid.synthetic_out',to:customerPhone,
+ timestamp:String(Date.parse(time('13:05'))/1000),type:'text',text:{body:greeting}}]}}]}]});
+ const signature='sha256='+createHmac('sha256',secret).update(raw).digest('hex');
+ const first=await assemble(client,{...opts,signedWebhook:{raw,signature}});
+ assert.equal(first.classification,'pending_service');assert.equal(first.journey_state,'pending_service');
+ assert.equal(first.interest.candidates[0].product_id,'cone-trufado-prestigio');
+ const later=await assemble(client,{...opts,signedWebhook:null});
+ assert.equal(later.classification,'pending_service');assert.ok(later.blockers.includes('store_response_pending'));
+ assert.equal(saved.length,2);assert.ok(!JSON.stringify(saved).includes('Nosso atendimento'));
 });

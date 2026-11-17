@@ -35,16 +35,25 @@ export function evaluateRecoveryShadow({events=[],now,follow_up_minutes=45,
     return {...result,blockers:[...result.blockers,'conversation_identity_unresolved']};
   accepted.sort((a,b) => a.at-b.at || a.id.localeCompare(b.id));
   const inbound = accepted.filter(e => e.direction === 'inbound');
-  const outgoing = accepted.filter(e => e.direction === 'business_outbound');
+  const outgoing = accepted.filter(e => e.direction === 'business_outbound' && e.service_unavailability!==true);
   const lastIn = inbound.at(-1), lastOut = outgoing.at(-1);
   let declined = false, possiblePurchase = false;
+  // A new explicit interest bounds conversation purchase signals. An older
+  // confirmation must not mark every future visit by this contact as a sale.
+  const latestInterestAt=Math.max(-Infinity,...inbound.filter(e=>
+    e.content_origin==='private_semantic'?e.semantic_interest?.intent==='interest':
+      e.content_origin==='customer_text' && classifyRecoveryInterest(e.text).intent==='interest')
+    .map(e=>e.at));
+  if(outgoing.some(e=>e.at>=latestInterestAt && e.content_origin==='private_semantic' &&
+    e.semantic_interest?.version===RECOVERY_VERSION && e.semantic_interest.intent==='possible_purchase'))
+    possiblePurchase=true;
   for (const e of inbound) {
     // Referral, forwarded content and quoted messages cannot confirm interest.
     if (!['customer_text','private_semantic'].includes(e.content_origin)) continue;
     const observation = e.content_origin === 'private_semantic' ? e.semantic_interest : classifyRecoveryInterest(e.text);
     if (!observation || observation.version !== RECOVERY_VERSION) continue;
     if (observation.intent === 'opt_out') opt_out = true;
-    if (observation.intent === 'possible_purchase') possiblePurchase = true;
+    if (observation.intent === 'possible_purchase' && e.at>=latestInterestAt) possiblePurchase = true;
     if (observation.intent === 'declined') {declined = true;result.interest = null;}
     if (observation.intent === 'interest') {declined = false;result.interest = observation;}
   }
@@ -52,7 +61,7 @@ export function evaluateRecoveryShadow({events=[],now,follow_up_minutes=45,
   const same = orders.filter(o => o.conversation_key === accepted[0]?.conversation_key);
   if (same.some(o => o.identity_basis === 'verified' && o.payment_status === 'paid'))
     return {...result,classification:'suppressed',blockers:['paid_order']};
-  if (same.some(o => o.identity_basis === 'verified' && o.status === 'canceled'))
+  if (same.some(o => o.identity_basis === 'verified' && ['canceled','cancelled'].includes(o.status)))
     return {...result,classification:'suppressed',blockers:['canceled_order']};
   if (possiblePurchase || same.some(o => o.identity_basis === 'candidate' ||
     o.identity_basis === 'verified' && o.payment_status !== 'paid'))

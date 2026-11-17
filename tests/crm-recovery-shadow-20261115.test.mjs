@@ -6,6 +6,13 @@ import { classifyRecoveryInterest as classify, recoveryCatalog } from '../supaba
 import { evaluateRecoveryShadow as evaluate } from '../supabase/functions/_shared/recovery-shadow.mjs';
 import { normalizeSignedRecoveryWebhook as normalize } from '../supabase/functions/_shared/recovery-meta-observation.mjs';
 import { quoteCartItems } from '../supabase/functions/_shared/commerce-catalog.mjs';
+test('known service-unavailability echo does not start abandonment clock; canonical cancelled suppresses',()=>{
+ const s=snapshot();s.events[1]={...s.events[1],service_unavailability:true};
+ const r=evaluate(s);assert.equal(r.classification,'pending_service');
+ assert.ok(r.blockers.includes('store_response_pending'));
+ const c=snapshot();c.orders=[{conversation_key:inbound.conversation_key,identity_basis:'verified',status:'cancelled',payment_status:'pending'}];
+ assert.deepEqual(evaluate(c).blockers,['canceled_order']);
+});
 
 const now = '2026-11-15T16:00:00Z';
 const event = (id,direction,at,text) => ({id,direction,occurred_at:`2026-11-15T${at}:00Z`,

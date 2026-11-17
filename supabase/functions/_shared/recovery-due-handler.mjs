@@ -24,7 +24,8 @@ export function createRecoveryDueHandler({env,makeClient=createRecoveryServerCli
    const result=await evaluate(client,{enabled,
     retentionReady:env('CRM_RECOVERY_RETENTION_READY')==='true',
     authorizedPhones:(env('CRM_RECOVERY_AUTHORIZED_PHONES')??'').split(',').map(p=>p.trim()).filter(Boolean),
-    rollout:{channel_identity_verified:true,channel_verified_since:env('CRM_RECOVERY_CHANNEL_VERIFIED_SINCE'),purchase_coverage_verified:false}});
+    rollout:{channel_identity_verified:true,channel_verified_since:env('CRM_RECOVERY_CHANNEL_VERIFIED_SINCE'),
+     purchase_signals_enabled:env('CRM_RECOVERY_PURCHASE_SIGNALS_ENABLED')==='true',purchase_coverage_verified:false}});
    log('recovery_due',JSON.stringify(result));
    return Response.json(result,{status:result.failed>0||['claim_failed','retention_failed'].includes(result.state)?503:200});
   }catch{return Response.json({mode:'shadow',send_authorized:false,state:'unavailable'},{status:503});}

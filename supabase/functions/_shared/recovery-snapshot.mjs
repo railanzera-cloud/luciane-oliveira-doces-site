@@ -4,6 +4,7 @@ import { normalizeSignedRecoveryWebhook } from './recovery-meta-observation.mjs'
 import { recoveryPermission } from './recovery-permission.mjs';
 import { classifyRecoveryInterest } from './recovery-interest.mjs';
 import { recoveryAvailability } from './recovery-availability.mjs';
+import { inspectSignedRecoveryPurchaseSignals } from './recovery-purchase-signal.mjs';
 const classifyInterest=text=>classifyRecoveryInterest(text).intent==='interest';
 
 const uuid = value => typeof value === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(value);
@@ -93,9 +94,13 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
     if (observationStore) {
       const saved = await observationStore.read(conversationId);
       for (const row of saved) {
-        const e = events.find(e => e.verified && e.id === row.message_id && e.direction === 'inbound' &&
+        const e = events.find(e => e.verified && e.id === row.message_id &&
+          (e.direction === 'inbound' || rollout.purchase_signals_enabled===true &&
+            e.direction==='business_outbound' && (row.semantic?.intent==='possible_purchase' ||
+              row.semantic?.intent==='unknown' && row.semantic?.reason==='no_evidence')) &&
           Date.parse(e.occurred_at) === Date.parse(row.occurred_at));
-        if (e) Object.assign(e,{content_origin:'private_semantic',semantic_interest:row.semantic});
+        if (e) Object.assign(e,{content_origin:'private_semantic',semantic_interest:row.semantic,
+          service_unavailability:e.direction==='business_outbound' && row.semantic?.intent==='unknown' && row.semantic?.reason==='no_evidence'});
       }
     }
     // Receipt-time Tintim is retained separately, never upgraded to provider time.
@@ -124,6 +129,31 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
         else events.push({...e,conversation_key:conversationId});
       }
       if (!matchedIdentity) return failed('signed_observation_identity_mismatch');
+      if(rollout.purchase_signals_enabled===true) {
+        const inspected=await inspectSignedRecoveryPurchaseSignals(signedWebhook.raw,{
+          ...metaConfig,signature:signedWebhook.signature,receivedAt:now,expectedConversationKey:expected});
+        if(inspected.state!=='inspected')return failed('signed_observation_rejected');
+        for(const signal of inspected.signals.filter(s=>s.direction==='business_outbound')) {
+          const event=events.find(e=>e.verified && e.id===signal.message_id &&
+            e.direction==='business_outbound' && Date.parse(e.occurred_at)===Date.parse(signal.occurred_at));
+          if(!event || !observationStore?.capturePurchaseSignal)
+            return failed('snapshot_source_unavailable_or_incomplete');
+          await observationStore.capturePurchaseSignal(conversationId,{...event,
+            content_origin:'verified_purchase_signal'});
+          // Use the same persisted projection now and on the future timer read.
+          const semantic=classifyRecoveryInterest('Já paguei');
+          Object.assign(event,{content_origin:'private_semantic',semantic_interest:semantic});
+        }
+        for(const signal of inspected.service_unavailability) {
+          const event=events.find(e=>e.verified && e.id===signal.message_id &&
+            e.direction==='business_outbound' && Date.parse(e.occurred_at)===Date.parse(signal.occurred_at));
+          if(!event || !observationStore?.captureServiceUnavailability)
+            return failed('snapshot_source_unavailable_or_incomplete');
+          await observationStore.captureServiceUnavailability(conversationId,{...event,
+            content_origin:'verified_service_unavailability'});
+          Object.assign(event,{content_origin:'private_semantic',semantic_interest:{...classifyRecoveryInterest(''),reason:'no_evidence'},service_unavailability:true});
+        }
+      }
     }
     // A newly observed interest starts a bounded episode. Older opaque history
     // cannot certify this episode, nor permanently contaminate its completeness.
@@ -190,7 +220,11 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
       result.blockers = [...new Set([...result.blockers,...sourceProblems])];
       if (result.classification === 'shadow_candidate') result.classification = 'blocked';
     }
-    return {...result,snapshot_scope:'recent_24h',permission_basis:permission.basis,
+    const journey_state=result.blockers.includes('paid_order')?'purchase_confirmed':
+      result.blockers.includes('purchase_or_order_requires_reconciliation')?'purchase_reconciliation':
+      result.classification==='pending_service'?'pending_service':
+      result.interest?.status==='resolved'?'conversation_opportunity':'insufficient_evidence';
+    return {...result,journey_state,snapshot_scope:'recent_24h',permission_basis:permission.basis,
       commerce_checks:{site_orders_read:true,unattributed_orders:sourceProblems.includes('unattributed_orders_in_window'),
         external_purchase_coverage:rollout.purchase_coverage_verified===true,
         store_basis:'checkout_orders_open',store_open:storeOpen},

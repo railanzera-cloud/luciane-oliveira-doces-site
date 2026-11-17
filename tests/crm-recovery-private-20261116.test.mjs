@@ -30,6 +30,16 @@ test('private persistence: real PostgreSQL ACL, idempotency, expiry, no raw body
  await assert.rejects(store.capture(cid,{...event,text:'Já paguei'}));
  const rows=await store.read(cid);assert.equal(rows.length,1);assert.equal(rows[0].semantic.candidates[0].product_id,'cone-trufado-prestigio');
  assert.ok(!JSON.stringify(rows).includes('Quero cascão'));
+ const echo={...event,id:'wamid.syntheticpurchase',direction:'business_outbound',content_origin:'verified_purchase_signal'};
+ assert.equal((await store.capturePurchaseSignal(cid,{...echo,verified:false})).stored,false);
+ assert.equal((await store.capturePurchaseSignal(cid,echo)).stored,true);
+ assert.equal((await store.capturePurchaseSignal(cid,echo)).reason,'duplicate');
+ const purchase=(await store.read(cid)).find(r=>r.message_id===echo.id);
+ assert.equal(purchase.semantic.intent,'possible_purchase');assert.equal(purchase.semantic.reason,'purchase_statement_not_payment');
+ const closure={...echo,id:'wamid.syntheticclosure',content_origin:'verified_service_unavailability'};
+ assert.equal((await store.captureServiceUnavailability(cid,closure)).stored,true);
+ const closed=(await store.read(cid)).find(r=>r.message_id===closure.id);
+ assert.equal(closed.semantic.intent,'unknown');assert.equal(closed.semantic.reason,'no_evidence');
  await assert.rejects(db.query('select public.crm_recovery_store_observation($1,$2,$3,$4)',[cid,'wamid.syntheticbad',event.occurred_at,JSON.stringify({...classifyRecoveryInterest(event.text),raw_text:'PRIVATE'})]));
 
  const valid=classifyRecoveryInterest(event.text);
@@ -54,7 +64,7 @@ test('private persistence: real PostgreSQL ACL, idempotency, expiry, no raw body
  await db.exec("SET request.jwt.claim.role='authenticated'");await assert.rejects(store.read(cid));
  await db.exec("SET request.jwt.claim.role='service_role'; UPDATE crm_recovery_private.observations SET expires_at=now()-interval '1 second'");
  assert.deepEqual(await store.read(cid),[]);
- assert.equal((await db.query('select public.crm_recovery_purge_expired() n')).rows[0].n,1);
+ assert.equal((await db.query('select public.crm_recovery_purge_expired() n')).rows[0].n,3);
  assert.equal((await db.query('select public.crm_recovery_purge_expired() n')).rows[0].n,0);
 
  const retention=fs.readFileSync(new URL('../supabase/prepared/recovery-retention-cron.sql',import.meta.url),'utf8').split('-- SCHEDULER:')[0];
