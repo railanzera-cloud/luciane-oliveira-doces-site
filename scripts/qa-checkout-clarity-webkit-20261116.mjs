@@ -83,6 +83,12 @@ try {
   await page.getByRole('button',{name:'Voltar às categorias',exact:true}).click();
   if(width<700)await page.locator('.mobile-sticky-bar button').filter({hasText:'Ver pedido'}).waitFor();
   assert.equal(registrations,0,'Nenhum registro durante seleção, edição, bebida ou navegação');
+  const footer=page.locator('.storefront-legal-footer');
+  const withBar=await footer.evaluate(el=>parseFloat(getComputedStyle(el).paddingBottom));
+  assert.ok(width<700?withBar>=112:withBar<60,'Reserva inferior acompanha a barra móvel');
+  await page.getByRole('button',{name:'Limpar',exact:true}).click();
+  assert.equal(await page.locator('.mobile-sticky-bar').count(),0);
+  assert.ok(await footer.evaluate(el=>parseFloat(getComputedStyle(el).paddingBottom))<60,'Sem barra, o rodapé tem encerramento compacto');
   assert.deepEqual(errors,[]);
   evidence.push({width,cartHeights:heights,suggestionHeights,total:beforeTotal,registrations});
   await page.screenshot({path:path.join(output,`vitrine-${width}.png`)});

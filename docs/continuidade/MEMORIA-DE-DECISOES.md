@@ -491,3 +491,8 @@ O proprietário autorizou os quatro refinamentos após análise de gravação. O
 ## D-UX-20261117 — textos enxutos no encerramento da vitrine
 
 Após screenshot e recomendação, o proprietário aprovou: manter entrega/retirada perto das categorias e a orientação de finalizar pelo WhatsApp; retirar as duas linhas de entrega/retirada do rodapé; retirar o nome repetido acima da mensagem editorial; trocar a frase longa por “Um doce para deixar seu dia mais especial.”. Esta decisão substitui somente o texto editorial anterior aprovado na V4.7.14. Dados empresariais, contatos, links institucionais, coroa e comportamento comercial preservados. Implementado sobre V4.7.15/PR #68; não representa publicação.
+
+
+## D-UX-20261117-B — compactar o encerramento sem cobrir os contatos
+
+Proprietário aprovou aproximar configurador/frase, reduzir espaço ao redor da frase e após o e-mail. Manter texto/coroa/dados institucionais e margem de segurança da barra flutuante. Substituir reserva inferior fixa do rodapé por padding contextual: compacto sem barra; reserva com safe-area apenas no mobile com barra presente. Intervenção visual, sem alterar finalização, preço ou disponibilidade.
