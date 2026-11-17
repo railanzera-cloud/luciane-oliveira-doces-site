@@ -6,7 +6,12 @@ import { CONES as BACKEND } from "../supabase/functions/_shared/commerce-catalog
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 test("bloco trust-section: apenas a frase editorial aprovada, mantendo footer jurídico separado",()=>{
  const page=read("app/page.tsx");
- assert.match(page,/<section className="trust-section">[\s\S]*?<p className="eyebrow">Luciane Oliveira Doces<\/p><h2>Cada doce é preparado para tornar seu momento ainda mais especial\.<\/h2>/);
+ const trust=page.match(/<section className="trust-section">[\s\S]*?<\/section>/)?.[0];
+ assert.match(trust,/<h2>Um doce para deixar seu dia mais especial\.<\/h2>/);
+ assert.doesNotMatch(trust,/eyebrow|Luciane Oliveira Doces/);
+ assert.match(page,/Entrega a partir de R\$8 ou retirada em Paragominas/);
+ assert.match(page,/Monte seu pedido aqui e finalize pelo WhatsApp\./);
+ assert.doesNotMatch(read("components/storefront-legal-footer.tsx"),/Entrega a partir|Retirada disponível/);
  assert.doesNotMatch(page,/Feito em Paragominas com muito recheio e cuidado em cada pedido/);
  assert.match(page,/<StorefrontLegalFooter \/>/);
  assert.match(read("components/storefront-legal-footer.tsx"),/BUSINESS_IDENTITY\.taxId/);

@@ -3628,7 +3628,7 @@ export default function Home() {
 
       )}
 
-      <section className="trust-section"><div className="page-shell trust-content"><Crown size={30} strokeWidth={1.4} aria-hidden="true" /><div><p className="eyebrow">Luciane Oliveira Doces</p><h2>Cada doce é preparado para tornar seu momento ainda mais especial.</h2></div></div></section>
+      <section className="trust-section"><div className="page-shell trust-content"><Crown size={30} strokeWidth={1.4} aria-hidden="true" /><div><h2>Um doce para deixar seu dia mais especial.</h2></div></div></section>
 
       <StorefrontLegalFooter />
 

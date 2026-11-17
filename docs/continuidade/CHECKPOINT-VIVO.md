@@ -1151,3 +1151,8 @@ Autorizado pelo proprietário após análise da gravação. PR #68 sobre PR #66 
 Build e 931 testes aprovados. WebKit 320/375/390/430/1280 aprovado, incluindo edição, quantidades, bebidas e zero registros durante a navegação. Quatro erros TypeScript gerais reproduzidos na base permanecem fora do incremento. ZIP final `LUCIANE_DOCES_V4_7_15_CHECKOUT_CLAREZA_CLOUDFLARE.zip`, SHA256 `d7b008cc7d9fcfbcb5dc51d3e36a6b400043bdd1d20d33db3ff0f85b3904dc5e`, 182 arquivos / 151 mídias e fontes / 69 referências locais verificadas. Manifesto interno e CRC conferidos.
 
 **Sem publicação, merge na main ou alteração produtiva de backend.** Deployment ID desconhecido; paridade dos domínios e homologação física continuam pendentes. Não usar o ZIP histórico de mídia como rollback de código. Detalhes, procedência, receita e reversão: [ENTREGA-CHECKOUT-CLAREZA-20261116.md](ENTREGA-CHECKOUT-CLAREZA-20261116.md).
+
+
+## V4.7.15.1 — textos do rodapé (17/11/2026)
+
+Continuação autorizada do PR #68 sobre `92dd16bd7adca0ec95c05a1de745219388577226`, sem implementar frentes paralelas. Frase editorial: “Um doce para deixar seu dia mais especial.”; nome repetido acima retirado; entrega/retirada removidas apenas do componente de rodapé e mantidas perto das categorias. Dados institucionais e contatos intactos. Teste histórico da frase reconciliado com esta aprovação, mantendo as verificações de fotos, catálogo e identidade. Receita de pacote: `scripts/package-footer-textos-20261117.mjs`, usando somente mídia do ZIP V4.7.15 SHA256 `d7b008cc7d9fcfbcb5dc51d3e36a6b400043bdd1d20d33db3ff0f85b3904dc5e`. Registrar hash final e resultados no PR #68; manifesto interno identifica fonte e arquivos. Sem Cloudflare, main, SQL/Edge ou alterações operacionais.

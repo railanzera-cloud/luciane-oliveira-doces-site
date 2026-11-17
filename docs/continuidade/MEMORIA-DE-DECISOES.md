@@ -486,3 +486,8 @@ Proprietário autorizou correspondência avançada manual com Pixel 149165585597
 ## D-UX-20261116 — revisar na vitrine e finalizar no checkout
 
 O proprietário autorizou os quatro refinamentos após análise de gravação. O preenchimento do formulário deixa de determinar sozinho a ação da barra: fora do checkout, Ver pedido leva à revisão sem registrar compra; dentro dele, mantém a finalização direta aprovada. A montagem de outro produto conserva prioridade e nenhuma etapa financeira foi acrescentada. Compactar carrinho e sugestões mantendo todas as opções elegíveis, imagens e alvos de toque. Corrigir contraste do total por escopo CSS, sem modificar valores. Proposta de repaginação geral não foi adotada neste ciclo. Execução/testes em PR #68; aceite visual final e publicação separados.
+
+
+## D-UX-20261117 — textos enxutos no encerramento da vitrine
+
+Após screenshot e recomendação, o proprietário aprovou: manter entrega/retirada perto das categorias e a orientação de finalizar pelo WhatsApp; retirar as duas linhas de entrega/retirada do rodapé; retirar o nome repetido acima da mensagem editorial; trocar a frase longa por “Um doce para deixar seu dia mais especial.”. Esta decisão substitui somente o texto editorial anterior aprovado na V4.7.14. Dados empresariais, contatos, links institucionais, coroa e comportamento comercial preservados. Implementado sobre V4.7.15/PR #68; não representa publicação.

@@ -24,8 +24,6 @@ export function StorefrontLegalFooter() {
           <a className="footer-contact-email" href={"mailto:" + BUSINESS_IDENTITY.email}>
             {BUSINESS_IDENTITY.email}
           </a>
-          <span>Entrega a partir de R$8.</span>
-          <span>Retirada disponível.</span>
         </div>
       </div>
     </footer>
