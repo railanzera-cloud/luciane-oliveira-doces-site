@@ -146,3 +146,10 @@ Este é um novo corte de SQL + duas Edges, separado do relógio Cloudflare já h
 A ativação do escopo altera também guardas SQL; desligar SOMENTE a flag da Edge não é reversão completa. Reversão primária: desabilitar episode_scope e desligar CRM_RECOVERY_EPISODES_ENABLED, preservando filas/evidências e envios OFF. Isso restaura o bloqueio legado para etapas Comprou, invalida decisões antigas pela revisão e não reabre registros. Se houver regressão estrutural, restaurar definições/ACL previamente exportadas e bundles capturados para este corte, sem DROP de dados. Não usar automaticamente backups anteriores a outros incrementos.
 
 Pendência operacional: instalar/homologar esse corte restrito. Nenhum SQL produtivo, novo secret, Edge deploy, escopo, mensagem, consentimento, evento financeiro, merge ou Pages foi executado por este incremento.
+
+
+### CI remota confirmada — código 09c0a44ab526596ce5e34b468f7994f049101a01
+
+Quatro workflows de pull request concluíram success: governança (44203778474), continuidade (44203778562), CRM/tipagem/build/regressão (44203778631) e recuperação em sombra (44203778414). A execução push adicional (44203769975) também passou. Logs confirmam 111/111 testes de recuperação, incluindo PostgreSQL e workerd; 1.023/1.023 regressões comerciais; tipagem específica e build aprovados. Esses resultados pertencem ao código 09c0a44; este registro posterior é somente documental. Limitação local de Miniflare foi suprida pela execução remota com dependências do lockfile.
+
+PR #67 continua aberto em rascunho, sem merge. Migração/escopo/flag/novos bundles não foram instalados em produção. Próximo passo continua o corte controlado descrito acima, e não outro teste de reconhecimento de produto ou do relógio.

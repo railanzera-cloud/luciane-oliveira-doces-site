@@ -1376,3 +1376,10 @@ Base remota 52ac41b confirmada. Migração CLI 20261117234453 prepara um escopo 
 93/93 testes direcionados locais passaram, incluindo PostgreSQL/migração real/ingresso Meta criando NOVO follow-up, sem reabrir antigos; snapshot, leases, ACL, atualizações tardias, escopo, expiração e reversão. Dashboard Worker íntegro e diff check aprovados. Miniflare ausente impediu início do workerd no ensaio amplo; CI remota nova ainda a conferir. Corpos das sete funções-base iguais aos produtivos. Banco consultado: envios false, zero tentativas, escopo novo ausente.
 
 Nada foi instalado em produção neste incremento. Próximo corte executável: CI exata → backup DDL/ACL e bundles atuais → SQL transacional sem escopo/flag OFF → bundles OFF → ativação finita exclusivamente da conversa original após rechecagem real. Reversão exige desabilitar escopo SQL E flag Edge; flag isolada não desfaz guardas SQL. Impacto, critérios e limites em docs/CRM-PURCHASE-RECONCILIATION-20261117.md. Sem merge/Pages, alteração financeira, mensagem, permissão artificial ou ampliação de contatos.
+
+
+### CI remota confirmada — código 09c0a44ab526596ce5e34b468f7994f049101a01
+
+Quatro workflows de pull request concluíram success: governança (44203778474), continuidade (44203778562), CRM/tipagem/build/regressão (44203778631) e recuperação em sombra (44203778414). A execução push adicional (44203769975) também passou. Logs confirmam 111/111 testes de recuperação, incluindo PostgreSQL e workerd; 1.023/1.023 regressões comerciais; tipagem específica e build aprovados. Esses resultados pertencem ao código 09c0a44; este registro posterior é somente documental. Limitação local de Miniflare foi suprida pela execução remota com dependências do lockfile.
+
+PR #67 continua aberto em rascunho, sem merge. Migração/escopo/flag/novos bundles não foram instalados em produção. Próximo passo continua o corte controlado descrito acima, e não outro teste de reconhecimento de produto ou do relógio.
