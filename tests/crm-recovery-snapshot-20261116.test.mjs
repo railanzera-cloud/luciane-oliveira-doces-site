@@ -260,3 +260,35 @@ test('closed-service macro survives persistence and does not count as answering 
  assert.equal(later.classification,'pending_service');assert.ok(later.blockers.includes('store_response_pending'));
  assert.equal(saved.length,2);assert.ok(!JSON.stringify(saved).includes('Nosso atendimento'));
 });
+
+
+test('episode RPC separates historical Tintim stage only within scoped pilot; all other gates remain',async()=>{
+ const tables=fixture();tables.tintim_conversations=[{id:tid,phone_digits:customerPhone,
+   stage_label:'Comprou',last_observed_at:'2026-11-09T13:00:00Z'}];
+ const client=db(tables),original=client.rpc;let calls=0;
+ client.rpc=async(name,args)=>{if(name!=='crm_recovery_purchase_episode')return original(name,args);
+   calls++;assert.equal(args.p_conversation_id,cid);
+   return {data:{review_required:false,scoped:true,send_authorized:false,payment_confirmed:false},error:null};};
+ const opts=options();opts.rollout.purchase_episodes_enabled=true;
+ const r=await assemble(client,opts);
+ assert.equal(r.classification,'shadow_candidate');assert.equal(r.send_authorized,false);
+ assert.equal(r.purchase_episode.review_required,false);assert.equal(calls,2);
+ // Not scoped: the same old stage must still hold follow-up, regardless of age.
+ client.rpc=async(name,args)=>name==='crm_recovery_purchase_episode'?
+  {data:{review_required:true,scoped:false,send_authorized:false,payment_confirmed:false},error:null}:original(name,args);
+ const held=await assemble(client,opts);assert.ok(held.blockers.includes('purchase_or_order_requires_reconciliation'));
+ opts.rollout.purchase_coverage_verified=false;
+ assert.ok((await assemble(client,opts)).blockers.includes('order_check_incomplete'));
+});
+test('missing or changed episode RPC closes evaluation; flag OFF does not call new RPC',async()=>{
+ const opts=options();opts.rollout.purchase_episodes_enabled=true;
+ const client=db(fixture()),original=client.rpc;let calls=0;
+ client.rpc=async(name,args)=>{if(name!=='crm_recovery_purchase_episode')return original(name,args);
+  calls++;return {data:{review_required:calls>1,scoped:true,send_authorized:false,payment_confirmed:false},error:null};};
+ assert.deepEqual((await assemble(client,opts)).blockers,['snapshot_changed_during_read']);
+ client.rpc=async(name,args)=>name==='crm_recovery_purchase_episode'?{error:{code:'missing_rpc'}}:original(name,args);
+ assert.deepEqual((await assemble(client,opts)).blockers,['snapshot_source_unavailable_or_incomplete']);
+ opts.rollout.purchase_episodes_enabled=false;
+ client.rpc=async(name,args)=>{assert.notEqual(name,'crm_recovery_purchase_episode');return original(name,args);};
+ assert.equal((await assemble(client,opts)).classification,'shadow_candidate');
+});

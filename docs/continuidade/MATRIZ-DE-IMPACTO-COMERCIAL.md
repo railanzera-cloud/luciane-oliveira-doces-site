@@ -153,3 +153,17 @@ Contrato temporário de negócio (sem atualizar tabelas permanentes): `POPCORN_P
 - **Carrinho/checkout:** `kind='drink'`, somente variante oficial, `option_ids=[]`, quantidade 1..99 por SKU. Preço de venda sempre validado na Edge; não confiar em valores do navegador. Mistura de bebidas + doces em um único pedido; quantidade incrementa/decrementa sem novo pedido e sem scroll programático; botão flutuante deve permanecer em `recebimento-opcoes`.
 - **Destino dos pedidos:** bebida ativa `cartRequiresWhatsApp`; preservar metadados de entrega/retirada, Pix/dinheiro/cartão, Tintim/Meta, envio efetivo da mensagem, ordem armazenada, confirmação de pagamento e trabalho de impressão QZ na cozinha. Não disparar `Purchase` só porque cliente abriu WhatsApp ou porque uma comanda foi registrada. O texto `1x Cascão ... 1 cascão` foi corrigido apenas na mensagem: variante interna `1 cascão` preservada.
 - **Homologação mínima:** testar falha/oculto/esgotado, 1 bebida, múltiplas da mesma bebida, duas bebidas distintas, carrinho misto, remoção a zero, total com entrega/retirada, CTA e scroll 320/375/390/430/1280, Safari e Instagram físicos, WhatsApp enviado de verdade, Pix e comanda. Produção só é aceita quando fotos e preços têm paridade, e existe rollback de Cloudflare para V4.6.
+
+
+### Contrato candidato — episódio de recompra, 17/11/2026
+
+| Superfície | Mudança candidata | Proteção / validação |
+|---|---|---|
+| Tintim / follow-ups | Predicado único em seis guardas | Uma conversa e até 24h; sem reabrir histórico; informação tardia bloqueia |
+| Estrutura privada | episode_scope, RLS e sem acesso de escrita para API | Começa vazia; desativação e expiração restauram proteção anterior |
+| Snapshot / duas Edges | RPC fechada sob flag de servidor OFF | Falha/mudança fecha decisão; envio sempre false |
+| Fila / lease | Revisão inclui recibos e estado ativo do escopo | Recibo novo invalida decisão em andamento |
+| Checkout / financeiro / catálogo / QZ / Meta / Worker | Nenhuma mutação ou mudança de contrato | Regressões específicas; sem frontend ou ZIP novo |
+| Rollback | Escopo SQL desabilitado + flag OFF | Flag Edge isolada não reverte a mudança SQL |
+
+Estado: código e migração testados localmente (93/93), ainda não instalados. Detalhes em docs/CRM-PURCHASE-RECONCILIATION-20261117.md.

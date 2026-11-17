@@ -80,7 +80,8 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
       read('crm_follow_ups','id,conversation_id,status,sent_at',
         [['eq','conversation_id',conversationId],['gte','sent_at',since],['lte','sent_at',now]]),
       read('tintim_conversations','id,phone_digits,stage_label,last_observed_at',
-        [['in','phone_digits',[customerPhone,customerPhone.slice(2)]],['gte','last_observed_at',since],['lte','last_observed_at',now]]),
+        [['in','phone_digits',[customerPhone,customerPhone.slice(2)]],
+          ...(rollout.purchase_episodes_enabled===true?[]:[['gte','last_observed_at',since],['lte','last_observed_at',now]])]),
       read('crm_automation_settings','singleton,follow_up_minutes',[['eq','singleton',true]],'singleton'),
       read('orders','id,customer_phone,created_at,payment_status,order_status,paid_at',
         [['gte','paid_at',since],['lte','paid_at',now]]),
@@ -189,13 +190,25 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
     // Unattributed orders cannot prove that this contact did not buy.
     if ([...recentOrders,...recentPaidOrders].some(o => !phone(o.customer_phone) && !associatedIds.includes(o.id)))
       sourceProblems.push('unattributed_orders_in_window');
-    if (stages.some(t => ['comprou','convertido','vendido','venda realizada'].includes(String(t.stage_label).trim().toLowerCase())))
+    let purchaseEpisode=null;
+    const readEpisode=async()=>{
+      const r=await client.rpc('crm_recovery_purchase_episode',{p_conversation_id:conversationId});
+      if(r.error || !r.data || typeof r.data.review_required!=='boolean' || typeof r.data.scoped!=='boolean' ||
+        r.data.send_authorized!==false || r.data.payment_confirmed!==false) throw Error('episode_source_invalid');
+      return {review_required:r.data.review_required,scoped:r.data.scoped,send_authorized:false,payment_confirmed:false};
+    };
+    if(rollout.purchase_episodes_enabled===true) purchaseEpisode=await readEpisode();
+    if (purchaseEpisode?.review_required===true || stages.some(t =>
+      ['comprou','convertido','vendido','venda realizada'].includes(String(t.stage_label).trim().toLowerCase())) &&
+      !(purchaseEpisode?.scoped===true && purchaseEpisode.review_required===false))
       orders.set('stage',{conversation_key:conversationId,identity_basis:'candidate',payment_status:'unknown'});
     // Recheck versions: optimistic consistency for a shadow-only read, not a send claim.
     const [currentC,currentU] = await Promise.all([
       read('crm_conversations','id,updated_at',[['eq','id',c.id]]),
       read('crm_customers','id,updated_at',[['eq','id',customer.id]]),
     ]);
+    if(purchaseEpisode && JSON.stringify(purchaseEpisode)!==JSON.stringify(await readEpisode()))
+      return failed('snapshot_changed_during_read');
     if (currentC[0]?.updated_at !== c.updated_at || currentU[0]?.updated_at !== customer.updated_at)
       return failed('snapshot_changed_during_read');
     if (!['in_progress','waiting_customer'].includes(c.status)) return failed('conversation_not_active');
@@ -224,7 +237,7 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
       result.blockers.includes('purchase_or_order_requires_reconciliation')?'purchase_reconciliation':
       result.classification==='pending_service'?'pending_service':
       result.interest?.status==='resolved'?'conversation_opportunity':'insufficient_evidence';
-    return {...result,journey_state,snapshot_scope:'recent_24h',permission_basis:permission.basis,
+    return {...result,...(purchaseEpisode?{purchase_episode:purchaseEpisode}:{}),journey_state,snapshot_scope:'recent_24h',permission_basis:permission.basis,
       commerce_checks:{site_orders_read:true,unattributed_orders:sourceProblems.includes('unattributed_orders_in_window'),
         external_purchase_coverage:rollout.purchase_coverage_verified===true,
         store_basis:'checkout_orders_open',store_open:storeOpen},

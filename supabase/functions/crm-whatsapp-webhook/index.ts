@@ -110,6 +110,7 @@ Deno.serve(async(req)=>{
           enabled:true,retentionReady:true,
           authorizedPhones:(Deno.env.get("CRM_RECOVERY_AUTHORIZED_PHONES")??"").split(",").map(p=>p.trim()).filter(p=>/^55[0-9]{10,11}$/.test(p)),
           rollout:{channel_identity_verified:true,channel_verified_since:Deno.env.get("CRM_RECOVERY_CHANNEL_VERIFIED_SINCE"),
+            purchase_episodes_enabled:Deno.env.get("CRM_RECOVERY_EPISODES_ENABLED")==="true",
             purchase_signals_enabled:Deno.env.get("CRM_RECOVERY_PURCHASE_SIGNALS_ENABLED")==="true",
             purchase_coverage_verified:false},
         });

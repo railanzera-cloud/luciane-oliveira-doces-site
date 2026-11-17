@@ -486,3 +486,8 @@ Proprietário autorizou correspondência avançada manual com Pixel 149165585597
 ### 16/11/2026 — Substituir apenas o relógio da reavaliação
 
 Escolhido Worker Cron candidato em lugar de insistir no hardening individual de pg_net, indisponível conforme KB oficial. Corrigida recomendação anterior de suporte. Preservar processamento comercial, fila privada, leases e webhook homologado. Worker sem service_role e sem contatos, comando fixo assinado HMAC, gateway JWT mantido e replay bloqueado no banco; flags OFF e cron vazio versionados. Implantação e mudança de autenticação requerem autorização específica após apresentação dos testes e reversão. Detalhes: docs/CRM-RECOVERY-CLOUDFLARE-SCHEDULER.md.
+
+
+### D-CRM-EPISODIO-20261117 — Recompra por episódio verificável, candidato
+
+Adotado no candidato: compra histórica não é supressão vitalícia. A distinção exige novo interesse oficial, identidade coerente, prova anterior de conhecimento e escopo privado único/finito; recebimento tardio permanece ambíguo. Seis guardas compartilham predicado e a revisão inclui recibos para invalidar leases. Sem confirmação financeira ou permissão implícita. Instalação pendente; escopo inicia vazio e flag nova OFF. Reversão desabilita escopo SQL e flag, sem reabrir históricos. Não trocar a etapa Tintim, exigir novo trabalho manual por conversa ou usar last_observed_at como data da venda. Especificação e validação em docs/CRM-PURCHASE-RECONCILIATION-20261117.md.
