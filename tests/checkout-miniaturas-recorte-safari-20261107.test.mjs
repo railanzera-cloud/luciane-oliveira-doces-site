@@ -23,11 +23,11 @@ test("miniaturas Gourmet fazem crop contextual sem trocar fotos ou identidade co
   assert.doesNotMatch(checkout, /\.slice-media[^\n]*object-position:/);
 });
 
-test("checkout mostra fotos maiores, mas mantém espaços úteis no mobile estreito", () => {
-  assert.match(checkout, /#carrinho \.boutique-cart-image\s*\{[^}]*width: 76px;[^}]*height: 86px/);
+test("carrinho compacto preserva miniaturas e a confirmação mantém destaque", () => {
+  assert.match(checkout, /#carrinho \.boutique-cart-image\s*\{[^}]*width: 54px;[^}]*height: 62px/);
   assert.match(checkout, /#carrinho \.boutique-added-photo\s*\{[^}]*width: 66px;[^}]*height: 74px/);
-  assert.match(checkout, /@media \(max-width: 450px\)[\s\S]*?boutique-cart-image \{ flex-basis: 69px; width: 69px; height: 80px;/);
-  assert.match(checkout, /@media \(max-width: 359px\)[\s\S]*?boutique-cart-image \{ flex-basis: 61px; width: 61px; height: 73px;/);
+  assert.match(checkout, /@media \(max-width: 450px\)[\s\S]*?boutique-cart-image \{ flex-basis: 54px; width: 54px; height: 62px;/);
+  assert.match(checkout, /@media \(max-width: 359px\)[\s\S]*?boutique-cart-image \{ flex-basis: 50px; width: 50px; height: 58px;/);
   assert.ok(page.includes('className="cart-item-info"'));
   assert.ok(page.includes('className="boutique-added-message"'));
 });

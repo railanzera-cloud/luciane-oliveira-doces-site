@@ -65,7 +65,7 @@ test("checkout só adiciona navegação visual e preserva finalização", () => 
   assert.ok(page.includes('className="boutique-final-action" ref={inlineFinalActionRef}'));
   assert.ok(page.includes('typeof IntersectionObserver === "undefined"'));
   assert.ok(page.includes("observer.disconnect()"));
-  assert.ok(page.includes("stickyUsesCheckoutAction && inlineFinalActionVisible"));
+  assert.ok(page.includes("stickyUsesCheckoutAction && !stickyShowsOrderReview && inlineFinalActionVisible"));
   assert.ok(page.includes("onClick={handleFinalAction}"));
   assert.ok(page.includes("onClick={handleStickyAction}"));
   assert.ok(page.includes("checkoutFingerprint"));
@@ -108,7 +108,7 @@ test("barra de ação não duplica botão de adicionar visível e preserva o che
   assert.ok(page.includes("inlineBuilderActionVisible"));
   assert.ok(page.includes('document.querySelector<HTMLElement>(".storefront .builder-card .add-button")'));
   assert.ok(page.includes("builderFlowActive && inlineBuilderActionVisible"));
-  assert.ok(page.includes("stickyUsesCheckoutAction && inlineFinalActionVisible"));
+  assert.ok(page.includes("stickyUsesCheckoutAction && !stickyShowsOrderReview && inlineFinalActionVisible"));
   assert.ok(page.includes("observer.disconnect()"));
   assert.ok(page.includes("onClick={handleStickyAction}"));
   assert.ok(page.includes("onClick={handleFinalAction}"));

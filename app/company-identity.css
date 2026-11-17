@@ -167,3 +167,26 @@
 .company-page__card p:last-child { margin-bottom: 0; }
 .company-page__card a { color: #e8bc80; text-decoration: underline; text-underline-offset: 3px; }
 .company-page__card a:hover { color: #ffe0b3; }
+
+/* Encerramento compacto: reservar espaço extra apenas com a barra móvel presente. */
+.storefront {
+  padding-bottom: 0;
+}
+.storefront #configurador:has(+ .trust-section),
+.storefront #configurador:has(+ .checkout-section.is-empty-cart) {
+  padding-bottom: 32px;
+}
+.storefront .trust-section {
+  padding: clamp(28px, 5vw, 40px) 0;
+}
+.storefront .trust-content h2 {
+  margin-top: 0;
+}
+.storefront .storefront-legal-footer {
+  padding: 32px 0 calc(28px + env(safe-area-inset-bottom, 0px));
+}
+@media (max-width: 699px) {
+  .storefront:has(.mobile-sticky-bar) .storefront-legal-footer {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+  }
+}

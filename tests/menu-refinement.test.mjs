@@ -785,9 +785,47 @@ function checkoutCopy(name, values) {
  }
  visit(ast);
  assert.ok(expression);
- const scope = { natalPicking: false, ...values }; // Testes do checkout comum não estão escolhendo sabores natalinos.
+ const scope = { natalPicking: false, stickyShowsOrderReview: false, ...values }; // Testes do checkout comum não estão escolhendo sabores natalinos.
  return new Function(...Object.keys(scope),`return ${expression}`)(...Object.values(scope));
 }
+
+test('fora do checkout, consultar o pedido não registra nem envia a compra', () => {
+ const destinations=[];let finalizations=0;let builderActions=0;let engaged=true;
+ const action=pageFunction('handleStickyAction',{
+  stickyShowsOrderReview:true,setBuilderEngaged:value=>engaged=value,
+  requestScroll:id=>destinations.push(id),handleFinalAction:()=>finalizations++,
+  stickyBuilderAction:()=>builderActions++,
+ });
+ action();
+ assert.equal(engaged,false);
+ assert.deepEqual(destinations,['carrinho']);
+ assert.equal(finalizations,0);
+ assert.equal(builderActions,0);
+});
+
+test('checkout preenchido só oferece finalização na área do pedido', () => {
+ for(const inView of [false,true]) {
+  const review=checkoutCopy('stickyShowsOrderReview',{
+   stickyUsesCheckoutAction:true,cart,checkoutInView:inView,isFinalizing:false,
+  });
+  assert.equal(review,!inView);
+  assert.equal(checkoutCopy('stickyIsCheckoutReady',{
+   stickyUsesCheckoutAction:true,stickyShowsOrderReview:review,checkoutReady:true,
+  }),inView);
+ }
+ assert.equal(checkoutCopy('stickyShowsOrderReview',{
+  stickyUsesCheckoutAction:false,cart,checkoutInView:false,isFinalizing:false,
+ }),false,'A montagem de outro produto mantém sua própria ação');
+ assert.equal(checkoutCopy('stickyShowsOrderReview',{
+  stickyUsesCheckoutAction:true,cart:[],checkoutInView:false,isFinalizing:false,
+ }),false,'Pedido vazio não oferece revisão');
+});
+
+test('a consulta do pedido continua acessível na vitrine com a loja fechada', () => {
+ assert.equal(checkoutCopy('stickyButtonLabel',{
+  stickyShowsOrderReview:true,availability:{ordersOpen:false},
+ }),'Ver pedido');
+});
 
 for(const payment of ['pix','dinheiro','credito','debito']) test(`final CTA and temporary failure recovery — ${payment}`, async () => {
  let retry=false, reads=0, registrations=0, resume;
@@ -1186,7 +1224,7 @@ test('a mismatched locality blocks registration and guides both checkout and sti
  // Both existing checkout actions continue to use the same pending-section function.
  const finalAction=pageFunction('handleFinalAction',{checkoutFormReady:false,cart,nextCheckoutSection:next,
   setBuilderEngaged:()=>{},setCheckoutAvailabilityMessage:()=>{},requestScroll:id=>destination=id});
- const sticky=pageFunction('handleStickyAction',{natalPicking:false,stickyUsesCheckoutAction:true,handleFinalAction:finalAction});
+ const sticky=pageFunction('handleStickyAction',{natalPicking:false,stickyShowsOrderReview:false,stickyUsesCheckoutAction:true,handleFinalAction:finalAction});
  destination=null;sticky();assert.equal(destination,'delivery-fields');
 });
 

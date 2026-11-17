@@ -14,7 +14,7 @@ test("barra final do WhatsApp tem acabamento independente e preserva CTA comerci
   assert.ok(css.includes('color: #fff9ed'));
   assert.ok(page.includes('onClick={handleStickyAction}'));
   assert.ok(page.includes('onClick={handleFinalAction}'));
-  assert.ok(page.includes('stickyUsesCheckoutAction && inlineFinalActionVisible'));
+  assert.ok(page.includes('stickyUsesCheckoutAction && !stickyShowsOrderReview && inlineFinalActionVisible'));
   assert.ok(page.includes('builderFlowActive && inlineBuilderActionVisible'));
   assert.ok(css.includes('.storefront:has('));
 });

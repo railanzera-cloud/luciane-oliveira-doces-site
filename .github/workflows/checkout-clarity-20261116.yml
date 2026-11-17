@@ -1,0 +1,47 @@
+name: Checkout clarity — mobile regression
+on:
+  push:
+    branches: [refine/checkout-clareza-carrinho-20261116]
+  pull_request:
+    paths: ['app/page.tsx', 'app/storefront-checkout-premium.css', 'scripts/qa-checkout-clarity-webkit-20261116.mjs', '.github/workflows/checkout-clarity-20261116.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  checkout:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SUPABASE_URL: https://edqiwvccmboyayojvuea.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_qa_mock_no_production_credentials
+      SITE_ORDERING_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Build and commercial regression
+        run: |
+          npm run build
+          node --test tests/*.test.mjs
+          node scripts/build-crm-commercial-core.mjs
+      - name: Install isolated WebKit
+        run: |
+          npm install --prefix "$RUNNER_TEMP/qa" --no-save --no-package-lock playwright@1.56.1
+          "$RUNNER_TEMP/qa/node_modules/.bin/playwright" install --with-deps webkit
+      - name: Exercise cart, suggestions and contextual action
+        shell: bash
+        run: |
+          python3 -m http.server 8181 --bind 127.0.0.1 --directory outputs/crm-commercial-core-NOT-PUBLISH >/tmp/lod-qa.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          export QA_PACKAGE="$RUNNER_TEMP/qa/package.json"
+          node scripts/qa-checkout-clarity-webkit-20261116.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: QA-CHECKOUT-CLARITY-NOT-FOR-PUBLICATION
+          path: outputs/qa-checkout-clarity
+          retention-days: 7

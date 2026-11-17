@@ -422,3 +422,14 @@ Produtos aprovados: Ninho com Morango com morango inteiro e casca de chocolate e
 
 ### 14/11/2026 — direção fotográfica V4.7.13
 Originais do usuário: 1ª imagem Cascão Folheado (geleia de morango com Ninho); 2ª imagem Ferrero Rocher com bombom aberto no topo. Conservar textura, granulado, fundo bege, granito e pedestal translúcido. Centralizar o corpo integral nos cards existentes (4:5), sem perfeccionismo sintético, sem aumentar brilho ou trocar cenário. Ativos WebP exclusivos 20261114-v4713: principal 1120×1400, card 600×750, mobile 360×450. Fotos e enquadramentos dos outros sabores preservados. Capa do trio anterior não alterada neste escopo.
+
+
+## Checkout compacto V4.7.15 — candidato autorizado e testado (16/11/2026)
+
+Referência de entrada: gravação do proprietário, 5min12, analisada por quadros; identidade chocolate/creme/champagne preservada. Total final em `#ffddaa` sobre o fundo chocolate. Carrinho com miniaturas 54×62px (50×58px em telas estreitas), especificações em texto e quantidade no controle; todas as ações continuam disponíveis com altura mínima de 44px. Sugestões em linhas de no mínimo 56px, fotografias de 44px, sem esconder categorias elegíveis. Barra dourada Ver pedido na vitrine; finalização aprovada permanece no checkout. Fotografias, capa, proporções dos cards de produtos e identidade natalina não foram redesenhadas.
+
+Validado em Chrome isolado e WebKit automatizado 320/375/390/430/1280. Aprovação do escopo não equivale a aceite visual final. Safari/Instagram físico e publicação pendentes. Detalhes no documento de entrega de 16/11 e PR #68.
+
+
+### 17/11/2026 — encerramento compacto V4.7.15.2
+Screenshot do proprietário motivou reduzir espaços excessivos depois da montagem de Fatias, ao redor da frase e após contato. Escopo autorizado: respiro; texto e identidade mantidos. Padding do configurador só reduz quando a frase é o próximo bloco, evitando alterar a passagem ao checkout. Margem inferior do rodapé acompanha a presença da barra móvel e preserva safe-area. Estado: candidato; não confundir QA automatizado com homologação física/publicação.
