@@ -88,7 +88,9 @@ try {
   assert.ok(width<700?withBar>=112:withBar<60,'Reserva inferior acompanha a barra móvel');
   await page.getByRole('button',{name:'Limpar',exact:true}).click();
   assert.equal(await page.locator('.mobile-sticky-bar').count(),0);
+  await page.waitForFunction(()=>!document.querySelector('.mobile-sticky-bar') && parseFloat(getComputedStyle(document.querySelector('.storefront-legal-footer')).paddingBottom)<60);
   assert.ok(await footer.evaluate(el=>parseFloat(getComputedStyle(el).paddingBottom))<60,'Sem barra, o rodapé tem encerramento compacto');
+  assert.equal(await page.locator('.storefront').evaluate(el=>getComputedStyle(el).paddingBottom),'0px','A página não duplica a reserva inferior do rodapé');
   await page.getByRole('button',{name:'Fatias Artesanais — Escolher fatia',exact:true}).click();
   assert.equal(await page.locator('#configurador').evaluate(el=>getComputedStyle(el).paddingBottom),'32px','Checkout vazio oculto não mantém o espaço antigo antes da frase');
   assert.deepEqual(errors,[]);

@@ -169,6 +169,9 @@
 .company-page__card a:hover { color: #ffe0b3; }
 
 /* Encerramento compacto: reservar espaço extra apenas com a barra móvel presente. */
+.storefront {
+  padding-bottom: 0;
+}
 .storefront #configurador:has(+ .trust-section),
 .storefront #configurador:has(+ .checkout-section.is-empty-cart) {
   padding-bottom: 32px;
