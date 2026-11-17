@@ -20,6 +20,7 @@ on:
       - 'tests/crm-recovery-shadow-20261115.test.mjs'
       - 'tests/crm-recovery-snapshot-20261116.test.mjs'
       - 'tests/crm-recovery-purchase-signal-20261117.test.mjs'
+      - 'tests/crm-recovery-purchase-episode-20261117.test.mjs'
       - 'tests/crm-recovery-tintim-purchase-postgres-20261117.test.mjs'
       - 'tests/crm-recovery-ingress-20261116.test.mjs'
       - 'tests/crm-recovery-server-client-20261116.test.mjs'
@@ -48,6 +49,7 @@ jobs:
           node --test tests/crm-recovery-shadow-20261115.test.mjs
           tests/crm-recovery-snapshot-20261116.test.mjs
           tests/crm-recovery-purchase-signal-20261117.test.mjs
+          tests/crm-recovery-purchase-episode-20261117.test.mjs
           tests/crm-recovery-tintim-purchase-postgres-20261117.test.mjs
           tests/crm-recovery-ingress-20261116.test.mjs
           tests/crm-recovery-server-client-20261116.test.mjs
