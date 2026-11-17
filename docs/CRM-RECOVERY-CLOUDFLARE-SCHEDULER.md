@@ -1,6 +1,6 @@
 # Agendamento Cloudflare da reavaliação — corte parcial autorizado
 
-Estado em 17/11: autenticação da Edge homologada por verificador local; Cron real chegou ao Worker com flag OFF. As tentativas Worker→Edge falharam com scheduler_unavailable, inclusive na etapa sign após a primeira correção. Operador confirmou Worker OFF. Nova correção candidata do tick foi testada em workerd, ainda sem homologação Cloudflare após esta troca. Não ativar DUE nem envios.
+Estado verificado em 17/11 às 17h34 America/Belem: primeira reavaliação automática real gravada às 17h30, em sombra, blocked, send_authorized=false e zero tentativas de entrega. DUE/SHADOW ativos comprovados pelo ramo executado. Interesse original já fora da leitura de 24h; próximo teste exige episódio novo no mesmo telefone. Ver seção final para evidências e limites. Os estados anteriores abaixo são históricos.
 
 ## Decisão e correção da premissa anterior
 
@@ -104,3 +104,41 @@ Adicionados motivos fechados project_url_invalid, gateway_key_invalid, hmac_form
 Validação local: build e 998 regressões passaram; runtime workerd usa agora tempo não pré-alinhado. Os testes verificam assinatura do tick normalizado, 409 no mesmo slot com nonce diferente, rejeição de horários fora da janela/segundos como unidades, recusa de configurações inválidas sem HTTP e ausência de segredos nos motivos. Testes interceptam toda saída com fixtures sintéticas; não houve chamada produtiva nem deploy por este incremento.
 
 Corte manual limitado já autorizado: manter Worker=false e DUE=false, substituir integralmente dashboard-worker.mjs e implantar. Com DUE comprovadamente false, habilitar somente o Worker para observar um tick real; esperado edge_disabled e consumo do nonce/tick correspondente no Supabase, sem due_checks ou tentativas. Se houver erro, voltar Worker=false e capturar apenas o resumo fechado; não trocar credenciais ou liberar DUE por tentativa. Não recriar Cron, não publicar Pages nem alterar webhook. Reversão operacional: ambas as flags false; preservar evidências e jobs existentes. Retomar versão anterior não resolve o defeito conhecido.
+
+## Homologação periódica observada — 17/11/2026, America/Belem
+
+Base reconciliada: PR #67 aberto em rascunho, branch feat/crm-recovery-shadow-20261115, HEAD c282d575ee31e8083484736c200eb78fc521adb6. Os quatro workflows remotos desse SHA concluíram success (44165692155, 44165692154, 44165692179 e 44165692134). Os resultados locais anteriores de build/998 regressões/70 direcionados continuam datados; não foram reexecutados nesta auditoria somente documental.
+
+| Evidência | Resultado e limite |
+|---|---|
+| 17h25:13, registro privado | Tick 1794947100 autenticado. Operador relatou edge_disabled no Worker às 17h25; consulta independente anterior indicou avaliação OFF e zero due_checks. |
+| 17h30:15, registro privado | Tick 1794947400 autenticado recebido, cinco minutos após o anterior. |
+| 17h30:22, log function_logs | recovery_due: mode=shadow, send_authorized=false, claimed=1, recorded=1, stale=0, failed=0, state=evaluated. |
+| 17h30:22, due_checks | Decisão blocked gravada para um atendimento; lease liberado. Lembrete pending, sent_at NULL e prazo original já vencido. |
+| Consultas 17h32–17h34 | automatic_sends_enabled=false, zero crm_delivery_attempts; observações e decisões limitadas a um atendimento. RLS ligada nas três tabelas privadas; pg_net ausente. |
+
+O ramo executado do handler comprova CRM_RECOVERY_DUE_ENABLED=true e CRM_RECOVERY_SHADOW_ENABLED=true no runtime desse tick; claimed=1 comprova também retenção pronta e configuração de escopo aceita. Não foi necessário alterar flags ou pedir ao operador que as alterasse novamente. Os conectores não forneceram leitura direta dos Edge Secrets: um atendimento observado não certifica sozinho o conteúdo integral da allowlist. A lista original permanece limite obrigatório; nenhuma configuração foi alterada pelo agente.
+
+Edge crm-recovery-reevaluate v8 ACTIVE, verify_jwt=true, bundle 2717331592fbdf40cce4d7033bcd2a711fab34c6473c948656ed2e6f7f22d3c9. Dos dezoito arquivos recuperados, dezessete são idênticos ao HEAD. O módulo scheduler-auth ainda contém redirect:error apenas no assinador não invocado pelo receptor e omite ignoreBOM:false explícito (o padrão); verifySchedulerRequest não diverge. Não reinstalar Edge para igualar o chamador. Webhook v20 ACTIVE conserva hash homologado 5a4de4d83c60b042d2f5634b75cb7feae750339d190d004571217c15ec3a1e0a. Número de versão sozinho não comprova mudança de código.
+
+### Execução bem-sucedida não significa oportunidade elegível
+
+Bloqueios registrados: order_check_incomplete, conversation_history_incomplete, permission_unverified, store_closed, product_or_variant_unresolved, inbound_content_unverified e unattributed_orders_in_window. São impedimentos da avaliação comercial, não falha de autenticação ou de fila. O handler mantém purchase_coverage_verified=false; ler pedidos do site não certifica vendas externas nem permite remover esse bloqueio por conveniência.
+
+O interesse resolvido de Cascão de Prestígio, homologado às 11h57:31 de 16/11, pertence ao mesmo atendimento avaliado, mas saiu da janela de leitura às 11h57:31 de 17/11. A consulta às 17h33 encontrou idade superior a 29 horas, retenção ainda válida e inside_read_window=false. Tanto a RPC de leitura semântica quanto o snapshot limitam o episódio às últimas 24 horas. Retenção de trinta dias não estende validade comercial. O bloqueio de produto atual não desfaz a homologação anterior nem comprova regressão do reconhecedor.
+
+A decisão de 17h30 tinha valid_until=17h32:22 e next_check_at=17h35:22. Depois da validade, a linha retida serve como evidência histórica, não como decisão comercial fresca. Leitura operacional exige tempo, revisão das fontes e estados válidos pela RPC existente. Um tick às 17h35 antes de next_check_at pode retornar claimed=0; rechecagem ocorre no próximo tick elegível, sem forçar horários.
+
+Tick posterior também observado no banco às 17h35:14 (1794947700), sem nova decisão antes de next_check_at. Às 17h35:24, envios continuavam false e tentativas zero. Validação deste incremento documental: 11/11 testes de continuidade/governança, preflight e git diff --check aprovados; nenhuma suíte comercial ampla repetida.
+
+### Próximo teste mínimo dentro do prazo
+
+Com o mesmo telefone autorizado e sombra preservada: uma nova mensagem de interesse inequívoco em produto real, seguida de resposta normal da Luciane pelo Business App; depois nenhuma mensagem adicional durante os 45 minutos configurados e até um tick elegível. Exemplo de entrada: “Tenho interesse no Cascão Trufado de Prestígio. Como faço para pedir?”. Confirmar captura nova, interesse preservado no echo e reavaliação posterior com consultas atuais. Este teste é necessário por expiração do episódio anterior; não repete reconhecimento apenas para acumular prova. Uma decisão blocked pode comprovar o ciclo contextual sem autorizar envio.
+
+Não mudar loja, estoque, consentimentos, compras ou horários para obter candidato elegível. Não solicitar segundo telefone nesta etapa. Não há venda recuperada, envio homologado ou receita incremental comprovada.
+
+### Limites desta reconciliação
+
+Instalação e primeira execução periódica com decisão estão comprovadas por banco/logs. O painel Cloudflare, bindings, inventário atual de Cron e allowlist não foram reinspecionados diretamente; único Cron e Worker restrito são o checkpoint do operador, corroborado pelos ticks autenticados. Sites .com.br/.pages.dev e identidade do deployment Pages não foram revalidados: este incremento não altera frontend ou contrato de checkout.
+
+Nenhum deploy, escrita SQL, alteração de secrets, mensagem, merge ou publicação Pages nesta auditoria. Reversão já autorizada permanece Worker OFF e DUE OFF se houver falha de segurança/continuidade; nenhuma falha dessa natureza foi observada. Bloqueio comercial correto não exige rollback.
