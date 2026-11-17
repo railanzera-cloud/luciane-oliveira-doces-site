@@ -1,6 +1,6 @@
 # Agendamento Cloudflare da reavaliação — corte parcial autorizado
 
-Estado em 17/11: autenticação da Edge homologada por verificador local; Cron real chegou ao Worker com flag OFF. A primeira tentativa Worker→Edge falhou com scheduler_unavailable. Correção candidata abaixo testada em workerd e preparada no PR, ainda sem homologação Cloudflare após a troca. Não ativar DUE nem envios.
+Estado em 17/11: autenticação da Edge homologada por verificador local; Cron real chegou ao Worker com flag OFF. As tentativas Worker→Edge falharam com scheduler_unavailable, inclusive na etapa sign após a primeira correção. Operador confirmou Worker OFF. Nova correção candidata do tick foi testada em workerd, ainda sem homologação Cloudflare após esta troca. Não ativar DUE nem envios.
 
 ## Decisão e correção da premissa anterior
 
@@ -89,3 +89,18 @@ Validação executada: build e 996 regressões comerciais, incluindo 84 testes d
 Implantação manual restrita: definir RECOVERY_SCHEDULER_ENABLED=false na Cloudflare e manter CRM_RECOVERY_DUE_ENABLED=false; substituir integralmente pelo arquivo gerado e implantar; conferir zero diagnósticos. Depois habilitar apenas o Worker para testar o tick real com Edge OFF, esperando edge_disabled e consumo privado correspondente. Só liberar DUE após essa evidência, controle do único telefone e verificação comercial atual. Não recriar Cron, não trocar segredos, não publicar Pages nem implantar webhook/Edge por causa desta correção. A Edge existente verifica o mesmo protocolo; a função sign alterada não é usada pelo handler receptor.
 
 Reversão: Worker flag false, manter DUE false; preservar único Cron para diagnóstico desligado ou removê-lo se necessário. Não restaurar o Worker incompatível como solução nem abrir endpoints de teste em produção. Foi solicitado retorno da flag do Worker a false no diagnóstico; a execução dessa ação pelo operador ainda não foi confirmada ao preparar o candidato.
+
+
+## Correção do tick e diagnóstico fechado — 17/11/2026
+
+Após implantação manual da correção anterior, a execução real das 16h50 America/Belem ainda registrou scheduler_unavailable/stage=sign. O operador confirmou o retorno da flag do Worker a false; outro tick real registrou disabled. A consulta de 19h56 UTC confirmou envios OFF, zero tentativas, zero registros no ledger atual e zero due_checks. O ledger expira: vazio agora não apaga a autenticação homologada anteriormente. CRM_RECOVERY_DUE_ENABLED não foi lido diretamente nessa consulta; não confundir a flag de envio no banco com a configuração runtime da Edge.
+
+O evento de erro fornecido mostra scheduledTime em segundos fracionários na metadata do log. O contrato do ScheduledController é em milissegundos; esse JSON não prova sozinho o valor bruto entregue ao handler. Fonte: https://developers.cloudflare.com/workers/runtime-apis/handlers/scheduled/ . Não converter unidades por heurística nem afirmar que o segredo está incorreto com base no erro genérico.
+
+Defeito reproduzível: o Worker enviava floor(scheduledTime/1000) ao assinador, mas este exige tick divisível por 300. Qualquer segundo de despacho diferente de zero dentro do slot rejeitava a assinatura antes do HTTP. Agora o Worker calcula floor(scheduledTime/300000)*300, mantendo timestamp de assinatura atual e nonce novo. Guarda local rejeita horários antigos/futuros/unidades inválidas antes do HTTP; o receptor preserva suas janelas e deduplicação atomicamente. O tick é identidade do intervalo do agendador, não prazo comercial: não altera observação, compra, permissão ou data de acompanhamento. Esse defeito é comprovado isoladamente; a causa exclusiva do incidente e a chamada Cloudflare→Edge continuam pendentes de prova real.
+
+Adicionados motivos fechados project_url_invalid, gateway_key_invalid, hmac_format_invalid e schedule_time_invalid/expired, sem valores configurados ou exceções. Não normalizar whitespace ou substituir segredo automaticamente. HMAC/JWT, ação fixa, destino, recusa de redirects, fila privada, regras comerciais e webhook não mudaram. Nenhuma alteração na Edge ou SQL é necessária por este incremento.
+
+Validação local: build e 998 regressões passaram; runtime workerd usa agora tempo não pré-alinhado. Os testes verificam assinatura do tick normalizado, 409 no mesmo slot com nonce diferente, rejeição de horários fora da janela/segundos como unidades, recusa de configurações inválidas sem HTTP e ausência de segredos nos motivos. Testes interceptam toda saída com fixtures sintéticas; não houve chamada produtiva nem deploy por este incremento.
+
+Corte manual limitado já autorizado: manter Worker=false e DUE=false, substituir integralmente dashboard-worker.mjs e implantar. Com DUE comprovadamente false, habilitar somente o Worker para observar um tick real; esperado edge_disabled e consumo do nonce/tick correspondente no Supabase, sem due_checks ou tentativas. Se houver erro, voltar Worker=false e capturar apenas o resumo fechado; não trocar credenciais ou liberar DUE por tentativa. Não recriar Cron, não publicar Pages nem alterar webhook. Reversão operacional: ambas as flags false; preservar evidências e jobs existentes. Retomar versão anterior não resolve o defeito conhecido.

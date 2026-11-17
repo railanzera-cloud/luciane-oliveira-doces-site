@@ -18,7 +18,7 @@ test('workerd: signed Cron command reaches OFF Edge, rejects redirects, and expo
    catch(e){return Response.json({throws:e instanceof TypeError});}
   }
   if(path==='/production')return productionEntry.fetch(req,env);
-  const controller={cron:'*/5 * * * *',scheduledTime:Math.floor(Date.now()/300000)*300000};
+  const controller={cron:'*/5 * * * *',scheduledTime:Date.now()};
   return Response.json(await runRecoverySchedule(controller,path==='/off'?{}:env));
  }};`;
  let mode='edge',requests=0,consumed=0,evaluated=0;

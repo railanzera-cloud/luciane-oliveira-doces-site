@@ -114,3 +114,38 @@ test('redirects never forward signed headers or body to a second destination',as
   assert.deepEqual(result,{state:'edge_redirect_rejected',status});assert.equal(calls,1);
  }
 });
+
+
+test('dispatch seconds normalize to one signed five-minute slot without extending freshness',async()=>{
+ const env={RECOVERY_SCHEDULER_ENABLED:'true',RECOVERY_PROJECT_URL:projectUrl,RECOVERY_PUBLIC_GATEWAY_KEY:gatewayKey,RECOVERY_SCHEDULER_SECRET:secret};
+ const current=1794945012662,slot=Math.floor(current/300000)*300,ticks=new Set();let calls=0;
+ const edge=createRecoveryDueHandler({env:n=>authEnv[n],now:()=>current,makeClient:()=>({rpc:async(name,p)=>{
+  assert.equal(p.p_tick,slot);if(ticks.has(p.p_tick))return {data:false};ticks.add(p.p_tick);return {data:true};
+ }})});
+ const fetchImpl=async req=>{calls++;assert.equal((await verifySchedulerRequest(req.clone(),{projectUrl,gatewayKey,secret,now:current})).ok,true);return edge(req);};
+ for(const offset of [11000,12000,29000]){
+  const result=await runRecoverySchedule({cron:'*/5 * * * *',scheduledTime:slot*1000+offset},env,{now:()=>slot*1000+30000,fetchImpl});
+  assert.equal(result.state,offset===11000?'edge_disabled':'edge_rejected');
+  if(offset!==11000)assert.equal(result.status,409);
+ }
+ assert.equal(calls,3);
+ for(const scheduledTime of [1794945011.694,current-600001,current+30001,NaN,Infinity]){
+  const result=await runRecoverySchedule({cron:'*/5 * * * *',scheduledTime},env,{now:()=>current,fetchImpl});
+  assert.equal(result.state,'configuration_invalid');
+ }
+ assert.equal(calls,3);
+});
+
+test('Worker configuration diagnostics expose only fixed reasons and make no HTTP request',async()=>{
+ const env={RECOVERY_SCHEDULER_ENABLED:'true',RECOVERY_PROJECT_URL:projectUrl,RECOVERY_PUBLIC_GATEWAY_KEY:gatewayKey,RECOVERY_SCHEDULER_SECRET:secret};
+ let calls=0;const fetchImpl=async()=>{calls++;throw Error('PRIVATE');};
+ for(const [field,value,reason] of [
+  ['RECOVERY_PROJECT_URL','https://PRIVATE.invalid','project_url_invalid'],
+  ['RECOVERY_PUBLIC_GATEWAY_KEY','sb_secret_PRIVATE','gateway_key_invalid'],
+  ['RECOVERY_SCHEDULER_SECRET','PRIVATE','hmac_format_invalid'],
+ ]){
+  const result=await runRecoverySchedule({cron:'*/5 * * * *',scheduledTime:tick*1000},{...env,[field]:value},{now:()=>now,fetchImpl});
+  assert.deepEqual(result,{state:'configuration_invalid',reason});assert.ok(!JSON.stringify(result).includes('PRIVATE'));
+ }
+ assert.equal(calls,0);
+});
