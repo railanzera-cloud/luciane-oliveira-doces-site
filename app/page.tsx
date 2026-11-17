@@ -715,6 +715,7 @@ export default function Home() {
   const cupAddLockRef = useRef(false);
   const inlineFinalActionRef = useRef<HTMLDivElement | null>(null);
   const [inlineFinalActionVisible, setInlineFinalActionVisible] = useState(false);
+  const [checkoutInView, setCheckoutInView] = useState(false);
   const [inlineBuilderActionVisible, setInlineBuilderActionVisible] = useState(false);
   const [natalInlineActionVisible, setNatalInlineActionVisible] = useState(false);
   const navigationPendingRef = useRef(false);
@@ -784,6 +785,19 @@ export default function Home() {
     observer.observe(target);
     return () => observer.disconnect();
   }, [activeCategory, cart.length, checkoutChannel]);
+
+  // O pedido pronto só oferece envio enquanto o cliente está no checkout.
+  // Ao voltar à vitrine, a mesma barra permite conferir o pedido primeiro.
+  useEffect(() => {
+    setCheckoutInView(false);
+    const target = document.getElementById("carrinho");
+    if (!target || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => {
+      setCheckoutInView(Boolean(entry?.isIntersecting));
+    }, { threshold: 0, rootMargin: "-15% 0px -35% 0px" });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [activeCategory, cart.length, showLimitedCupView, whatsappResult, siteResult]);
 
   // Edição limitada: a barra orienta fora do campo de visão do botão do copo,
   // evitando duas ações idênticas simultaneamente na tela pequena.
@@ -1355,7 +1369,8 @@ export default function Home() {
     && gourmetFlavorsInView && !gourmetNextStepInlineVisible && !inlineBuilderActionVisible;
   const cupBuilderFlowActive = showLimitedCupView && cupSalesEnabled;
   const stickyUsesCheckoutAction = !builderFlowActive && !cupBuilderFlowActive && !natalPicking;
-  const stickyIsCheckoutReady = stickyUsesCheckoutAction && checkoutReady;
+  const stickyShowsOrderReview = stickyUsesCheckoutAction && cart.length > 0 && !checkoutInView && !isFinalizing;
+  const stickyIsCheckoutReady = stickyUsesCheckoutAction && !stickyShowsOrderReview && checkoutReady;
   const stickyPriceLabel = natalPicking
     ? natalSelectedCount > 0 ? currency.format(cartSubtotal) : "4 sabores"
     : cupBuilderFlowActive
@@ -1365,7 +1380,9 @@ export default function Home() {
     : draftSubtotal === null
       ? activeCategory === "pipocas" ? `A partir de ${currency.format(popcornPrice("500ml", [], promotionTime))}` : activeCategory === "cones" ? `A partir de ${currency.format(coneStartingPrice)}` : "A partir de R$20"
       : currency.format(draftSubtotal);
-  const stickyPriceCaption = natalPicking
+  const stickyPriceCaption = stickyShowsOrderReview
+    ? `${cartItemCount} ${cartItemCount === 1 ? "item no pedido" : "itens no pedido"}`
+    : natalPicking
     ? natalSelectedCount > 0 ? `${natalSelectedCount} ${natalSelectedCount === 1 ? "fatia selecionada" : "fatias selecionadas"}` : "Coleção especial de Natal"
     : cupBuilderFlowActive
     ? cupFlavorPreview
@@ -1410,7 +1427,9 @@ export default function Home() {
         : checkoutReady
           ? finalButtonLabel
           : checkoutNextActionLabel;
-  const stickyButtonLabel = natalPicking
+  const stickyButtonLabel = stickyShowsOrderReview
+    ? "Ver pedido"
+    : natalPicking
     ? natalSelectedCount > 0 ? "Continuar pedido" : "Escolher fatias"
     : typeof cupBuilderFlowActive !== "undefined" && cupBuilderFlowActive
     ? cupActionLabel
@@ -2315,6 +2334,11 @@ export default function Home() {
   }
 
   function handleStickyAction() {
+    if (stickyShowsOrderReview) {
+      setBuilderEngaged(false);
+      requestScroll("carrinho");
+      return;
+    }
     if (natalPicking) {
       continueChristmas();
       return;
@@ -3256,7 +3280,6 @@ export default function Home() {
                               <span>{variant.label}</span>
                               {product.kind === "slice" && <span>{SLICE_WEIGHT_GRAMS} g por fatia</span>}
                               {optionNames && product.optionLabel && <span>{product.optionLabel}: {optionNames}</span>}
-                              <span>Quantidade: {item.quantity}</span>
                             </div>
                             {itemIssue && (
                               <div className="cart-unavailable-note" role="status">
@@ -3609,13 +3632,13 @@ export default function Home() {
 
       <StorefrontLegalFooter />
 
-      {(activeCategory || cart.length > 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen && Boolean(cupFlavorPreview && cupSizeId) && cupCanOrder)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && !(natalPicking && natalInlineActionVisible) && !(builderFlowActive && activeCategory === "pipocas" && gourmetFlavorsInView && !gourmetContinueAvailable) && (
+      {(activeCategory || cart.length > 0) && (!showLimitedCupView || (cupBuilderFlowActive && availability.ordersOpen && Boolean(cupFlavorPreview && cupSizeId) && cupCanOrder)) && !(cupBuilderFlowActive && cupInlineActionVisible) && !(stickyUsesCheckoutAction && !stickyShowsOrderReview && inlineFinalActionVisible) && !(builderFlowActive && inlineBuilderActionVisible) && !(natalPicking && natalInlineActionVisible) && !(builderFlowActive && activeCategory === "pipocas" && gourmetFlavorsInView && !gourmetContinueAvailable) && (
       <div className={`mobile-sticky-bar ${stickyIsCheckoutReady ? "is-ready" : "is-building"} ${stickyIsCheckoutReady && checkoutChannel === "whatsapp" ? "is-whatsapp" : ""} ${cupBuilderFlowActive ? "is-crocantes-step" : ""} ${stickyUsesCheckoutAction ? "is-checkout-flow" : ""} ${natalPicking ? "is-natal-step" : ""} ${builderFlowActive && activeCategory === "pipocas" ? "is-gourmet-step" : ""} ${gourmetContinueAvailable ? "is-gourmet-flavor-continue" : ""}`} data-state={stickyIsCheckoutReady ? "ready" : "building"}>
         <div className="mobile-sticky-price" aria-live="polite" aria-atomic="true">
           {gourmetContinueAvailable ? <><small>Sabores escolhidos</small><strong>{popcornOptionIds.length} de {popcornMaxOptions}</strong></>
             : <><small>{stickyPriceCaption}</small><strong>{stickyPriceLabel}</strong></>}
         </div>
-        <Button type="button" onClick={handleStickyAction} disabled={!availability.ordersOpen || isFinalizing || cupAdding || (cupBuilderFlowActive && Boolean(cupFlavorPreview && cupSizeId) && !cupCanOrder) || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
+        <Button type="button" onClick={handleStickyAction} disabled={(!availability.ordersOpen && !stickyShowsOrderReview) || isFinalizing || cupAdding || (cupBuilderFlowActive && Boolean(cupFlavorPreview && cupSizeId) && !cupCanOrder) || (builderFlowActive && !categoryIsAvailable(activeCategory))}>
           {gourmetContinueAvailable ? `Continuar com ${popcornOptionIds.length} ${popcornOptionIds.length === 1 ? "sabor" : "sabores"}` : stickyButtonLabel}
           {gourmetContinueAvailable ? <ChevronRight size={17} aria-hidden="true" /> : stickyIsCheckoutReady ? checkoutChannel === "whatsapp" ? <MessageCircle size={17} /> : <ShoppingBag size={17} /> : <ChevronRight size={17} />}
         </Button>

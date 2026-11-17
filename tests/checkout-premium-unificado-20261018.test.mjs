@@ -22,7 +22,7 @@ test("UI checkout isolada em CSS posterior e fiel à identidade", () => {
 });
 test("Barra flutuante preserva observadores e handlers", () => {
   assert.ok(page.includes('stickyUsesCheckoutAction ? "is-checkout-flow" : ""'));
-  assert.ok(page.includes("!(stickyUsesCheckoutAction && inlineFinalActionVisible)"));
+  assert.ok(page.includes("!(stickyUsesCheckoutAction && !stickyShowsOrderReview && inlineFinalActionVisible)"));
   assert.ok(page.includes("!(cupBuilderFlowActive && cupInlineActionVisible)"));
   assert.ok(page.includes('threshold: 0.45, rootMargin: "0px 0px -68px 0px"'));
   assert.ok(page.includes("onClick={handleStickyAction}"));

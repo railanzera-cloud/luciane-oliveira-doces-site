@@ -22,7 +22,7 @@ test("premium 2.0 esclarece preco sem modificar precificacao", () => {
 test("premium 2.0 preserva etapas, CTA e protecao do teclado", () => {
   assert.ok(page.includes('aria-current={!paymentReady && fulfillment && addressReady ? "step" : undefined}'));
   assert.ok(page.includes("onClick={handleStickyAction}"));
-  assert.ok(page.includes("stickyUsesCheckoutAction && inlineFinalActionVisible"));
+  assert.ok(page.includes("stickyUsesCheckoutAction && !stickyShowsOrderReview && inlineFinalActionVisible"));
   assert.ok(page.includes('className="mobile-sticky-price" aria-live="polite"'));
   assert.ok(css.includes(".storefront:has("));
   assert.ok(css.includes("input:is([type=\"text\"]"));
