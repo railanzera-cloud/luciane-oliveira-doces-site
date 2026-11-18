@@ -88,7 +88,7 @@ try {
       await page.locator('label[for="flavor-ovomaltine"]').tap();
       await dock.waitFor({state:"visible"});
       assert.match(await dock.innerText(),/Continuar com 2 sabores/);
-      assert.match(await page.locator("#sabores .boutique-price-guide").innerText(),/R\$\s*49,00/);
+      assert.match(await page.locator("#sabores .boutique-price-guide").innerText(),/R\$\s*55,00/);
       // Quando o botão inline fica visível, nenhum CTA duplicado deve existir.
       await page.locator("#sabores .flavor-continue").evaluate(el=>{
         const desired=window.scrollY+el.getBoundingClientRect().top-window.innerHeight*.31;
