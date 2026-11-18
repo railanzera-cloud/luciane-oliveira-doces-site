@@ -14,7 +14,7 @@ const migration = readFileSync("supabase/migrations/20261108060000_renomear_fati
 test("dois sabores mantêm IDs, preços e fotos, sem subtítulos repetidos", () => {
   const n = front.slice(front.indexOf('id: "fatia-ninho-morango"'), front.indexOf('id: "fatia-prestigio"'));
   const c = front.slice(front.indexOf('id: "fatia-coco-cremoso-morango"'), front.indexOf('id: "fatia-chocolate-cenoura"'));
-  assert.match(n, /name: "Brigadeiro Branco com Morango"/);
+  assert.match(n, /name: "Ninho com Morango"/);
   assert.match(n, /price: 22/);
   assert.match(n, /image: "\/fatia-ninho-morango.jpeg"/);
   assert.doesNotMatch(n, /subtitle:|cardName:/);
@@ -24,13 +24,13 @@ test("dois sabores mantêm IDs, preços e fotos, sem subtítulos repetidos", () 
   assert.doesNotMatch(c, /subtitle:|cardName:/);
   assert.ok(menu.includes('"fatia-ninho-morango": "slice_ninho_morango"'));
   assert.ok(menu.includes('"fatia-coco-cremoso-morango": "slice_coco_cremoso_morango"'));
-  assert.ok(backend.includes('name: "Brigadeiro Branco com Morango", priceCents: 2200'));
+  assert.ok(backend.includes('name: "Ninho com Morango", priceCents: 2200'));
   assert.ok(backend.includes('name: "Geleia de Morango com Coco Cremoso", priceCents: 2000'));
 });
 
 test("checkout cotado usa novos nomes e R$22/R$20 preservados", () => {
   const cases = [
-    ["fatia-ninho-morango", "Brigadeiro Branco com Morango", 2200, "slice_ninho_morango"],
+    ["fatia-ninho-morango", "Ninho com Morango", 2200, "slice_ninho_morango"],
     ["fatia-coco-cremoso-morango", "Geleia de Morango com Coco Cremoso", 2000, "slice_coco_cremoso_morango"],
   ];
   for (const [id,name,price,key] of cases) {
