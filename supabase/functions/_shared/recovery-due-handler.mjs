@@ -25,6 +25,7 @@ export function createRecoveryDueHandler({env,makeClient=createRecoveryServerCli
     retentionReady:env('CRM_RECOVERY_RETENTION_READY')==='true',
     authorizedPhones:(env('CRM_RECOVERY_AUTHORIZED_PHONES')??'').split(',').map(p=>p.trim()).filter(Boolean),
     rollout:{channel_identity_verified:true,channel_verified_since:env('CRM_RECOVERY_CHANNEL_VERIFIED_SINCE'),
+     order_references_enabled:env('CRM_RECOVERY_ORDER_REFERENCES_ENABLED')==='true',
      purchase_episodes_enabled:env('CRM_RECOVERY_EPISODES_ENABLED')==='true',
      purchase_signals_enabled:env('CRM_RECOVERY_PURCHASE_SIGNALS_ENABLED')==='true',purchase_coverage_verified:false}});
    log('recovery_due',JSON.stringify(result));

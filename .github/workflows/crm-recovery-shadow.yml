@@ -12,6 +12,7 @@ on:
       - 'supabase/migrations/*crm_recovery_due_shadow.sql'
       - 'supabase/migrations/*crm_recovery_scheduler_auth.sql'
       - 'supabase/migrations/*crm_recovery_purchase_episodes.sql'
+      - 'supabase/migrations/*crm_recovery_official_order_references.sql'
       - 'cloudflare/recovery-scheduler/**'
       - 'scripts/build-recovery-scheduler-dashboard.mjs'
       - 'tests/crm-recovery-scheduler*.test.mjs'
@@ -21,6 +22,8 @@ on:
       - 'tests/crm-recovery-shadow-20261115.test.mjs'
       - 'tests/crm-recovery-snapshot-20261116.test.mjs'
       - 'tests/crm-recovery-purchase-signal-20261117.test.mjs'
+      - 'tests/crm-recovery-order-reference-20261117.test.mjs'
+      - 'tests/crm-recovery-order-reference-postgres-20261117.test.mjs'
       - 'tests/crm-recovery-purchase-episode-20261117.test.mjs'
       - 'tests/crm-recovery-episodes-postgres-20261117.test.mjs'
       - 'tests/crm-recovery-tintim-purchase-postgres-20261117.test.mjs'
@@ -51,6 +54,8 @@ jobs:
           node --test tests/crm-recovery-shadow-20261115.test.mjs
           tests/crm-recovery-snapshot-20261116.test.mjs
           tests/crm-recovery-purchase-signal-20261117.test.mjs
+          tests/crm-recovery-order-reference-20261117.test.mjs
+          tests/crm-recovery-order-reference-postgres-20261117.test.mjs
           tests/crm-recovery-purchase-episode-20261117.test.mjs
           tests/crm-recovery-episodes-postgres-20261117.test.mjs
           tests/crm-recovery-tintim-purchase-postgres-20261117.test.mjs

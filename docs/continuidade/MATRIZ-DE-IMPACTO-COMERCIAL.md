@@ -167,3 +167,17 @@ Contrato temporário de negócio (sem atualizar tabelas permanentes): `POPCORN_P
 | Rollback | Escopo SQL desabilitado + flag OFF | Flag Edge isolada não reverte a mudança SQL |
 
 Estado: código e migração testados localmente (93/93), ainda não instalados. Detalhes em docs/CRM-PURCHASE-RECONCILIATION-20261117.md.
+
+
+### Contrato candidato — referência oficial de pedido, 17/11/2026
+
+| Superfície | Mudança | Limite |
+|---|---|---|
+| Mensagem oficial inbound | Captura de número do cabeçalho atual | HMAC/ativos/escopo/tempo; sem forwarded/quoted/echo |
+| Estrutura privada | order_references + RLS/RPCs/expurgo | Sempre candidate; dúvida persistida; sem corpo/PII financeira |
+| Snapshot / fila | Releitura do pedido e revisão das fontes | Paid com candidato mantém conciliação; sem envio |
+| Fonte temporal | Mensagem vinculada pode preceder created_at da conversa | Janela original de 24h, sem mudar timestamps |
+| Checkout / financeiro / catálogo / QZ / Meta / Tintim / Worker | Contratos preservados | Nenhuma escrita financeira/contato/consentimento |
+| Reversão | Flag de captura/leitura OFF | Preservar tabela e expurgo das evidências |
+
+Estado: 51 testes locais aprovados; candidato não instalado. Sem frontend/ZIP novo.

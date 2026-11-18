@@ -491,3 +491,8 @@ Escolhido Worker Cron candidato em lugar de insistir no hardening individual de 
 ### D-CRM-EPISODIO-20261117 — Recompra por episódio verificável, candidato
 
 Adotado no candidato: compra histórica não é supressão vitalícia. A distinção exige novo interesse oficial, identidade coerente, prova anterior de conhecimento e escopo privado único/finito; recebimento tardio permanece ambíguo. Seis guardas compartilham predicado e a revisão inclui recibos para invalidar leases. Sem confirmação financeira ou permissão implícita. Instalação pendente; escopo inicia vazio e flag nova OFF. Reversão desabilita escopo SQL e flag, sem reabrir históricos. Não trocar a etapa Tintim, exigir novo trabalho manual por conversa ou usar last_observed_at como data da venda. Especificação e validação em docs/CRM-PURCHASE-RECONCILIATION-20261117.md.
+
+
+### D-CRM-REFERENCIA-OFICIAL-20261117 — Associação candidata, sem credencial por número público
+
+Adotado no candidato: aproveitar o cabeçalho já enviado pelo cliente pelo canal oficial, mantendo a associação como candidata e preservando dúvidas para o timer. Número sequencial não confirma propriedade; pedido marcado paid não basta para atribuí-lo a esse contato. Não restaurar tracking_token na mensagem nem mudar checkout para facilitar o teste. Captura usa HMAC/identidade de canal/ID/direção/horário original e observação privada, com RLS e janela de leitura. Primeira mensagem pode preceder o registro da conversa; created_at do servidor não substitui o horário do cliente. Flag OFF por padrão; nenhum envio/pagamento/consentimento ou implantação implícita. Detalhes em docs/CRM-PURCHASE-RECONCILIATION-20261117.md.

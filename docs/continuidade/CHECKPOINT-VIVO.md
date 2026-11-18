@@ -1398,3 +1398,14 @@ Novas fontes instaladas com flag OFF, depois ativada às 21h10:15. Webhook v26 A
 Limite: piloto não tem etapa Comprou/lead Tintim correspondente; exceção compra antiga → novo interesse validada em PostgreSQL, ainda não homologada com caso produtivo legítimo. Interesse mais recente 19h06:14 não identifica produto; não substituir pelo Prestígio anterior para liberar o teste. Não pedir nova mensagem para demonstrar produto/timer já comprovados.
 
 Consulta somente leitura reutilizável: supabase/verification/crm-recovery-pilot-status.sql. Detalhes, instalação e limites em docs/CRM-PURCHASE-RECONCILIATION-20261117.md. Reversão exige escopo SQL desabilitado E flag OFF; apenas a flag não desfaz guardas. Próxima prioridade é conciliação/identidade dos pedidos e permissão real, sem relaxar cobertura externa. Nada mudou em pedidos, pagamentos, consentimentos, QZ, Meta/Tintim, catálogo/fotos, Worker/Cron, Pages ou main; PR #67 continua rascunho.
+
+
+### 17/11/2026 — Referência de pedido pelo WhatsApp oficial, candidato não instalado
+
+Base remota 1796312 conferida. Mensagem atual do site leva número do pedido, sem tracking_token. Backend do checkout aceita telefone opcional; número público não comprova identidade. Implementado candidato oficial independente do lead Tintim: HMAC/escopo/horário/direção → cabeçalho exato → ledger privado de associação candidate → leitura periódica de pedido. Dados ausentes/conflitantes ficam registrados para manter o bloqueio depois, sem mensagem nova, sem corpo/valor/telefone/CPF/Pix/token persistido. Pedido paid com associação candidata não confirma compra para esse contato.
+
+Migração CLI 20261118010932 prepara RLS/RPCs service_role, locks, retenção/expurgo e revisão das fontes. Captura exige evento oficial e observação semântica privada já existentes. Primeira mensagem anterior por milissegundos ao created_at de servidor é lida por seu vínculo oficial, com horários originais intactos. Novos caminhos OFF por padrão em CRM_RECOVERY_ORDER_REFERENCES_ENABLED. Sem nova demanda manual da proprietária e sem alteração de checkout ou mensagem do site.
+
+51/51 testes locais passaram (seis novos; integração real PostgreSQL/PGlite com captura assinada, restauração no timer, dúvidas persistentes, associações candidatas, conflito entre contatos, ACL/expurgo e lease). Diff check/dashboard Worker aprovados. CI remota nova ainda a conferir. Nada novo foi instalado em produção nesta preparação; envios e contatos permanecem restritos como no corte anterior.
+
+Impacto, pré-requisitos e reversão em docs/CRM-PURCHASE-RECONCILIATION-20261117.md. Reversão desta captura usa flag OFF, preservando estrutura e expurgo. Não confundir associação por número com identidade, pagamento, permissão ou venda recuperada; cobertura externa continua false. Sem merge/Pages ou dados comerciais manipulados.

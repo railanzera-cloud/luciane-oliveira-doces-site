@@ -5,6 +5,8 @@ import { recoveryPermission } from './recovery-permission.mjs';
 import { classifyRecoveryInterest } from './recovery-interest.mjs';
 import { recoveryAvailability } from './recovery-availability.mjs';
 import { inspectSignedRecoveryPurchaseSignals } from './recovery-purchase-signal.mjs';
+import {inspectSignedRecoveryOrderReferences} from './recovery-order-reference.mjs';
+import {privateRecoveryOrderReferences} from './recovery-order-reference-store.mjs';
 const classifyInterest=text=>classifyRecoveryInterest(text).intent==='interest';
 
 const uuid = value => typeof value === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(value);
@@ -64,7 +66,10 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
     if (customers.length !== 1 || !phone(customers[0].phone_e164)) return failed('customer_identity_unavailable');
     const customer = customers[0], customerPhone = phone(customer.phone_e164), clock = Date.parse(now);
     // Bounded recent episode, not a claim of complete lifetime chat history.
-    const since = new Date(Math.max(Date.parse(c.created_at),clock-24*3600000)).toISOString();
+    // A first official message may predate server creation by milliseconds.
+    // Its conversation FK and provider time are the evidence, not receipt time.
+    const since = new Date(rollout.order_references_enabled===true?clock-24*3600000:
+      Math.max(Date.parse(c.created_at),clock-24*3600000)).toISOString();
     const dates = [['gte','occurred_at',since],['lte','occurred_at',now]];
     const [official,tintim,links,recentOrders,availability,settings,followups,stages,automation,recentPaidOrders] = await Promise.all([
       read('crm_whatsapp_message_events','id,message_id,conversation_id,phone_e164,direction,occurred_at,received_at',
@@ -88,6 +93,7 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
     ]);
     if (automation.length !== 1) return failed('automation_settings_unavailable');
     const sourceProblems = [];
+    const referenceStore=rollout.order_references_enabled===true?privateRecoveryOrderReferences(client):null;
     const events = official.map(e => ({id:e.message_id,conversation_key:conversationId,
       direction:e.direction === 'app_echo' ? 'business_outbound' : e.direction,
       occurred_at:e.occurred_at,received_at:e.received_at,time_basis:'provider_timestamp',
@@ -130,6 +136,13 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
         else events.push({...e,conversation_key:conversationId});
       }
       if (!matchedIdentity) return failed('signed_observation_identity_mismatch');
+      if(referenceStore) {
+        const inspected=await inspectSignedRecoveryOrderReferences(signedWebhook.raw,{
+          ...metaConfig,signature:signedWebhook.signature,receivedAt:now,expectedConversationKey:expected});
+        if(inspected.state!=='inspected')return failed('signed_observation_rejected');
+        if(inspected.references.length && !observationStore)return failed('snapshot_source_unavailable_or_incomplete');
+        for(const reference of inspected.references) await referenceStore.capture(conversationId,reference);
+      }
       if(rollout.purchase_signals_enabled===true) {
         const inspected=await inspectSignedRecoveryPurchaseSignals(signedWebhook.raw,{
           ...metaConfig,signature:signedWebhook.signature,receivedAt:now,expectedConversationKey:expected});
@@ -156,6 +169,11 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
         }
       }
     }
+    const orderReferences=referenceStore?await referenceStore.read(conversationId):[];
+    for(const r of orderReferences) {
+      if(!events.some(e=>e.verified && e.direction==='inbound' && e.id===r.message_id &&
+        Date.parse(e.occurred_at)===Date.parse(r.occurred_at)))return failed('snapshot_source_unavailable_or_incomplete');
+    }
     // A newly observed interest starts a bounded episode. Older opaque history
     // cannot certify this episode, nor permanently contaminate its completeness.
     const interestStart=events.filter(e=>e.verified && e.direction==='inbound' &&
@@ -175,11 +193,14 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
       if (Number.isFinite(recorded) && recorded>=Date.parse(since) && recorded>observed)
         sourceProblems.push('conversation_activity_not_covered');
     }
-    const associatedIds = [...new Set(links.filter(l => ['candidate','confirmed'].includes(l.status)).map(l => l.order_uuid))];
+    const associatedIds = [...new Set([...links.filter(l => ['candidate','confirmed'].includes(l.status)).map(l => l.order_uuid),
+      ...orderReferences.filter(r=>r.resolution_status==='matched').map(r=>r.order_uuid)])];
     const associatedOrders = associatedIds.length ? await read('orders',
       'id,customer_phone,created_at,payment_status,order_status,paid_at',[['in','id',associatedIds]]) : [];
     if (associatedIds.some(id => !associatedOrders.some(o => o.id === id))) sourceProblems.push('linked_order_unavailable');
     const orders = new Map();
+    if(orderReferences.some(r=>r.resolution_status!=='matched'))orders.set('unresolved_reference',{
+      conversation_key:conversationId,identity_basis:'candidate',payment_status:'unknown'});
     for (const o of [...recentOrders,...recentPaidOrders,...associatedOrders]) {
       const inWindow = [o.created_at,o.paid_at].some(t=>Date.parse(t)>=Date.parse(since) && Date.parse(t)<=clock);
       const direct = inWindow && phone(o.customer_phone) === customerPhone;
@@ -207,6 +228,8 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
       read('crm_conversations','id,updated_at',[['eq','id',c.id]]),
       read('crm_customers','id,updated_at',[['eq','id',customer.id]]),
     ]);
+    if(referenceStore && JSON.stringify(orderReferences)!==JSON.stringify(await referenceStore.read(conversationId)))
+      return failed('snapshot_changed_during_read');
     if(purchaseEpisode && JSON.stringify(purchaseEpisode)!==JSON.stringify(await readEpisode()))
       return failed('snapshot_changed_during_read');
     if (currentC[0]?.updated_at !== c.updated_at || currentU[0]?.updated_at !== customer.updated_at)
@@ -238,7 +261,7 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
       result.classification==='pending_service'?'pending_service':
       result.interest?.status==='resolved'?'conversation_opportunity':'insufficient_evidence';
     return {...result,...(purchaseEpisode?{purchase_episode:purchaseEpisode}:{}),journey_state,snapshot_scope:'recent_24h',permission_basis:permission.basis,
-      commerce_checks:{site_orders_read:true,unattributed_orders:sourceProblems.includes('unattributed_orders_in_window'),
+      commerce_checks:{site_orders_read:true,official_order_references_read:!!referenceStore,unattributed_orders:sourceProblems.includes('unattributed_orders_in_window'),
         external_purchase_coverage:rollout.purchase_coverage_verified===true,
         store_basis:'checkout_orders_open',store_open:storeOpen},
       source_counts:{official:official.length,tintim:tintim.length},
