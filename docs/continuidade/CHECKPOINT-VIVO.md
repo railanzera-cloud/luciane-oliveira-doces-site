@@ -1383,3 +1383,18 @@ Nada foi instalado em produção neste incremento. Próximo corte executável: C
 Quatro workflows de pull request concluíram success: governança (44203778474), continuidade (44203778562), CRM/tipagem/build/regressão (44203778631) e recuperação em sombra (44203778414). A execução push adicional (44203769975) também passou. Logs confirmam 111/111 testes de recuperação, incluindo PostgreSQL e workerd; 1.023/1.023 regressões comerciais; tipagem específica e build aprovados. Esses resultados pertencem ao código 09c0a44; este registro posterior é somente documental. Limitação local de Miniflare foi suprida pela execução remota com dependências do lockfile.
 
 PR #67 continua aberto em rascunho, sem merge. Migração/escopo/flag/novos bundles não foram instalados em produção. Próximo passo continua o corte controlado descrito acima, e não outro teste de reconhecimento de produto ou do relógio.
+
+
+### 17/11/2026 — Episódios instalados, piloto ativo e reavaliação real às 21h20
+
+Retomada eb6b95e, código funcional 09c0a44 aprovado; backup integral 3611188 preserva webhook v23/reavaliação v11 e sete definições/ACL SQL. Restauração adicional encontrou delimitadores sem ponto e vírgula; corrigida e validada em PostgreSQL antes de ativar piloto/atualizar Edges, com teste permanente e CI aprovada em 72dcef3. Migração já estava instalada OFF/sem escopo durante essa correção; nenhum dado ou mensagem foi fabricado.
+
+Migração produtiva crm_recovery_purchase_episodes, versão 20261118000629, corresponde à fonte CLI 20261117234453. Nove corpos SQL conferidos. RLS/grants verificados: nova RPC só service_role; escopo sem escrita da API; avisos WARN iguais ao baseline desconsiderando observed_at. Nenhuma permissão de cliente foi concedida.
+
+Novas fontes instaladas com flag OFF, depois ativada às 21h10:15. Webhook v26 ACTIVE (18 arquivos), hash f160343c6402e12f61db651b547d0968c3ac9431d242dd6096e695084d7f5cdc; reavaliação v14 ACTIVE (19 arquivos), hash 66025a99d0265dd51693e62e5209a2c9951120676e4b30f0ecb1ac73630beb83. JWT/HMAC e todos os arquivos conferidos; secret update incrementou versões sem mudar bundles. Lista original preservada; escopo de UMA conversa ativado 21h11:29 e expira 23h11:29, sem renovação automática. Envios false, zero tentativas.
+
+21h15:14 entrou antes do next_check_at 21h15:16 e não selecionou fila. Sem alterar relógio, cron real 21h20:13 gravou nova decisão às 21h20:14. Consulta 21h20:43: blocked, source_matches/fresh true, lease liberada e send_authorized=false; API registra duas chamadas à RPC nova. Bloqueios: order_check_incomplete, permission_unverified, store_closed, product_or_variant_unresolved e unattributed_orders_in_window. Validade até 21h22:14; depois, tratar como histórico até avaliação nova. Últimas mensagens oficiais continuam 19h35:53 inbound/19h41:29 echo: execução sem mensagem nova comprovada.
+
+Limite: piloto não tem etapa Comprou/lead Tintim correspondente; exceção compra antiga → novo interesse validada em PostgreSQL, ainda não homologada com caso produtivo legítimo. Interesse mais recente 19h06:14 não identifica produto; não substituir pelo Prestígio anterior para liberar o teste. Não pedir nova mensagem para demonstrar produto/timer já comprovados.
+
+Consulta somente leitura reutilizável: supabase/verification/crm-recovery-pilot-status.sql. Detalhes, instalação e limites em docs/CRM-PURCHASE-RECONCILIATION-20261117.md. Reversão exige escopo SQL desabilitado E flag OFF; apenas a flag não desfaz guardas. Próxima prioridade é conciliação/identidade dos pedidos e permissão real, sem relaxar cobertura externa. Nada mudou em pedidos, pagamentos, consentimentos, QZ, Meta/Tintim, catálogo/fotos, Worker/Cron, Pages ou main; PR #67 continua rascunho.

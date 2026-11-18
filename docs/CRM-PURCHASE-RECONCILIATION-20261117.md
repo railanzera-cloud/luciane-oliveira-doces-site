@@ -153,3 +153,56 @@ Pendência operacional: instalar/homologar esse corte restrito. Nenhum SQL produ
 Quatro workflows de pull request concluíram success: governança (44203778474), continuidade (44203778562), CRM/tipagem/build/regressão (44203778631) e recuperação em sombra (44203778414). A execução push adicional (44203769975) também passou. Logs confirmam 111/111 testes de recuperação, incluindo PostgreSQL e workerd; 1.023/1.023 regressões comerciais; tipagem específica e build aprovados. Esses resultados pertencem ao código 09c0a44; este registro posterior é somente documental. Limitação local de Miniflare foi suprida pela execução remota com dependências do lockfile.
 
 PR #67 continua aberto em rascunho, sem merge. Migração/escopo/flag/novos bundles não foram instalados em produção. Próximo passo continua o corte controlado descrito acima, e não outro teste de reconhecimento de produto ou do relógio.
+
+
+## Corte instalado em sombra — 17/11/2026 à noite, America/Belem
+
+Retomada do HEAD eb6b95e2970507772d15f6185b0340e15eb8eaeb; CI do HEAD aprovada. Código funcional aprovado 09c0a44ab526596ce5e34b468f7994f049101a01; atualização posterior 72dcef37c470456ecfedc75662862da5b0e0f18c contém correção/teste de restauração, sem mudar runtime. Quatro workflows de PR e verificação push desse incremento também passaram. Usuário autorizou continuar o desenvolvimento e observar a operação em sombra, mantendo todos os limites de envio/contatos/publicação.
+
+### Preservação e validação
+
+Backup em docs/edge-release/rollback/20261117-recovery-episodes/: bundles completos do webhook v23 (18 arquivos) e reavaliação v11 (19); definições, donos, ACL e estrutura SQL capturados às 21h03:42; restore-functions.sql. Backups persistidos no commit 3611188 antes da instalação. Conteúdo produtivo das sete funções-base igual ao código validado. Nenhuma credencial, valor de secret, telefone ou digest de contato foi salvo no repositório.
+
+O teste adicional do arquivo de restauração detectou falta de ponto e vírgula após o delimitador devolvido por pg_get_functiondef. A migração já estava instalada com escopo VAZIO e flag OFF; a progressão para Edges/ativação foi pausada. Delimitadores corrigidos e restauração completa das definições/grants validada em PostgreSQL isolado antes de prosseguir. Esse teste foi incorporado permanentemente à suíte no commit 72dcef3. Não foi executada restauração produtiva nem apagado dado.
+
+Migração aplicada pelo conector com nome crm_recovery_purchase_episodes, versão produtiva 20261118000629. A origem versionada é 20261117234453_crm_recovery_purchase_episodes.sql, gerada pelo CLI; diferença de versão é a data de aplicação pelo conector, não outro SQL. Os nove corpos SQL instalados conferem com essa fonte. Scope vazio/flag OFF inicialmente mantiveram a proteção anterior.
+
+RLS ativa; anon e authenticated sem execução da nova RPC; somente service_role pode executar o DTO. Nenhuma escrita de scope concedida a anon/authenticated/service_role; helper privado não executável por eles. Papéis existentes e autenticação não foram afrouxados. Categorias/níveis dos advisories de segurança iguais ao baseline (alertas preexistentes mantidos). Sem alteração de pedidos, pagamentos, estoque, catálogo, QZ, Meta/Tintim, consentimentos, Worker/Cron ou Pages.
+
+### Instalação das Edges e ativação
+
+CRM_RECOVERY_EPISODES_ENABLED criada false às 21h05:22, pelo painel já autenticado. Fontes transitivas completas recuperadas do GitHub e comparadas com a produção; só mudaram snapshot, adaptador REST e linhas de configuração nos entrypoints/handler. Deploy primeiro com a flag OFF:
+
+| Função | Versão do deploy | Após ativar a flag | Bundle SHA-256 | Controle |
+|---|---|---|---|---|
+| crm-whatsapp-webhook | v25 | v26 ACTIVE | f160343c6402e12f61db651b547d0968c3ac9431d242dd6096e695084d7f5cdc | verify_jwt=false anterior; verificação Meta preservada |
+| crm-recovery-reevaluate | v13 | v14 ACTIVE | 66025a99d0265dd51693e62e5209a2c9951120676e4b30f0ecb1ac73630beb83 | verify_jwt=true e HMAC |
+
+Todos os arquivos recuperados após deploy idênticos ao candidato (18/19). Alteração de secrets incrementa metadados de versão, sem alterar esses bundles.
+
+Flag nova true às 21h10:15, ainda sem escopo SQL ativo; posteriormente escopo ativado às 21h11:29 exclusivamente para a conversa cujo telefone corresponde à lista original (conferência interna, sem publicar digest). Ativação guardada por contagem exata de uma conversa, escopo vazio, envios false e nenhuma tentativa. Prazo configurado de DUAS HORAS: expira às 23h11:29 de 17/11, sem alterar relógios ou dados comerciais. Após esse prazo, o predicado volta à proteção anterior; a flag pode continuar true e a avaliação em sombra continua, sem ampliar contatos. SHADOW/RETENTION/DUE/PURCHASE_SIGNALS preservadas; nenhum segredo Meta/gateway foi lido ou modificado.
+
+### Evidência e limites reais
+
+O telefone piloto não tem etapa Comprou nem lead Tintim correspondente na leitura por telefone. Isso impede declarar homologação produtiva do caso compra antiga → nova oportunidade: o comportamento está validado em PostgreSQL isolado, não foi fabricada uma venda nem alterada etapa para demonstrá-lo. Ausência de etapa não certifica ausência de compra.
+
+Menção resolvida ao Prestígio às 17h37 permanece dentro de 24h, mas existem intenções mais novas às 19h06 classificadas como product_not_identified; o episódio recente permanece sem produto confirmado. Não reutilizar silenciosamente o produto anterior para liberar esse episódio. Últimos eventos oficiais continuam inbound 19h35:53 e app_echo 19h41:29, sem nova mensagem durante o corte. Não declarar nova homologação de inbound/app_echo pós-deploy sem evento novo.
+
+O cron das 21h15 entrou às 21h15:14, antes do next_check_at original (21h15:16). Nenhuma seleção nesse disparo é coerente; relógio e fila não foram modificados para obter aprovação. O agendador permanece único, de cinco minutos. Reavaliações podem cair no disparo seguinte por causa desses segundos; não prometer que todo tick seleciona a conversa.
+
+Consulta reproduzível somente leitura em supabase/verification/crm-recovery-pilot-status.sql: usa apenas o único escopo privado, retorna decisão/impedimentos, horários originais, validade e igualdade de source_revision, sem IDs de clientes, telefone, texto, dados de pagamento ou mutações. Decisão antiga/fora do prazo é evidência histórica, não autorização atual.
+
+
+### Primeira reavaliação após ativação do escopo — 21h20
+
+Chamada autenticada registrada no ledger às 21h20:13.304; avaliação gravada às 21h20:14.745. Consulta independente às 21h20:43 confirmou source_matches=true e fresh=true (valid_until 21h22:14), lease liberada, follow-up pending, sent_at NULL e send_authorized=false. Nenhuma mensagem oficial nova desde 19h41:29. Logs de gateway na janela 21h11:29–21h21 contêm dois registros da RPC crm_recovery_purchase_episode, coerentes com leitura e rechecagem do snapshot.
+
+Resultado blocked com order_check_incomplete, permission_unverified, store_closed, product_or_variant_unresolved e unattributed_orders_in_window. Zero tentativas e automatic_sends_enabled=false. Isso comprova o caminho instalado Cloudflare → autenticação → claim → snapshot com RPC nova → rechecagem de fontes → gravação/liberação, sem nova mensagem; não comprova oportunidade elegível nem venda recuperada. A frescura acima vale para o instante consultado; depois de 21h22:14 é evidência histórica até uma avaliação nova.
+
+O último interesse semântico do episódio é de 19h06:14, product_not_identified/unconfirmed; a menção resolvida anterior não foi inventada como preferência atual. tintim_purchase_stage_present=false e tintim_review_required=false não significam compra inexistente. Para homologar em produção a exceção de compra antiga seria necessária evidência LEGÍTIMA correspondente no mesmo telefone autorizado; não fabricar etapa/venda, trocar contato ou pedir outro teste de produto/timer só para melhorar o resultado.
+
+Próxima prioridade comercial: melhorar a conciliação de compras e identidade dos pedidos e estabelecer a base real de permissão, mantendo a avaliação conservadora até haver cobertura suficiente. Nenhuma solicitação de nova mensagem é necessária para comprovar esta execução. Não abrir a loja ou alterar disponibilidade/horários apenas para remover bloqueios de teste.
+
+Reversão imediata deste corte: desabilitar episode_scope e desligar CRM_RECOVERY_EPISODES_ENABLED; preserva dados, filas, HMAC/JWT e envios OFF. O escopo desta rodada expira por condição SQL às 23h11:29, sem renovação automática. Fora da exceção finita, proteção anterior permanece. Restauração estrutural adicional usa os backups atuais e o arquivo de restauração já testado, mantendo a flag OFF.
+
+PR #67 permanece em rascunho; sem merge ou publicação Pages. Código de transporte não foi retestado com nova mensagem, pois nenhum novo ingresso foi necessário para esta prova. Fotos/binários, checkout, pagamentos, QZ, catálogo e Meta/Tintim não foram modificados.
