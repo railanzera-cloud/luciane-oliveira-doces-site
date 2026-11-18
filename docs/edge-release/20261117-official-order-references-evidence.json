@@ -1,0 +1,66 @@
+{
+  "functional_commit": "b2f2f2caeae519eeb9cd320aa04551ec881cc813",
+  "backup_commit": "64830685bf62679701f55acc1e5ba518495a49f0",
+  "project": "edqiwvccmboyayojvuea",
+  "mode": "shadow",
+  "authorized_contacts_expanded": false,
+  "flag_enabled_at": "2026-11-18T01:37:23Z",
+  "migration": {
+    "source": "20261118010932",
+    "applied": "20261118013606",
+    "name": "crm_recovery_official_order_references",
+    "sql_bodies_exact": 4
+  },
+  "edges": [
+    {
+      "slug": "crm-whatsapp-webhook",
+      "version": 29,
+      "verify_jwt": false,
+      "sha256": "5d6ce2ba3581a4392476b8d598a099c9ae4dc2e2d3544bc23145bd481a25636b",
+      "source_files": 20,
+      "exact": true
+    },
+    {
+      "slug": "crm-recovery-reevaluate",
+      "version": 17,
+      "verify_jwt": true,
+      "sha256": "7d7525aeec15ec9ebe5923b230ced5d347083e0a4caaa8a33a66a8d31e39866c",
+      "source_files": 21,
+      "exact": true
+    }
+  ],
+  "pilot": {
+    "checked_at": "2026-11-18 01:40:43.221234+00",
+    "scheduler_received": "2026-11-18 01:40:13.76522+00",
+    "tick": 1794966000,
+    "recent_pilot": [
+      {
+        "fresh": true,
+        "sent_at": null,
+        "blockers": [
+          "order_check_incomplete",
+          "permission_unverified",
+          "store_closed",
+          "product_or_variant_unresolved",
+          "unattributed_orders_in_window"
+        ],
+        "lease_free": true,
+        "valid_until": "2026-11-18T01:42:16.914566+00:00",
+        "evaluated_at": "2026-11-18T01:40:16.914566+00:00",
+        "next_check_at": "2026-11-18T01:45:16.914566+00:00",
+        "classification": "blocked",
+        "source_matches": true,
+        "send_authorized": false
+      }
+    ],
+    "sender": false,
+    "delivery_attempts": 0,
+    "reference_count": 0
+  },
+  "gateway_reference_rpc_records": 2,
+  "latest_original_inbound": "2026-11-17T22:35:53Z",
+  "latest_original_app_echo": "2026-11-17T22:41:29Z",
+  "new_security_warnings": 0,
+  "reference_capture_in_production_proven": false,
+  "recovered_sales_proven": false
+}

@@ -1409,3 +1409,30 @@ Migração CLI 20261118010932 prepara RLS/RPCs service_role, locks, retenção/e
 51/51 testes locais passaram (seis novos; integração real PostgreSQL/PGlite com captura assinada, restauração no timer, dúvidas persistentes, associações candidatas, conflito entre contatos, ACL/expurgo e lease). Diff check/dashboard Worker aprovados. CI remota nova ainda a conferir. Nada novo foi instalado em produção nesta preparação; envios e contatos permanecem restritos como no corte anterior.
 
 Impacto, pré-requisitos e reversão em docs/CRM-PURCHASE-RECONCILIATION-20261117.md. Reversão desta captura usa flag OFF, preservando estrutura e expurgo. Não confundir associação por número com identidade, pagamento, permissão ou venda recuperada; cobertura externa continua false. Sem merge/Pages ou dados comerciais manipulados.
+
+
+## 17/11/2026 — Referências oficiais instaladas em sombra às 22h37
+
+Código funcional b2f2f2caeae519eeb9cd320aa04551ec881cc813, sobre 1796312; backup antes da mutação em 64830685bf62679701f55acc1e5ba518495a49f0, diretório docs/edge-release/rollback/20261117-official-order-references/. PR #67 permanece aberto em rascunho, sem merge ou Pages.
+
+CI desse código confirmada: governança 44216316204, continuidade 44216316164, recuperação PR 44216316256 e push 44216307998, CRM comercial 44216316290 — todos success. Logs: 117/117 testes de recuperação, 1.029/1.029 regressões comerciais; tipagem específica e build aprovados. Validação local direcionada 51/51 registrada acima.
+
+Corte executado com CRM_RECOVERY_ORDER_REFERENCES_ENABLED=false inicialmente às 22h35:42. Migração produtiva crm_recovery_official_order_references, versão 20261118013606, corresponde à fonte CLI 20261118010932. Quatro corpos SQL recuperados e comparados exatamente com o candidato. RLS=true; sem SELECT direto de anon/authenticated/service_role; RPCs novas só postgres/service_role; source_revision apenas postgres. Nenhum WARN/ERROR novo nos advisors em comparação ao baseline, desconsiderando observed_at.
+
+Bundles completos instalados OFF e recuperados para comparação: webhook v28 (20 arquivos) e reevaluate v16 (21). Flag ON às 22h37:23; metadados passaram a webhook v29 ACTIVE, SHA256 5d6ce2ba3581a4392476b8d598a099c9ae4dc2e2d3544bc23145bd481a25636b; reevaluate v17 ACTIVE, SHA256 7d7525aeec15ec9ebe5923b230ced5d347083e0a4caaa8a33a66a8d31e39866c. Arquivos ativos idênticos ao candidato; verify_jwt=false anterior no transporte Meta e true/HMAC no timer preservados. Lista original e outras flags preservadas; nenhuma credencial Meta/gateway foi lida ou modificada.
+
+O registro privado começa vazio. Captura não é retroativa: este corte não fabricou mensagem/pedido/referência nem requereu nova mensagem de teste. Uma referência futura legítima do telefone autorizado poderá ser localizada automaticamente; identidade continuará candidate. Sem ocorrência desse cabeçalho após o corte, captura produtiva de uma referência NÃO está homologada, embora o ciclo com evento assinado/SQL/timer tenha passado em PostgreSQL isolado.
+
+A exceção finita de episódios anterior continua com expiração 23h11:29 do dia 17/11; não foi renovada. Isso não é validade universal do interesse ou da janela WhatsApp. Os limites de leitura por horário original continuam em vigor. Reversão desta captura: flag OFF e manutenção de RLS/expurgo da tabela nova; se necessário, bundles anteriores completos estão no backup deste corte. Não restaurar purge antigo deixando novas evidências sem retenção.
+
+Nenhuma escrita financeira, mudança de pedido/pagamento, consentimento, estoque, horário, disponibilidade, mensagem comercial, contato extra, transportes Meta/Tintim, QZ, checkout, fotos, Worker/Cron ou publicação de site. automatic_sends_enabled=false e zero tentativas nas verificações.
+
+### Reavaliação produtiva de 22h40 — comprovada sem nova mensagem
+
+Ledger autenticado: tick 1794966000, recebido às 22h40:13.765. Decisão gravada às 22h40:16.914; consulta independente às 22h40:43.221 encontrou fresh=true, source_matches=true, lease livre, sent_at NULL e send_authorized=false. Validade dessa decisão até 22h42:16; depois é evidência histórica até outra avaliação. Próxima leitura não foi antecipada nem teve relógio ajustado.
+
+Gateway no intervalo 22h37:23–22h40:44 registrou DUAS chamadas à RPC crm_recovery_read_order_references, coerentes com snapshot e rechecagem. Últimos eventos originais do telefone piloto permanecem inbound 19h35:53 e app_echo 19h41:29. Referências privadas=0, como esperado sem cabeçalho legítimo novo após instalar captura. Isso comprova leitura automática da nova fonte no timer; não comprova captura produtiva de referência nem associação de pagamento.
+
+Resultado blocked: order_check_incomplete, permission_unverified, store_closed, product_or_variant_unresolved, unattributed_orders_in_window. Envios false, tentativas zero. Não confundir execução periódica e conciliação candidata com oportunidade elegível ou venda recuperada. Loja fechada é impedimento comercial esperado; não abri-la para favorecer teste. Produto antigo resolvido não substitui interesse novo sem confirmação.
+
+Próximo passo: concluir prova de identidade/compra e base legítima de permissão, com melhoria isolada antes de novo corte; preservar indícios ambíguos para impedir lembrete inadequado. Captura produtiva poderá ser verificada quando houver ocorrência real compatível, sem requisitar outra mensagem neutra ou repetir teste de reconhecimento já concluído.
