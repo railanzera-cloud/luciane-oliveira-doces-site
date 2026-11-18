@@ -96,10 +96,11 @@ try {
       await page.locator('label[for="size-1l"]').tap();
       await page.locator('label[for="flavor-leitinho"]').tap();
       assert.match(await page.locator("#sabores .boutique-price-guide").innerText(),/R\$\s*49,00/);
-      assert.match(await page.locator('label[for="flavor-ovomaltine"] .boutique-flavor-impact').innerText(),/Mantém R\$\s*49,00/);
+      assert.match(await page.locator('label[for="flavor-choco-cookies-leite"] .boutique-flavor-impact').innerText(),/Mantém R\$\s*49,00/);
+      assert.match(await page.locator('label[for="flavor-ovomaltine"] .boutique-flavor-impact').innerText(),/Pote vai para R\$\s*55,00/);
       assert.match(await page.locator('label[for="flavor-nutella"] .boutique-flavor-impact').innerText(),/Pote vai para R\$\s*58,00/);
       await page.locator('label[for="flavor-ovomaltine"]').tap();
-      assert.match(await page.locator("#sabores .boutique-price-guide").innerText(),/R\$\s*49,00/);
+      assert.match(await page.locator("#sabores .boutique-price-guide").innerText(),/R\$\s*55,00/);
       await page.getByRole("button",{name:"Remover Ovomaltine da combinação"}).tap();
       await page.locator('label[for="flavor-nutella"]').tap();
       assert.match(await page.locator("#sabores .boutique-price-guide").innerText(),/R\$\s*58,00/);
