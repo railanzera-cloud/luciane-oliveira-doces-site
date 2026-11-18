@@ -60,7 +60,7 @@ export const CHOCOTONES = Object.freeze({
 
 export const SLICES = Object.freeze({
   "fatia-chocolate-morango": Object.freeze({ id: "fatia-chocolate-morango", itemKey: "slice_chocolate_morango", name: "Chocolate com Morango", priceCents: 2200 }),
-  "fatia-ninho-morango": Object.freeze({ id: "fatia-ninho-morango", itemKey: "slice_ninho_morango", name: "Brigadeiro Branco com Morango", priceCents: 2200 }),
+  "fatia-ninho-morango": Object.freeze({ id: "fatia-ninho-morango", itemKey: "slice_ninho_morango", name: "Ninho com Morango", priceCents: 2200 }),
   "fatia-prestigio": Object.freeze({ id: "fatia-prestigio", itemKey: "slice_prestigio", name: "Prestígio", priceCents: 2000 }),
   "fatia-chocolate-maracuja": Object.freeze({ id: "fatia-chocolate-maracuja", itemKey: "slice_chocolate_maracuja", name: "Chocolate com Maracujá", priceCents: 2000 }),
   "fatia-chocolatudo": Object.freeze({ id: "fatia-chocolatudo", itemKey: "slice_chocolatudo", name: "Chocolatudo", priceCents: 2000 }),
