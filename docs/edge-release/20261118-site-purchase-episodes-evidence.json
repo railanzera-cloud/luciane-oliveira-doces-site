@@ -1,0 +1,73 @@
+{
+  "functional_commit": "8285000bad5c2131655b410a70909e107e7363dd",
+  "entry_head": "bdaef3dae2cb536426a2fea6c042ab68bfdd647b",
+  "backup_commit": "18f9f7faffe2e7768d3fb7e7d582d35d8ca01e42",
+  "project": "edqiwvccmboyayojvuea",
+  "mode": "shadow",
+  "authorized_contact_expansion": false,
+  "migration": {
+    "name": "crm_recovery_site_purchase_episodes",
+    "source": "20261118070703",
+    "applied": "20261118073056",
+    "verified_sql_bodies": 4
+  },
+  "edges": [
+    {
+      "slug": "crm-whatsapp-webhook",
+      "version": 32,
+      "verify_jwt": false,
+      "sha256": "22ec859a1570de916e14eaa5c63ba4ba68473fc57ecb2dd23d854a1a84582b68",
+      "files": 21,
+      "source_exact": true
+    },
+    {
+      "slug": "crm-recovery-reevaluate",
+      "version": 20,
+      "verify_jwt": true,
+      "sha256": "36f52b7da76c541bdc7498dd23ab133f67e6f094a7f3a1287570226fae71958d",
+      "files": 22,
+      "source_exact": true
+    }
+  ],
+  "scope": [
+    {
+      "active": true,
+      "enabled": true,
+      "enabled_at": "2026-11-18T07:32:34.396048+00:00",
+      "expires_at": "2026-11-18T08:02:34.396048+00:00"
+    }
+  ],
+  "tick_evidence": {
+    "checked_at": "2026-11-18 07:35:32.736186+00",
+    "scheduler_received": "2026-11-18 07:35:13.236778+00",
+    "tick": 1794987300,
+    "decision": {
+      "fresh": true,
+      "sent_at": null,
+      "blockers": [
+        "order_check_incomplete",
+        "permission_unverified",
+        "store_closed",
+        "product_or_variant_unresolved",
+        "unattributed_orders_in_window"
+      ],
+      "lease_free": true,
+      "valid_until": "2026-11-18T07:37:14.95468+00:00",
+      "evaluated_at": "2026-11-18T07:35:14.95468+00:00",
+      "next_check_at": "2026-11-18T07:40:14.95468+00:00",
+      "classification": "blocked",
+      "source_matches": true,
+      "send_authorized": false,
+      "follow_up_status": "pending"
+    },
+    "sender": false,
+    "attempts": 0
+  },
+  "gateway": {
+    "episode_rpc_records": 2,
+    "reference_rpc_records": 2
+  },
+  "new_security_warnings": 0,
+  "real_prior_site_purchase_case_proven": false,
+  "recovered_sale_proven": false
+}

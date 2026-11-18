@@ -194,3 +194,6 @@ Estado: 51 testes locais aprovados; candidato não instalado. Sem frontend/ZIP n
 | Operação e financeiro | Nenhuma mutação ou mudança de contrato | Leitura não altera pagamento, pedido, estoque, consentimento ou impressão |
 
 87 testes locais direcionados passaram; candidato não instalado. Nenhum frontend, ZIP ou Pages novo.
+
+### Status do contrato de compra do site por episódio — 18/11/2026, 04h35
+Instalado somente em sombra, sob janela finita do telefone original, após autorização específica. Quatro corpos SQL e bundles completos conferidos, ACLs anteriores preservadas e helper privado sem acesso direto da API; nenhum novo WARN/ERROR. Reavaliação real 04h35 consistente/fresca/blocked, zero tentativas. Regra de compra anterior validada em PostgreSQL, ainda sem caso produtivo legítimo no piloto. Expiração 05h02:34; reversão: escopo SQL OFF e flag OFF. Nenhuma mutação financeira, frontend/Pages ou ampliação de contato.

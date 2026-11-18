@@ -1462,3 +1462,30 @@ Continuam pendentes: identidade forte de pedidos sem telefone, cobertura de comp
 Cinco execuções concluíram success: continuidade 44257411469, governança 44257411369, CRM comercial/tipagem/build 44257411374, recuperação PR 44257411373 e push 44257401496. Logs confirmam 130/130 testes de recuperação (incluindo PostgreSQL e workerd) e 1.042/1.042 regressões comerciais; tipagem específica e build aprovados. Fontes locais testadas e árvore enviada ao GitHub foram comparadas e idênticas. Este registro posterior altera somente documentação; a prova funcional pertence ao SHA acima.
 
 Candidato completo e reversão testados, ainda sem aplicação produtiva da migração ou dos novos bundles. A expiração anterior permanece respeitada. Próximo corte deve preservar escopo SQL OFF/flag OFF na instalação e exigir validação específica da eventual nova janela finita do piloto original, sem envio, contato extra ou nova mensagem para repetir produto/timer.
+
+
+## 18/11/2026 — Compra anterior do site: corte produtivo instalado em sombra
+
+Autorização específica do proprietário recebida após apresentação do candidato, testes e reversão: instalação SQL + duas Edges e nova janela de 30 minutos, exclusivamente no telefone original, sem envios. HEAD de entrada bdaef3dae2cb536426a2fea6c042ab68bfdd647b; código funcional 8285000bad5c2131655b410a70909e107e7363dd, com CI 130/130 recuperação e 1.042/1.042 regressões, tipagem específica/build aprovados. Todas as cinco execuções do HEAD documental de entrada também success.
+
+Backup fresco 18f9f7faffe2e7768d3fb7e7d582d35d8ca01e42 em docs/edge-release/rollback/20261118-site-purchase-episodes/: bundles integrais webhook v29 e reavaliação v17, três definições SQL/ACL/owner. DDLs atuais comparadas literalmente com o arquivo de restauração já testado. Sem usar backup de incremento anterior por suposição.
+
+Corte com CRM_RECOVERY_EPISODES_ENABLED=false às 04h30:13 e escopo SQL desabilitado às 04h30:56. Migração crm_recovery_site_purchase_episodes aplicada, versão produtiva 20261118073056, equivalente à fonte CLI 20261118070703. Quatro corpos SQL instalados iguais ao candidato. ACLs das três funções existentes preservadas; helper privado somente postgres, sem execução direta de service_role/anon/authenticated/PUBLIC. Nenhum alerta WARN/ERROR novo nos advisors, excluindo observed_at.
+
+Bundles instalados com flag OFF: webhook v31, 21 arquivos, SHA256 22ec859a1570de916e14eaa5c63ba4ba68473fc57ecb2dd23d854a1a84582b68; reevaluate v19, 22 arquivos, SHA256 36f52b7da76c541bdc7498dd23ab133f67e6f094a7f3a1287570226fae71958d. Após flag true às 04h31:50, metadados webhook v32 e reevaluate v20 ACTIVE; bundles idênticos, JWT Meta anterior false e JWT/HMAC da reavaliação true preservados. Novo módulo incluído nos dois import closures. Lista original e demais flags/segredos preservados.
+
+Escopo único original reativado às 04h32:34.396, expiração às 05h02:34.396 (America/Belem), diferença exata de 30 minutos. A atualização só alterou enabled/enabled_at/expires_at da configuração privada; conversa/cliente/telefone preservados. Guarda exigiu escopo anterior inativo, uma única linha, envios false/zero tentativas e identidade coincidente com os eventos oficiais já existentes, sem imprimir identificadores. Não renovar automaticamente.
+
+Consulta às 04h33:39: zero pedidos recentes do site com telefone correspondente, zero referências privadas do piloto; última mensagem oficial segue 19h41:29 de 17/11 e interesse mais recente 19h06:14. Não existe caso produtivo legítimo de pedido pago/concluído anterior para declarar homologação comercial dessa distinção neste telefone. O caso de negócio permanece comprovado em PostgreSQL isolado; não criar pedido/venda, alterar horário, trocar contato ou pedir repetição de teste de produto/timer para favorecê-lo. Execução periódica após instalar é prova separada.
+
+Reversão primária: desabilitar escopo SQL E CRM_RECOVERY_EPISODES_ENABLED=false. Expiração também restaura a proteção anterior mesmo com flag true. Restauração estrutural, se necessária, usa supabase/prepared/recovery-site-episodes-restore-functions.sql conferido com o backup fresco e bundles completos deste corte; manter helper revogado, estruturas privadas e expurgo. Nenhuma reversão foi necessária até esta conferência.
+
+automatic_sends_enabled=false e zero tentativas de entrega. Nenhuma mudança financeira, de consentimento, compra, disponibilidade, horário comercial, catálogo/fotos, QZ, checkout, Meta/Tintim, Worker/Cron, Pages, main ou Gestão. PR #67 permanece aberto em rascunho, sem merge. A janela técnica não representa permissão comercial, oportunidade elegível ou venda recuperada.
+
+### Primeira execução após o corte — 04h35
+
+Tick 1794987300 autenticado às 04h35:13.236; decisão gravada às 04h35:14.954. Consulta independente às 04h35:32.736: fresh=true, source_matches=true, lease livre, follow-up pending, sent_at NULL e send_authorized=false. Validade até 04h37:14.954; depois tratar como histórico até nova avaliação. Nenhum horário da fila foi alterado para conseguir seleção. Gateway de 04h32:34–04h35:35 registra duas chamadas à RPC de episódios e duas à leitura de referências, coerentes com leitura/rechecagem na versão instalada.
+
+Resultado blocked: order_check_incomplete, permission_unverified, store_closed, product_or_variant_unresolved, unattributed_orders_in_window. Última mensagem oficial permanece 19h41:29 do dia anterior. Envios false e tentativas zero, conferidos também às 04h35:52. Escopo ativo=1; helper privado sem EXECUTE de anon/authenticated/service_role. A prova demonstra execução periódica da versão instalada e consistência da decisão; não demonstra oportunidade elegível, nova captura de referência, caso real de recompra do site ou venda recuperada.
+
+Piloto expira às 05h02:34.396 sem renovação automática. Essa expiração é um predicado SQL testado, não uma ação futura do chat. Sem necessidade de outra mensagem, abertura da loja ou mudança de produto para concluir esta prova. Próxima prioridade comercial permanece conciliar identidade/compra e estabelecer base real de permissão, mantendo revisão nos casos ambíguos.
