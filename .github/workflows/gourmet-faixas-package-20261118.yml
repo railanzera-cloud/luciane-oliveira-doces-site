@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - fix/gourmet-troca-ovomaltine-cookies-leite-20261118
+      - fix/fatia-ninho-com-morango-20261118
   workflow_dispatch:
 permissions:
   contents: read
