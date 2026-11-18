@@ -32,8 +32,7 @@ BEGIN
     RETURNING id
   ) SELECT count(*)::integer INTO v_canceled FROM recorded;
   RETURN v_canceled;
-END; $function$
-
+END; $function$;
 REVOKE ALL ON FUNCTION public.crm_hold_tintim_purchase_signals() FROM PUBLIC,anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION public.crm_hold_tintim_purchase_signals() TO service_role;
 GRANT EXECUTE ON FUNCTION public.crm_hold_tintim_purchase_signals() TO authenticated;
@@ -55,8 +54,7 @@ BEGIN
     RAISE EXCEPTION 'crm_possible_purchase_review_required' USING ERRCODE='42501';
   END IF;
   RETURN NEW;
-END; $function$
-
+END; $function$;
 REVOKE ALL ON FUNCTION public.crm_protect_purchase_signal_followup() FROM PUBLIC,anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION public.crm_protect_purchase_signal_followup() TO service_role;
 CREATE OR REPLACE FUNCTION public.crm_ingest_tintim_on_change()
@@ -143,8 +141,7 @@ EXCEPTION WHEN OTHERS THEN
   RAISE WARNING 'crm_tintim_bridge_failed SQLSTATE %',SQLSTATE;
   RETURN NEW;
 END;
-$function$
-
+$function$;
 REVOKE ALL ON FUNCTION public.crm_ingest_tintim_on_change() FROM PUBLIC,anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION public.crm_ingest_tintim_on_change() TO service_role;
 CREATE OR REPLACE FUNCTION public.crm_record_tintim_message(p_fingerprint text, p_phone text, p_direction text, p_occurred_at timestamp with time zone, p_account_key text)
@@ -245,8 +242,7 @@ BEGIN
    'tintim',p_fingerprint,p_occurred_at,'Evento de direcao; texto da conversa nao armazenado')
  ON CONFLICT DO NOTHING;
  RETURN jsonb_build_object('accepted',true,'duplicate',false,'linked',true);
-END; $function$
-
+END; $function$;
 REVOKE ALL ON FUNCTION public.crm_record_tintim_message(p_fingerprint text, p_phone text, p_direction text, p_occurred_at timestamp with time zone, p_account_key text) FROM PUBLIC,anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION public.crm_record_tintim_message(p_fingerprint text, p_phone text, p_direction text, p_occurred_at timestamp with time zone, p_account_key text) TO service_role;
 CREATE OR REPLACE FUNCTION public.crm_followup_send_preflight(p_follow_up_id uuid)
@@ -366,8 +362,7 @@ BEGIN
    'follow_up_id',v_f.id,
    'note','read_only_preflight_not_delivery_authorization'
  );
-END; $function$
-
+END; $function$;
 REVOKE ALL ON FUNCTION public.crm_followup_send_preflight(p_follow_up_id uuid) FROM PUBLIC,anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION public.crm_followup_send_preflight(p_follow_up_id uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.crm_followup_send_preflight(p_follow_up_id uuid) TO authenticated;
@@ -506,8 +501,7 @@ BEGIN
  RETURN jsonb_build_object('examined',v_processed,'scheduled',v_scheduled,
    'blocked',v_blocked,'finished',v_finished,'review_required',v_review,
    'dispatched',0,'mode','observe_only');
-END; $function$
-
+END; $function$;
 REVOKE ALL ON FUNCTION public.crm_automation_evaluate_pending() FROM PUBLIC,anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION public.crm_automation_evaluate_pending() TO service_role;
 CREATE OR REPLACE FUNCTION crm_recovery_private.source_revision(p_follow_up_id uuid)
@@ -535,7 +529,6 @@ AS $function$
  )::text)
  FROM public.crm_follow_ups f JOIN public.crm_conversations c ON c.id=f.conversation_id
  JOIN public.crm_customers u ON u.id=c.customer_id WHERE f.id=p_follow_up_id;
-$function$
-
+$function$;
 REVOKE ALL ON FUNCTION crm_recovery_private.source_revision(p_follow_up_id uuid) FROM PUBLIC,anon,authenticated,service_role;
 COMMIT;

@@ -138,5 +138,7 @@ test('PostgreSQL episode integration: scope, official interest, guards, holds, p
  assert.equal((await db.query('select status from crm_follow_ups where id=$1',[fid])).rows[0].status,'canceled');
  assert.equal((await db.query('select count(*)::int n from orders')).rows[0].n,0);
 
+ await db.exec(read('docs/edge-release/rollback/20261117-recovery-episodes/restore-functions.sql'));
+ await assert.rejects(insert(),/crm_possible_purchase_review_required/);
  }finally{await db.close();}
 });
