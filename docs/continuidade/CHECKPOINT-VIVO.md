@@ -1,5 +1,30 @@
 # Checkpoint Vivo — Site Comercial Luciane Oliveira Doces
 
+
+## Atualização operacional — 18/11/2026: backend Gourmet implantado (site não publicado)
+- Autorização do proprietário para atualizar as duas funções de pedidos confirmada. create-order **v39 ACTIVE** (antes v38) e create-whatsapp-order **v65 ACTIVE** (antes v64). Backups dos dois catálogos de origem preservados em docs/edge-release/rollback/20261118/.
+- Em cada bundle, mudou **apenas** commerce-catalog.mjs: Ovomaltine pricingGroup 1→2, Choco Cookies ao Leite/chocolate 2→1 e CATALOG_VERSION 2026-11-18.gourmet-ovomaltine-cookies-leite. Leitura pós-deploy confirmou estado ACTIVE, source exato, oito sabores e tabelas de preços iguais à vitrine candidata para 500ml/750ml/1l.
+- **orders_open=false** confirmado no banco antes, durante e após ambas as implantações. Nenhuma mudança SQL/estoque, alteração de status de sabor, envio WhatsApp, pedido real, publicação Cloudflare ou merge na main.
+- ZIP candidato V4.7.15.3 (código-base c5cd62061ac4851b42cf3666ff2e7230518a7587): 115 arquivos, 84 mídias, SHA256 7393a8f5db1518b786c285b3fab9279eca27103a73773867a83e5de8bf7aa874. Build, 935 testes comerciais e WebKit automatizado aprovados; todas as referências internas do build atual estão presentes.
+- **Único bloqueio antes da publicação manual:** pacote V4.7.15.2 documentado com 182 arquivos/151 mídias. Não foi possível materializar a base histórica do acervo para recuperar os 67 recursos adicionais e provar paridade com o deployment Cloudflare vigente. **Não fazer upload do ZIP incompleto no site oficial, nem reabrir pedidos, antes da reconciliação de ativos e captura do deployment anterior para rollback.**
+- Próximo corte: obter ZIP de produção anterior, mesclar somente mídias ausentes sem sobrescrever as atuais, gerar ZIP completo com manifesto, publicar no Cloudflare Pages, conferir ambos os domínios, admin, checkout e fotos, e só então revisar a reabertura mediante autorização específica. Se necessário, rollback dos catálogos via snapshots GitHub.
+Ver docs/continuidade/ALTERACAO-FAIXAS-GOURMET-20261118.md para evidências e histórico da decisão.
+
+---
+
+
+## Atualização candidata — 18/11/2026, faixas de Pipocas Gourmet (sem deploy)
+
+- **Demanda:** trocar grupos de Ovomaltine (1→2) e Choco Cookies ao Leite/chocolate (2→1), preservando Branco, Leitinho, Choco Nute, Nutella, demais SKUs e as três tabelas de preços dos potes.
+- **Base selecionada:** PR #68 `refine/checkout-clareza-carrinho-20261116` @ `222797e89eabb513ba14790be52ee6ad169830f4` (inclui PR #66 de cozinha). PR #67 CRM não mesclado e permanece paralelo.
+- **Branch candidata:** `fix/gourmet-troca-ovomaltine-cookies-leite-20261118`; alteração do catálogo público e da validação autoritativa `commerce-catalog.mjs` (versão `2026-11-18.gourmet-ovomaltine-cookies-leite`), com testes atualizados e suíte específica.
+- **Estado:** **desenvolvido em branch, não publicado**. Não houve Supabase SQL/Edge deploy, Cloudflare ZIP/upload, mudança de disponibilidade ou merge. A CI desta branch deverá ser verificada no PR associado; não inferir produção da suíte verde.
+- **Banco comercial observado (18/11):** `category_pipocas=available`; sabores consultados (inclusive os dois alterados) e `popcorn_size_500ml=sold_out`. Preservar estados existentes.
+- **Risco:** catálogo do browser e Edge de pedido devem ser promovidos juntos após autorização, evitando divergência de preço. Conferir mídias e ZIP-base do PR #68, todos os tamanhos/combinações, ambos os domínios e rollback coordenado. Detalhes em [ALTERACAO-FAIXAS-GOURMET-20261118.md](ALTERACAO-FAIXAS-GOURMET-20261118.md).
+
+---
+
+
 **Fotografia inicial:** 05/11/2026 · `America/Belem` · **não é declaração de produção nem de identidade do deployment**.  
 **Papel:** o ponto de retomada eficiente para site, admin, UX, catálogo, checkout, estoque, cozinha, CRM e publicação. Atualizar com o próximo incremento real **sem reescrever o histórico**.
 

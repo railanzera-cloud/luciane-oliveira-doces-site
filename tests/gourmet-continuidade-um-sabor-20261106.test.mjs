@@ -11,7 +11,7 @@ test("um sabor é um pedido plenamente válido em qualquer tamanho",()=>{
   assert.equal(valid("500ml",["leitinho"]),2500);
   assert.equal(valid("750ml",["leitinho"]),3900);
   assert.equal(valid("1l",["leitinho"]),4900);
-  assert.equal(valid("1l",["leitinho","ovomaltine"]),4900);
+  assert.equal(valid("1l",["leitinho","ovomaltine"]),5500);
   assert.equal(valid("1l",["leitinho","nutella"]),5800);
 });
 

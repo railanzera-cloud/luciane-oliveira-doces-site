@@ -554,12 +554,14 @@ test("Choco Nute has its own remote control and fails closed while its record is
 });
 
 const pricingCases = [
-  ["A", "500ml", ["leitinho", "ovomaltine"], 25],
+  ["A", "500ml", ["leitinho", "ovomaltine"], 30],
+  ["G", "500ml", ["leitinho", "choco-cookies-leite"], 25],
+  ["H", "500ml", ["choco-cookies-branco"], 30],
   ["B", "500ml", ["leitinho", "kinder-bueno"], 30],
   ["C", "500ml", ["leitinho", "nutella"], 33],
   ["D", "750ml", ["choco-cookies-branco", "kinder-bueno-crisp"], 48],
   ["E", "1l", ["leitinho", "kinder-bueno", "nutella"], 58],
-  ["F", "1l", ["choco-nute", "ovomaltine"], 49],
+  ["F", "1l", ["choco-nute", "ovomaltine"], 55],
 ];
 for (const [label, size, optionIds, expected] of pricingCases) {
   test(`official case ${label}: selection, saved cart, Meta values and WhatsApp share the same price`, () => {

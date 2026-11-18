@@ -1,0 +1,39 @@
+name: Gourmet — ZIP conectado para corte coordenado (sem deploy)
+on:
+  push:
+    branches:
+      - fix/gourmet-troca-ovomaltine-cookies-leite-20261118
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package-candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SUPABASE_URL: "https://edqiwvccmboyayojvuea.supabase.co"
+      SUPABASE_PUBLISHABLE_KEY: "sb_publishable_69flK5d9m8Oe3HHVnmKWdA_omNIuIcl"
+      SITE_ORDERING_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Instalar dependencias
+        run: npm ci --no-audit --no-fund
+      - name: Compilar site com config publica comercial
+        run: npm run build
+      - name: Testar contratos de preco, checkout, cozinha e CRM
+        run: node --test tests/*.test.mjs
+      - name: Preparar paginas e assets conectados
+        run: node scripts/build-crm-commercial-core.mjs
+      - name: Validar midias, integridade, rotas e gerar ZIP candidato
+        run: node scripts/package-gourmet-faixas-20261118.mjs
+      - name: Entregar ZIP candidato sem realizar deploy
+        uses: actions/upload-artifact@v4
+        with:
+          name: GOURMET-V47153-CANDIDATO-AGUARDAR-EDGE-NAO-PUBLICAR
+          path: outputs/LUCIANE_DOCES_V4_7_15_3_GOURMET_FAIXAS_AGUARDAR_EDGE.zip
+          retention-days: 14
+          if-no-files-found: error

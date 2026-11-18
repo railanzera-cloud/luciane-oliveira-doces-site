@@ -13,6 +13,28 @@ const v14 = await import("../docs/edge-release/rollback/20261105/create-order-v1
 const v26 = await import("../docs/edge-release/rollback/20261105/create-whatsapp-order-v26/functions/_shared/commerce-catalog.mjs");
 const candidate = await import("../supabase/functions/_shared/commerce-catalog.mjs");
 
+// Exceção comercial aprovada em 18/11/2026. Arquivos v14/v26 e hashes de rollback
+// permanecem imutáveis: a comparação permite SOMENTE a reclassificação dos
+// dois recheios Gourmet, mantendo identidade, quantidade e disponibilidade.
+const approvedGourmetReprice = (legacyQuote, input) => {
+  if (input.product_id !== "pipoca-gourmet" || input.option_ids.length !== 1) return legacyQuote;
+  const approvedGroups = { ovomaltine: 2, "choco-cookies-leite": 1 };
+  const group = approvedGroups[input.option_ids[0]];
+  if (!group) return legacyQuote;
+  const unitPriceCents = candidate.POPCORN_PRICES_CENTS[group][input.variant_id];
+  assert.ok(unitPriceCents > 0, "Unknown approved Gourmet size for reprice");
+  return {
+    ...legacyQuote,
+    subtotalCents: unitPriceCents * input.quantity,
+    items: legacyQuote.items.map(line => ({
+      ...line,
+      unit_price_cents: unitPriceCents,
+      line_total_cents: unitPriceCents * line.quantity,
+      ...(Object.hasOwn(line, "pricing_group") ? { pricing_group: group } : {}),
+    })),
+  };
+};
+
 test("live v14/v26 source archives have exact Git blob hashes and complete relative imports", async () => {
   assert.equal(manifest.project_id, "edqiwvccmboyayojvuea");
   assert.deepEqual(manifest.functions.map(fn => [fn.slug, fn.version]), [
@@ -62,7 +84,7 @@ test("all 21 original delivery tariff zones are preserved and only five approved
   assert.equal(Object.keys(candidate.DELIVERY_ZONES).length, 26);
 });
 
-test("current WhatsApp catalogue preserves the economic and availability contract of 40 historical SKUs", () => {
+test("current WhatsApp catalogue preserves 40 historical SKUs except two owner-approved Gourmet price groups", () => {
   const fixedDate = Date.parse("2026-11-05T12:00:00-03:00");
   const items = [
     ...Object.keys(v26.SLICES).map(product_id =>
@@ -84,7 +106,7 @@ test("current WhatsApp catalogue preserves the economic and availability contrac
   });
   for (const item of items) {
     assert.deepEqual(commercialIdentity(candidate.quoteCartItems([item], fixedDate)),
-      commercialIdentity(v26.quoteCartItems([item], fixedDate)),
+      commercialIdentity(approvedGourmetReprice(v26.quoteCartItems([item], fixedDate), item)),
       "Price/availability drift for " + item.product_id + " " + item.variant_id + " " + item.option_ids.join(","));
   }
 });
@@ -130,7 +152,7 @@ test("both Edge candidate entrypoints use validated shared fulfillment, without 
 });
 
 
-test("legacy Mercado Pago/site quote amounts and stock identities remain unchanged for 30 shared SKUs", async () => {
+test("legacy Mercado Pago/site quote preserves 30 shared SKUs with only approved Gourmet repricing", async () => {
   // The v14 site catalogue does not contain all later products; compare only the
   // 6 older slices and 24 Gourmet size/flavour combinations. Never place an order.
   const now = Date.parse("2026-11-05T12:00:00-03:00");
@@ -158,7 +180,7 @@ test("legacy Mercado Pago/site quote amounts and stock identities remain unchang
     const oldQuote = v14.quoteCartItems([item]);
     const newQuote = candidate.quoteCartItems([item], now);
     const siteHandlerQuote = applyPopcornPromotionToQuote(newQuote, now);
-    assert.deepEqual(normalise(siteHandlerQuote), normalise(oldQuote),
+    assert.deepEqual(normalise(siteHandlerQuote), normalise(approvedGourmetReprice(oldQuote, item)),
       "Shared site checkout price/stock identity changed: " + item.product_id
         + " " + item.variant_id + " " + item.option_ids.join(","));
   }

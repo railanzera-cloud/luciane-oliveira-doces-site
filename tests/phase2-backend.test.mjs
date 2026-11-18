@@ -56,12 +56,14 @@ test("backend catalog remains in exact commercial parity with the current fronte
 
 test("server-side quote covers the official popcorn price matrix and reversible group rule", () => {
   const cases = [
-    ["500ml", ["leitinho", "ovomaltine"], 2500],
+    ["500ml", ["leitinho", "ovomaltine"], 3000],
+    ["500ml", ["leitinho", "choco-cookies-leite"], 2500],
+    ["500ml", ["choco-cookies-branco"], 3000],
     ["500ml", ["leitinho", "kinder-bueno"], 3000],
     ["500ml", ["leitinho", "nutella"], 3300],
     ["750ml", ["choco-cookies-branco", "kinder-bueno-crisp"], 4800],
     ["1l", ["leitinho", "kinder-bueno", "nutella"], 5800],
-    ["1l", ["choco-nute", "ovomaltine"], 4900],
+    ["1l", ["choco-nute", "ovomaltine"], 5500],
     ["1l", ["leitinho", "kinder-bueno"], 5500],
     ["1l", ["leitinho"], 4900],
   ];

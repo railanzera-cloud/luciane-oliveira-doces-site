@@ -177,10 +177,10 @@ export const PRODUCTS: Product[] = [
     options: [
       { id: "leitinho", name: "Leitinho", description: "Creme branco com leite em pó.", tone: "#f2e3c8", pricingGroup: 1, available: true },
       { id: "choco-nute", name: "Choco Nute", description: "Creme de avelã com cacau.", tone: "#7a432a", pricingGroup: 1, available: true },
-      { id: "ovomaltine", name: "Ovomaltine", description: "Creme de avelã com malte, cacau e crocância.", tone: "#8a5232", pricingGroup: 1, available: true },
+      { id: "choco-cookies-leite", name: "Choco Cookies ao Leite", description: "Chocolate ao leite com cookies.", tone: "#563126", pricingGroup: 1, available: true },
+      { id: "ovomaltine", name: "Ovomaltine", description: "Creme de avelã com malte, cacau e crocância.", tone: "#8a5232", pricingGroup: 2, available: true },
       { id: "kinder-bueno", name: "Kinder Bueno", description: "Creme de avelã com leite.", tone: "#d6ae88", pricingGroup: 2, available: true },
       { id: "choco-cookies-branco", name: "Choco Cookies Branco", description: "Creme branco de cookies com biscoito cookies.", tone: "#e5d7c8", pricingGroup: 2, available: true },
-      { id: "choco-cookies-leite", name: "Choco Cookies ao Leite", description: "Chocolate ao leite com cookies.", tone: "#563126", pricingGroup: 2, available: true },
       // ID preservado para disponibilidade e carrinhos; somente o nome comercial mudou.
       { id: "kinder-bueno-crisp", name: "Crispy Bueno", description: "Creme de Bueno com pedaços crocantes.", tone: "#c88752", pricingGroup: 3, available: true },
       { id: "nutella", name: "Nutella", description: "Creme de avelã com cacau.", tone: "#45281f", pricingGroup: 3, available: true },

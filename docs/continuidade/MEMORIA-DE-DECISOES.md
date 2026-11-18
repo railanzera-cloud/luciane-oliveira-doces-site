@@ -496,3 +496,16 @@ Após screenshot e recomendação, o proprietário aprovou: manter entrega/retir
 ## D-UX-20261117-B — compactar o encerramento sem cobrir os contatos
 
 Proprietário aprovou aproximar configurador/frase, reduzir espaço ao redor da frase e após o e-mail. Manter texto/coroa/dados institucionais e margem de segurança da barra flutuante. Substituir reserva inferior fixa do rodapé por padding contextual: compacto sem barra; reserva com safe-area apenas no mobile com barra presente. Intervenção visual, sem alterar finalização, preço ou disponibilidade.
+
+
+## D-C — 18/11/2026: trocar Ovomaltine e Cookies ao Leite nas faixas Gourmet
+
+- **Origem e aprovação:** proprietário pediu expressamente a troca de faixa após aumento do custo do Ovomaltine; não é pedido para mudar a tabela de preços nem a disponibilidade.
+- **Decisão:** Ovomaltine sai do grupo 1 e passa ao grupo 2 (R$ 30 no pote 500 ml); `choco-cookies-leite` (chocolate) sai do grupo 2 e passa ao 1 (R$ 25). Leitinho permanece no 1; Cookies Branco permanece no 2; Nutella/Crispy Bueno no 3. Preservar Choco Nute histórico no 1, atualmente esgotado.
+- **Escopo técnico:** frontend `app/catalog.ts` e orçamento autoritativo `commerce-catalog.mjs`, ambos com a mesma classificação, e testes de regressão. Não trocar IDs/nomes nem criar cobranças acumuladas por sabor; continua a regra do grupo mais alto nos três tamanhos.
+- **Estado:** autorizado e implementado em branch candidata a partir do PR #68; ainda não publicado nem instalado como Edge. PR #67 CRM permanece independente. Comprovação de CI, backend e deployment são etapas distintas.
+- **Riscos:** frontend e backend divergentes podem exibir preço incorreto; coordenar implantação e rollback só após autorização. Registro e matriz em [ALTERACAO-FAIXAS-GOURMET-20261118.md](ALTERACAO-FAIXAS-GOURMET-20261118.md).
+
+
+### Atualização de execução em 18/11/2026 — D-C (Gourmet)
+A autorização subsequente do proprietário permitiu efetivar o backend comercial: create-order v38→v39 ACTIVE e create-whatsapp-order v64→v65 ACTIVE. Diff limitado a dois pricingGroup + CATALOG_VERSION em cada commerce-catalog.mjs; backups originais em docs/edge-release/rollback/20261118. Verificado no Supabase após deploy. A loja estava e permanece com orders_open=false. **Vitrine NÃO publicada**: ZIP V4.7.15.3 (SHA256 7393a8f5db1518b786c285b3fab9279eca27103a73773867a83e5de8bf7aa874) está compilado, porém não foi possível demonstrar preservação de todas as 151 mídias registradas no pacote anterior; o novo pacote tem 84. Não recomendar upload até reconciliação. Acompanhar docs/continuidade/ALTERACAO-FAIXAS-GOURMET-20261118.md.

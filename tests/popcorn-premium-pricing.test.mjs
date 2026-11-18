@@ -13,8 +13,8 @@ const popcornPrice = (size, options) => catalog.popcornPrice(size, options, Date
 
 test("exactly eight official flavors, groups and descriptions", () => {
   assert.deepEqual(POPCORN.options.map(({ name, pricingGroup }) => [name, pricingGroup]), [
-    ["Leitinho", 1], ["Choco Nute", 1], ["Ovomaltine", 1], ["Kinder Bueno", 2],
-    ["Choco Cookies Branco", 2], ["Choco Cookies ao Leite", 2], ["Crispy Bueno", 3], ["Nutella", 3],
+    ["Leitinho", 1], ["Choco Nute", 1], ["Choco Cookies ao Leite", 1], ["Ovomaltine", 2],
+    ["Kinder Bueno", 2], ["Choco Cookies Branco", 2], ["Crispy Bueno", 3], ["Nutella", 3],
   ]);
   for (const [id, text] of [["choco-nute", "Creme de avelã com cacau."],
     ["kinder-bueno-crisp", "Creme de Bueno com pedaços crocantes."],
