@@ -380,3 +380,12 @@ Rascunho context-message-1 para o exemplo canônico, sujeito a revisão de conte
 > Para cancelar este lembrete, responda CANCELAR LEMBRETE.
 
 O nome vem do catálogo; Fatia, Cascão, Natal, pacotes/tamanhos/combinações de pipocas e embalagem de bebidas não são confundidos. Digest SHA-256 vincula o texto exato, não sua elegibilidade. Sem preços/escassez/pagamento inventados. 92 testes locais passaram; integração PostgreSQL liga o digest dessa mensagem à reserva SQL e recusa compra, resposta, cancelamento ou fonte alterada entre leituras. Prévia sozinha não consome autorização. CI final e SHA nos checks/descrição do PR #67. Nenhuma mensagem foi enviada nem código instalado em produção. O futuro executor ainda precisa integrar a reserva e rechecagem posterior, sem promover a prévia a autorização de envio.
+
+
+#### Evidência remota e leitura comercial — 18/11 às 07h10 America/Belem
+
+Código 706c47fcdf855e1a9d4277f7cebd00631f2bf00e: cinco execuções aprovadas (44282419385, 44282431966, 44282431903, 44282431916, 44282432067). Logs conferidos: 151/151 recuperação, 1/1 concorrência PostgreSQL independente, 1063/1063 comerciais, sete operações seguras, build e tipagem específica CRM. Não equivale a tipagem geral sem erros, instalação ou envio. Próximo commit é somente documental para preservar esta evidência.
+
+Consulta somente leitura ao Supabase COMERCIAL às 10:10:15.445524 UTC (07h10:15 local): automatic_sends_enabled=false, delivery_attempts=0, active_episode_scopes=0, orders_open=false; tabelas context_permission_events e context_permission_uses ausentes. Último registro do piloto avaliado às 07h00:16.283, classification=blocked, send_authorized=false e valid_until=NULL: tratar como registro sem validade vigente, não como decisão elegível/fresca. Motivos registrados: order_check_incomplete, permission_unverified, store_closed, product_or_variant_unresolved, unattributed_orders_in_window.
+
+Nenhuma janela renovada nem alteração produtiva nesta leitura. O impedimento comercial continua real: falta demonstrar compra/identidade/cobertura e permissão num episódio válido, além da loja estar fechada na consulta. Nova mensagem neutra ou abertura artificial da loja não resolve esses pontos. O rascunho atual é prova de código/testes, não mensagem preparada para enviar ao cliente produtivo. Próxima prioridade deve fechar esses bloqueios e preparar corte coordenado revisável, evitando adicionar camadas de envio antes de uma oportunidade legítima.
