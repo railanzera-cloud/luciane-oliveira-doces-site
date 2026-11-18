@@ -1,3 +1,4 @@
+import {recoveryMessageDigest} from './recovery-message.mjs';
 // Server-only read model. No HTTP endpoint, writes, credentials or send capability.
 import { evaluateRecoveryShadow } from './recovery-shadow.mjs';
 import { normalizeSignedRecoveryWebhook } from './recovery-meta-observation.mjs';
@@ -268,12 +269,13 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
     if(contextStore&&JSON.stringify(contextPermission)!==JSON.stringify(await contextStore.read(conversationId)))
       return failed('snapshot_changed_during_read');
     const storeOpen=settings.length===1 && typeof settings[0].value==='boolean'?settings[0].value:null;
+    const checkedAvailability=await recoveryAvailability(client,availability);
     const result = evaluateRecoveryShadow({now,events,orders:[...orders.values()],
       follow_up_minutes:automation[0].follow_up_minutes,
       consent_verified:permission.verified,
       opt_out:customer.commercial_opt_out !== false,
       store_open:storeOpen,
-      availability:await recoveryAvailability(client,availability),
+      availability:checkedAvailability,
       recovery_contacted_at:lastSent,
       history_complete:rollout.channel_identity_verified === true &&
         Number.isFinite(Date.parse(rollout.channel_verified_since)) &&
@@ -285,11 +287,30 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
       result.blockers = [...new Set([...result.blockers,...sourceProblems])];
       if (result.classification === 'shadow_candidate') result.classification = 'blocked';
     }
+    // Ephemeral preview context only. Default OFF; never written to due_checks.
+    // Full read fingerprints detect changes even when product/counts stay equal.
+    let preparationContext;
+    if(rollout.message_preparation_enabled===true&&result.classification==='shadow_candidate'&&
+      contextPermission?.verified===true&&permission.basis==='signed_context_permission') {
+      const latestUnique=rows=>{const ordered=[...rows].sort((a,b)=>Date.parse(b.occurred_at)-Date.parse(a.occurred_at));
+        return ordered[0]&&!(ordered[1]&&Date.parse(ordered[0].occurred_at)===Date.parse(ordered[1].occurred_at))?ordered[0]:null;};
+      const anchor=latestUnique(events.filter(e=>e.verified&&e.direction==='inbound'&&
+        (e.content_origin==='private_semantic'?e.semantic_interest?.intent==='interest':e.content_origin==='customer_text'&&classifyInterest(e.text))));
+      const offer=latestUnique(contextPermission.markers.filter(e=>e.kind==='offer'));
+      const lastInbound=latestUnique(events.filter(e=>e.verified&&e.direction==='inbound'));
+      const until=Math.min(clock+30000,Date.parse(contextPermission.valid_until),Date.parse(lastInbound?.occurred_at)+86400000);
+      if(anchor&&offer&&lastInbound&&until>clock)preparationContext={version:'message-context-1',
+        interest_message_id:anchor.id,interest_at:anchor.occurred_at,offer_message_id:offer.message_id,
+        valid_until:new Date(until).toISOString(),source_fingerprint:await recoveryMessageDigest(JSON.stringify([
+          c,customer,official,tintim,links,recentOrders,recentPaidOrders,associatedOrders,availability,checkedAvailability,
+          settings,followups,stages,automation,events,contextPermission,orderReferences,purchaseEpisode,siteEpisode,
+          rollout.purchase_coverage_verified,rollout.channel_identity_verified,rollout.channel_verified_since]))};
+    }
     const journey_state=result.blockers.includes('paid_order')?'purchase_confirmed':
       result.blockers.includes('purchase_or_order_requires_reconciliation')?'purchase_reconciliation':
       result.classification==='pending_service'?'pending_service':
       result.interest?.status==='resolved'?'conversation_opportunity':'insufficient_evidence';
-    return {...result,...(purchaseEpisode?{purchase_episode:purchaseEpisode,site_purchase_episode:siteEpisode}:{}),journey_state,snapshot_scope:'recent_24h',permission_basis:permission.basis,
+    return {...result,...(preparationContext?{preparation_context:preparationContext}:{}),...(purchaseEpisode?{purchase_episode:purchaseEpisode,site_purchase_episode:siteEpisode}:{}),journey_state,snapshot_scope:'recent_24h',permission_basis:permission.basis,
       commerce_checks:{site_orders_read:true,official_order_references_read:!!referenceStore,unattributed_orders:sourceProblems.includes('unattributed_orders_in_window'),
         external_purchase_coverage:rollout.purchase_coverage_verified===true,
         store_basis:'checkout_orders_open',store_open:storeOpen},

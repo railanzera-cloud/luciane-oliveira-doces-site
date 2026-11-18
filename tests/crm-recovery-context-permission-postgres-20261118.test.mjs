@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createHmac} from 'node:crypto';
+import {createHmac,createHash} from 'node:crypto';
+import {prepareRecoveryMessage} from '../supabase/functions/_shared/recovery-message-preparation.mjs';
 import {PGlite} from '@electric-sql/pglite';
 import {setupContextPermissionDatabase} from './fixtures/recovery-permission-database.mjs';
 import {clientFor} from './fixtures/recovery-postgres-client.mjs';
@@ -54,6 +55,30 @@ test('real signed permission protocol, private ledger, periodic snapshot, SQL gu
  assert.ok(periodic.blockers.includes('order_check_incomplete'));assert.equal(periodic.send_authorized,false);
  const hypothetical=await assemble(client,{...options(),rollout:{...options().rollout,purchase_coverage_verified:true}});
  assert.equal(hypothetical.classification,'shadow_candidate');assert.equal(hypothetical.send_authorized,false);
+ // Actual full assembler -> canonical text -> second full read. Preview never
+ // consumes the grant or records a delivery attempt, even on a valid candidate.
+ const messageOptions={enabled:true,conversationId:cid,followUpId:fid,authorizedPhones:[phone],
+  clock:()=>new Date().toISOString(),rollout:{...options().rollout,purchase_coverage_verified:true}};
+ const incomplete=await prepareRecoveryMessage(client,{...messageOptions,rollout:options().rollout});
+ assert.equal(incomplete.state,'blocked');assert.ok(!('body' in incomplete));
+ const messagePlan=await prepareRecoveryMessage(client,messageOptions);
+ assert.equal(messagePlan.state,'prepared',JSON.stringify({messagePlan,errors:client.errors}));
+ assert.ok(messagePlan.body.includes('Cascão Trufado — Prestígio'));
+ assert.equal(messagePlan.content_digest,createHash('sha256').update(messagePlan.body).digest('hex'));
+ assert.equal(messagePlan.context.interest_message_id,'wamid.permission_interest');
+ assert.equal(messagePlan.context.offer_message_id,'wamid.permission_offer');
+ assert.equal(messagePlan.send_authorized,false);assert.equal((await state()).state,'granted');
+ assert.equal((await db.query('select count(*)::int n from crm_recovery_private.context_permission_uses')).rows[0].n,0);
+ for(const mutation of [
+  async()=>db.query('update crm_customers set updated_at=clock_timestamp() where id=$1',[uid]),
+  async()=>db.query("insert into orders(id,customer_phone,created_at,updated_at,payment_status,order_status,paid_at) values(gen_random_uuid(),$1,now(),now(),'paid','accepted',now())",[phone]),
+  async()=>run(await event('wamid.preview_new_answer',119,true,'Combinado')),
+  async()=>run(await event('wamid.preview_cancel',4,false,'CANCELAR LEMBRETE')),
+ ]){
+  await db.exec('BEGIN');let readCount=0;
+  const changed=await prepareRecoveryMessage(client,messageOptions,{evaluate:async(c,o)=>{if(++readCount===2)await mutation();return assemble(c,o);}});
+  assert.equal(changed.state,'blocked');assert.ok(!('body' in changed));await db.exec('ROLLBACK');
+ }
  {
  // Private atomic preparation is not called by the real scheduler/sender.
  // All following mutations/clock cases are isolated synthetic data, rolled back.
@@ -62,7 +87,7 @@ test('real signed permission protocol, private ledger, periodic snapshot, SQL gu
  assert.ok(preparationLease?.lease_token);
  assert.equal((await db.query('select crm_recovery_finish_due($1,$2,$3,$4,$5,false) result',
   [fid,preparationLease.lease_token,preparationLease.revision,hypothetical.classification,hypothetical.blockers])).rows[0].result,'recorded');
- const revision=preparationLease.revision,digest='a'.repeat(64);
+ const revision=preparationLease.revision,digest=messagePlan.content_digest;
  const reserve=async(change={})=>(await db.query('select crm_recovery_private.reserve_context_permission($1,$2,$3,$4,$5) result',
   [change.followUp??fid,change.offer??'wamid.permission_offer',change.revision??revision,
    change.purpose??'one_context_follow_up',change.digest??digest])).rows[0].result;

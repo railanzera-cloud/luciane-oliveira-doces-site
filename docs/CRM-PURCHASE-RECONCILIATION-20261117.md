@@ -366,3 +366,17 @@ Exige decisão candidata fresca, sem impedimentos, sem lease ativa e com fontes 
 
 
 Evidência posterior: bfe0f0877b22e3a5a1b848596019d12278d65c05 passou cinco execuções, incluindo 145 testes principais e um teste real de duas conexões PostgreSQL em CI. Revisão posterior confere clock_timestamp() após as travas para impedir uso de decisão/escopo vencido durante a espera; teste local passou. Conferir o SHA final e seus checks/descrição do PR, sem tratar o candidato como instalado.
+
+
+## Prévia contextual — candidato de 18/11, base 59c53fc
+
+Dois módulos novos geram somente prévia, disabled por padrão e sem rota/cron/reserva/transporte. Duas avaliações completas + releitura do telefone único/follow-up detectam alterações; validade máxima de 30 segundos e send_authorized=false. Não dispensam cobertura de compras. preparation_context só é projetado na opção interna message_preparation_enabled, não ligada nas Edges. IDs/horário do interesse e pergunta vinculam o contexto; texto arbitrário/telefone não é devolvido. O hash de fontes da prévia não substitui source_revision SQL da reserva.
+
+Rascunho context-message-1 para o exemplo canônico, sujeito a revisão de conteúdo:
+
+> Olá! Aqui é da Luciane Oliveira Doces. Você ainda tem interesse em Cascão Trufado — Prestígio? Posso te ajudar por aqui ou você pode fazer o pedido pelo site:
+> https://lucianeoliveiradoces.com.br
+>
+> Para cancelar este lembrete, responda CANCELAR LEMBRETE.
+
+O nome vem do catálogo; Fatia, Cascão, Natal, pacotes/tamanhos/combinações de pipocas e embalagem de bebidas não são confundidos. Digest SHA-256 vincula o texto exato, não sua elegibilidade. Sem preços/escassez/pagamento inventados. 92 testes locais passaram; integração PostgreSQL liga o digest dessa mensagem à reserva SQL e recusa compra, resposta, cancelamento ou fonte alterada entre leituras. Prévia sozinha não consome autorização. CI final e SHA nos checks/descrição do PR #67. Nenhuma mensagem foi enviada nem código instalado em produção. O futuro executor ainda precisa integrar a reserva e rechecagem posterior, sem promover a prévia a autorização de envio.

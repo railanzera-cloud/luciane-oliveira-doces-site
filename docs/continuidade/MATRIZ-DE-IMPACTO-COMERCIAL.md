@@ -233,3 +233,14 @@ Instalado somente em sombra, sob janela finita do telefone original, após autor
 | Retenção/reversão | FK da pergunta e limpeza existente; conservar consumos | Não remover a tabela/restaurar leitura antiga após uso |
 
 Candidato não instalado, não ligado ao scheduler/transport e sempre send_authorized=false. Nenhum impacto em checkout/pagamentos/QZ, Meta/Tintim, Worker/Pages, catálogo/fotos, estoque ou Gestão. Persistem checagem final, finalidade no conteúdo, opt-out global durável e cobertura/identidade de compras.
+
+
+### 18/11/2026 — prévia de recuperação contextual
+
+| Entrada | Resultado | Bloqueio preservado |
+|---|---|---|
+| Catálogo/seleção resolvida | Texto canônico com categoria, variante, combinação e tamanho | Divergência/retirado/ambiguidade não gera corpo |
+| Telefone único + follow-up + duas avaliações | Prévia efêmera com TTL de até 30s e digest | Compra, nova resposta, cancelamento, fonte ou vínculo alterado descartam |
+| Hash de texto/fingerprint de fontes | Referências distintas para conteúdo/comparação | Não substituem a revisão transacional SQL nem autorizam envio |
+
+92 testes locais incluindo integração assinada/PostgreSQL e digest ligado à reserva no teste. Sem consumo em sombra, rota, RPC, migração ou instalação produtiva; sem impactos em checkout/QZ, pedidos/pagamentos, catálogo/fotos/estoque, Meta/Tintim, Worker/Pages ou Gestão. CI do SHA final nos checks do PR #67; faltam executor e validação posterior à reserva, opt-out durável e cobertura de compras.

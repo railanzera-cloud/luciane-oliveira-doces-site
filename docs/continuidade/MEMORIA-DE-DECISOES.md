@@ -525,3 +525,10 @@ Candidato isolado com flag OFF e controle privado inicialmente vazio, uma conver
 A lease de reavaliação não é claim de envio. Implementar uma reserva privada distinta, por interesse/follow-up e revisão, compartilhando a trava da captura de autorização, sem expor nova RPC ou ligar o sender. O identificador só pode sair na primeira reserva; repetição não obtém o mesmo token. Crash/timeout não comprova ausência de entrega e não permite reutilizar a autorização. A reserva não desaparece ao apagar o follow-up; acompanha a retenção da pergunta. Mesmo interesse com nova pergunta não admite segunda reserva. Novo interesse não herda autorização antiga.
 
 Manter send_authorized=false e não consumir autorização em sombra. Digest liga o conteúdo futuro, mas não verifica sua finalidade; geração/validação no servidor e rechecagem comercial são requisitos posteriores. Testar contenção com PostgreSQL temporário e duas conexões em CI, sem produção ou credenciais comerciais. Rollback preserva consumos e retenção; apagar a reserva/restaurar leitor que a ignora não é reversão segura.
+
+
+### 18/11/2026 — mensagem canônica como prévia, sem consumo em sombra
+
+Gerar texto apenas de produto/variante resolvidos do catálogo atual, recusando nomes/IDs/opções divergentes, sem preços ou escassez inventados. Mesmos sabores em categorias distintas mantêm o nome da categoria; combinações e tamanhos permanecem no corpo. Conteúdo é rascunho sujeito a revisão. Preparação isolada faz duas leituras e TTL curto, sem consumir autorização ou criar entrega. Usar somente telefone único confiável/follow-up pendente e permissão contextual real, mantendo cobertura de compras exigida.
+
+Distinguir content_digest do texto, fingerprint de fontes da prévia e source_revision transacional SQL. Nenhum deles pode ser substituído pelo outro. A prévia é otimista, não autoriza transporte; validação posterior à reserva e tratamento de resultado incerto permanecem trabalho separado. Sem rota, RPC, migração ou ativação produtiva neste incremento.

@@ -1564,3 +1564,24 @@ Reversão: não chamar a função privada; desligar escopo/flag contextual se fo
 Primeiro candidato bfe0f0877b22e3a5a1b848596019d12278d65c05: cinco execuções success (44279888290, 44279897907, 44279898024, 44279897902, 44279897906). Job 134717493933 teve 145/145 testes principais e 1/1 teste adicional com PostgreSQL temporário: segunda conexão observada em pg_stat_activity esperando a trava advisory, commit da primeira, uma reserva e uma recusa sem token; papéis de API também rejeitados por conexão real. Isso substitui a pendência de concorrência do primeiro candidato. Não é teste em produção nem prova de envio.
 
 Revisão posterior usa clock_timestamp() depois de esperar as travas para conferir expiração da decisão e do escopo e fixar reserved_at/valid_until. now() é o começo da transação e não pode manter uma decisão artificialmente válida durante uma espera. Integração local ampliada com decisão vencida no relógio real dentro de uma transação ainda aberta; passou. O resultado remoto do commit que contém esta correção deve ser lido nos checks e na descrição atualizada do PR #67; não reutilizar CI de bfe0f0 como se cobrisse o diff posterior.
+
+
+### Rascunho contextual e dupla leitura — candidato de 18/11/2026, base 59c53fc
+
+HEAD remoto confirmado 59c53fc8eca81b88f5be8b7d0384c2359cb982d0, PR #67 em rascunho. A CI desse SHA foi conferida no incremento anterior (145 testes + concorrência real PostgreSQL e 1057 comerciais); não substituir pela CI do novo código. Sem nova inspeção ou alteração produtiva neste incremento: último corte v32/v20, escopo vencido e envios desligados permanecem referência datada.
+
+Novos módulos recovery-message.mjs e recovery-message-preparation.mjs preparam somente uma prévia efêmera, disabled por padrão, sem rota/cron, reserva, RPC nova, envio ou tentativa de entrega. prepareRecoveryMessage exige telefone único da configuração confiável, follow-up pendente/vencido da conversa e permissão contextual assinada; faz duas avaliações completas e relê vínculo/telefone/follow-up. Mudanças de fonte, contexto, produto, autorização, compra/resposta ou prazo descartam o corpo. TTL máximo de 30 segundos, conferido também depois da segunda leitura; prévia sempre send_authorized=false e consistency continua optimistic_shadow_only.
+
+Snapshot produz preparation_context apenas se message_preparation_enabled=true, candidato sem bloqueios e autorização contextual vigente. A opção não foi ligada nas Edges/agendador; o preparador isolado a habilita somente para suas leituras. Inclui IDs/horário original do interesse e pergunta, validade e fingerprint das fontes lidas, sem corpo do cliente/telefone no resultado. A assinatura resumida não comprova cobertura: purchase_coverage_verified continua obrigatória e não foi certificada em produção. Contextos com empate de horário ficam sem prévia.
+
+Texto context-message-1 é RASCUNHO, não aprovado/enviado. Montado exclusivamente do catálogo atual; valida IDs, nome canônico, categoria, variante, opções e disponibilidade esperada. Distingue Fatia/Cascão Prestígio e Natal; preserva tamanhos/combinações das pipocas e embalagem dos refrigerantes; produto retirado/ambíguo ou catálogo divergente é recusado. Não inclui preço, urgência, escassez, compra/pagamento afirmado nem texto arbitrário. Exemplo completo de Prestígio está no documento de conciliação.
+
+| Campo | Finalidade | Não substituir por |
+|---|---|---|
+| content_digest (SHA-256) | Conteúdo exato gerado, inclusive quebras de linha | Fingerprint das fontes |
+| source_fingerprint (SHA-256) | Comparar duas leituras da prévia | source_revision SQL |
+| source_revision SQL existente | Vínculo transacional da reserva privada | Hash da prévia ou do texto |
+
+92 testes locais em 11 arquivos aprovados, dashboard e diff --check. Integração PostgreSQL: captura assinada → duas avaliações reais → mensagem canônica → digest guardado na reserva privada pelo teste SQL; nenhum wrapper produtivo novo. Pagamento, resposta nova, cancelamento e alteração de fonte entre leituras bloqueiam sem corpo. Prévia não consome permissão. CI remota do novo commit deve ser confirmada nos checks e na descrição atualizada do PR #67 antes de promover.
+
+Faltam integrar chamada da reserva e validação posterior no futuro executor, conferir conteúdo contra o digest antes do transporte, tratamento de resultado incerto, opt-out global durável e identidade/cobertura de compras. A reserva muda source_revision e torna a permissão usada: não reutilizar a dupla leitura prévia como se fosse validação da reserva após consumo. Sem autorização de sender. Reversão deste incremento: não chamar preparador/retirar módulos de prévia com snapshot compatível nos bundles completos; manter reservas/retiradas e leitores SQL anteriores. Sem migração neste incremento, sem instalação, novo contato, pergunta enviada, alteração de consentimento, merge ou Pages. Não pedir nova mensagem para repetir testes homologados.

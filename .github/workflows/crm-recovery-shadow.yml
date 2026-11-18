@@ -20,6 +20,7 @@ on:
       - 'tests/fixtures/recovery-permission-database.mjs'
       - 'tests/crm-recovery-context-permission-concurrency-20261118.integration.mjs'
       - 'tests/crm-recovery-context-permission-20261118.test.mjs'
+      - 'tests/crm-recovery-message-20261118.test.mjs'
       - 'tests/crm-recovery-context-permission-postgres-20261118.test.mjs'
       - 'supabase/prepared/recovery-site-episodes-restore-functions.sql'
       - 'cloudflare/recovery-scheduler/**'
@@ -78,6 +79,7 @@ jobs:
           node --test tests/crm-recovery-shadow-20261115.test.mjs
           tests/crm-recovery-snapshot-20261116.test.mjs
           tests/crm-recovery-context-permission-20261118.test.mjs
+          tests/crm-recovery-message-20261118.test.mjs
           tests/crm-recovery-context-permission-postgres-20261118.test.mjs
           tests/crm-recovery-purchase-signal-20261117.test.mjs
           tests/crm-recovery-order-reference-20261117.test.mjs
