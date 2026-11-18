@@ -279,3 +279,10 @@ Instalação ainda pendente. Este incremento não está nas Edges nem no SQL pro
 Reversão primária exige escopo SQL desabilitado E CRM_RECOVERY_EPISODES_ENABLED=false: a flag Edge sozinha não desfaz guardas SQL. supabase/prepared/recovery-site-episodes-restore-functions.sql contém as três definições anteriores lidas em produção nesta auditoria, com delimitadores completos e teste de execução no PostgreSQL isolado. Arquivo é restauração candidata, não prova de reversão produtiva executada. Manter o helper privado revogado e sem uso, estruturas/expurgo anteriores e restaurar bundles coordenadamente se necessário. Nenhum pedido, pagamento, horário, consentimento ou fotografia deve ser alterado para demonstrar êxito.
 
 Continuam pendentes: identidade forte de pedidos sem telefone, cobertura de compras diretas/lançamentos manuais tardios, base legítima de permissão e oportunidade elegível em produção. Referência por número e ausência de gatilho não certificam compra nem abandono. Não pedir nova mensagem neutra ou repetir reconhecimento/timer já homologados. Nenhuma alteração em checkout, Meta/Tintim, QZ, estoque, fotos, Worker/Cron, Pages ou Gestão; sem merge/envio.
+
+
+### CI remota confirmada — candidato 8285000bad5c2131655b410a70909e107e7363dd
+
+Cinco execuções concluíram success: continuidade 44257411469, governança 44257411369, CRM comercial/tipagem/build 44257411374, recuperação PR 44257411373 e push 44257401496. Logs confirmam 130/130 testes de recuperação (incluindo PostgreSQL e workerd) e 1.042/1.042 regressões comerciais; tipagem específica e build aprovados. Fontes locais testadas e árvore enviada ao GitHub foram comparadas e idênticas. Este registro posterior altera somente documentação; a prova funcional pertence ao SHA acima.
+
+Candidato completo e reversão testados, ainda sem aplicação produtiva da migração ou dos novos bundles. A expiração anterior permanece respeitada. Próximo corte deve preservar escopo SQL OFF/flag OFF na instalação e exigir validação específica da eventual nova janela finita do piloto original, sem envio, contato extra ou nova mensagem para repetir produto/timer.
