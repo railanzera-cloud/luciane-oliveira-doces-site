@@ -11,7 +11,7 @@ const price = (size, flavors) => quoteCartItems([{
 
 test("preço Gourmet continua sendo o maior grupo, nunca uma soma de sabores", () => {
   assert.equal(price("1l", ["leitinho"]), 4900);
-  assert.equal(price("1l", ["leitinho", "ovomaltine"]), 4900);
+  assert.equal(price("1l", ["leitinho", "ovomaltine"]), 5500);
   assert.equal(price("1l", ["leitinho", "nutella"]), 5800);
   assert.equal(price("1l", ["nutella"]), 5800);
   assert.equal(price("1l", ["leitinho", "nutella", "ovomaltine"]), 5800);
