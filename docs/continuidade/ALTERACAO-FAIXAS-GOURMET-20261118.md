@@ -37,3 +37,15 @@ Leitura remota de 18/11/2026: categoria Pipocas disponível no cadastro, porém 
 
 ## Homologação futura
 Conferir em ambos os domínios os dois sabores e seus valores para 500 ml, 750 ml e 1 litro; checkout misto e mensagens de WhatsApp; comportamento de combinações de maior faixa; /admin, QZ e mídias intactos. A execução de testes unitários e CI não substitui a comprovação de publicação/recebimento de pedido.
+
+
+## Implantação do backend — 18/11/2026 (posterior à preparação do ZIP)
+- Proprietário autorizou a continuação e atualização das duas Edge Functions. Supabase comercial foi conferido com orders_open=false antes, durante e depois do procedimento.
+- create-order: v38 -> **v39 ACTIVE**.
+- create-whatsapp-order: v64 -> **v65 ACTIVE**.
+- Em cada função, somente o arquivo commerce-catalog.mjs foi alterado: Ovomaltine grupo 1->2, Choco Cookies ao Leite grupo 2->1, CATALOG_VERSION atualizado para 2026-11-18.gourmet-ovomaltine-cookies-leite. Todos os outros arquivos, autenticação (verify_jwt=false), IDs, demais sabores, preços absolutos e integrações foram preservados.
+- Snapshots exatos dos catálogos antigos no GitHub: docs/edge-release/rollback/20261118/create-order-v38-commerce-catalog.mjs e docs/edge-release/rollback/20261118/create-whatsapp-order-v64-commerce-catalog.mjs. Restore exige reimplantar o catálogo anterior em conjunto com os demais arquivos inalterados do bundle correspondente.
+- Leitura posterior de ambas as funções comprovou código alterado, status ACTIVE e versões. Os oito sabores e as três tabelas de preço da vitrine e das duas Edges coincidem.
+- O pacote Cloudflare V4.7.15.3 foi construído e auditado: SHA256 7393a8f5db1518b786c285b3fab9279eca27103a73773867a83e5de8bf7aa874, 115 arquivos reais incluindo 84 mídias; build/testes comerciais/WebKit/geração do ZIP verdes. Não foi publicado.
+- **Pendência de publicação:** versão anterior V4.7.15.2 registrava 182 arquivos, dos quais 151 mídias. Apesar de o pacote novo ter todas as referências do build atual, a preservação integral de 67 mídias históricas adicionais não foi comprovada. O ZIP histórico LODC_SITE_V4_7_13_CAPA_CASCAO_APROVADA.zip foi localizado no acervo, mas sua leitura binária foi bloqueada nesta sessão. **Não publicar este ZIP como substituição integral sem reconciliação das mídias ou recuperação do pacote completo anterior.**
+- orders_open continua false; não reabrir a loja antes da sincronização do site. Com o frontend antigo ainda no ar, reabrir antes da publicação poderia provocar price_changed em pedidos. Não houve SQL, deploy Cloudflare, merge main, alteração de disponibilidade, pedido real ou disparo.
