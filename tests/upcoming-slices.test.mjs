@@ -25,9 +25,9 @@ test("keeps slices from R$ 20 while popcorn uses its current pricing table", () 
   assert.match(page, /currency\.format\(variant\.price\)/);
 });
 
-test("keeps Brigadeiro Branco com Morango on its existing SKU without redundant subtitle", () => {
+test("keeps Ninho com Morango on its existing SKU without redundant subtitle", () => {
   const ninho = catalog.slice(catalog.indexOf('id: "fatia-ninho-morango"'), catalog.indexOf('id: "fatia-prestigio"'));
-  assert.match(ninho, /name: "Brigadeiro Branco com Morango"/);
+  assert.match(ninho, /name: "Ninho com Morango"/);
   assert.match(ninho, /available: true/);
   assert.doesNotMatch(ninho, /subtitle:/);
   assert.doesNotMatch(catalog, /id: "fatia-ninho-morango"[\s\S]*?availabilityLabel:/);

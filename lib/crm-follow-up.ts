@@ -3,7 +3,7 @@
 // declarado, consentimento ou estoque. Sabores ambiguos ficam sem classificacao.
 const adProductRules = [
   { id: "fatia-chocolate-morango", name: "Chocolate com Morango", pattern: /\bchocolate com morango\b/ },
-  { id: "fatia-ninho-morango", name: "Brigadeiro Branco com Morango", pattern: /\b(?:ninho com morango|brigadeiro branco com morango)\b/ },
+  { id: "fatia-ninho-morango", name: "Ninho com Morango", pattern: /\b(?:ninho com morango|brigadeiro branco com morango)\b/ },
   { id: "fatia-prestigio", name: "Prestígio", pattern: /\bprestigio\b/ },
   { id: "fatia-chocolate-maracuja", name: "Chocolate com Maracujá", pattern: /\bmaracuja\b/ },
   { id: "fatia-chocolatudo", name: "Chocolatudo", pattern: /\bchocolatudo\b/ },
@@ -28,7 +28,7 @@ export function crmAdSliceHint(adName: string | null | undefined):
 // Os IDs são os do catálogo comercial; o corpo privado não entra no frontend.
 const mentionedNames: Record<string,string> = {
   "fatia-chocolate-morango": "Chocolate com Morango",
-  "fatia-ninho-morango": "Brigadeiro Branco com Morango",
+  "fatia-ninho-morango": "Ninho com Morango",
   "fatia-prestigio": "Prestígio",
   "fatia-chocolate-maracuja": "Chocolate com Maracujá",
   "fatia-chocolatudo": "Chocolatudo",
