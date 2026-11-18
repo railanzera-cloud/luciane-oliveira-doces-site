@@ -354,3 +354,12 @@ Implementação começa com CRM_RECOVERY_CONTEXT_PERMISSION_ENABLED OFF e tabela
 
 
 CI posterior conferida para 95f6041e8b260725fd9cb4b6a9bbdc40a4b24bc7: cinco execuções aprovadas; 145 testes de recuperação e 1057 comerciais, build e tipagem CRM. Candidato continua sem instalação produtiva. Evidências e IDs das execuções no Checkpoint Vivo.
+
+
+## Reserva de preparação contextual — candidato de 18/11
+
+Sobre c2c316c, a migração 20261118094448 acrescenta uma reserva privada por interesse/follow-up, ligada à autorização atual, finalidade fechada, digest de conteúdo e revisão. Somente o dono do schema pode executar a função; nenhum papel de API ganhou acesso e nenhum agendador/sender a chama. Não consumir autorização em sombra. Retorno sempre send_authorized=false.
+
+Exige decisão candidata fresca, sem impedimentos, sem lease ativa e com fontes idênticas, além de permissão/escopo atuais. Captura e reserva compartilham trava transacional. Apenas uma chamada recebe identificador; repetição não recebe token. Uso segue bloqueado após timeout/crash, exclusão do follow-up ou nova pergunta sobre o mesmo interesse; novo interesse ainda precisa de nova autorização e dos demais controles. Retenção acompanha o ledger da pergunta. Não registrar pagamento, envio ou tentativa por reservar.
+
+86 testes locais aprovados com novos cenários SQL. Teste separado em CI com PostgreSQL temporário e conexões independentes aguarda resultado remoto; o teste local serializado não é prova dessa concorrência. Digest não valida conteúdo; faltam geração/validação do teor e checagem final comercial, além de opt-out global durável, identidade e cobertura de compras. Reserva não impede novas compras/respostas posteriores nem autoriza transporte. Sem instalação produtiva. Reversão preserva consumos/retiradas e limpeza, evitando restauração que os ignore.

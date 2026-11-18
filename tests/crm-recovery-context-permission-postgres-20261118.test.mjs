@@ -1,43 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import {createHmac} from 'node:crypto';
 import {PGlite} from '@electric-sql/pglite';
+import {setupContextPermissionDatabase} from './fixtures/recovery-permission-database.mjs';
 import {clientFor} from './fixtures/recovery-postgres-client.mjs';
 import {assembleRecoveryEvaluation as assemble} from '../supabase/functions/_shared/recovery-snapshot.mjs';
 import {privateRecoveryObservations} from '../supabase/functions/_shared/recovery-observation-store.mjs';
 import {CONTEXT_PERMISSION_OFFER,privateContextPermissions} from '../supabase/functions/_shared/recovery-context-permission.mjs';
-const read=p=>fs.readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const cid='00000000-0000-4000-8000-000000000001',uid='00000000-0000-4000-8000-000000000002',fid='00000000-0000-4000-8000-000000000003',phone='5591000000000';
 test('real signed permission protocol, private ledger, periodic snapshot, SQL guards, revocation, usage, scope and retention',async()=>{
  const db=new PGlite();try{
- const fixture=read('tests/crm-recovery-due-postgres-20261116.test.mjs');
- const start=fixture.indexOf('await db.exec(`')+15;
- await db.exec(fixture.slice(start,fixture.indexOf('`);',start)).replaceAll('${uid}',uid).replaceAll('${cid}',cid).replaceAll('${fid}',fid).replaceAll('${phone}',phone));
- await db.exec(`ALTER TABLE orders ADD order_number bigint;
- ALTER TABLE menu_availability ADD updated_at timestamptz;
- ALTER TABLE store_settings ADD updated_at timestamptz;
- ALTER TABLE crm_tintim_message_events ADD fingerprint text,ADD phone_e164 text,ADD direction text,ADD received_at timestamptz,ADD time_basis text;
- ALTER TABLE tintim_order_links ADD status text,ADD created_at timestamptz;
- ALTER TABLE crm_whatsapp_message_events ADD message_id text,ADD direction text,ADD phone_e164 text,ADD received_at timestamptz;
- ALTER TABLE tintim_conversations ADD account_key text,ADD external_lead_id text,ADD last_observed_at timestamptz;
- CREATE TABLE tintim_webhook_receipts(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),account_key text,lead_key text,received_at timestamptz,summary jsonb);
- ALTER TABLE crm_automation_settings ADD automatic_sends_enabled boolean DEFAULT false;
- INSERT INTO crm_automation_settings VALUES(true,45,false);
- INSERT INTO store_settings(id,key,value) VALUES(1,'orders_open','true');
- INSERT INTO menu_availability(id,item_key,status) VALUES(1,'category_cones','available'),(2,'cone_prestigio','available');
- ALTER TABLE crm_follow_ups ADD created_at timestamptz DEFAULT now();
- CREATE TABLE crm_automation_queue(follow_up_id uuid PRIMARY KEY,conversation_id uuid,due_at timestamptz,queue_state text,blockers text[],evaluated_at timestamptz);
- CREATE TABLE crm_automation_monitor(singleton boolean PRIMARY KEY,last_evaluated_at timestamptz,examined int,scheduled int,blocked int,finished int,review_required int);
- INSERT INTO crm_automation_monitor(singleton) VALUES(true);`);
- await db.exec(read('supabase/prepared/recovery-private-observations.sql'));
- await db.exec(read('supabase/migrations/20261116155426_crm_recovery_due_shadow.sql'));
- await db.exec(read('supabase/migrations/20261116164957_crm_recovery_scheduler_auth.sql'));
- const episodeSql=read('supabase/migrations/20261117234453_crm_recovery_purchase_episodes.sql');
- await db.exec(episodeSql.slice(episodeSql.indexOf('CREATE TABLE crm_recovery_private.episode_scope'),episodeSql.indexOf('CREATE OR REPLACE FUNCTION public.crm_protect_purchase_signal_followup')));
- await db.exec(read('supabase/migrations/20261118010932_crm_recovery_official_order_references.sql'));
- await db.exec(read('supabase/migrations/20261118070703_crm_recovery_site_purchase_episodes.sql'));
- await db.exec(read('supabase/migrations/20261118090540_crm_recovery_context_permissions.sql'));
+ await setupContextPermissionDatabase(db,{cid,uid,fid,phone});
  await db.exec("set request.jwt.claim.role='service_role'");
  const zero=new Date((await db.query("select date_trunc('second',now()-interval '2 hours') t")).rows[0].t).getTime();
  const at=m=>new Date(zero+m*60000).toISOString();
@@ -81,6 +54,73 @@ test('real signed permission protocol, private ledger, periodic snapshot, SQL gu
  assert.ok(periodic.blockers.includes('order_check_incomplete'));assert.equal(periodic.send_authorized,false);
  const hypothetical=await assemble(client,{...options(),rollout:{...options().rollout,purchase_coverage_verified:true}});
  assert.equal(hypothetical.classification,'shadow_candidate');assert.equal(hypothetical.send_authorized,false);
+ {
+ // Private atomic preparation is not called by the real scheduler/sender.
+ // All following mutations/clock cases are isolated synthetic data, rolled back.
+ await db.exec('BEGIN');
+ const preparationLease=(await db.query('select * from crm_recovery_claim_due($1)',[[phone]])).rows[0];
+ assert.ok(preparationLease?.lease_token);
+ assert.equal((await db.query('select crm_recovery_finish_due($1,$2,$3,$4,$5,false) result',
+  [fid,preparationLease.lease_token,preparationLease.revision,hypothetical.classification,hypothetical.blockers])).rows[0].result,'recorded');
+ const revision=preparationLease.revision,digest='a'.repeat(64);
+ const reserve=async(change={})=>(await db.query('select crm_recovery_private.reserve_context_permission($1,$2,$3,$4,$5) result',
+  [change.followUp??fid,change.offer??'wamid.permission_offer',change.revision??revision,
+   change.purpose??'one_context_follow_up',change.digest??digest])).rows[0].result;
+ assert.equal((await reserve({purpose:'promotions'})).state,'invalid_request');
+ assert.equal((await reserve({digest:'bad'})).state,'invalid_request');
+ assert.equal((await reserve({offer:'wamid.some_other_offer'})).state,'permission_unavailable');
+ assert.equal((await reserve({revision:'b'.repeat(32)})).state,'decision_unavailable');
+ async function deniedWith(sql,expected='decision_unavailable'){
+  await db.exec('SAVEPOINT use_case');await db.exec(sql);
+  assert.equal((await reserve()).state,expected);await db.exec('ROLLBACK TO use_case');
+ }
+ await deniedWith("update crm_recovery_private.due_checks set valid_until=now()-interval '1 second'");
+ await deniedWith("update crm_recovery_private.due_checks set lease_token=gen_random_uuid(),lease_until=now()+interval '1 minute'");
+ await deniedWith("update crm_recovery_private.due_checks set classification='blocked',blockers=ARRAY['order_check_incomplete']");
+ await deniedWith("update store_settings set value='false' where key='orders_open'");
+ await deniedWith("update crm_customers set commercial_opt_out=true",'permission_unavailable');
+ await deniedWith("update crm_recovery_private.context_permission_scope set enabled=false",'permission_unavailable');
+ assert.equal((await db.query('select count(*)::int n from crm_recovery_private.context_permission_uses')).rows[0].n,0);
+ // PGlite serializes requests: verifies two calls/unique constraints, NOT live
+ // overlapping transactions on independent production PostgreSQL connections.
+ const competing=await Promise.all([reserve(),reserve()]);
+ assert.equal(competing.filter(r=>r.state==='reserved').length,1);
+ assert.equal(competing.filter(r=>r.state==='already_reserved').length,1);
+ assert.ok(competing.every(r=>r.send_authorized===false));
+ assert.ok(!('reservation_id' in competing.find(r=>r.state==='already_reserved')));
+ const use=(await db.query('select * from crm_recovery_private.context_permission_uses')).rows[0];
+ assert.equal(use.content_digest,digest);assert.equal(use.source_revision,revision);
+ assert.equal(use.anchor_message_id,'wamid.permission_interest');assert.equal(use.follow_up_id,fid);
+ assert.ok(new Date(use.valid_until)-new Date(use.reserved_at)<=60000);
+ assert.equal((await state()).state,'used');
+ assert.notEqual((await db.query('select crm_recovery_private.source_revision($1) r',[fid])).rows[0].r,revision);
+ assert.equal((await run(null)).permission_basis,'context_permission_used');
+ assert.equal((await reserve({digest:'c'.repeat(64)})).state,'already_reserved');
+ await db.exec("update crm_recovery_private.context_permission_uses set valid_until=reserved_at+interval '1 millisecond'");
+ assert.equal((await state()).state,'used'); // no automatic token/permission recycling
+ // Deleting an unsent follow-up cannot release the permission for another one.
+ await db.query('delete from crm_follow_ups where id=$1',[fid]);
+ assert.equal((await state()).state,'used');
+ assert.equal((await db.query('select count(*)::int n from crm_recovery_private.context_permission_uses')).rows[0].n,1);
+ // Same interest + newer explicit offer/accept is still one use, not another
+ // delivery opportunity. A genuinely newer product interest is a new episode.
+ await run(await event('wamid.permission_reoffer',4,true,CONTEXT_PERMISSION_OFFER));
+ await run(await event('wamid.permission_reaccept',5,false,'PODE LEMBRAR'));
+ assert.equal((await state()).state,'used');
+ await run(await event('wamid.permission_new_interest',6,false,'Quero cascão de Prestígio'));
+ await run(await event('wamid.permission_new_offer',7,true,CONTEXT_PERMISSION_OFFER));
+ await run(await event('wamid.permission_new_accept',8,false,'PODE LEMBRAR'));
+ assert.equal((await state()).state,'granted');
+ // Offer retention already owns cleanup; no free-standing unbounded use ledger.
+ await db.exec("update crm_recovery_private.context_permission_events set expires_at=now()-interval '1 day' where message_id='wamid.permission_offer'");
+ await db.query('select crm_recovery_purge_expired()');
+ assert.equal((await db.query('select count(*)::int n from crm_recovery_private.context_permission_uses')).rows[0].n,0);
+ for(const role of ['anon','authenticated','service_role']){
+  assert.equal((await db.query("select has_function_privilege($1,'crm_recovery_private.reserve_context_permission(uuid,text,text,text,text)','EXECUTE') permitted",[role])).rows[0].permitted,false);
+  for(const privilege of ['SELECT','INSERT','UPDATE','DELETE'])assert.equal((await db.query("select has_table_privilege($1,'crm_recovery_private.context_permission_uses',$2) permitted",[role,privilege])).rows[0].permitted,false);
+ }
+ await db.exec('ROLLBACK');
+ }
  const preflight=()=>client.rpc('crm_followup_send_preflight',{p_follow_up_id:fid});
  let p=await preflight();assert.equal(p.error,null);assert.ok(!p.data.reasons.includes('consent_not_verified'));
  assert.ok(p.data.reasons.includes('sender_disabled'));

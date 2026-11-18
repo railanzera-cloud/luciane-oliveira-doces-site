@@ -15,7 +15,10 @@ on:
       - 'supabase/migrations/*crm_recovery_official_order_references.sql'
       - 'supabase/migrations/*crm_recovery_site_purchase_episodes.sql'
       - 'supabase/migrations/*crm_recovery_context_permissions.sql'
+      - 'supabase/migrations/*crm_recovery_context_permission_uses.sql'
       - 'tests/fixtures/recovery-postgres-client.mjs'
+      - 'tests/fixtures/recovery-permission-database.mjs'
+      - 'tests/crm-recovery-context-permission-concurrency-20261118.integration.mjs'
       - 'tests/crm-recovery-context-permission-20261118.test.mjs'
       - 'tests/crm-recovery-context-permission-postgres-20261118.test.mjs'
       - 'supabase/prepared/recovery-site-episodes-restore-functions.sql'
@@ -47,6 +50,20 @@ jobs:
   shadow:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: lod_permission_tests
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: synthetic-local-test-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -81,3 +98,8 @@ jobs:
           tests/crm-tintim-receipt-time-20261026.test.mjs
           tests/crm-meta-delivery-status-20261027.test.mjs
           tests/crm-whatsapp-official-transport-20261027.test.mjs
+      - name: Independent PostgreSQL connections - no production access
+        env:
+          LOD_LOCAL_POSTGRES_TEST: '1'
+          PGPASSWORD: synthetic-local-test-password
+        run: node --test tests/crm-recovery-context-permission-concurrency-20261118.integration.mjs

@@ -221,3 +221,15 @@ Instalado somente em sombra, sob janela finita do telefone original, após autor
 | Limpeza e reversão | Retenção privada limitada; desligar flag/escopo | Preservar negativas; não abandonar limpeza ou restaurar guardas antigas cegamente |
 
 86 testes locais incluindo PostgreSQL real e pipeline; CI nova a conferir. Nenhum deploy SQL/Edge, envio, dado financeiro, checkout/QZ, imagem/catálogo, Meta/Tintim, Worker/Pages ou Gestão alterado. Candidato não pronto para sender: entrega da pergunta/ack, consumo atômico/finalidade, opt-out global durável e cobertura comercial permanecem pendentes.
+
+
+### 18/11/2026 — reserva privada de uso contextual
+
+| Contrato | Resultado | Limite |
+|---|---|---|
+| Autorização/interesse/follow-up/revisão/finalidade/digest | Uma reserva imutável por interesse e follow-up | Digest não valida texto; sem RPC ou acesso de API |
+| Duas solicitações | Trava transacional + unicidade; só a primeira recebe identificador | Teste de conexões independentes em CI temporária, nunca no comercial |
+| Uso/crash/timeout/exclusão do follow-up | Mantém permissão usada e invalida decisão anterior | Não reciclar token; novo interesse requer nova avaliação |
+| Retenção/reversão | FK da pergunta e limpeza existente; conservar consumos | Não remover a tabela/restaurar leitura antiga após uso |
+
+Candidato não instalado, não ligado ao scheduler/transport e sempre send_authorized=false. Nenhum impacto em checkout/pagamentos/QZ, Meta/Tintim, Worker/Pages, catálogo/fotos, estoque ou Gestão. Persistem checagem final, finalidade no conteúdo, opt-out global durável e cobertura/identidade de compras.
