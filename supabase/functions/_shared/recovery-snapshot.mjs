@@ -7,6 +7,7 @@ import { recoveryAvailability } from './recovery-availability.mjs';
 import { inspectSignedRecoveryPurchaseSignals } from './recovery-purchase-signal.mjs';
 import {inspectSignedRecoveryOrderReferences} from './recovery-order-reference.mjs';
 import {privateRecoveryOrderReferences} from './recovery-order-reference-store.mjs';
+import {classifyRecoverySitePurchaseEpisode} from './recovery-site-purchase-episode.mjs';
 const classifyInterest=text=>classifyRecoveryInterest(text).intent==='interest';
 
 const uuid = value => typeof value === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(value);
@@ -78,7 +79,7 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
         [['eq','conversation_id',conversationId],...dates]),
       c.tintim_conversation_id ? read('tintim_order_links','id,order_uuid,conversation_id,status,created_at',
         [['eq','conversation_id',c.tintim_conversation_id],['gte','created_at',since],['lte','created_at',now]]) : Promise.resolve([]),
-      read('orders','id,customer_phone,created_at,payment_status,order_status,paid_at',
+      read('orders','id,customer_phone,created_at,updated_at,payment_status,order_status,paid_at',
         [['gte','created_at',since],['lte','created_at',now]]),
       read('menu_availability','id,item_key,status,updated_at'),
       read('store_settings','id,key,value,updated_at',[['eq','key','orders_open']]),
@@ -88,7 +89,7 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
         [['in','phone_digits',[customerPhone,customerPhone.slice(2)]],
           ...(rollout.purchase_episodes_enabled===true?[]:[['gte','last_observed_at',since],['lte','last_observed_at',now]])]),
       read('crm_automation_settings','singleton,follow_up_minutes',[['eq','singleton',true]],'singleton'),
-      read('orders','id,customer_phone,created_at,payment_status,order_status,paid_at',
+      read('orders','id,customer_phone,created_at,updated_at,payment_status,order_status,paid_at',
         [['gte','paid_at',since],['lte','paid_at',now]]),
     ]);
     if (automation.length !== 1) return failed('automation_settings_unavailable');
@@ -196,21 +197,8 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
     const associatedIds = [...new Set([...links.filter(l => ['candidate','confirmed'].includes(l.status)).map(l => l.order_uuid),
       ...orderReferences.filter(r=>r.resolution_status==='matched').map(r=>r.order_uuid)])];
     const associatedOrders = associatedIds.length ? await read('orders',
-      'id,customer_phone,created_at,payment_status,order_status,paid_at',[['in','id',associatedIds]]) : [];
+      'id,customer_phone,created_at,updated_at,payment_status,order_status,paid_at',[['in','id',associatedIds]]) : [];
     if (associatedIds.some(id => !associatedOrders.some(o => o.id === id))) sourceProblems.push('linked_order_unavailable');
-    const orders = new Map();
-    if(orderReferences.some(r=>r.resolution_status!=='matched'))orders.set('unresolved_reference',{
-      conversation_key:conversationId,identity_basis:'candidate',payment_status:'unknown'});
-    for (const o of [...recentOrders,...recentPaidOrders,...associatedOrders]) {
-      const inWindow = [o.created_at,o.paid_at].some(t=>Date.parse(t)>=Date.parse(since) && Date.parse(t)<=clock);
-      const direct = inWindow && phone(o.customer_phone) === customerPhone;
-      const linked = associatedIds.includes(o.id);
-      if (direct || linked) orders.set(o.id,{conversation_key:conversationId,
-        identity_basis:direct ? 'verified' : 'candidate',payment_status:o.payment_status,status:o.order_status});
-    }
-    // Unattributed orders cannot prove that this contact did not buy.
-    if ([...recentOrders,...recentPaidOrders].some(o => !phone(o.customer_phone) && !associatedIds.includes(o.id)))
-      sourceProblems.push('unattributed_orders_in_window');
     let purchaseEpisode=null;
     const readEpisode=async()=>{
       const r=await client.rpc('crm_recovery_purchase_episode',{p_conversation_id:conversationId});
@@ -219,6 +207,29 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
       return {review_required:r.data.review_required,scoped:r.data.scoped,send_authorized:false,payment_confirmed:false};
     };
     if(rollout.purchase_episodes_enabled===true) purchaseEpisode=await readEpisode();
+    const siteEpisode={scoped:purchaseEpisode?.scoped===true,historical_paid_records:0,ambiguous_paid_records:0};
+    const orders = new Map();
+    if(orderReferences.some(r=>r.resolution_status!=='matched'))orders.set('unresolved_reference',{
+      conversation_key:conversationId,identity_basis:'candidate',payment_status:'unknown'});
+    for (const o of new Map([...recentOrders,...recentPaidOrders,...associatedOrders].map(o=>[o.id,o])).values()) {
+      const inWindow = [o.created_at,o.paid_at].some(t=>Date.parse(t)>=Date.parse(since) && Date.parse(t)<=clock);
+      const direct = inWindow && phone(o.customer_phone) === customerPhone;
+      const linked = associatedIds.includes(o.id);
+      if (direct || linked) {
+        let identityBasis=direct?'verified':'candidate';
+        if(siteEpisode.scoped && o.payment_status==='paid') {
+          const episode=classifyRecoverySitePurchaseEpisode({order:o,identityBasis,
+            interestAt:Number.isFinite(interestStart)?new Date(interestStart).toISOString():null,now});
+          if(episode.state==='historical_paid_record') {siteEpisode.historical_paid_records++;continue;}
+          if(episode.state==='requires_reconciliation') {identityBasis='candidate';siteEpisode.ambiguous_paid_records++;}
+        }
+        orders.set(o.id,{conversation_key:conversationId,
+          identity_basis:identityBasis,payment_status:o.payment_status,status:o.order_status});
+      }
+    }
+    // Unattributed orders cannot prove that this contact did not buy.
+    if ([...recentOrders,...recentPaidOrders].some(o => !phone(o.customer_phone) && !associatedIds.includes(o.id)))
+      sourceProblems.push('unattributed_orders_in_window');
     if (purchaseEpisode?.review_required===true || stages.some(t =>
       ['comprou','convertido','vendido','venda realizada'].includes(String(t.stage_label).trim().toLowerCase())) &&
       !(purchaseEpisode?.scoped===true && purchaseEpisode.review_required===false))
@@ -260,7 +271,7 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
       result.blockers.includes('purchase_or_order_requires_reconciliation')?'purchase_reconciliation':
       result.classification==='pending_service'?'pending_service':
       result.interest?.status==='resolved'?'conversation_opportunity':'insufficient_evidence';
-    return {...result,...(purchaseEpisode?{purchase_episode:purchaseEpisode}:{}),journey_state,snapshot_scope:'recent_24h',permission_basis:permission.basis,
+    return {...result,...(purchaseEpisode?{purchase_episode:purchaseEpisode,site_purchase_episode:siteEpisode}:{}),journey_state,snapshot_scope:'recent_24h',permission_basis:permission.basis,
       commerce_checks:{site_orders_read:true,official_order_references_read:!!referenceStore,unattributed_orders:sourceProblems.includes('unattributed_orders_in_window'),
         external_purchase_coverage:rollout.purchase_coverage_verified===true,
         store_basis:'checkout_orders_open',store_open:storeOpen},

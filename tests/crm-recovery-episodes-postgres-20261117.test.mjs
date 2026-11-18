@@ -43,7 +43,11 @@ test('PostgreSQL episode integration: scope, official interest, guards, holds, p
  await db.exec(normalizer.slice(normalizerStart,normalizer.indexOf('$$;',normalizerStart)+3));
  await db.exec(read('supabase/prepared/recovery-private-observations.sql'));
  await db.exec(read('supabase/migrations/20261116155426_crm_recovery_due_shadow.sql'));
+ await db.exec(read('supabase/migrations/20261116164957_crm_recovery_scheduler_auth.sql'));
  await db.exec(read('supabase/migrations/20261117234453_crm_recovery_purchase_episodes.sql'));
+ await db.exec('ALTER TABLE orders ADD order_number bigint');
+ await db.exec(read('supabase/migrations/20261118010932_crm_recovery_official_order_references.sql'));
+ await db.exec(read('supabase/migrations/20261118070703_crm_recovery_site_purchase_episodes.sql'));
  await db.exec(`CREATE TRIGGER guard BEFORE INSERT OR UPDATE OF status,due_at ON crm_follow_ups
  FOR EACH ROW EXECUTE FUNCTION crm_protect_purchase_signal_followup();
  CREATE TRIGGER live_sync AFTER UPDATE OF stage_label,last_observed_at ON tintim_conversations
@@ -81,6 +85,27 @@ test('PostgreSQL episode integration: scope, official interest, guards, holds, p
  assert.ok(!p.reasons.includes('purchase_signal_review'));
  await db.query('select crm_automation_evaluate_pending()');
  assert.ok(!(await db.query('select blockers from crm_automation_queue where follow_up_id=$1',[fid])).rows[0].blockers.includes('possible_purchase'));
+ // Both SQL consumers agree on historical completed site purchases. The public
+ // send preflight is still disabled; this is not financial confirmation.
+ const siteOrder='00000000-0000-4000-8000-000000000010';
+ await db.query(`insert into orders(id,customer_phone,created_at,paid_at,updated_at,payment_status,order_status)
+ values($1,$2,now()-interval '2 hours',now()-interval '110 minutes',now()-interval '100 minutes','paid','completed')`,[siteOrder,phone]);
+ await db.query("insert into tintim_order_links(id,conversation_id,order_uuid,status) values(gen_random_uuid(),$1,$2,'candidate')",[tid,siteOrder]);
+ const siteReview=async()=> (await db.query('select crm_recovery_private.site_order_requires_review($1,$2) value',[siteOrder,cid])).rows[0].value;
+ assert.equal(await siteReview(),false);
+ assert.ok(!(await preflight()).reasons.includes('purchase_signal_review'));
+ await db.query('select crm_automation_evaluate_pending()');
+ assert.ok(!(await db.query('select blockers from crm_automation_queue where follow_up_id=$1',[fid])).rows[0].blockers.includes('possible_purchase'));
+ for(const change of ["updated_at=now()","paid_at=null","customer_phone=null","order_status='confirmed'"]){
+  await db.query(`update orders set ${change} where id=$1`,[siteOrder]);
+  assert.equal(await siteReview(),true);assert.ok((await preflight()).reasons.includes('purchase_signal_review'));
+  await db.query('select crm_automation_evaluate_pending()');
+  assert.ok((await db.query('select blockers from crm_automation_queue where follow_up_id=$1',[fid])).rows[0].blockers.includes('possible_purchase') || change==='customer_phone=null');
+  await db.query(`update orders set customer_phone=$2,paid_at=now()-interval '110 minutes',updated_at=now()-interval '100 minutes',order_status='completed' where id=$1`,[siteOrder,phone]);
+ }
+ assert.equal((await db.query("select has_function_privilege('service_role','crm_recovery_private.site_order_requires_review(uuid,uuid)','execute') value")).rows[0].value,false);
+ await db.query('delete from tintim_order_links where order_uuid=$1',[siteOrder]);
+ await db.query('delete from orders where id=$1',[siteOrder]);
  const revision=(await db.query('select crm_recovery_private.source_revision($1) value',[fid])).rows[0].value;
  const lease=(await db.query('select * from crm_recovery_claim_due($1)',[[phone]])).rows[0];assert.ok(lease?.lease_token);
  // A newly received manual report with no trustworthy sale date must invalidate
@@ -138,6 +163,17 @@ test('PostgreSQL episode integration: scope, official interest, guards, holds, p
  assert.equal((await db.query('select status from crm_follow_ups where id=$1',[fid])).rows[0].status,'canceled');
  assert.equal((await db.query('select count(*)::int n from orders')).rows[0].n,0);
 
+ // Structural rollback compiles against the full current schema, preserves
+ // payment records, and restores the pre-cut SQL bodies with finite scope OFF.
+ await db.query(`insert into orders(id,customer_phone,created_at,paid_at,updated_at,payment_status,order_status)
+ values($1,$2,now()-interval '2 hours',now()-interval '110 minutes',now()-interval '100 minutes','paid','completed')`,[siteOrder,phone]);
+ assert.equal(await siteReview(),false);
+ await db.exec('update crm_recovery_private.episode_scope set enabled=false');
+ assert.equal(await siteReview(),true);
+ await db.exec(read('supabase/prepared/recovery-site-episodes-restore-functions.sql'));
+ assert.ok((await preflight()).reasons.includes('purchase_signal_review'));
+ assert.equal((await db.query('select payment_status from orders where id=$1',[siteOrder])).rows[0].payment_status,'paid');
+ await db.query('delete from orders where id=$1',[siteOrder]);
  await db.exec(read('docs/edge-release/rollback/20261117-recovery-episodes/restore-functions.sql'));
  await assert.rejects(insert(),/crm_possible_purchase_review_required/);
  }finally{await db.close();}

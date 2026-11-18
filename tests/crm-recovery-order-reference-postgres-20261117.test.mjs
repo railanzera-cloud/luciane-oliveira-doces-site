@@ -142,5 +142,43 @@ test('real PostgreSQL + signed webhook -> candidate reference -> periodic read, 
  assert.equal((await db.query('select count(*)::int n from crm_recovery_private.order_references')).rows[0].n,0);
  assert.equal((await db.query('select payment_status from orders where id=$1',[oid])).rows[0].payment_status,'paid');
  assert.ok(!(await db.query('select sent_at from crm_follow_ups where id=$1',[fid])).rows[0].sent_at);
+ // Real SQL scope/RPC + snapshot: a completed earlier site purchase is distinct
+ // from a current purchase; delayed updates remain ambiguous. All data synthetic.
+ const episodeSql=read('supabase/migrations/20261117234453_crm_recovery_purchase_episodes.sql');
+ await db.exec(episodeSql.slice(episodeSql.indexOf('CREATE FUNCTION crm_recovery_private.tintim_episode_requires_review'),
+  episodeSql.indexOf('CREATE OR REPLACE FUNCTION public.crm_protect_purchase_signal_followup')));
+ await db.exec(read('supabase/migrations/20261118070703_crm_recovery_site_purchase_episodes.sql'));
+ await db.query("insert into crm_recovery_private.episode_scope values(true,$1,true,now()-interval '1 minute',now()+interval '1 hour')",[cid]);
+ await db.query(`update orders set customer_phone=$2,created_at=$3::timestamptz-interval '30 minutes',
+  paid_at=$3::timestamptz-interval '20 minutes',updated_at=$3::timestamptz-interval '10 minutes',order_status='completed' where id=$1`,[oid,phone,at]);
+ const scoped={...opts,signedWebhook:null,now:new Date().toISOString(),rollout:{...opts.rollout,purchase_episodes_enabled:true}};
+ const beforeRead=(await db.query('select row_to_json(o) value from orders o where id=$1',[oid])).rows[0].value;
+ const historical=await assemble(client,scoped);
+ assert.equal(historical.site_purchase_episode?.historical_paid_records,1,JSON.stringify({historical,errors:client.errors}));
+ assert.ok(!historical.blockers.includes('paid_order'));assert.equal(historical.send_authorized,false);
+ assert.deepEqual((await db.query('select row_to_json(o) value from orders o where id=$1',[oid])).rows[0].value,beforeRead);
+ assert.equal((await db.query('select crm_recovery_private.site_order_requires_review($1,$2) value',[oid,cid])).rows[0].value,false);
+ await db.exec("update crm_recovery_private.due_checks set next_check_at=now(),valid_until=now()-interval '1 second'");
+ const dateLease=(await db.query('select * from crm_recovery_claim_due($1)',[[phone]])).rows[0];assert.ok(dateLease?.lease_token);
+ const createdRevision=(await db.query('select crm_recovery_private.source_revision($1) value',[fid])).rows[0].value;
+ await db.query("update orders set created_at=created_at-interval '1 minute' where id=$1",[oid]);
+ assert.notEqual((await db.query('select crm_recovery_private.source_revision($1) value',[fid])).rows[0].value,createdRevision);
+ assert.equal((await db.query('select crm_recovery_finish_due($1,$2,$3,$4,$5,false) value',
+  [fid,dateLease.lease_token,dateLease.revision,'blocked',['order_check_incomplete']])).rows[0].value,'stale');
+ const revision=(await db.query('select crm_recovery_private.source_revision($1) value',[fid])).rows[0].value;
+ await db.query('update orders set updated_at=now() where id=$1',[oid]);
+ assert.notEqual((await db.query('select crm_recovery_private.source_revision($1) value',[fid])).rows[0].value,revision);
+ const delayed=await assemble(client,scoped);
+ assert.equal(delayed.site_purchase_episode?.ambiguous_paid_records,1);
+ assert.ok(delayed.blockers.includes('purchase_or_order_requires_reconciliation'));
+ assert.equal((await db.query('select crm_recovery_private.site_order_requires_review($1,$2) value',[oid,cid])).rows[0].value,true);
+ await db.query(`update orders set created_at=$2::timestamptz+interval '10 minutes',paid_at=$2::timestamptz+interval '11 minutes',
+  updated_at=$2::timestamptz+interval '12 minutes',order_status='confirmed' where id=$1`,[oid,at]);
+ assert.ok((await assemble(client,scoped)).blockers.includes('paid_order'));
+ await db.query(`update orders set created_at=$2::timestamptz-interval '30 minutes',paid_at=$2::timestamptz-interval '20 minutes',
+  updated_at=$2::timestamptz-interval '10 minutes',order_status='completed' where id=$1`,[oid,at]);
+ await db.exec("update crm_recovery_private.episode_scope set expires_at=now()-interval '1 second'");
+ const expired=await assemble(client,scoped);assert.equal(expired.site_purchase_episode?.scoped,false);
+ assert.ok(expired.blockers.includes('paid_order'));assert.equal(expired.send_authorized,false);
  }finally{await db.close();}
 });

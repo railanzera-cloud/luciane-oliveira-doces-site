@@ -499,3 +499,8 @@ Adotado no candidato: aproveitar o cabeçalho já enviado pelo cliente pelo cana
 
 ### 17/11/2026 — Corte de referências oficiais aplicado e timer comprovado
 O candidato b2f2f2c foi instalado no piloto original após CI completa e backup 6483068. Fonte privada nova foi lida no cron real de 22h40 sem mensagem nova; permaneceu blocked, sem tentativas/envios. Associação por número continua candidata, mesmo para pedido paid. Duas RPCs novas só service_role, RLS sem leitura direta; flag de captura reversível preserva expurgo/retenção. Não renovar automaticamente o escopo de episódios que expira 23h11:29. Captura de referência produtiva ainda depende de ocorrência real posterior; não fabricar conversa/pedido para demonstrá-la. Detalhes e hashes no checkpoint e documento de conciliação.
+
+
+### D-CRM-COMPRA-SITE-EPISODIO-20261118 — Histórico pago e concluído não é compra do interesse novo
+
+Candidato distingue pedido pago e concluído já conhecido antes de interesse oficial novo, somente com telefone exato, cronologia íntegra e escopo único/finito. Registros tardios/ambíguos, referências candidatas e pedidos em andamento continuam bloqueando. Coordenar snapshot, fila, preflight e revisão de fontes; created_at também invalida lease. Flag OFF mais escopo SQL desabilitado revertem a exceção. Não confirmar Pix por imagem/impressão nem liberar por ausência de gatilho. Migração/código não instalados; produção anterior preservada. Critérios, provas e reversão em docs/CRM-PURCHASE-RECONCILIATION-20261117.md.

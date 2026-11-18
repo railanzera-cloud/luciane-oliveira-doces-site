@@ -181,3 +181,16 @@ Estado: código e migração testados localmente (93/93), ainda não instalados.
 | Reversão | Flag de captura/leitura OFF | Preservar tabela e expurgo das evidências |
 
 Estado: 51 testes locais aprovados; candidato não instalado. Sem frontend/ZIP novo.
+
+
+### Contrato candidato — compra anterior do site por episódio, 18/11/2026
+
+| Superfície | Mudança candidata | Proteção |
+|---|---|---|
+| Snapshot | Cronologia de pedido pago/concluído conhecido antes do interesse novo | Telefone exato; ambiguidade mantém conciliação; escopo/flag |
+| Fila e preflight | Predicado privado nos três pontos de pedidos em duas funções | ACL anterior preservada; helper sem acesso direto da API |
+| Revisão de fontes | created_at somado ao hash do pedido | Alterar só a data invalida lease |
+| Expiração/reversão | Mesmo escopo finito, sem renovação | Escopo SQL OFF + flag OFF; restauração estrutural testada |
+| Operação e financeiro | Nenhuma mutação ou mudança de contrato | Leitura não altera pagamento, pedido, estoque, consentimento ou impressão |
+
+87 testes locais direcionados passaram; candidato não instalado. Nenhum frontend, ZIP ou Pages novo.

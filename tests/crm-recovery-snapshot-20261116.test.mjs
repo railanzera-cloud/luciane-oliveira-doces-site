@@ -292,3 +292,57 @@ test('missing or changed episode RPC closes evaluation; flag OFF does not call n
  client.rpc=async(name,args)=>{assert.notEqual(name,'crm_recovery_purchase_episode');return original(name,args);};
  assert.equal((await assemble(client,opts)).classification,'shadow_candidate');
 });
+
+// Same-day repeat purchases: no financial writes, candidate reference upgrades,
+// consent grants or expansion outside the existing finite SQL scope.
+function siteEpisodeFixture(order,scoped=true) {
+ const tables=fixture();tables.orders=[{id:'synthetic-site-order',customer_phone:customerPhone,
+  created_at:time('12:10'),paid_at:time('12:15'),updated_at:time('12:20'),payment_status:'paid',order_status:'completed',...order}];
+ const client=db(tables),original=client.rpc;
+ client.rpc=async(name,args)=>name==='crm_recovery_purchase_episode'?
+  {data:{review_required:false,scoped,send_authorized:false,payment_confirmed:false},error:null}:original(name,args);
+ const opts=options();opts.rollout.purchase_episodes_enabled=true;
+ return {client,opts,tables};
+}
+test('scoped snapshot separates a completed earlier site purchase from a new interest',async()=>{
+ const {client,opts}=siteEpisodeFixture();const r=await assemble(client,opts);
+ assert.equal(r.classification,'shadow_candidate');assert.equal(r.send_authorized,false);
+ assert.equal(r.site_purchase_episode.historical_paid_records,1); // two source queries, one record
+ assert.ok(!r.blockers.includes('paid_order'));
+});
+test('flag OFF or expired/nonmatching scope preserves existing paid-order protection',async()=>{
+ const setup=siteEpisodeFixture(undefined,false);
+ assert.ok((await assemble(setup.client,setup.opts)).blockers.includes('paid_order'));
+ setup.opts.rollout.purchase_episodes_enabled=false;
+ assert.ok((await assemble(setup.client,setup.opts)).blockers.includes('paid_order'));
+});
+test('current site purchase suppresses; old paid record updated late or incomplete requires reconciliation',async()=>{
+ let setup=siteEpisodeFixture({created_at:time('13:10'),paid_at:time('13:15'),updated_at:time('13:20')});
+ assert.ok((await assemble(setup.client,setup.opts)).blockers.includes('paid_order'));
+ for(const change of [{updated_at:time('13:20')},{paid_at:null},{updated_at:null},{order_status:'preparing'},
+   {created_at:time('13:10'),paid_at:time('13:00'),updated_at:time('13:20')}]) {
+  setup=siteEpisodeFixture(change);const r=await assemble(setup.client,setup.opts);
+  assert.ok(r.blockers.includes('purchase_or_order_requires_reconciliation'));
+  assert.ok(!r.blockers.includes('paid_order'));assert.equal(r.site_purchase_episode.ambiguous_paid_records,1);
+  assert.equal(r.send_authorized,false);
+ }
+});
+test('candidate association stays ambiguous even with finished prior paid record',async()=>{
+ const {client,opts,tables}=siteEpisodeFixture({customer_phone:null});
+ tables.tintim_order_links=[{id:'link',order_uuid:'synthetic-site-order',conversation_id:tid,created_at:time('12:10'),status:'confirmed'}];
+ const r=await assemble(client,opts);
+ assert.ok(r.blockers.includes('purchase_or_order_requires_reconciliation'));
+ assert.equal(r.site_purchase_episode.historical_paid_records,0);assert.equal(r.send_authorized,false);
+});
+test('a neutral message cannot use the conversation creation time as a new site-purchase episode',async()=>{
+ const {client,opts}=siteEpisodeFixture();opts.signedWebhook=signed('Oi');
+ const r=await assemble(client,opts);assert.ok(r.blockers.includes('purchase_or_order_requires_reconciliation'));
+ assert.equal(r.site_purchase_episode.historical_paid_records,0);
+});
+test('historical site purchase does not remove consent, coverage, store, cancellation or opt-out gates',async()=>{
+ const {client,opts,tables}=siteEpisodeFixture();opts.rollout.purchase_coverage_verified=false;
+ tables.store_settings[0].value=false;tables.crm_customers[0].consent_status='unknown';
+ let r=await assemble(client,opts);
+ for(const blocker of ['order_check_incomplete','store_closed','permission_unverified'])assert.ok(r.blockers.includes(blocker));
+ tables.crm_customers[0].commercial_opt_out=true;r=await assemble(client,opts);assert.ok(r.blockers.includes('opt_out'));
+});
