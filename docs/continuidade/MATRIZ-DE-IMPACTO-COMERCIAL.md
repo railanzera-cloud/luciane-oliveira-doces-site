@@ -208,3 +208,16 @@ Instalado somente em sombra, sob janela finita do telefone original, após autor
 | Operação/financeiro | Nenhuma escrita/novo contrato | Sem SQL, consentimento artificial, Meta/Tintim ou novas demandas manuais |
 | Reversão | Restaurar classificador anterior nos dois bundles | Preservar registros e bloqueios já capturados |
 69 testes locais direcionados aprovados; candidato não instalado. Sem novo corte/renovação de escopo nesta rodada.
+
+
+### 18/11/2026 — contrato candidato de permissão contextual
+
+| Entrada/alteração | Efeito verificável | Limite |
+|---|---|---|
+| Pergunta exata + aceite explícito assinado | Ledger privado liga IDs, horário original, telefone, conversa e interesse | Flag OFF/escopo vazio por padrão; não muda consentimento global |
+| Cancelamento, negativa global/auditada, fonte/contexto alterado, expiração ou uso anterior | Invalida permissão e revisão da decisão/lease | Nova pergunta sozinha não restabelece permissão |
+| Snapshot, fila SQL e preflight | Mesma evidência conservadora com rechecagem | Compra/pagamento/loja/produto e cobertura continuam obrigatórios |
+| Pergunta de autorização | Não conta como atendimento ao produto | Não fabrica saída da loja após aceite |
+| Limpeza e reversão | Retenção privada limitada; desligar flag/escopo | Preservar negativas; não abandonar limpeza ou restaurar guardas antigas cegamente |
+
+86 testes locais incluindo PostgreSQL real e pipeline; CI nova a conferir. Nenhum deploy SQL/Edge, envio, dado financeiro, checkout/QZ, imagem/catálogo, Meta/Tintim, Worker/Pages ou Gestão alterado. Candidato não pronto para sender: entrega da pergunta/ack, consumo atômico/finalidade, opt-out global durável e cobertura comercial permanecem pendentes.

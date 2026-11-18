@@ -35,7 +35,7 @@ export function evaluateRecoveryShadow({events=[],now,follow_up_minutes=45,
     return {...result,blockers:[...result.blockers,'conversation_identity_unresolved']};
   accepted.sort((a,b) => a.at-b.at || a.id.localeCompare(b.id));
   const inbound = accepted.filter(e => e.direction === 'inbound');
-  const outgoing = accepted.filter(e => e.direction === 'business_outbound' && e.service_unavailability!==true);
+  const outgoing = accepted.filter(e => e.direction === 'business_outbound' && e.service_unavailability!==true && e.service_response_eligible!==false);
   const lastIn = inbound.at(-1), lastOut = outgoing.at(-1);
   let declined = false, possiblePurchase = false;
   // A new explicit interest bounds conversation purchase signals. An older

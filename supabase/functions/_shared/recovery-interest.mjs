@@ -40,7 +40,7 @@ export function classifyRecoveryInterest(text, catalog = recoveryCatalog()) {
   if (typeof text !== 'string' || !text.trim() || text.length > 4096)
     return {...base,reason:'unsupported_text'};
   const t = normalizeInterest(text);
-  if (/\b(?:pare de (?:me )?mandar|nao (?:me )?(?:mande|envie)|nao quero receber|nao quero (?:mais )?(?:mensagens|contato)|remov[ae] meu|sair da lista)\b/.test(t))
+  if (/^(?:parar|sair|stop)$/.test(t) || /\b(?:pare de (?:me )?mandar|nao (?:me )?(?:mande|envie)|nao quero receber|nao quero (?:mais )?(?:mensagens|contato)|remov[ae] meu|sair da lista)\b/.test(t))
     return {...base,intent:'opt_out',reason:'explicit_opt_out'};
   if (/\b(?:ja paguei|ja comprei|pagamento (?:feito|realizado)|pix (?:feito|enviado))\b/.test(t))
     return {...base,intent:'possible_purchase',reason:'purchase_statement_not_payment'};

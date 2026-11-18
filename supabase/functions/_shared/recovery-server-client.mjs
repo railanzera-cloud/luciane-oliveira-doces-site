@@ -3,7 +3,7 @@
 const tables=new Set(['crm_customers','crm_conversations','crm_whatsapp_message_events',
   'crm_tintim_message_events','tintim_order_links','orders','menu_availability',
   'store_settings','crm_follow_ups','tintim_conversations','crm_automation_settings']);
-const rpcs=new Set(['crm_recovery_store_observation','crm_recovery_read_observations','crm_recovery_purge_expired','crm_recovery_permission_evidence','crm_recovery_purchase_episode','crm_recovery_store_order_reference','crm_recovery_read_order_references','public_crocante_inventory']);
+const rpcs=new Set(['crm_recovery_store_observation','crm_recovery_read_observations','crm_recovery_purge_expired','crm_recovery_permission_evidence','crm_recovery_store_context_permission','crm_recovery_read_context_permission','crm_recovery_purchase_episode','crm_recovery_store_order_reference','crm_recovery_read_order_references','public_crocante_inventory']);
 const dueRpcs=new Set(['crm_recovery_claim_due','crm_recovery_finish_due','crm_recovery_read_due','crm_recovery_consume_scheduler_nonce']);
 const atom=value=>{const s=String(value);if(!/^[A-Za-z0-9_.:+-]+$/.test(s))throw Error('invalid_filter');return s;};
 /** @param {string} url @param {string} key @param {{fetchImpl?:typeof fetch,signal?:AbortSignal,allowDueRpc?:boolean}} options */

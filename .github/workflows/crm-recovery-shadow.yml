@@ -14,6 +14,10 @@ on:
       - 'supabase/migrations/*crm_recovery_purchase_episodes.sql'
       - 'supabase/migrations/*crm_recovery_official_order_references.sql'
       - 'supabase/migrations/*crm_recovery_site_purchase_episodes.sql'
+      - 'supabase/migrations/*crm_recovery_context_permissions.sql'
+      - 'tests/fixtures/recovery-postgres-client.mjs'
+      - 'tests/crm-recovery-context-permission-20261118.test.mjs'
+      - 'tests/crm-recovery-context-permission-postgres-20261118.test.mjs'
       - 'supabase/prepared/recovery-site-episodes-restore-functions.sql'
       - 'cloudflare/recovery-scheduler/**'
       - 'scripts/build-recovery-scheduler-dashboard.mjs'
@@ -56,6 +60,8 @@ jobs:
         run: >-
           node --test tests/crm-recovery-shadow-20261115.test.mjs
           tests/crm-recovery-snapshot-20261116.test.mjs
+          tests/crm-recovery-context-permission-20261118.test.mjs
+          tests/crm-recovery-context-permission-postgres-20261118.test.mjs
           tests/crm-recovery-purchase-signal-20261117.test.mjs
           tests/crm-recovery-order-reference-20261117.test.mjs
           tests/crm-recovery-order-reference-postgres-20261117.test.mjs

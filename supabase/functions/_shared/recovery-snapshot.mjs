@@ -8,6 +8,7 @@ import { inspectSignedRecoveryPurchaseSignals } from './recovery-purchase-signal
 import {inspectSignedRecoveryOrderReferences} from './recovery-order-reference.mjs';
 import {privateRecoveryOrderReferences} from './recovery-order-reference-store.mjs';
 import {classifyRecoverySitePurchaseEpisode} from './recovery-site-purchase-episode.mjs';
+import {inspectSignedContextPermission,privateContextPermissions} from './recovery-context-permission.mjs';
 const classifyInterest=text=>classifyRecoveryInterest(text).intent==='interest';
 
 const uuid = value => typeof value === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(value);
@@ -69,7 +70,7 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
     // Bounded recent episode, not a claim of complete lifetime chat history.
     // A first official message may predate server creation by milliseconds.
     // Its conversation FK and provider time are the evidence, not receipt time.
-    const since = new Date(rollout.order_references_enabled===true?clock-24*3600000:
+    const since = new Date(rollout.order_references_enabled===true||rollout.context_permission_enabled===true?clock-24*3600000:
       Math.max(Date.parse(c.created_at),clock-24*3600000)).toISOString();
     const dates = [['gte','occurred_at',since],['lte','occurred_at',now]];
     const [official,tintim,links,recentOrders,availability,settings,followups,stages,automation,recentPaidOrders] = await Promise.all([
@@ -95,6 +96,7 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
     if (automation.length !== 1) return failed('automation_settings_unavailable');
     const sourceProblems = [];
     const referenceStore=rollout.order_references_enabled===true?privateRecoveryOrderReferences(client):null;
+    const contextStore=rollout.context_permission_enabled===true?privateContextPermissions(client):null;
     const events = official.map(e => ({id:e.message_id,conversation_key:conversationId,
       direction:e.direction === 'app_echo' ? 'business_outbound' : e.direction,
       occurred_at:e.occurred_at,received_at:e.received_at,time_basis:'provider_timestamp',
@@ -137,6 +139,12 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
         else events.push({...e,conversation_key:conversationId});
       }
       if (!matchedIdentity) return failed('signed_observation_identity_mismatch');
+      if(contextStore) {
+        const inspected=await inspectSignedContextPermission(signedWebhook.raw,{
+          ...metaConfig,signature:signedWebhook.signature,receivedAt:now,expectedConversationKey:expected});
+        if(inspected.state!=='inspected')return failed('signed_observation_rejected');
+        for(const event of inspected.events)await contextStore.capture(conversationId,event);
+      }
       if(referenceStore) {
         const inspected=await inspectSignedRecoveryOrderReferences(signedWebhook.raw,{
           ...metaConfig,signature:signedWebhook.signature,receivedAt:now,expectedConversationKey:expected});
@@ -169,6 +177,14 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
           Object.assign(event,{content_origin:'private_semantic',semantic_interest:{...classifyRecoveryInterest(''),reason:'no_evidence'},service_unavailability:true});
         }
       }
+    }
+    const contextPermission=contextStore?await contextStore.read(conversationId):null;
+    for(const marker of contextPermission?.markers??[]) {
+      const event=events.find(e=>e.verified&&e.id===marker.message_id&&
+        e.direction===(marker.kind==='offer'?'business_outbound':'inbound')&&Date.parse(e.occurred_at)===Date.parse(marker.occurred_at));
+      if(!event)return failed('snapshot_source_unavailable_or_incomplete');
+      Object.assign(event,{content_origin:'private_semantic',semantic_interest:classifyRecoveryInterest('Combinado'),
+        ...(marker.kind==='offer'?{service_response_eligible:false}:{})});
     }
     const orderReferences=referenceStore?await referenceStore.read(conversationId):[];
     for(const r of orderReferences) {
@@ -248,7 +264,9 @@ export async function assembleRecoveryEvaluation(client,{conversationId,now,
     if (!['in_progress','waiting_customer'].includes(c.status)) return failed('conversation_not_active');
     const lastSent = followups.filter(f => ['sent','sent_manually'].includes(f.status) && Number.isFinite(Date.parse(f.sent_at)))
       .sort((a,b) => Date.parse(b.sent_at)-Date.parse(a.sent_at))[0]?.sent_at ?? null;
-    const permission=await recoveryPermission(client,customer,now);
+    const permission=await recoveryPermission(client,customer,now,contextPermission);
+    if(contextStore&&JSON.stringify(contextPermission)!==JSON.stringify(await contextStore.read(conversationId)))
+      return failed('snapshot_changed_during_read');
     const storeOpen=settings.length===1 && typeof settings[0].value==='boolean'?settings[0].value:null;
     const result = evaluateRecoveryShadow({now,events,orders:[...orders.values()],
       follow_up_minutes:automation[0].follow_up_minutes,

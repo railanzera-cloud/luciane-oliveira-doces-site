@@ -112,6 +112,7 @@ Deno.serve(async(req)=>{
           rollout:{channel_identity_verified:true,channel_verified_since:Deno.env.get("CRM_RECOVERY_CHANNEL_VERIFIED_SINCE"),
             order_references_enabled:Deno.env.get("CRM_RECOVERY_ORDER_REFERENCES_ENABLED")==="true",
             purchase_episodes_enabled:Deno.env.get("CRM_RECOVERY_EPISODES_ENABLED")==="true",
+            context_permission_enabled:Deno.env.get("CRM_RECOVERY_CONTEXT_PERMISSION_ENABLED")==="true",
             purchase_signals_enabled:Deno.env.get("CRM_RECOVERY_PURCHASE_SIGNALS_ENABLED")==="true",
             purchase_coverage_verified:false},
         });

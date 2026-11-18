@@ -511,3 +511,10 @@ Após autorização específica, candidato 8285000 instalado com backup fresco 1
 
 ### D-CRM-ANDAMENTO-SEM-GATILHO-20261118 — Atualização operacional suspende recuperação, sem confirmar pagamento
 Candidato usa frases completas de saída/retirada e macro de preparação apresentadas pelo proprietário como indícios conservadores de andamento. Somente app_echo oficial assinado; persistir projeção mínima de conciliação, sem corpo/valor. Não classificar imagem/impressão/aceitação de pedido como pagamento. Preservar interesse e delimitar sinal ao episódio; não suprimir recompra futura por atualização anterior. Sem novo SQL/flag/permissão; reversão restaura classificador sem apagar evidências. Ainda não instalado. Expiração anterior confirmada às 05h40, sem renovação.
+
+
+### 18/11/2026 — permissão contextual explícita, sem consentimento global artificial
+
+Para reduzir preenchimento manual, implementar captura de pergunta versionada da loja e resposta inequívoca do cliente vinculadas ao mesmo interesse atual. Consentimento não deriva de uma mensagem genérica, Pix, imagem, pedido criado ou janela técnica de atendimento. O ledger não modifica permissões globais; desistência/negativa prevalece. Aceite sem citação só serve quando a pergunta é a última saída oficial; citação exige ID conhecido. A pergunta não simula atendimento e o aceite não fabrica resposta da loja.
+
+Candidato isolado com flag OFF e controle privado inicialmente vazio, uma conversa e validade máxima de 24h, mantendo bloqueios de compra/estoque/horário. SQL e snapshot precisam ser instalados juntos, sem liberar o sender. Reconhecimento via app_echo não comprova envio pela Cloud API. Pergunta/ack automáticos, consumo atômico, finalidade no envio e opt-out global durável exigem implementação/validação posterior. Texto é rascunho para revisão, sem mensagem enviada. Reversão desliga concessões por escopo/flag, preservando negativas e retenção. Não renovar o piloto vencido ou repetir homologações de produto/timer para demonstrar este candidato.
