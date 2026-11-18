@@ -2,7 +2,7 @@ import { deliveryLocalityById, deliveryLegacyReviewState, deliveryLegacySpecific
 import { promotionalPopcornPriceCents } from "./popcorn-promotion.mjs";
 // Snapshot comercial autoritativo do backend. Valores em centavos evitam ponto flutuante.
 // Ao alterar o catálogo público, os testes de paridade devem ser atualizados na mesma versão.
-export const CATALOG_VERSION = "2026-11-14.cascaos-folheado-bueno-nutella";
+export const CATALOG_VERSION = "2026-11-18.gourmet-ovomaltine-cookies-leite";
 import { DRINKS } from "./drinks-catalog.mjs";
 import { TRUFADAS_VARIANTS, getTrufadaVariant } from "./trufadas-variants.mjs";
 
@@ -31,10 +31,10 @@ export const POPCORN_PRICES_CENTS = Object.freeze({
 export const POPCORN_FLAVORS = Object.freeze({
   leitinho: Object.freeze({ id: "leitinho", itemKey: "popcorn_flavor_leitinho", name: "Leitinho", pricingGroup: 1 }),
   "choco-nute": Object.freeze({ id: "choco-nute", itemKey: "popcorn_flavor_choco_nute", name: "Choco Nute", pricingGroup: 1 }),
-  ovomaltine: Object.freeze({ id: "ovomaltine", itemKey: "popcorn_flavor_ovomaltine", name: "Ovomaltine", pricingGroup: 1 }),
+  "choco-cookies-leite": Object.freeze({ id: "choco-cookies-leite", itemKey: "popcorn_flavor_choco_cookies_leite", name: "Choco Cookies ao Leite", pricingGroup: 1 }),
+  ovomaltine: Object.freeze({ id: "ovomaltine", itemKey: "popcorn_flavor_ovomaltine", name: "Ovomaltine", pricingGroup: 2 }),
   "kinder-bueno": Object.freeze({ id: "kinder-bueno", itemKey: "popcorn_flavor_kinder_bueno", name: "Kinder Bueno", pricingGroup: 2 }),
   "choco-cookies-branco": Object.freeze({ id: "choco-cookies-branco", itemKey: "popcorn_flavor_choco_cookies_branco", name: "Choco Cookies Branco", pricingGroup: 2 }),
-  "choco-cookies-leite": Object.freeze({ id: "choco-cookies-leite", itemKey: "popcorn_flavor_choco_cookies_leite", name: "Choco Cookies ao Leite", pricingGroup: 2 }),
   "kinder-bueno-crisp": Object.freeze({ id: "kinder-bueno-crisp", itemKey: "popcorn_flavor_kinder_bueno_crisp", name: "Crispy Bueno", pricingGroup: 3 }),
   nutella: Object.freeze({ id: "nutella", itemKey: "popcorn_flavor_nutella", name: "Nutella", pricingGroup: 3 }),
 });
