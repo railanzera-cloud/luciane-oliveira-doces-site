@@ -244,7 +244,7 @@ export const PRODUCTS: Product[] = [
     id: "fatia-ninho-morango",
     kind: "slice",
     category: "Fatias Artesanais",
-    name: "Brigadeiro Branco com Morango",
+    name: "Ninho com Morango",
     image: "/fatia-ninho-morango.jpeg",
     cardImage: "/fatia-ninho-morango-card.webp",
     imageAlt: "Fatia artesanal de Ninho com morango em massa branca",
