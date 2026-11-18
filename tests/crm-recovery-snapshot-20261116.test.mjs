@@ -176,7 +176,11 @@ test('an older site order paid during the episode suppresses recovery',async()=>
  const r=await assemble(db(tables),options());assert.equal(r.classification,'suppressed');assert.deepEqual(r.blockers,['paid_order']);
 });
 
-test('gated signed shop confirmation persists semantics and blocks timer recovery without losing product',async()=>{
+for(const [label,macro] of [
+ ['confirmation','Pedido confirmado ✅\nValor dos produtos: R$27,50\nEste valor corresponde somente aos produtos.\nObrigada pela preferência 😊'],
+ ['dispatch','Já saiu'],['collection','Já pode fazer a retirada'],
+ ['preparation','Recebemos o seu pedido!\nAgora é só aguardar. Nosso tempo de preparação é de aproximadamente 15 a 20 minutos. Em breve, seu pedido estará prontinho para chegar até você!'],
+]) test('gated signed shop '+label+' persists and blocks timer without losing product or future interest',async()=>{
  const tables=fixture(),client=db(tables),saved=new Map();
  const permissionRpc=client.rpc;
  client.rpc=async(name,p)=>{
@@ -191,7 +195,6 @@ test('gated signed shop confirmation persists semantics and blocks timer recover
  const store=privateRecoveryObservations(client);
  const opts={...options(),observationStore:store,rollout:{...options().rollout,purchase_signals_enabled:true}};
  await assemble(client,opts);
- const macro='Pedido confirmado ✅\nValor dos produtos: R$27,50\nEste valor corresponde somente aos produtos.\nObrigada pela preferência 😊';
  const raw=JSON.stringify({object:'whatsapp_business_account',entry:[{id:'101',changes:[{
   field:'smb_message_echoes',value:{metadata:{phone_number_id:'202'},message_echoes:[{
    id:'wamid.synthetic_out',to:customerPhone,timestamp:String(Date.parse(time('13:05'))/1000),type:'text',text:{body:macro},
@@ -205,6 +208,7 @@ test('gated signed shop confirmation persists semantics and blocks timer recover
  assert.equal(saved.size,2);assert.equal(saved.get('wamid.synthetic_out').semantic.intent,'possible_purchase');
  assert.ok(!JSON.stringify([...saved.values()]).includes('27,50'));
  assert.ok(!JSON.stringify([...saved.values()]).includes('Pedido confirmado'));
+ assert.ok(!JSON.stringify([...saved.values()]).includes(macro));
  r=await assemble(client,{...opts,signedWebhook:null});
  assert.equal(r.journey_state,'purchase_reconciliation');assert.equal(r.send_authorized,false);
  // Rollback flag prevents both new captures and use of saved store signals.

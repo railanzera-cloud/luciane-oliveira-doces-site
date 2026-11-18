@@ -197,3 +197,14 @@ Estado: 51 testes locais aprovados; candidato não instalado. Sem frontend/ZIP n
 
 ### Status do contrato de compra do site por episódio — 18/11/2026, 04h35
 Instalado somente em sombra, sob janela finita do telefone original, após autorização específica. Quatro corpos SQL e bundles completos conferidos, ACLs anteriores preservadas e helper privado sem acesso direto da API; nenhum novo WARN/ERROR. Reavaliação real 04h35 consistente/fresca/blocked, zero tentativas. Regra de compra anterior validada em PostgreSQL, ainda sem caso produtivo legítimo no piloto. Expiração 05h02:34; reversão: escopo SQL OFF e flag OFF. Nenhuma mutação financeira, frontend/Pages ou ampliação de contato.
+
+
+### Contrato candidato — andamento sem gatilho, 18/11/2026
+| Superfície | Mudança | Limite |
+|---|---|---|
+| Classificador de sinais | Frases completas de saída/retirada e macro exata de preparação | Só revisão; nunca pagamento, receita ou envio |
+| Ingresso oficial | Mesmo HMAC/escopo/direção/horário original | Pergunta, terceiro, mídia, citação e encaminhamento não promovidos |
+| Semântica privada/timer | Mesmo marcador de conciliação e regras de episódio | Produto preservado; sinal antigo não bloqueia interesse novo |
+| Operação/financeiro | Nenhuma escrita/novo contrato | Sem SQL, consentimento artificial, Meta/Tintim ou novas demandas manuais |
+| Reversão | Restaurar classificador anterior nos dois bundles | Preservar registros e bloqueios já capturados |
+69 testes locais direcionados aprovados; candidato não instalado. Sem novo corte/renovação de escopo nesta rodada.

@@ -24,9 +24,20 @@ export function classifyRecoveryPurchaseSignal(text, direction) {
       basis = 'business_payment_statement';
     if (/^seu pedido (?:ja )?(?:foi )?(?:entregue|retirado|finalizado)(?:[,.]? obrigad[oa])?$/.test(t))
       basis = 'business_fulfillment_statement';
+    // Exact operational statements observed in the shop. These only ADD a
+    // review hold; neither dispatch nor readiness proves receipt of money.
+    if (/^(?:ja saiu|ja pode fazer a retirada)$/.test(t) || isStorePreparationUpdate(text))
+      basis = 'business_fulfillment_statement';
   }
   return basis ? {...base,detected:true,basis,
     blocker:'purchase_or_order_requires_reconciliation'} : base;
+}
+
+function isStorePreparationUpdate(text) {
+  const t=text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
+    .replace(/\s+/g,' ').trim();
+  const m=t.match(/^recebemos o seu pedido!\s+agora e so aguardar\. nosso tempo de preparacao e de aproximadamente ([1-9]\d?) a ([1-9]\d?) minutos\. em breve, seu pedido estara prontinho para chegar ate voce!$/);
+  return !!m && Number(m[1])<=Number(m[2]);
 }
 
 export function isKnownServiceUnavailability(text) {

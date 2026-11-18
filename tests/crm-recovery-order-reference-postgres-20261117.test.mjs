@@ -87,6 +87,22 @@ test('real PostgreSQL + signed webhook -> candidate reference -> periodic read, 
  const expires=refs[0].expires_at;
  assert.equal((await client.rpc('crm_recovery_store_order_reference',{p_conversation_id:cid,p_message_id:'wamid.synthetic_order',p_occurred_at:at,p_order_number:70001})).data,'duplicate');
  assert.equal(new Date((await db.query('select expires_at from crm_recovery_private.order_references')).rows[0].expires_at).getTime(),new Date(expires).getTime());
+ // A real scoped app_echo operational statement persists only a semantic hold.
+ // No confirmation macro, amount, bank receipt or financial write is required.
+ const echoRaw=JSON.stringify({object:'whatsapp_business_account',entry:[{id:'101',changes:[{
+  field:'smb_message_echoes',value:{metadata:{phone_number_id:'202'},message_echoes:[{
+   id:'wamid.synthetic_reply',to:phone,timestamp:String(Date.parse(out)/1000),type:'text',text:{body:'Já pode fazer a retirada'},
+  }]},
+ }]}]});
+ const closingOpts={...opts,rollout:{...opts.rollout,purchase_signals_enabled:true},signedWebhook:{raw:echoRaw,
+  signature:'sha256='+createHmac('sha256',secret).update(echoRaw).digest('hex')}};
+ await assemble(client,closingOpts);
+ const closing=(await db.query("select semantic from crm_recovery_private.observations where message_id='wamid.synthetic_reply'")).rows[0]?.semantic;
+ assert.equal(closing?.intent,'possible_purchase');assert.ok(!JSON.stringify(closing).includes('retirada'));
+ const afterClosing=await assemble(client,{...closingOpts,signedWebhook:null});
+ assert.ok(afterClosing.blockers.includes('purchase_or_order_requires_reconciliation'));
+ assert.equal(afterClosing.send_authorized,false);
+ assert.equal((await db.query('select payment_status from orders where id=$1',[oid])).rows[0].payment_status,'pending');
  // A paid order with only a candidate association never becomes confirmed payment for this contact.
  await db.query("update orders set payment_status='paid',paid_at=now(),updated_at=now() where id=$1",[oid]);
  const periodic=await assemble(client,{...opts,now:new Date().toISOString(),signedWebhook:null});

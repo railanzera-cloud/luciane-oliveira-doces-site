@@ -102,3 +102,37 @@ test('known out-of-hours greeting is not a purchase or a substantive store respo
  assert.equal(isKnownServiceUnavailability('Posso separar sua fatia para amanhã?'),false);
  assert.equal(isKnownServiceUnavailability(greeting+' Recebi seu Pix'),false);
 });
+
+const preparation='Recebemos o seu pedido!\nAgora é só aguardar. Nosso tempo de preparação é de aproximadamente 15 a 20 minutos. Em breve, seu pedido estará prontinho para chegar até você!';
+test('actual dispatch, collection and preparation phrases require review without confirming payment',async()=>{
+ for(const text of ['Já saiu','Já pode fazer a retirada',preparation]) {
+  const r=await run(payload(text));assert.equal(r.signals.length,1,text);
+  assert.equal(r.signals[0].basis,'business_fulfillment_statement');
+  assert.equal(r.signals[0].blocker,'purchase_or_order_requires_reconciliation');
+  assert.equal(r.signals[0].payment_confirmed,false);assert.equal(r.send_authorized,false);
+  assert.equal(r.purchase_coverage_verified,false);
+  assert.ok(!JSON.stringify(r).includes(text));
+  assert.equal(classify(text,'inbound').detected,false);
+ }
+});
+test('operational signal grammar rejects questions, future promises, quotes and generic order acceptance',async()=>{
+ for(const text of ['Já saiu?','Ainda não saiu','O novo sabor já saiu','Se já saiu, avise',
+  'Já saiu, mas falta pagar','Já pode fazer a retirada?','Ainda não pode fazer a retirada',
+  'Vai poder fazer a retirada','"Já saiu"','Já saiu https://example.test',
+  'Pedido confirmado','Recebemos seu pedido. Aguardando o comprovante para finalizar sua compra.',
+  'Recebemos seu pedido 💛 Agora é só deixar com a gente.',preparation+' Aguardando pagamento',
+  preparation.replace('15 a 20','20 a 15'),preparation.replace('15 a 20','0 a 20')])
+  assert.equal((await run(payload(text))).signals.length,0,text);
+});
+test('new fulfillment phrases still reject foreign, quoted, forwarded and media envelopes',async()=>{
+ for(const kind of ['foreign','quoted','forwarded','image','duplicate','bad_signature']) {
+  const p=payload('Já pode fazer a retirada'),list=p.entry[0].changes[0].value.message_echoes,m=list[0];
+  if(kind==='foreign')m.to=foreign;
+  if(kind==='quoted')m.context={id:'wamid.synthetic_quote'};
+  if(kind==='forwarded')m.context={forwarded:true};
+  if(kind==='image')m.type='image';
+  if(kind==='duplicate')list.push({...m});
+  const r=await run(p,kind==='bad_signature'?{signature:'sha256='+'0'.repeat(64)}:{});
+  assert.equal(r.signals.length,0,kind);assert.equal(r.payment_confirmed,false);
+ }
+});

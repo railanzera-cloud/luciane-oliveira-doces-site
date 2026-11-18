@@ -507,3 +507,7 @@ Candidato distingue pedido pago e concluído já conhecido antes de interesse of
 
 ### 18/11/2026 — Corte de compra anterior do site instalado em sombra
 Após autorização específica, candidato 8285000 instalado com backup fresco 18f9f7f, flag/escopo OFF, SQL/ACL/bundles conferidos e janela única de 04h32:34 a 05h02:34. Webhook v32/reavaliação v20 ACTIVE. Cron real 04h35 produziu decisão fresca e consistente, blocked e sem envio, sem nova mensagem. Não há pedido pago do site correspondente no piloto para declarar a regra de recompra homologada com venda real. A expiração restaura guardas anteriores e não deve ser renovada automaticamente. Detalhes, hashes e limites no checkpoint/documento de conciliação.
+
+
+### D-CRM-ANDAMENTO-SEM-GATILHO-20261118 — Atualização operacional suspende recuperação, sem confirmar pagamento
+Candidato usa frases completas de saída/retirada e macro de preparação apresentadas pelo proprietário como indícios conservadores de andamento. Somente app_echo oficial assinado; persistir projeção mínima de conciliação, sem corpo/valor. Não classificar imagem/impressão/aceitação de pedido como pagamento. Preservar interesse e delimitar sinal ao episódio; não suprimir recompra futura por atualização anterior. Sem novo SQL/flag/permissão; reversão restaura classificador sem apagar evidências. Ainda não instalado. Expiração anterior confirmada às 05h40, sem renovação.
