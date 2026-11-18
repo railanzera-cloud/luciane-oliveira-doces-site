@@ -128,7 +128,7 @@ CREATE FUNCTION crm_recovery_private.reserve_context_permission(p_follow_up_id u
  p_expected_revision text,p_purpose text,p_content_digest text)
 RETURNS jsonb LANGUAGE plpgsql SET search_path='' AS $$
 DECLARE v_cid uuid;v_follow public.crm_follow_ups;v_due crm_recovery_private.due_checks;
- v_offer crm_recovery_private.context_permission_events;v_permission jsonb;v_revision text;v_id uuid;v_until timestamptz;
+ v_offer crm_recovery_private.context_permission_events;v_permission jsonb;v_revision text;v_id uuid;v_until timestamptz;v_clock timestamptz;
 BEGIN
  IF p_follow_up_id IS NULL OR p_offer_message_id IS NULL
   OR p_offer_message_id!~'^wamid\.[A-Za-z0-9=+/_-]+$' OR length(p_offer_message_id) NOT BETWEEN 9 AND 296
@@ -142,7 +142,7 @@ BEGIN
  PERFORM pg_advisory_xact_lock(hashtextextended(v_cid::text,20261119));
  SELECT * INTO v_follow FROM public.crm_follow_ups WHERE id=p_follow_up_id FOR UPDATE;
  IF NOT FOUND OR v_follow.conversation_id IS DISTINCT FROM v_cid OR v_follow.status<>'pending' OR v_follow.sent_at IS NOT NULL
-  OR v_follow.due_at>now() OR v_follow.due_at<=now()-interval '24 hours'
+  OR v_follow.due_at>clock_timestamp() OR v_follow.due_at<=clock_timestamp()-interval '24 hours'
  THEN RETURN jsonb_build_object('state','unavailable','send_authorized',false); END IF;
  -- A duplicate never returns an existing token, even with identical arguments.
  IF EXISTS(SELECT 1 FROM crm_recovery_private.context_permission_uses u WHERE u.follow_up_id=p_follow_up_id)
@@ -159,17 +159,23 @@ BEGIN
  THEN RETURN jsonb_build_object('state','permission_unavailable','send_authorized',false); END IF;
  SELECT * INTO v_due FROM crm_recovery_private.due_checks d WHERE d.follow_up_id=p_follow_up_id FOR UPDATE;
  v_revision:=crm_recovery_private.source_revision(p_follow_up_id);
+ -- now() is transaction-start time: a lock wait must not keep a decision or
+ -- scope artificially fresh. Recheck actual database time after waiting.
+ v_clock:=clock_timestamp();
  IF NOT FOUND OR v_due.conversation_id IS DISTINCT FROM v_cid OR v_due.classification IS DISTINCT FROM 'shadow_candidate'
   OR cardinality(v_due.blockers) IS DISTINCT FROM 0 OR v_due.send_authorized IS DISTINCT FROM false
-  OR v_due.lease_token IS NOT NULL OR v_due.lease_until IS NOT NULL OR v_due.expires_at<=now()
-  OR v_due.evaluated_at IS NULL OR v_due.evaluated_at>now() OR v_due.valid_until IS NULL OR v_due.valid_until<=now()
+  OR v_due.lease_token IS NOT NULL OR v_due.lease_until IS NOT NULL OR v_due.expires_at<=v_clock
+  OR v_due.evaluated_at IS NULL OR v_due.evaluated_at>v_clock OR v_due.valid_until IS NULL OR v_due.valid_until<=v_clock
   OR v_due.decision_revision IS DISTINCT FROM p_expected_revision OR v_revision IS DISTINCT FROM p_expected_revision
  THEN RETURN jsonb_build_object('state','decision_unavailable','send_authorized',false); END IF;
- v_until:=least(now()+interval '60 seconds',v_due.valid_until,(v_permission->>'valid_until')::timestamptz);
- IF v_until<=now() THEN RETURN jsonb_build_object('state','permission_unavailable','send_authorized',false); END IF;
+ IF NOT EXISTS(SELECT 1 FROM crm_recovery_private.context_permission_scope s WHERE s.conversation_id=v_cid
+  AND s.enabled AND s.enabled_at<=v_clock AND s.expires_at>v_clock)
+ THEN RETURN jsonb_build_object('state','permission_unavailable','send_authorized',false); END IF;
+ v_until:=least(v_clock+interval '60 seconds',v_due.valid_until,(v_permission->>'valid_until')::timestamptz);
+ IF v_until<=v_clock THEN RETURN jsonb_build_object('state','permission_unavailable','send_authorized',false); END IF;
  INSERT INTO crm_recovery_private.context_permission_uses(conversation_id,anchor_message_id,offer_message_id,
-  follow_up_id,purpose,content_digest,source_revision,valid_until)
- VALUES(v_cid,v_offer.anchor_message_id,v_offer.message_id,p_follow_up_id,p_purpose,p_content_digest,p_expected_revision,v_until)
+  follow_up_id,purpose,content_digest,source_revision,reserved_at,valid_until)
+ VALUES(v_cid,v_offer.anchor_message_id,v_offer.message_id,p_follow_up_id,p_purpose,p_content_digest,p_expected_revision,v_clock,v_until)
  ON CONFLICT DO NOTHING RETURNING id INTO v_id;
  IF v_id IS NULL THEN RETURN jsonb_build_object('state','already_reserved','send_authorized',false); END IF;
  RETURN jsonb_build_object('state','reserved','reservation_id',v_id,'valid_until',v_until,'send_authorized',false);

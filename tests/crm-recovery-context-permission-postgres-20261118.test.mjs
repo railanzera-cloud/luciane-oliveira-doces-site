@@ -75,6 +75,9 @@ test('real signed permission protocol, private ledger, periodic snapshot, SQL gu
   assert.equal((await reserve()).state,expected);await db.exec('ROLLBACK TO use_case');
  }
  await deniedWith("update crm_recovery_private.due_checks set valid_until=now()-interval '1 second'");
+ // Expired in real DB time but newer than this open transaction's now().
+ await new Promise(resolve=>setTimeout(resolve,20));
+ await deniedWith("update crm_recovery_private.due_checks set valid_until=clock_timestamp()-interval '1 millisecond'");
  await deniedWith("update crm_recovery_private.due_checks set lease_token=gen_random_uuid(),lease_until=now()+interval '1 minute'");
  await deniedWith("update crm_recovery_private.due_checks set classification='blocked',blockers=ARRAY['order_check_incomplete']");
  await deniedWith("update store_settings set value='false' where key='orders_open'");
