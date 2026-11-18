@@ -18,8 +18,8 @@ test("nomes univocos de anuncios permitem sugestoes sem afirmar interesse",()=>{
  ["NOVO| MARACUJÁ | VENDAS | PGM","Chocolate com Maracujá"],
  ["Chocolate com morango VIDEO NOVO","Chocolate com Morango"],
  ["VENDAS | CHOCOLATE COM CENOURA","Chocolate com Cenoura"],
- ["VENDA DE NINHO COM MORANGO","Brigadeiro Branco com Morango"],
- ["BRIGADEIRO BRANCO COM MORANGO","Brigadeiro Branco com Morango"],
+ ["VENDA DE NINHO COM MORANGO","Ninho com Morango"],
+ ["BRIGADEIRO BRANCO COM MORANGO","Ninho com Morango"],
  ["FATIA COCO CREMOSO COM MORANGO","Geleia de Morango com Coco Cremoso"],
  ["GELEIA DE MORANGO COM COCO CREMOSO","Geleia de Morango com Coco Cremoso"]
  ];
