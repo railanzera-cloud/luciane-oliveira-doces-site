@@ -1,5 +1,18 @@
 # Checkpoint Vivo — Site Comercial Luciane Oliveira Doces
 
+
+## Atualização candidata — 18/11/2026, faixas de Pipocas Gourmet (sem deploy)
+
+- **Demanda:** trocar grupos de Ovomaltine (1→2) e Choco Cookies ao Leite/chocolate (2→1), preservando Branco, Leitinho, Choco Nute, Nutella, demais SKUs e as três tabelas de preços dos potes.
+- **Base selecionada:** PR #68 `refine/checkout-clareza-carrinho-20261116` @ `222797e89eabb513ba14790be52ee6ad169830f4` (inclui PR #66 de cozinha). PR #67 CRM não mesclado e permanece paralelo.
+- **Branch candidata:** `fix/gourmet-troca-ovomaltine-cookies-leite-20261118`; alteração do catálogo público e da validação autoritativa `commerce-catalog.mjs` (versão `2026-11-18.gourmet-ovomaltine-cookies-leite`), com testes atualizados e suíte específica.
+- **Estado:** **desenvolvido em branch, não publicado**. Não houve Supabase SQL/Edge deploy, Cloudflare ZIP/upload, mudança de disponibilidade ou merge. A CI desta branch deverá ser verificada no PR associado; não inferir produção da suíte verde.
+- **Banco comercial observado (18/11):** `category_pipocas=available`; sabores consultados (inclusive os dois alterados) e `popcorn_size_500ml=sold_out`. Preservar estados existentes.
+- **Risco:** catálogo do browser e Edge de pedido devem ser promovidos juntos após autorização, evitando divergência de preço. Conferir mídias e ZIP-base do PR #68, todos os tamanhos/combinações, ambos os domínios e rollback coordenado. Detalhes em [ALTERACAO-FAIXAS-GOURMET-20261118.md](ALTERACAO-FAIXAS-GOURMET-20261118.md).
+
+---
+
+
 **Fotografia inicial:** 05/11/2026 · `America/Belem` · **não é declaração de produção nem de identidade do deployment**.  
 **Papel:** o ponto de retomada eficiente para site, admin, UX, catálogo, checkout, estoque, cozinha, CRM e publicação. Atualizar com o próximo incremento real **sem reescrever o histórico**.
 
