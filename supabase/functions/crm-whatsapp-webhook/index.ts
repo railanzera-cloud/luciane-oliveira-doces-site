@@ -1,19 +1,21 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { extractOfficialMessageEvents } from "./core.mjs";
 import { extractOfficialStatusEvents } from "./status-core.mjs";
+import { observeRecoveryIngress } from "../_shared/recovery-ingress.mjs";
+import { createRecoveryServerClient } from "../_shared/recovery-server-client.mjs";
 
 // NAO ativar no Meta antes de validar WABA, Coexistence e evento real.
 // Segredos somente no ambiente da Edge Function.
-const answer=(status,body)=>new Response(typeof body==="string"?body:JSON.stringify(body),{
+const answer=(status:number,body:unknown)=>new Response(typeof body==="string"?body:JSON.stringify(body),{
   status,headers:{"content-type":typeof body==="string"?"text/plain; charset=utf-8":"application/json; charset=utf-8","cache-control":"no-store"}
 });
-const safeEqual=(a,b)=>{
+const safeEqual=(a:unknown,b:unknown)=>{
   if (typeof a!=="string" || typeof b!=="string" || a.length!==b.length) return false;
   let equal=0;for(let i=0;i<a.length;i++)equal|=a.charCodeAt(i)^b.charCodeAt(i);
   return equal===0;
 };
-async function validSignature(raw,provided,secret) {
-  if (!secret || !/^sha256=[a-fA-F0-9]{64}$/.test(provided||"")) return false;
+async function validSignature(raw:string,provided:string|null,secret:string) {
+  if (!secret || typeof provided!=="string" || !/^sha256=[a-fA-F0-9]{64}$/.test(provided)) return false;
   const cryptoKey=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
   const data=await crypto.subtle.sign("HMAC",cryptoKey,new TextEncoder().encode(raw));
   const digest=Array.from(new Uint8Array(data),v=>v.toString(16).padStart(2,"0")).join("");
@@ -49,7 +51,7 @@ Deno.serve(async(req)=>{
   let payload;
   try{payload=JSON.parse(raw);}catch{return answer(400,{ok:false,error:"invalid_json"});}
   if(payload?.object!=="whatsapp_business_account")return answer(200,{ok:true,ignored:"not_waba"});
-  const allowedEntries=Array.isArray(payload?.entry)?payload.entry.filter(x=>String(x?.id)==businessId):[];
+  const allowedEntries=Array.isArray(payload?.entry)?payload.entry.filter((x:{id?:unknown})=>String(x?.id)==businessId):[];
   const validatedPayload={...payload,entry:allowedEntries};
   const events=extractOfficialMessageEvents(validatedPayload,phoneId);
   const statusEvents=extractOfficialStatusEvents(validatedPayload,phoneId,businessId);
@@ -91,6 +93,34 @@ Deno.serve(async(req)=>{
     }catch{return answer(503,{ok:false,error:"temporary_storage_failure",processed,statusProcessed});}
     if(!res.ok)return answer(503,{ok:false,error:"temporary_storage_failure",processed,statusProcessed});
     statusProcessed++;
+  }
+  // Candidate code only: OFF unless an explicitly reviewed rollout config enables
+  // it. Core ingestion above remains the source of HTTP acknowledgement/retries.
+  if (Deno.env.get("CRM_RECOVERY_SHADOW_ENABLED")==="true" &&
+      Deno.env.get("CRM_RECOVERY_RETENTION_READY")==="true" &&
+      typeof EdgeRuntime!=="undefined" && typeof EdgeRuntime.waitUntil==="function") {
+    try { EdgeRuntime.waitUntil((async()=>{
+      const controller=new AbortController();
+      const timer=setTimeout(()=>controller.abort(),25000);
+      try {
+        const client=createRecoveryServerClient(projectUrl,serviceKey,{signal:controller.signal});
+        const summary=await observeRecoveryIngress(client,{
+          raw,signature:req.headers.get("x-hub-signature-256"),now:new Date().toISOString(),
+          metaConfig:{appSecret,phoneNumberId:phoneId,wabaId:businessId},
+          enabled:true,retentionReady:true,
+          authorizedPhones:(Deno.env.get("CRM_RECOVERY_AUTHORIZED_PHONES")??"").split(",").map(p=>p.trim()).filter(p=>/^55[0-9]{10,11}$/.test(p)),
+          rollout:{channel_identity_verified:true,channel_verified_since:Deno.env.get("CRM_RECOVERY_CHANNEL_VERIFIED_SINCE"),
+            order_references_enabled:Deno.env.get("CRM_RECOVERY_ORDER_REFERENCES_ENABLED")==="true",
+            purchase_episodes_enabled:Deno.env.get("CRM_RECOVERY_EPISODES_ENABLED")==="true",
+            context_permission_enabled:Deno.env.get("CRM_RECOVERY_CONTEXT_PERMISSION_ENABLED")==="true",
+            purchase_signals_enabled:Deno.env.get("CRM_RECOVERY_PURCHASE_SIGNALS_ENABLED")==="true",
+            purchase_coverage_verified:false},
+        });
+        // Summary has no phone, conversation ID, message text or credentials.
+        console.info("recovery_shadow",JSON.stringify(summary));
+      } catch {console.warn("recovery_shadow_unavailable");}
+      finally {clearTimeout(timer);controller.abort();}
+    })()); } catch {console.warn("recovery_shadow_schedule_unavailable");}
   }
   return answer(200,{ok:true,processed,statusProcessed});
 });

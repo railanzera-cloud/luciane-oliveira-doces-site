@@ -481,3 +481,54 @@ Sabor **Dois Amores** é retirado da vitrine de Cascões sem reatribuir/deletar 
 
 ### D-C57 (14/11/2026) — Correspondência avançada manual do Pixel
 Proprietário autorizou correspondência avançada manual com Pixel 1491655855979140: nome no checkout WhatsApp; nome/telefone/e-mail somente no checkout site quando legitimamente informados, com normalização e atualizações de init sem eventos novos. Tintim, CAPI, Pixel PageView inicial e funil existente intocados. Proprietário determinou preservar literalmente o aviso "Usaremos seus dados somente para processar e acompanhar este pedido.". A conformidade desta redação com compartilhamento publicitário segue pendente de análise independente, mesmo com autorização interna alegada. O diagnóstico Meta só se encerra com evidência real na plataforma.
+
+
+### 16/11/2026 — Substituir apenas o relógio da reavaliação
+
+Escolhido Worker Cron candidato em lugar de insistir no hardening individual de pg_net, indisponível conforme KB oficial. Corrigida recomendação anterior de suporte. Preservar processamento comercial, fila privada, leases e webhook homologado. Worker sem service_role e sem contatos, comando fixo assinado HMAC, gateway JWT mantido e replay bloqueado no banco; flags OFF e cron vazio versionados. Implantação e mudança de autenticação requerem autorização específica após apresentação dos testes e reversão. Detalhes: docs/CRM-RECOVERY-CLOUDFLARE-SCHEDULER.md.
+
+
+### D-CRM-EPISODIO-20261117 — Recompra por episódio verificável, candidato
+
+Adotado no candidato: compra histórica não é supressão vitalícia. A distinção exige novo interesse oficial, identidade coerente, prova anterior de conhecimento e escopo privado único/finito; recebimento tardio permanece ambíguo. Seis guardas compartilham predicado e a revisão inclui recibos para invalidar leases. Sem confirmação financeira ou permissão implícita. Instalação pendente; escopo inicia vazio e flag nova OFF. Reversão desabilita escopo SQL e flag, sem reabrir históricos. Não trocar a etapa Tintim, exigir novo trabalho manual por conversa ou usar last_observed_at como data da venda. Especificação e validação em docs/CRM-PURCHASE-RECONCILIATION-20261117.md.
+
+
+### D-CRM-REFERENCIA-OFICIAL-20261117 — Associação candidata, sem credencial por número público
+
+Adotado no candidato: aproveitar o cabeçalho já enviado pelo cliente pelo canal oficial, mantendo a associação como candidata e preservando dúvidas para o timer. Número sequencial não confirma propriedade; pedido marcado paid não basta para atribuí-lo a esse contato. Não restaurar tracking_token na mensagem nem mudar checkout para facilitar o teste. Captura usa HMAC/identidade de canal/ID/direção/horário original e observação privada, com RLS e janela de leitura. Primeira mensagem pode preceder o registro da conversa; created_at do servidor não substitui o horário do cliente. Flag OFF por padrão; nenhum envio/pagamento/consentimento ou implantação implícita. Detalhes em docs/CRM-PURCHASE-RECONCILIATION-20261117.md.
+
+### 17/11/2026 — Corte de referências oficiais aplicado e timer comprovado
+O candidato b2f2f2c foi instalado no piloto original após CI completa e backup 6483068. Fonte privada nova foi lida no cron real de 22h40 sem mensagem nova; permaneceu blocked, sem tentativas/envios. Associação por número continua candidata, mesmo para pedido paid. Duas RPCs novas só service_role, RLS sem leitura direta; flag de captura reversível preserva expurgo/retenção. Não renovar automaticamente o escopo de episódios que expira 23h11:29. Captura de referência produtiva ainda depende de ocorrência real posterior; não fabricar conversa/pedido para demonstrá-la. Detalhes e hashes no checkpoint e documento de conciliação.
+
+
+### D-CRM-COMPRA-SITE-EPISODIO-20261118 — Histórico pago e concluído não é compra do interesse novo
+
+Candidato distingue pedido pago e concluído já conhecido antes de interesse oficial novo, somente com telefone exato, cronologia íntegra e escopo único/finito. Registros tardios/ambíguos, referências candidatas e pedidos em andamento continuam bloqueando. Coordenar snapshot, fila, preflight e revisão de fontes; created_at também invalida lease. Flag OFF mais escopo SQL desabilitado revertem a exceção. Não confirmar Pix por imagem/impressão nem liberar por ausência de gatilho. Migração/código não instalados; produção anterior preservada. Critérios, provas e reversão em docs/CRM-PURCHASE-RECONCILIATION-20261117.md.
+
+### 18/11/2026 — Corte de compra anterior do site instalado em sombra
+Após autorização específica, candidato 8285000 instalado com backup fresco 18f9f7f, flag/escopo OFF, SQL/ACL/bundles conferidos e janela única de 04h32:34 a 05h02:34. Webhook v32/reavaliação v20 ACTIVE. Cron real 04h35 produziu decisão fresca e consistente, blocked e sem envio, sem nova mensagem. Não há pedido pago do site correspondente no piloto para declarar a regra de recompra homologada com venda real. A expiração restaura guardas anteriores e não deve ser renovada automaticamente. Detalhes, hashes e limites no checkpoint/documento de conciliação.
+
+
+### D-CRM-ANDAMENTO-SEM-GATILHO-20261118 — Atualização operacional suspende recuperação, sem confirmar pagamento
+Candidato usa frases completas de saída/retirada e macro de preparação apresentadas pelo proprietário como indícios conservadores de andamento. Somente app_echo oficial assinado; persistir projeção mínima de conciliação, sem corpo/valor. Não classificar imagem/impressão/aceitação de pedido como pagamento. Preservar interesse e delimitar sinal ao episódio; não suprimir recompra futura por atualização anterior. Sem novo SQL/flag/permissão; reversão restaura classificador sem apagar evidências. Ainda não instalado. Expiração anterior confirmada às 05h40, sem renovação.
+
+
+### 18/11/2026 — permissão contextual explícita, sem consentimento global artificial
+
+Para reduzir preenchimento manual, implementar captura de pergunta versionada da loja e resposta inequívoca do cliente vinculadas ao mesmo interesse atual. Consentimento não deriva de uma mensagem genérica, Pix, imagem, pedido criado ou janela técnica de atendimento. O ledger não modifica permissões globais; desistência/negativa prevalece. Aceite sem citação só serve quando a pergunta é a última saída oficial; citação exige ID conhecido. A pergunta não simula atendimento e o aceite não fabrica resposta da loja.
+
+Candidato isolado com flag OFF e controle privado inicialmente vazio, uma conversa e validade máxima de 24h, mantendo bloqueios de compra/estoque/horário. SQL e snapshot precisam ser instalados juntos, sem liberar o sender. Reconhecimento via app_echo não comprova envio pela Cloud API. Pergunta/ack automáticos, consumo atômico, finalidade no envio e opt-out global durável exigem implementação/validação posterior. Texto é rascunho para revisão, sem mensagem enviada. Reversão desliga concessões por escopo/flag, preservando negativas e retenção. Não renovar o piloto vencido ou repetir homologações de produto/timer para demonstrar este candidato.
+
+
+### 18/11/2026 — uso único também na preparação, sem reciclagem automática
+
+A lease de reavaliação não é claim de envio. Implementar uma reserva privada distinta, por interesse/follow-up e revisão, compartilhando a trava da captura de autorização, sem expor nova RPC ou ligar o sender. O identificador só pode sair na primeira reserva; repetição não obtém o mesmo token. Crash/timeout não comprova ausência de entrega e não permite reutilizar a autorização. A reserva não desaparece ao apagar o follow-up; acompanha a retenção da pergunta. Mesmo interesse com nova pergunta não admite segunda reserva. Novo interesse não herda autorização antiga.
+
+Manter send_authorized=false e não consumir autorização em sombra. Digest liga o conteúdo futuro, mas não verifica sua finalidade; geração/validação no servidor e rechecagem comercial são requisitos posteriores. Testar contenção com PostgreSQL temporário e duas conexões em CI, sem produção ou credenciais comerciais. Rollback preserva consumos e retenção; apagar a reserva/restaurar leitor que a ignora não é reversão segura.
+
+
+### 18/11/2026 — mensagem canônica como prévia, sem consumo em sombra
+
+Gerar texto apenas de produto/variante resolvidos do catálogo atual, recusando nomes/IDs/opções divergentes, sem preços ou escassez inventados. Mesmos sabores em categorias distintas mantêm o nome da categoria; combinações e tamanhos permanecem no corpo. Conteúdo é rascunho sujeito a revisão. Preparação isolada faz duas leituras e TTL curto, sem consumir autorização ou criar entrega. Usar somente telefone único confiável/follow-up pendente e permissão contextual real, mantendo cobertura de compras exigida.
+
+Distinguir content_digest do texto, fingerprint de fontes da prévia e source_revision transacional SQL. Nenhum deles pode ser substituído pelo outro. A prévia é otimista, não autoriza transporte; validação posterior à reserva e tratamento de resultado incerto permanecem trabalho separado. Sem rota, RPC, migração ou ativação produtiva neste incremento.

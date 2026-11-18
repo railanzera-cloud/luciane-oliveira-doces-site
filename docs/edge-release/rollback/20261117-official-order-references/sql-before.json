@@ -1,0 +1,717 @@
+{
+  "sender": false,
+  "columns": [
+    {
+      "type": "uuid",
+      "table": "orders",
+      "column": "id",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "order_id",
+      "schema": "public"
+    },
+    {
+      "type": "bigint",
+      "table": "orders",
+      "column": "order_number",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "tracking_token",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "request_hash",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "customer_name",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "customer_phone",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "customer_email",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "sales_channel",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "checkout_channel",
+      "schema": "public"
+    },
+    {
+      "type": "USER-DEFINED",
+      "table": "orders",
+      "column": "fulfillment_type",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "delivery_zone_id",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "neighborhood",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "street",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "street_number",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "complement",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "reference",
+      "schema": "public"
+    },
+    {
+      "type": "numeric",
+      "table": "orders",
+      "column": "subtotal",
+      "schema": "public"
+    },
+    {
+      "type": "numeric",
+      "table": "orders",
+      "column": "delivery_fee",
+      "schema": "public"
+    },
+    {
+      "type": "numeric",
+      "table": "orders",
+      "column": "discount",
+      "schema": "public"
+    },
+    {
+      "type": "numeric",
+      "table": "orders",
+      "column": "total",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "currency",
+      "schema": "public"
+    },
+    {
+      "type": "USER-DEFINED",
+      "table": "orders",
+      "column": "payment_method",
+      "schema": "public"
+    },
+    {
+      "type": "USER-DEFINED",
+      "table": "orders",
+      "column": "payment_status",
+      "schema": "public"
+    },
+    {
+      "type": "USER-DEFINED",
+      "table": "orders",
+      "column": "order_status",
+      "schema": "public"
+    },
+    {
+      "type": "numeric",
+      "table": "orders",
+      "column": "cash_change_for",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "mercado_pago_order_id",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "mercado_pago_payment_id",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "gateway_environment",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "gateway_status",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "gateway_status_detail",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "source",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "origem",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "utm_source",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "utm_medium",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "utm_campaign",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "utm_content",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "utm_term",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "fbclid",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "fbp",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "fbc",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "tintim_fbid",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "landing_url",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "event_source_url",
+      "schema": "public"
+    },
+    {
+      "type": "jsonb",
+      "table": "orders",
+      "column": "source_parameters",
+      "schema": "public"
+    },
+    {
+      "type": "USER-DEFINED",
+      "table": "orders",
+      "column": "meta_purchase_status",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "meta_purchase_event_id",
+      "schema": "public"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "orders",
+      "column": "meta_purchase_sent_at",
+      "schema": "public"
+    },
+    {
+      "type": "integer",
+      "table": "orders",
+      "column": "meta_purchase_attempts",
+      "schema": "public"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "orders",
+      "column": "created_at",
+      "schema": "public"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "orders",
+      "column": "updated_at",
+      "schema": "public"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "orders",
+      "column": "paid_at",
+      "schema": "public"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "orders",
+      "column": "completed_at",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "notes",
+      "schema": "public"
+    },
+    {
+      "type": "jsonb",
+      "table": "orders",
+      "column": "attribution_snapshot",
+      "schema": "public"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "orders",
+      "column": "confirmed_at",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "orders",
+      "column": "card_mode",
+      "schema": "public"
+    },
+    {
+      "type": "integer",
+      "table": "orders",
+      "column": "card_basis_points",
+      "schema": "public"
+    },
+    {
+      "type": "numeric",
+      "table": "orders",
+      "column": "card_fee",
+      "schema": "public"
+    },
+    {
+      "type": "uuid",
+      "table": "crm_customers",
+      "column": "id",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "crm_customers",
+      "column": "phone_e164",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "crm_customers",
+      "column": "display_name",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "crm_customers",
+      "column": "consent_status",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "crm_customers",
+      "column": "consent_evidence",
+      "schema": "public"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "crm_customers",
+      "column": "consent_at",
+      "schema": "public"
+    },
+    {
+      "type": "boolean",
+      "table": "crm_customers",
+      "column": "commercial_opt_out",
+      "schema": "public"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "crm_customers",
+      "column": "opt_out_at",
+      "schema": "public"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "crm_customers",
+      "column": "created_at",
+      "schema": "public"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "crm_customers",
+      "column": "updated_at",
+      "schema": "public"
+    },
+    {
+      "type": "uuid",
+      "table": "crm_conversations",
+      "column": "id",
+      "schema": "public"
+    },
+    {
+      "type": "uuid",
+      "table": "crm_conversations",
+      "column": "customer_id",
+      "schema": "public"
+    },
+    {
+      "type": "uuid",
+      "table": "crm_conversations",
+      "column": "tintim_conversation_id",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "crm_conversations",
+      "column": "status",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "crm_conversations",
+      "column": "interest_label",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "crm_conversations",
+      "column": "interest_basis",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "crm_conversations",
+      "column": "source_label",
+      "schema": "public"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "crm_conversations",
+      "column": "last_inbound_at",
+      "schema": "public"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "crm_conversations",
+      "column": "last_outbound_at",
+      "schema": "public"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "crm_conversations",
+      "column": "converted_at",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "crm_conversations",
+      "column": "conversion_basis",
+      "schema": "public"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "crm_conversations",
+      "column": "created_at",
+      "schema": "public"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "crm_conversations",
+      "column": "updated_at",
+      "schema": "public"
+    },
+    {
+      "type": "uuid",
+      "table": "crm_whatsapp_message_events",
+      "column": "id",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "crm_whatsapp_message_events",
+      "column": "provider",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "crm_whatsapp_message_events",
+      "column": "message_id",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "crm_whatsapp_message_events",
+      "column": "direction",
+      "schema": "public"
+    },
+    {
+      "type": "text",
+      "table": "crm_whatsapp_message_events",
+      "column": "phone_e164",
+      "schema": "public"
+    },
+    {
+      "type": "uuid",
+      "table": "crm_whatsapp_message_events",
+      "column": "conversation_id",
+      "schema": "public"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "crm_whatsapp_message_events",
+      "column": "occurred_at",
+      "schema": "public"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "crm_whatsapp_message_events",
+      "column": "received_at",
+      "schema": "public"
+    },
+    {
+      "type": "uuid",
+      "table": "observations",
+      "column": "conversation_id",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "text",
+      "table": "observations",
+      "column": "message_id",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "observations",
+      "column": "occurred_at",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "jsonb",
+      "table": "observations",
+      "column": "semantic",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "observations",
+      "column": "expires_at",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "uuid",
+      "table": "due_checks",
+      "column": "follow_up_id",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "uuid",
+      "table": "due_checks",
+      "column": "conversation_id",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "uuid",
+      "table": "due_checks",
+      "column": "lease_token",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "due_checks",
+      "column": "lease_until",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "text",
+      "table": "due_checks",
+      "column": "revision",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "text",
+      "table": "due_checks",
+      "column": "decision_revision",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "text",
+      "table": "due_checks",
+      "column": "classification",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "ARRAY",
+      "table": "due_checks",
+      "column": "blockers",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "boolean",
+      "table": "due_checks",
+      "column": "send_authorized",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "integer",
+      "table": "due_checks",
+      "column": "attempts",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "due_checks",
+      "column": "next_check_at",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "due_checks",
+      "column": "evaluated_at",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "due_checks",
+      "column": "valid_until",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "due_checks",
+      "column": "expires_at",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "boolean",
+      "table": "episode_scope",
+      "column": "singleton",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "uuid",
+      "table": "episode_scope",
+      "column": "conversation_id",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "boolean",
+      "table": "episode_scope",
+      "column": "enabled",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "episode_scope",
+      "column": "enabled_at",
+      "schema": "crm_recovery_private"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "episode_scope",
+      "column": "expires_at",
+      "schema": "crm_recovery_private"
+    }
+  ],
+  "attempts": 0,
+  "functions": [
+    {
+      "acl": [
+        "postgres=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "ddl": "CREATE OR REPLACE FUNCTION public.crm_recovery_purge_expired()\n RETURNS integer\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE a integer;b integer;c integer;\nBEGIN\n IF auth.role() IS DISTINCT FROM 'service_role' AND NOT(session_user='postgres' AND auth.role() IS NULL)\n THEN RAISE EXCEPTION 'provider_only' USING ERRCODE='42501'; END IF;\n WITH expired AS (SELECT conversation_id,message_id FROM crm_recovery_private.observations WHERE expires_at<=now()\n ORDER BY expires_at,conversation_id,message_id LIMIT 1000 FOR UPDATE SKIP LOCKED)\n DELETE FROM crm_recovery_private.observations o USING expired e WHERE o.conversation_id=e.conversation_id AND o.message_id=e.message_id;\n GET DIAGNOSTICS a=ROW_COUNT;\n WITH expired AS (SELECT follow_up_id FROM crm_recovery_private.due_checks WHERE expires_at<=now()\n ORDER BY expires_at,follow_up_id LIMIT 1000 FOR UPDATE SKIP LOCKED)\n DELETE FROM crm_recovery_private.due_checks d USING expired e WHERE d.follow_up_id=e.follow_up_id;\n GET DIAGNOSTICS b=ROW_COUNT;\n WITH expired AS (SELECT nonce FROM crm_recovery_private.scheduler_invocations WHERE expires_at<=now()\n ORDER BY expires_at,nonce LIMIT 1000 FOR UPDATE SKIP LOCKED)\n DELETE FROM crm_recovery_private.scheduler_invocations s USING expired e WHERE s.nonce=e.nonce;\n GET DIAGNOSTICS c=ROW_COUNT;RETURN a+b+c;\nEND; $function$\n",
+      "body": "\nDECLARE a integer;b integer;c integer;\nBEGIN\n IF auth.role() IS DISTINCT FROM 'service_role' AND NOT(session_user='postgres' AND auth.role() IS NULL)\n THEN RAISE EXCEPTION 'provider_only' USING ERRCODE='42501'; END IF;\n WITH expired AS (SELECT conversation_id,message_id FROM crm_recovery_private.observations WHERE expires_at<=now()\n ORDER BY expires_at,conversation_id,message_id LIMIT 1000 FOR UPDATE SKIP LOCKED)\n DELETE FROM crm_recovery_private.observations o USING expired e WHERE o.conversation_id=e.conversation_id AND o.message_id=e.message_id;\n GET DIAGNOSTICS a=ROW_COUNT;\n WITH expired AS (SELECT follow_up_id FROM crm_recovery_private.due_checks WHERE expires_at<=now()\n ORDER BY expires_at,follow_up_id LIMIT 1000 FOR UPDATE SKIP LOCKED)\n DELETE FROM crm_recovery_private.due_checks d USING expired e WHERE d.follow_up_id=e.follow_up_id;\n GET DIAGNOSTICS b=ROW_COUNT;\n WITH expired AS (SELECT nonce FROM crm_recovery_private.scheduler_invocations WHERE expires_at<=now()\n ORDER BY expires_at,nonce LIMIT 1000 FOR UPDATE SKIP LOCKED)\n DELETE FROM crm_recovery_private.scheduler_invocations s USING expired e WHERE s.nonce=e.nonce;\n GET DIAGNOSTICS c=ROW_COUNT;RETURN a+b+c;\nEND; ",
+      "name": "crm_recovery_purge_expired",
+      "owner": "postgres",
+      "schema": "public",
+      "identity_arguments": ""
+    },
+    {
+      "acl": [
+        "postgres=X/postgres"
+      ],
+      "ddl": "CREATE OR REPLACE FUNCTION crm_recovery_private.source_revision(p_follow_up_id uuid)\n RETURNS text\n LANGUAGE sql\n STABLE\n SET search_path TO ''\nAS $function$\n SELECT md5(jsonb_build_array(\n  jsonb_build_array(f.status,f.due_at,f.sent_at,c.status,c.updated_at,c.last_inbound_at,c.last_outbound_at,\n   u.phone_e164,u.updated_at,u.consent_status,u.consent_at,u.consent_evidence,u.commercial_opt_out),\n  (SELECT jsonb_agg(to_jsonb(e) ORDER BY e.id) FROM public.crm_whatsapp_message_events e WHERE e.conversation_id=c.id AND e.occurred_at>=greatest(c.created_at,now()-interval '24 hours')),\n  (SELECT jsonb_agg(to_jsonb(e) ORDER BY e.id) FROM public.crm_tintim_message_events e WHERE e.conversation_id=c.id AND e.occurred_at>=greatest(c.created_at,now()-interval '24 hours')),\n  (SELECT jsonb_agg(jsonb_build_array(o.id,o.updated_at,o.customer_phone,o.payment_status,o.order_status,o.paid_at) ORDER BY o.id)\n   FROM public.orders o WHERE (o.created_at>=greatest(c.created_at,now()-interval '24 hours') OR o.paid_at>=greatest(c.created_at,now()-interval '24 hours')) OR o.id IN (SELECT l.order_uuid FROM public.tintim_order_links l WHERE l.conversation_id=c.tintim_conversation_id)),\n  (SELECT jsonb_agg(jsonb_build_array(x.id,x.status,x.sent_at,x.due_at) ORDER BY x.id) FROM public.crm_follow_ups x WHERE x.conversation_id=c.id),\n  (SELECT jsonb_agg(to_jsonb(a) ORDER BY a.id) FROM public.menu_availability a),\n  public.public_crocante_inventory(),\n  (SELECT jsonb_agg(to_jsonb(s) ORDER BY s.id) FROM public.store_settings s WHERE s.key='orders_open'),\n  (SELECT jsonb_agg(to_jsonb(o) ORDER BY o.message_id) FROM crm_recovery_private.observations o WHERE o.conversation_id=c.id AND o.expires_at>now()),\n  (SELECT jsonb_agg(to_jsonb(l) ORDER BY l.id) FROM public.tintim_order_links l WHERE l.conversation_id=c.tintim_conversation_id),\n  (SELECT jsonb_agg(to_jsonb(t) ORDER BY t.id) FROM public.tintim_conversations t WHERE t.phone_digits IN(u.phone_e164,substring(u.phone_e164 from 3))),\n  (SELECT jsonb_agg(jsonb_build_array(to_jsonb(s),s.enabled AND s.enabled_at<=now() AND s.expires_at>now())) FROM crm_recovery_private.episode_scope s WHERE s.conversation_id=c.id),\n  (SELECT jsonb_agg(jsonb_build_array(r.id,r.received_at,md5(r.summary::text)) ORDER BY r.id) FROM public.tintim_webhook_receipts r\n   WHERE r.summary->>'phone_digits' IN(u.phone_e164,substring(u.phone_e164 from 3)) OR EXISTS(\n    SELECT 1 FROM public.tintim_conversations t WHERE t.phone_digits IN(u.phone_e164,substring(u.phone_e164 from 3))\n     AND t.account_key=r.account_key AND t.external_lead_id=r.lead_key)),\n  (SELECT jsonb_agg(to_jsonb(a) ORDER BY a.id) FROM public.crm_consent_audit a WHERE a.customer_id=u.id),\n  (SELECT jsonb_agg(to_jsonb(s)) FROM public.crm_automation_settings s)\n )::text)\n FROM public.crm_follow_ups f JOIN public.crm_conversations c ON c.id=f.conversation_id\n JOIN public.crm_customers u ON u.id=c.customer_id WHERE f.id=p_follow_up_id;\n$function$\n",
+      "body": "\n SELECT md5(jsonb_build_array(\n  jsonb_build_array(f.status,f.due_at,f.sent_at,c.status,c.updated_at,c.last_inbound_at,c.last_outbound_at,\n   u.phone_e164,u.updated_at,u.consent_status,u.consent_at,u.consent_evidence,u.commercial_opt_out),\n  (SELECT jsonb_agg(to_jsonb(e) ORDER BY e.id) FROM public.crm_whatsapp_message_events e WHERE e.conversation_id=c.id AND e.occurred_at>=greatest(c.created_at,now()-interval '24 hours')),\n  (SELECT jsonb_agg(to_jsonb(e) ORDER BY e.id) FROM public.crm_tintim_message_events e WHERE e.conversation_id=c.id AND e.occurred_at>=greatest(c.created_at,now()-interval '24 hours')),\n  (SELECT jsonb_agg(jsonb_build_array(o.id,o.updated_at,o.customer_phone,o.payment_status,o.order_status,o.paid_at) ORDER BY o.id)\n   FROM public.orders o WHERE (o.created_at>=greatest(c.created_at,now()-interval '24 hours') OR o.paid_at>=greatest(c.created_at,now()-interval '24 hours')) OR o.id IN (SELECT l.order_uuid FROM public.tintim_order_links l WHERE l.conversation_id=c.tintim_conversation_id)),\n  (SELECT jsonb_agg(jsonb_build_array(x.id,x.status,x.sent_at,x.due_at) ORDER BY x.id) FROM public.crm_follow_ups x WHERE x.conversation_id=c.id),\n  (SELECT jsonb_agg(to_jsonb(a) ORDER BY a.id) FROM public.menu_availability a),\n  public.public_crocante_inventory(),\n  (SELECT jsonb_agg(to_jsonb(s) ORDER BY s.id) FROM public.store_settings s WHERE s.key='orders_open'),\n  (SELECT jsonb_agg(to_jsonb(o) ORDER BY o.message_id) FROM crm_recovery_private.observations o WHERE o.conversation_id=c.id AND o.expires_at>now()),\n  (SELECT jsonb_agg(to_jsonb(l) ORDER BY l.id) FROM public.tintim_order_links l WHERE l.conversation_id=c.tintim_conversation_id),\n  (SELECT jsonb_agg(to_jsonb(t) ORDER BY t.id) FROM public.tintim_conversations t WHERE t.phone_digits IN(u.phone_e164,substring(u.phone_e164 from 3))),\n  (SELECT jsonb_agg(jsonb_build_array(to_jsonb(s),s.enabled AND s.enabled_at<=now() AND s.expires_at>now())) FROM crm_recovery_private.episode_scope s WHERE s.conversation_id=c.id),\n  (SELECT jsonb_agg(jsonb_build_array(r.id,r.received_at,md5(r.summary::text)) ORDER BY r.id) FROM public.tintim_webhook_receipts r\n   WHERE r.summary->>'phone_digits' IN(u.phone_e164,substring(u.phone_e164 from 3)) OR EXISTS(\n    SELECT 1 FROM public.tintim_conversations t WHERE t.phone_digits IN(u.phone_e164,substring(u.phone_e164 from 3))\n     AND t.account_key=r.account_key AND t.external_lead_id=r.lead_key)),\n  (SELECT jsonb_agg(to_jsonb(a) ORDER BY a.id) FROM public.crm_consent_audit a WHERE a.customer_id=u.id),\n  (SELECT jsonb_agg(to_jsonb(s)) FROM public.crm_automation_settings s)\n )::text)\n FROM public.crm_follow_ups f JOIN public.crm_conversations c ON c.id=f.conversation_id\n JOIN public.crm_customers u ON u.id=c.customer_id WHERE f.id=p_follow_up_id;\n",
+      "name": "source_revision",
+      "owner": "postgres",
+      "schema": "crm_recovery_private",
+      "identity_arguments": "p_follow_up_id uuid"
+    }
+  ],
+  "captured_at": "2026-11-18T01:32:04.238467+00:00",
+  "new_table_exists": false
+}

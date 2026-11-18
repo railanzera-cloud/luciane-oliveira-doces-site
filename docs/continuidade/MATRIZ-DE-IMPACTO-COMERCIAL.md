@@ -153,3 +153,94 @@ Contrato temporário de negócio (sem atualizar tabelas permanentes): `POPCORN_P
 - **Carrinho/checkout:** `kind='drink'`, somente variante oficial, `option_ids=[]`, quantidade 1..99 por SKU. Preço de venda sempre validado na Edge; não confiar em valores do navegador. Mistura de bebidas + doces em um único pedido; quantidade incrementa/decrementa sem novo pedido e sem scroll programático; botão flutuante deve permanecer em `recebimento-opcoes`.
 - **Destino dos pedidos:** bebida ativa `cartRequiresWhatsApp`; preservar metadados de entrega/retirada, Pix/dinheiro/cartão, Tintim/Meta, envio efetivo da mensagem, ordem armazenada, confirmação de pagamento e trabalho de impressão QZ na cozinha. Não disparar `Purchase` só porque cliente abriu WhatsApp ou porque uma comanda foi registrada. O texto `1x Cascão ... 1 cascão` foi corrigido apenas na mensagem: variante interna `1 cascão` preservada.
 - **Homologação mínima:** testar falha/oculto/esgotado, 1 bebida, múltiplas da mesma bebida, duas bebidas distintas, carrinho misto, remoção a zero, total com entrega/retirada, CTA e scroll 320/375/390/430/1280, Safari e Instagram físicos, WhatsApp enviado de verdade, Pix e comanda. Produção só é aceita quando fotos e preços têm paridade, e existe rollback de Cloudflare para V4.6.
+
+
+### Contrato candidato — episódio de recompra, 17/11/2026
+
+| Superfície | Mudança candidata | Proteção / validação |
+|---|---|---|
+| Tintim / follow-ups | Predicado único em seis guardas | Uma conversa e até 24h; sem reabrir histórico; informação tardia bloqueia |
+| Estrutura privada | episode_scope, RLS e sem acesso de escrita para API | Começa vazia; desativação e expiração restauram proteção anterior |
+| Snapshot / duas Edges | RPC fechada sob flag de servidor OFF | Falha/mudança fecha decisão; envio sempre false |
+| Fila / lease | Revisão inclui recibos e estado ativo do escopo | Recibo novo invalida decisão em andamento |
+| Checkout / financeiro / catálogo / QZ / Meta / Worker | Nenhuma mutação ou mudança de contrato | Regressões específicas; sem frontend ou ZIP novo |
+| Rollback | Escopo SQL desabilitado + flag OFF | Flag Edge isolada não reverte a mudança SQL |
+
+Estado: código e migração testados localmente (93/93), ainda não instalados. Detalhes em docs/CRM-PURCHASE-RECONCILIATION-20261117.md.
+
+
+### Contrato candidato — referência oficial de pedido, 17/11/2026
+
+| Superfície | Mudança | Limite |
+|---|---|---|
+| Mensagem oficial inbound | Captura de número do cabeçalho atual | HMAC/ativos/escopo/tempo; sem forwarded/quoted/echo |
+| Estrutura privada | order_references + RLS/RPCs/expurgo | Sempre candidate; dúvida persistida; sem corpo/PII financeira |
+| Snapshot / fila | Releitura do pedido e revisão das fontes | Paid com candidato mantém conciliação; sem envio |
+| Fonte temporal | Mensagem vinculada pode preceder created_at da conversa | Janela original de 24h, sem mudar timestamps |
+| Checkout / financeiro / catálogo / QZ / Meta / Tintim / Worker | Contratos preservados | Nenhuma escrita financeira/contato/consentimento |
+| Reversão | Flag de captura/leitura OFF | Preservar tabela e expurgo das evidências |
+
+Estado: 51 testes locais aprovados; candidato não instalado. Sem frontend/ZIP novo.
+
+
+### Contrato candidato — compra anterior do site por episódio, 18/11/2026
+
+| Superfície | Mudança candidata | Proteção |
+|---|---|---|
+| Snapshot | Cronologia de pedido pago/concluído conhecido antes do interesse novo | Telefone exato; ambiguidade mantém conciliação; escopo/flag |
+| Fila e preflight | Predicado privado nos três pontos de pedidos em duas funções | ACL anterior preservada; helper sem acesso direto da API |
+| Revisão de fontes | created_at somado ao hash do pedido | Alterar só a data invalida lease |
+| Expiração/reversão | Mesmo escopo finito, sem renovação | Escopo SQL OFF + flag OFF; restauração estrutural testada |
+| Operação e financeiro | Nenhuma mutação ou mudança de contrato | Leitura não altera pagamento, pedido, estoque, consentimento ou impressão |
+
+87 testes locais direcionados passaram; candidato não instalado. Nenhum frontend, ZIP ou Pages novo.
+
+### Status do contrato de compra do site por episódio — 18/11/2026, 04h35
+Instalado somente em sombra, sob janela finita do telefone original, após autorização específica. Quatro corpos SQL e bundles completos conferidos, ACLs anteriores preservadas e helper privado sem acesso direto da API; nenhum novo WARN/ERROR. Reavaliação real 04h35 consistente/fresca/blocked, zero tentativas. Regra de compra anterior validada em PostgreSQL, ainda sem caso produtivo legítimo no piloto. Expiração 05h02:34; reversão: escopo SQL OFF e flag OFF. Nenhuma mutação financeira, frontend/Pages ou ampliação de contato.
+
+
+### Contrato candidato — andamento sem gatilho, 18/11/2026
+| Superfície | Mudança | Limite |
+|---|---|---|
+| Classificador de sinais | Frases completas de saída/retirada e macro exata de preparação | Só revisão; nunca pagamento, receita ou envio |
+| Ingresso oficial | Mesmo HMAC/escopo/direção/horário original | Pergunta, terceiro, mídia, citação e encaminhamento não promovidos |
+| Semântica privada/timer | Mesmo marcador de conciliação e regras de episódio | Produto preservado; sinal antigo não bloqueia interesse novo |
+| Operação/financeiro | Nenhuma escrita/novo contrato | Sem SQL, consentimento artificial, Meta/Tintim ou novas demandas manuais |
+| Reversão | Restaurar classificador anterior nos dois bundles | Preservar registros e bloqueios já capturados |
+69 testes locais direcionados aprovados; candidato não instalado. Sem novo corte/renovação de escopo nesta rodada.
+
+
+### 18/11/2026 — contrato candidato de permissão contextual
+
+| Entrada/alteração | Efeito verificável | Limite |
+|---|---|---|
+| Pergunta exata + aceite explícito assinado | Ledger privado liga IDs, horário original, telefone, conversa e interesse | Flag OFF/escopo vazio por padrão; não muda consentimento global |
+| Cancelamento, negativa global/auditada, fonte/contexto alterado, expiração ou uso anterior | Invalida permissão e revisão da decisão/lease | Nova pergunta sozinha não restabelece permissão |
+| Snapshot, fila SQL e preflight | Mesma evidência conservadora com rechecagem | Compra/pagamento/loja/produto e cobertura continuam obrigatórios |
+| Pergunta de autorização | Não conta como atendimento ao produto | Não fabrica saída da loja após aceite |
+| Limpeza e reversão | Retenção privada limitada; desligar flag/escopo | Preservar negativas; não abandonar limpeza ou restaurar guardas antigas cegamente |
+
+86 testes locais incluindo PostgreSQL real e pipeline; CI nova a conferir. Nenhum deploy SQL/Edge, envio, dado financeiro, checkout/QZ, imagem/catálogo, Meta/Tintim, Worker/Pages ou Gestão alterado. Candidato não pronto para sender: entrega da pergunta/ack, consumo atômico/finalidade, opt-out global durável e cobertura comercial permanecem pendentes.
+
+
+### 18/11/2026 — reserva privada de uso contextual
+
+| Contrato | Resultado | Limite |
+|---|---|---|
+| Autorização/interesse/follow-up/revisão/finalidade/digest | Uma reserva imutável por interesse e follow-up | Digest não valida texto; sem RPC ou acesso de API |
+| Duas solicitações | Trava transacional + unicidade; só a primeira recebe identificador | Teste de conexões independentes em CI temporária, nunca no comercial |
+| Uso/crash/timeout/exclusão do follow-up | Mantém permissão usada e invalida decisão anterior | Não reciclar token; novo interesse requer nova avaliação |
+| Retenção/reversão | FK da pergunta e limpeza existente; conservar consumos | Não remover a tabela/restaurar leitura antiga após uso |
+
+Candidato não instalado, não ligado ao scheduler/transport e sempre send_authorized=false. Nenhum impacto em checkout/pagamentos/QZ, Meta/Tintim, Worker/Pages, catálogo/fotos, estoque ou Gestão. Persistem checagem final, finalidade no conteúdo, opt-out global durável e cobertura/identidade de compras.
+
+
+### 18/11/2026 — prévia de recuperação contextual
+
+| Entrada | Resultado | Bloqueio preservado |
+|---|---|---|
+| Catálogo/seleção resolvida | Texto canônico com categoria, variante, combinação e tamanho | Divergência/retirado/ambiguidade não gera corpo |
+| Telefone único + follow-up + duas avaliações | Prévia efêmera com TTL de até 30s e digest | Compra, nova resposta, cancelamento, fonte ou vínculo alterado descartam |
+| Hash de texto/fingerprint de fontes | Referências distintas para conteúdo/comparação | Não substituem a revisão transacional SQL nem autorizam envio |
+
+92 testes locais incluindo integração assinada/PostgreSQL e digest ligado à reserva no teste. Sem consumo em sombra, rota, RPC, migração ou instalação produtiva; sem impactos em checkout/QZ, pedidos/pagamentos, catálogo/fotos/estoque, Meta/Tintim, Worker/Pages ou Gestão. CI do SHA final nos checks do PR #67; faltam executor e validação posterior à reserva, opt-out durável e cobertura de compras.

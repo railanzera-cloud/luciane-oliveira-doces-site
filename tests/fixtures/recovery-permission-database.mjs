@@ -1,0 +1,32 @@
+import fs from 'node:fs';
+const read=p=>fs.readFileSync(new URL('../../'+p,import.meta.url),'utf8');
+export async function setupContextPermissionDatabase(db,{cid,uid,fid,phone}) {
+ const fixture=read('tests/crm-recovery-due-postgres-20261116.test.mjs');
+ const start=fixture.indexOf('await db.exec(`')+15;
+ await db.exec(fixture.slice(start,fixture.indexOf('`);',start)).replaceAll('${uid}',uid).replaceAll('${cid}',cid).replaceAll('${fid}',fid).replaceAll('${phone}',phone));
+ await db.exec(`ALTER TABLE orders ADD order_number bigint;
+ ALTER TABLE menu_availability ADD updated_at timestamptz;
+ ALTER TABLE store_settings ADD updated_at timestamptz;
+ ALTER TABLE crm_tintim_message_events ADD fingerprint text,ADD phone_e164 text,ADD direction text,ADD received_at timestamptz,ADD time_basis text;
+ ALTER TABLE tintim_order_links ADD status text,ADD created_at timestamptz;
+ ALTER TABLE crm_whatsapp_message_events ADD message_id text,ADD direction text,ADD phone_e164 text,ADD received_at timestamptz;
+ ALTER TABLE tintim_conversations ADD account_key text,ADD external_lead_id text,ADD last_observed_at timestamptz;
+ CREATE TABLE tintim_webhook_receipts(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),account_key text,lead_key text,received_at timestamptz,summary jsonb);
+ ALTER TABLE crm_automation_settings ADD automatic_sends_enabled boolean DEFAULT false;
+ INSERT INTO crm_automation_settings VALUES(true,45,false);
+ INSERT INTO store_settings(id,key,value) VALUES(1,'orders_open','true');
+ INSERT INTO menu_availability(id,item_key,status) VALUES(1,'category_cones','available'),(2,'cone_prestigio','available');
+ ALTER TABLE crm_follow_ups ADD created_at timestamptz DEFAULT now();
+ CREATE TABLE crm_automation_queue(follow_up_id uuid PRIMARY KEY,conversation_id uuid,due_at timestamptz,queue_state text,blockers text[],evaluated_at timestamptz);
+ CREATE TABLE crm_automation_monitor(singleton boolean PRIMARY KEY,last_evaluated_at timestamptz,examined int,scheduled int,blocked int,finished int,review_required int);
+ INSERT INTO crm_automation_monitor(singleton) VALUES(true);`);
+ await db.exec(read('supabase/prepared/recovery-private-observations.sql'));
+ await db.exec(read('supabase/migrations/20261116155426_crm_recovery_due_shadow.sql'));
+ await db.exec(read('supabase/migrations/20261116164957_crm_recovery_scheduler_auth.sql'));
+ const episodeSql=read('supabase/migrations/20261117234453_crm_recovery_purchase_episodes.sql');
+ await db.exec(episodeSql.slice(episodeSql.indexOf('CREATE TABLE crm_recovery_private.episode_scope'),episodeSql.indexOf('CREATE OR REPLACE FUNCTION public.crm_protect_purchase_signal_followup')));
+ await db.exec(read('supabase/migrations/20261118010932_crm_recovery_official_order_references.sql'));
+ await db.exec(read('supabase/migrations/20261118070703_crm_recovery_site_purchase_episodes.sql'));
+ await db.exec(read('supabase/migrations/20261118090540_crm_recovery_context_permissions.sql'));
+ await db.exec(read('supabase/migrations/20261118094448_crm_recovery_context_permission_uses.sql'));
+}
