@@ -7,8 +7,8 @@ import path from "node:path";
 
 const root=process.cwd();
 const from=path.join(root,"outputs","crm-commercial-core-NOT-PUBLISH");
-const target=path.join(root,"outputs","gourmet-faixas-v47154");
-const output=path.join(root,"outputs","LUCIANE_DOCES_V4_7_15_4_FATIA_NINHO_MORANGO_CLOUDFLARE.zip");
+const target=path.join(root,"outputs","gourmet-faixas-v47155");
+const output=path.join(root,"outputs","LUCIANE_DOCES_V4_7_15_5_GELEIA_MORANGO_NINHO_CLOUDFLARE.zip");
 const sha=b=>createHash("sha256").update(b).digest("hex");
 const publicKey=(process.env.SUPABASE_PUBLISHABLE_KEY||"").trim();
 const projectUrl=(process.env.SUPABASE_URL||"").trim();
@@ -64,9 +64,9 @@ const jsContent=(await Promise.all(jsFiles.map(x=>readFile(path.join(target,x),"
 if(!jsContent.includes(projectUrl)||!jsContent.includes(publicKey))throw Error("Build nao esta conectado ao Supabase comercial.");
 if(!jsContent.includes("ovomaltine")||!jsContent.includes("choco-cookies-leite"))throw Error("Os sabores nao constam nos chunks de cliente.");
 const release={
-  release:"V4.7.15.4-ninho-com-morango",
-  purpose:"Nome da fatia Ninho com Morango; preserva faixas Gourmet atualizadas",
-  source_branch:"fix/gourmet-troca-ovomaltine-cookies-leite-20261118",
+  release:"V4.7.15.5-geleia-morango-ninho",
+  purpose:"Fatia Geleia de Morango com Ninho; preserva Gourmet e Ninho com Morango",
+  source_branch:"fix/fatia-geleia-morango-ninho-20261120",
   source_sha:execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim(),
   checkout_base:"refine/checkout-clareza-carrinho-20261116",
   backend_required_catalog_version:"2026-11-18.gourmet-ovomaltine-cookies-leite",

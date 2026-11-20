@@ -20,8 +20,9 @@ test("nomes univocos de anuncios permitem sugestoes sem afirmar interesse",()=>{
  ["VENDAS | CHOCOLATE COM CENOURA","Chocolate com Cenoura"],
  ["VENDA DE NINHO COM MORANGO","Ninho com Morango"],
  ["BRIGADEIRO BRANCO COM MORANGO","Ninho com Morango"],
- ["FATIA COCO CREMOSO COM MORANGO","Geleia de Morango com Coco Cremoso"],
- ["GELEIA DE MORANGO COM COCO CREMOSO","Geleia de Morango com Coco Cremoso"]
+ ["FATIA COCO CREMOSO COM MORANGO","Geleia de Morango com Ninho"],
+ ["GELEIA DE MORANGO COM COCO CREMOSO","Geleia de Morango com Ninho"],
+ ["GELEIA DE MORANGO COM NINHO","Geleia de Morango com Ninho"]
  ];
  for(const [ad,expected] of cases){
    assert.equal(crmAdSliceHint(ad)?.name,expected);

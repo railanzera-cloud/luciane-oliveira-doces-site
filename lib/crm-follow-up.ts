@@ -7,7 +7,7 @@ const adProductRules = [
   { id: "fatia-prestigio", name: "Prestígio", pattern: /\bprestigio\b/ },
   { id: "fatia-chocolate-maracuja", name: "Chocolate com Maracujá", pattern: /\bmaracuja\b/ },
   { id: "fatia-chocolatudo", name: "Chocolatudo", pattern: /\bchocolatudo\b/ },
-  { id: "fatia-coco-cremoso-morango", name: "Geleia de Morango com Coco Cremoso", pattern: /\b(?:coco cremoso|geleia de morango com coco cremoso)\b/ },
+  { id: "fatia-coco-cremoso-morango", name: "Geleia de Morango com Ninho", pattern: /\b(?:coco cremoso|geleia de morango com coco cremoso|geleia de morango com ninho)\b/ },
   { id: "fatia-chocolate-cenoura", name: "Chocolate com Cenoura", pattern: /\bchocolate com cenoura\b|\bbolo de cenoura com chocolate\b/ },
 ] as const;
 
@@ -32,7 +32,7 @@ const mentionedNames: Record<string,string> = {
   "fatia-prestigio": "Prestígio",
   "fatia-chocolate-maracuja": "Chocolate com Maracujá",
   "fatia-chocolatudo": "Chocolatudo",
-  "fatia-coco-cremoso-morango": "Geleia de Morango com Coco Cremoso",
+  "fatia-coco-cremoso-morango": "Geleia de Morango com Ninho",
   "fatia-chocolate-cenoura": "Chocolate com Cenoura",
 };
 export function crmMentionedProductName(id: string | null | undefined): string | null {

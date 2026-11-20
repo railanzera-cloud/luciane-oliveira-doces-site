@@ -4,6 +4,7 @@ on:
     branches:
       - fix/gourmet-troca-ovomaltine-cookies-leite-20261118
       - fix/fatia-ninho-com-morango-20261118
+      - fix/fatia-geleia-morango-ninho-20261120
   workflow_dispatch:
 permissions:
   contents: read
@@ -34,7 +35,7 @@ jobs:
       - name: Entregar ZIP candidato sem realizar deploy
         uses: actions/upload-artifact@v4
         with:
-          name: NINHO-MORANGO-V47154-CLOUDFLARE
-          path: outputs/LUCIANE_DOCES_V4_7_15_4_FATIA_NINHO_MORANGO_CLOUDFLARE.zip
+          name: GELEIA-MORANGO-NINHO-V47155-CLOUDFLARE
+          path: outputs/LUCIANE_DOCES_V4_7_15_5_GELEIA_MORANGO_NINHO_CLOUDFLARE.zip
           retention-days: 14
           if-no-files-found: error
