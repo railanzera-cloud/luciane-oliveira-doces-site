@@ -18,20 +18,20 @@ test("dois sabores mantêm IDs, preços e fotos, sem subtítulos repetidos", () 
   assert.match(n, /price: 22/);
   assert.match(n, /image: "\/fatia-ninho-morango.jpeg"/);
   assert.doesNotMatch(n, /subtitle:|cardName:/);
-  assert.match(c, /name: "Geleia de Morango com Coco Cremoso"/);
+  assert.match(c, /name: "Geleia de Morango com Ninho"/);
   assert.match(c, /price: 20/);
   assert.match(c, /image: "\/fatia-coco-cremoso-morango.webp"/);
   assert.doesNotMatch(c, /subtitle:|cardName:/);
   assert.ok(menu.includes('"fatia-ninho-morango": "slice_ninho_morango"'));
   assert.ok(menu.includes('"fatia-coco-cremoso-morango": "slice_coco_cremoso_morango"'));
   assert.ok(backend.includes('name: "Ninho com Morango", priceCents: 2200'));
-  assert.ok(backend.includes('name: "Geleia de Morango com Coco Cremoso", priceCents: 2000'));
+  assert.ok(backend.includes('name: "Geleia de Morango com Ninho", priceCents: 2000'));
 });
 
 test("checkout cotado usa novos nomes e R$22/R$20 preservados", () => {
   const cases = [
     ["fatia-ninho-morango", "Ninho com Morango", 2200, "slice_ninho_morango"],
-    ["fatia-coco-cremoso-morango", "Geleia de Morango com Coco Cremoso", 2000, "slice_coco_cremoso_morango"],
+    ["fatia-coco-cremoso-morango", "Geleia de Morango com Ninho", 2000, "slice_coco_cremoso_morango"],
   ];
   for (const [id,name,price,key] of cases) {
     const q = quoteCartItems([{product_id:id,variant_id:"fatia",quantity:1,option_ids:["calda-ninho"]}]);
