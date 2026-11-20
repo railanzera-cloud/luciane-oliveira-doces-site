@@ -7,7 +7,7 @@ const catalog = readFileSync("app/catalog.ts", "utf8");
 const page = readFileSync("app/page.tsx", "utf8");
 const backend = readFileSync("supabase/functions/_shared/commerce-catalog.mjs", "utf8");
 const productId = "fatia-coco-cremoso-morango";
-const approvedName = "Geleia de Morango com Coco Cremoso";
+const approvedName = "Geleia de Morango com Ninho";
 
 test("Nome aprovado é curto e suficiente, sem subtítulo repetido", () => {
   const product = PRODUCTS.find((p) => p.id === productId);
