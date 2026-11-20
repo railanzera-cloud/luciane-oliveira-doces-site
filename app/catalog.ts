@@ -292,7 +292,7 @@ export const PRODUCTS: Product[] = [
     id: "fatia-coco-cremoso-morango",
     kind: "slice",
     category: "Fatias Artesanais",
-    name: "Geleia de Morango com Coco Cremoso",
+    name: "Geleia de Morango com Ninho",
     image: "/fatia-coco-cremoso-morango.webp",
     cardImage: "/fatia-coco-cremoso-morango-card.webp",
     imageAlt: "Fatia artesanal de massa branca com coco cremoso e geleia de morango",
