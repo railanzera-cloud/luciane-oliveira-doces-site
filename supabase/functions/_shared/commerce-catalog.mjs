@@ -64,7 +64,7 @@ export const SLICES = Object.freeze({
   "fatia-prestigio": Object.freeze({ id: "fatia-prestigio", itemKey: "slice_prestigio", name: "Prestígio", priceCents: 2000 }),
   "fatia-chocolate-maracuja": Object.freeze({ id: "fatia-chocolate-maracuja", itemKey: "slice_chocolate_maracuja", name: "Chocolate com Maracujá", priceCents: 2000 }),
   "fatia-chocolatudo": Object.freeze({ id: "fatia-chocolatudo", itemKey: "slice_chocolatudo", name: "Chocolatudo", priceCents: 2000 }),
-  "fatia-coco-cremoso-morango": Object.freeze({ id: "fatia-coco-cremoso-morango", itemKey: "slice_coco_cremoso_morango", name: "Geleia de Morango com Ninho", priceCents: 2000 }),
+  "fatia-coco-cremoso-morango": Object.freeze({ id: "fatia-coco-cremoso-morango", itemKey: "slice_coco_cremoso_morango", name: "Geleia de Morango com Ninho", priceCents: 2200 }),
   "fatia-chocolate-cenoura": Object.freeze({ id: "fatia-chocolate-cenoura", itemKey: "slice_chocolate_cenoura", name: "Chocolate com Cenoura", priceCents: 2000 }),
   "fatia-bombom-uva": Object.freeze({ id: "fatia-bombom-uva", itemKey: "slice_bombom_uva", name: "Bombom de Uva", priceCents: 2000 }),
   "fatia-abacaxi-doce-leite": Object.freeze({ id: "fatia-abacaxi-doce-leite", itemKey: "slice_abacaxi_doce_leite", name: "Abacaxi com Brigadeiro Branco", priceCents: 2000 }),

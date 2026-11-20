@@ -7,8 +7,8 @@ import path from "node:path";
 
 const root=process.cwd();
 const from=path.join(root,"outputs","crm-commercial-core-NOT-PUBLISH");
-const target=path.join(root,"outputs","gourmet-faixas-v47155");
-const output=path.join(root,"outputs","LUCIANE_DOCES_V4_7_15_5_GELEIA_MORANGO_NINHO_CLOUDFLARE.zip");
+const target=path.join(root,"outputs","gourmet-faixas-v47156");
+const output=path.join(root,"outputs","LUCIANE_DOCES_V4_7_15_6_GELEIA_MORANGO_NINHO_22_CLOUDFLARE.zip");
 const sha=b=>createHash("sha256").update(b).digest("hex");
 const publicKey=(process.env.SUPABASE_PUBLISHABLE_KEY||"").trim();
 const projectUrl=(process.env.SUPABASE_URL||"").trim();
@@ -17,6 +17,10 @@ if(projectUrl!=="https://edqiwvccmboyayojvuea.supabase.co")throw Error("URL come
 if(process.env.SITE_ORDERING_ENABLED!=="false")throw Error("Flag do site diferente da base validada.");
 const source=await readFile(path.join(root,"app/catalog.ts"),"utf8");
 const backend=await readFile(path.join(root,"supabase/functions/_shared/commerce-catalog.mjs"),"utf8");
+// Contrato crítico de preço: exatamente uma fatia Geleia Morango com Ninho a R$22.
+const section = source.slice(source.indexOf('id: "fatia-coco-cremoso-morango"'), source.indexOf('id: "fatia-chocolate-cenoura"'));
+if (!/name: "Geleia de Morango com Ninho"/.test(section) || !/price: 22, available: true/.test(section)) throw Error("Preco da fatia no site diverge de R$22.");
+if (!backend.includes('"fatia-coco-cremoso-morango": Object.freeze({ id: "fatia-coco-cremoso-morango", itemKey: "slice_coco_cremoso_morango", name: "Geleia de Morango com Ninho", priceCents: 2200 })')) throw Error("Preco autoritativo diverge de R$22.");
 for(const [file,body,patterns] of [
   ["app/catalog.ts",source,[/id: "ovomaltine"[^\n]+pricingGroup: 2/,/id: "choco-cookies-leite"[^\n]+pricingGroup: 1/]],
   ["commerce-catalog.mjs",backend,[/ovomaltine: Object.freeze\([^\n]+pricingGroup: 2/,/"choco-cookies-leite": Object.freeze\([^\n]+pricingGroup: 1/]],
@@ -64,9 +68,9 @@ const jsContent=(await Promise.all(jsFiles.map(x=>readFile(path.join(target,x),"
 if(!jsContent.includes(projectUrl)||!jsContent.includes(publicKey))throw Error("Build nao esta conectado ao Supabase comercial.");
 if(!jsContent.includes("ovomaltine")||!jsContent.includes("choco-cookies-leite"))throw Error("Os sabores nao constam nos chunks de cliente.");
 const release={
-  release:"V4.7.15.5-geleia-morango-ninho",
-  purpose:"Fatia Geleia de Morango com Ninho; preserva Gourmet e Ninho com Morango",
-  source_branch:"fix/fatia-geleia-morango-ninho-20261120",
+  release:"V4.7.15.6-geleia-morango-ninho-r22",
+  purpose:"Fatia Geleia de Morango com Ninho R$22; preserva Gourmet e Ninho com Morango",
+  source_branch:"fix/fatia-geleia-morango-ninho-22-20261120",
   source_sha:execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim(),
   checkout_base:"refine/checkout-clareza-carrinho-20261116",
   backend_required_catalog_version:"2026-11-18.gourmet-ovomaltine-cookies-leite",

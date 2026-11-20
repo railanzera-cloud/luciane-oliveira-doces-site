@@ -13,16 +13,25 @@ const v14 = await import("../docs/edge-release/rollback/20261105/create-order-v1
 const v26 = await import("../docs/edge-release/rollback/20261105/create-whatsapp-order-v26/functions/_shared/commerce-catalog.mjs");
 const candidate = await import("../supabase/functions/_shared/commerce-catalog.mjs");
 
-// Exceção comercial aprovada em 18/11/2026. Arquivos v14/v26 e hashes de rollback
-// permanecem imutáveis: a comparação permite SOMENTE a reclassificação dos
-// dois recheios Gourmet, mantendo identidade, quantidade e disponibilidade.
-const approvedGourmetReprice = (legacyQuote, input) => {
-  if (input.product_id !== "pipoca-gourmet" || input.option_ids.length !== 1) return legacyQuote;
-  const approvedGroups = { ovomaltine: 2, "choco-cookies-leite": 1 };
-  const group = approvedGroups[input.option_ids[0]];
-  if (!group) return legacyQuote;
-  const unitPriceCents = candidate.POPCORN_PRICES_CENTS[group][input.variant_id];
-  assert.ok(unitPriceCents > 0, "Unknown approved Gourmet size for reprice");
+// Exceções comerciais aprovadas: dois grupos Gourmet (18/11) e somente
+// a fatia Geleia de Morango com Ninho de R$20 para R$22 (20/11).
+// Arquivos históricos v14/v26 e hashes de rollback permanecem IMUTÁVEIS.
+const approvedCommercialReprice = (legacyQuote, input) => {
+  let unitPriceCents;
+  let group = null;
+  if (input.product_id === "fatia-coco-cremoso-morango" &&
+      input.variant_id === "fatia" && input.option_ids.length === 0) {
+    unitPriceCents = candidate.SLICES["fatia-coco-cremoso-morango"].priceCents;
+    assert.equal(unitPriceCents, 2200, "Only approved slice reprice is R$22");
+  } else if (input.product_id === "pipoca-gourmet" && input.option_ids.length === 1) {
+    const approvedGroups = { ovomaltine: 2, "choco-cookies-leite": 1 };
+    group = approvedGroups[input.option_ids[0]] ?? null;
+    if (!group) return legacyQuote;
+    unitPriceCents = candidate.POPCORN_PRICES_CENTS[group][input.variant_id];
+    assert.ok(unitPriceCents > 0, "Unknown approved Gourmet size for reprice");
+  } else {
+    return legacyQuote;
+  }
   return {
     ...legacyQuote,
     subtotalCents: unitPriceCents * input.quantity,
@@ -30,7 +39,7 @@ const approvedGourmetReprice = (legacyQuote, input) => {
       ...line,
       unit_price_cents: unitPriceCents,
       line_total_cents: unitPriceCents * line.quantity,
-      ...(Object.hasOwn(line, "pricing_group") ? { pricing_group: group } : {}),
+      ...(group !== null && Object.hasOwn(line, "pricing_group") ? { pricing_group: group } : {}),
     })),
   };
 };
@@ -84,7 +93,7 @@ test("all 21 original delivery tariff zones are preserved and only five approved
   assert.equal(Object.keys(candidate.DELIVERY_ZONES).length, 26);
 });
 
-test("current WhatsApp catalogue preserves 40 historical SKUs except two owner-approved Gourmet price groups", () => {
+test("current WhatsApp catalogue preserves 40 historical SKUs except approved Gourmet groups and the R$22 Ninho slice", () => {
   const fixedDate = Date.parse("2026-11-05T12:00:00-03:00");
   const items = [
     ...Object.keys(v26.SLICES).map(product_id =>
@@ -106,7 +115,7 @@ test("current WhatsApp catalogue preserves 40 historical SKUs except two owner-a
   });
   for (const item of items) {
     assert.deepEqual(commercialIdentity(candidate.quoteCartItems([item], fixedDate)),
-      commercialIdentity(approvedGourmetReprice(v26.quoteCartItems([item], fixedDate), item)),
+      commercialIdentity(approvedCommercialReprice(v26.quoteCartItems([item], fixedDate), item)),
       "Price/availability drift for " + item.product_id + " " + item.variant_id + " " + item.option_ids.join(","));
   }
 });
@@ -180,7 +189,7 @@ test("legacy Mercado Pago/site quote preserves 30 shared SKUs with only approved
     const oldQuote = v14.quoteCartItems([item]);
     const newQuote = candidate.quoteCartItems([item], now);
     const siteHandlerQuote = applyPopcornPromotionToQuote(newQuote, now);
-    assert.deepEqual(normalise(siteHandlerQuote), normalise(approvedGourmetReprice(oldQuote, item)),
+    assert.deepEqual(normalise(siteHandlerQuote), normalise(approvedCommercialReprice(oldQuote, item)),
       "Shared site checkout price/stock identity changed: " + item.product_id
         + " " + item.variant_id + " " + item.option_ids.join(","));
   }
