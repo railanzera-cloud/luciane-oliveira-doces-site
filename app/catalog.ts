@@ -295,7 +295,7 @@ export const PRODUCTS: Product[] = [
     name: "Geleia de Morango com Ninho",
     image: "/fatia-coco-cremoso-morango.webp",
     cardImage: "/fatia-coco-cremoso-morango-card.webp",
-    imageAlt: "Fatia artesanal de massa branca com coco cremoso e geleia de morango",
+    imageAlt: "Fatia artesanal de massa branca com recheio cremoso e geleia de morango",
     available: true,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
     options: SLICE_OPTIONS,
