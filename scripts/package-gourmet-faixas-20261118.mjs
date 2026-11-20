@@ -20,7 +20,7 @@ const backend=await readFile(path.join(root,"supabase/functions/_shared/commerce
 // Contrato crítico de preço: exatamente uma fatia Geleia Morango com Ninho a R$22.
 const section = source.slice(source.indexOf('id: "fatia-coco-cremoso-morango"'), source.indexOf('id: "fatia-chocolate-cenoura"'));
 if (!/name: "Geleia de Morango com Ninho"/.test(section) || !/price: 22, available: true/.test(section)) throw Error("Preco da fatia no site diverge de R$22.");
-if (!/"fatia-coco-cremoso-morango"[^\\n]*name: "Geleia de Morango com Ninho", priceCents: 2200/.test(backend)) throw Error("Preco autoritativo diverge de R$22.");
+if (!backend.includes('"fatia-coco-cremoso-morango": Object.freeze({ id: "fatia-coco-cremoso-morango", itemKey: "slice_coco_cremoso_morango", name: "Geleia de Morango com Ninho", priceCents: 2200 })')) throw Error("Preco autoritativo diverge de R$22.");
 for(const [file,body,patterns] of [
   ["app/catalog.ts",source,[/id: "ovomaltine"[^\n]+pricingGroup: 2/,/id: "choco-cookies-leite"[^\n]+pricingGroup: 1/]],
   ["commerce-catalog.mjs",backend,[/ovomaltine: Object.freeze\([^\n]+pricingGroup: 2/,/"choco-cookies-leite": Object.freeze\([^\n]+pricingGroup: 1/]],
