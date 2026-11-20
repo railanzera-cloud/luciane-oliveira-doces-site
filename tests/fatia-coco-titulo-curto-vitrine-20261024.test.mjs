@@ -16,7 +16,7 @@ test("Nome aprovado é curto e suficiente, sem subtítulo repetido", () => {
   assert.equal(product?.name, approvedName);
   assert.equal(product?.cardName, undefined);
   assert.equal(product?.subtitle, undefined);
-  assert.equal(product?.variants[0].price, 20);
+  assert.equal(product?.variants[0].price, 22);
   assert.equal(product?.image, "/fatia-coco-cremoso-morango.webp");
   assert.match(page, /<strong>\{slice\.cardName \?\? slice\.name\}<\/strong>/);
   assert.match(page, /\{slice\.subtitle && <em>\{slice\.subtitle\}<\/em>\}/);
