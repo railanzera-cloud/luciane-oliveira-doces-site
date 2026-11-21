@@ -514,3 +514,7 @@ A autorização subsequente do proprietário permitiu efetivar o backend comerci
 ## D-UX-20261121 — comparar Fatias e apresentar oferta atual
 
 Proprietário autorizou a implementação em prévia separada após auditoria: introdução compacta, maior legibilidade, menos molduras e grade 2×2 no desktop, preservando fotos, preços e fluxos. Fonte remota `f0ed9bf966ce96a5a63ca7cc9832f7a4ee68a4e5`; candidata desenvolvida/testada, **sem aceite visual final ou publicação**. Corrigir contagem fixa de quatro sabores de Natal e apresentar Cascões disponíveis antes dos esgotados, mantendo IDs e ordem interna de cada grupo. Nenhuma liberação de estoque. A prévia usa dados ilustrativos, sem pedidos ou rastreadores; não promover seus bundles a produção. Evidências e limites no Checkpoint de 21/11.
+
+
+### D-UX-20261121 — aceite visual posterior
+Em 21/11/2026, após receber a comparação antes/depois, o proprietário respondeu “Aprovado”. Visual da fonte `f0ed9bf` aceito; autorizada a continuação para preparar o pacote final conectado. Preservar fotos/preços/fluxos e manter a publicação como marco separado, sem confundir a aceitação da prévia com comprovação de deployment.
