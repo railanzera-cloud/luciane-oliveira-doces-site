@@ -65,21 +65,21 @@ test("calda de Ninho é gratuita, não pré-selecionada e respeita a ordem conte
   assert.throws(()=>quoteCartItems([{product_id:"fatia-prestigio",variant_id:"fatia",quantity:1,option_ids:["calda-ninho","calda-chocolate"]}]),/Escolha uma fatia válida/);
 });
 
-test("Abacaxi com Brigadeiro Branco: preço, foto e status inicial oculto até autorização", () => {
+test("Abacaxi com Coco Queimado: preço, foto e status inicial oculto até autorização", () => {
   const slice = front.slice(front.indexOf('id: "fatia-abacaxi-doce-leite"'), front.indexOf('id: "coca-cola-220"'));
   assert.ok(front.includes('export const SLICE_DRAFTS: ReadonlyArray<'));
-  assert.match(slice, /name: "Abacaxi com Brigadeiro Branco"/);
+  assert.match(slice, /name: "Abacaxi com Coco Queimado"/);
   assert.match(slice, /image: "\/fatia-abacaxi-brigadeiro-branco-20261108\.jpeg"/);
   assert.match(slice, /cardImage: "\/fatia-abacaxi-brigadeiro-branco-card-20261108\.webp"/);
   assert.match(slice, /price: 20/);
   assert.ok(menu.includes('"fatia-abacaxi-doce-leite": "slice_abacaxi_doce_leite"'));
   assert.ok(menu.includes('statuses[SLICE_ITEM_KEYS["fatia-abacaxi-doce-leite"]] = "hidden"'));
   assert.ok(admin.includes('changeItemStatus(item, status)'));
-  assert.ok(backend.includes('name: "Abacaxi com Brigadeiro Branco", priceCents: 2000'));
+  assert.ok(backend.includes('name: "Abacaxi com Coco Queimado", priceCents: 2000'));
   assert.ok(!backend.includes('name: "Abacaxi com Doce de Leite"'));
   const quoted = quoteCartItems([{product_id:"fatia-abacaxi-doce-leite",variant_id:"fatia",quantity:1,option_ids:["sem-calda"]}]);
   assert.equal(quoted.subtotalCents,2000);
-  assert.equal(quoted.items[0].name,"Abacaxi com Brigadeiro Branco");
+  assert.equal(quoted.items[0].name,"Abacaxi com Coco Queimado");
   assert.deepEqual(quoted.availabilityKeys.sort(), ["category_fatias","slice_abacaxi_doce_leite"].sort());
   assert.match(migration, /'slice_abacaxi_doce_leite',[\s\S]*?'hidden'::public\.item_status/);
   assert.match(migration, /ON CONFLICT \(item_key\) DO NOTHING/);
