@@ -93,7 +93,7 @@ export function sliceSauceOptions(productId: string): ProductOption[] {
     : SLICE_OPTIONS;
 }
 
-// Nenhuma fatia permanece como rascunho. O cadastro Abacaxi com Brigadeiro Branco
+// Nenhuma fatia permanece como rascunho. O cadastro Abacaxi com Coco Queimado
 // conserva o ID técnico histórico; a liberação depende do status remoto (inicial Oculto).
 export const SLICE_DRAFTS: ReadonlyArray<{ id: string; itemKey: string; name: string; price: number | null; image: string | null }> = [];
 
@@ -329,10 +329,10 @@ export const PRODUCTS: Product[] = [
     id: "fatia-abacaxi-doce-leite",
     kind: "slice",
     category: "Fatias Artesanais",
-    name: "Abacaxi com Brigadeiro Branco",
+    name: "Abacaxi com Coco Queimado",
     image: "/fatia-abacaxi-brigadeiro-branco-20261108.jpeg",
     cardImage: "/fatia-abacaxi-brigadeiro-branco-card-20261108.webp",
-    imageAlt: "Fatia artesanal de massa clara com pedaços de abacaxi e brigadeiro branco",
+    imageAlt: "Fatia artesanal de abacaxi",
     available: true,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
     options: SLICE_OPTIONS,
