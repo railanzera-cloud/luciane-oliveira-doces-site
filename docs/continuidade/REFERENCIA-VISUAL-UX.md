@@ -433,3 +433,14 @@ Validado em Chrome isolado e WebKit automatizado 320/375/390/430/1280. Aprovaç�
 
 ### 17/11/2026 — encerramento compacto V4.7.15.2
 Screenshot do proprietário motivou reduzir espaços excessivos depois da montagem de Fatias, ao redor da frase e após contato. Escopo autorizado: respiro; texto e identidade mantidos. Padding do configurador só reduz quando a frase é o próximo bloco, evitando alterar a passagem ao checkout. Margem inferior do rodapé acompanha a presença da barra móvel e preserva safe-area. Estado: candidato; não confundir QA automatizado com homologação física/publicação.
+
+
+### UX-CANDIDATA-20261121 — Fatias após auditoria
+
+Base de comparação: PR #72 / `021ee3d`, manifesto público V4.7.15.6; fonte candidata remota `f0ed9bf966ce96a5a63ca7cc9832f7a4ee68a4e5`. Introdução redundante das Fatias retirada; título principal e informações de entrega mantidos. Cards em chocolate com menos contornos, nomes serifados, peso 13px e preços alinhados. Abaixo de 360px, linhas com foto/texto; a partir de 900px, grade 2×2 com foto/texto em cada card. Nenhuma foto ou produto regenerado.
+
+Comparação Chromium em quadros 320/375/390/430/1280px, sem overflow; no quadro de 390px, foto inicial cerca de 197px mais cedo, com mesmo aviso/dados ilustrativos dos dois lados. Simulados calda, quantidade, edição, bebidas, entrega e totais. Sem Safari/iPhone/Instagram físicos. Captura [antes/depois](https://chatgpt.com/library?file_id=libfile_da24a0dbb1b881918d9e993283fa2013&account_id=personal). **Candidata testada, aguardando avaliação visual; não publicada.** Não replicar automaticamente nas demais categorias.
+
+
+### UX-APROVADA-20261121 — aceite da comparação de Fatias
+O proprietário respondeu “Aprovado” à comparação entregue no PR #73. Fonte visual `f0ed9bf966ce96a5a63ca7cc9832f7a4ee68a4e5`; aparência aprovada para preparar a V4.7.15.7, sem repetir automaticamente o desenho nas demais categorias. Isso atualiza o status da candidata acima para **aprovada visualmente**, mantendo separados pacote, publicação e homologação em Safari/Instagram físicos.

@@ -509,3 +509,12 @@ Proprietário aprovou aproximar configurador/frase, reduzir espaço ao redor da 
 
 ### Atualização de execução em 18/11/2026 — D-C (Gourmet)
 A autorização subsequente do proprietário permitiu efetivar o backend comercial: create-order v38→v39 ACTIVE e create-whatsapp-order v64→v65 ACTIVE. Diff limitado a dois pricingGroup + CATALOG_VERSION em cada commerce-catalog.mjs; backups originais em docs/edge-release/rollback/20261118. Verificado no Supabase após deploy. A loja estava e permanece com orders_open=false. **Vitrine NÃO publicada**: ZIP V4.7.15.3 (SHA256 7393a8f5db1518b786c285b3fab9279eca27103a73773867a83e5de8bf7aa874) está compilado, porém não foi possível demonstrar preservação de todas as 151 mídias registradas no pacote anterior; o novo pacote tem 84. Não recomendar upload até reconciliação. Acompanhar docs/continuidade/ALTERACAO-FAIXAS-GOURMET-20261118.md.
+
+
+## D-UX-20261121 — comparar Fatias e apresentar oferta atual
+
+Proprietário autorizou a implementação em prévia separada após auditoria: introdução compacta, maior legibilidade, menos molduras e grade 2×2 no desktop, preservando fotos, preços e fluxos. Fonte remota `f0ed9bf966ce96a5a63ca7cc9832f7a4ee68a4e5`; candidata desenvolvida/testada, **sem aceite visual final ou publicação**. Corrigir contagem fixa de quatro sabores de Natal e apresentar Cascões disponíveis antes dos esgotados, mantendo IDs e ordem interna de cada grupo. Nenhuma liberação de estoque. A prévia usa dados ilustrativos, sem pedidos ou rastreadores; não promover seus bundles a produção. Evidências e limites no Checkpoint de 21/11.
+
+
+### D-UX-20261121 — aceite visual posterior
+Em 21/11/2026, após receber a comparação antes/depois, o proprietário respondeu “Aprovado”. Visual da fonte `f0ed9bf` aceito; autorizada a continuação para preparar o pacote final conectado. Preservar fotos/preços/fluxos e manter a publicação como marco separado, sem confundir a aceitação da prévia com comprovação de deployment.

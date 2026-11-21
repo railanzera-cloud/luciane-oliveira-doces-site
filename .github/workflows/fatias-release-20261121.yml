@@ -1,0 +1,50 @@
+name: Fatias aprovadas — pacote conectado V4.7.15.7 (sem deploy)
+on:
+  push:
+    branches:
+      - refine/fatias-identidade-auditoria-20261121
+    paths:
+      - .github/workflows/fatias-release-20261121.yml
+      - scripts/package-fatias-refinamento-20261121.mjs
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package-approved:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SUPABASE_URL: "https://edqiwvccmboyayojvuea.supabase.co"
+      SUPABASE_PUBLISHABLE_KEY: "sb_publishable_69flK5d9m8Oe3HHVnmKWdA_omNIuIcl"
+      SITE_ORDERING_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Instalar dependencias
+        run: npm ci --no-audit --no-fund
+      - name: Compilar site conectado ao Supabase comercial
+        run: npm run build
+      - name: Verificar regressões comerciais
+        run: node --test tests/*.test.mjs
+      - name: Preparar rotas e assets conectados
+        run: node scripts/build-crm-commercial-core.mjs
+      - name: Verificar aprovação, catálogo, mídias e integridade do pacote
+        shell: bash
+        run: |
+          node scripts/package-fatias-refinamento-20261121.mjs | tee outputs/RELEASE-V47157.json
+          sha256sum outputs/LUCIANE_DOCES_V4_7_15_7_FATIAS_APROVADAS_CLOUDFLARE.zip > outputs/RELEASE-V47157.sha256
+      - name: Disponibilizar pacote aprovado sem realizar deploy
+        uses: actions/upload-artifact@v4
+        with:
+          name: LUCIANE-DOCES-V47157-FATIAS-APROVADAS-CLOUDFLARE
+          path: |
+            outputs/LUCIANE_DOCES_V4_7_15_7_FATIAS_APROVADAS_CLOUDFLARE.zip
+            outputs/RELEASE-V47157.json
+            outputs/RELEASE-V47157.sha256
+          retention-days: 30
+          if-no-files-found: error

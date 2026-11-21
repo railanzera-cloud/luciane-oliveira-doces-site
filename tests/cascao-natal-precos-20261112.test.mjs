@@ -92,7 +92,7 @@ test("Admin, vitrine e banco reutilizam category_cones sem liberar novos sabores
   assert.match(page, /Cascão Trufado/);
   assert.match(navigation, /name: "Cascão Trufado"/);
   assert.ok(admin.includes("<h2>Cascão Trufado</h2>"));
-  assert.ok(page.includes("CONES.filter(cone => coneIsVisible(cone.id)).map"));
+  assert.ok(page.includes("orderAvailableProductsFirst(CONES.filter(cone => coneIsVisible(cone.id)),"));
   assert.ok(read("app/cones-trufados-20261108.css").includes("last-child:nth-child(odd)"));
   assert.ok(migration.includes("UPDATE public.menu_availability"));
   assert.ok(!migration.includes("SET status"));

@@ -1,0 +1,112 @@
+/* Categoria de Fatias: preservar o restante do cardápio e o checkout. */
+.storefront[data-active-category="fatias"] .menu-entry.has-category {
+  padding-block: 24px 20px;
+}
+.storefront[data-active-category="fatias"] .entry-heading > .eyebrow { display: none; }
+.storefront[data-active-category="fatias"] .entry-heading h1 {
+  margin: 0 0 8px;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+}
+.storefront[data-active-category="fatias"] .entry-copy { margin-block: 0 12px; }
+.storefront[data-active-category="fatias"] .delivery-time-estimate {
+  margin: 10px 0 8px;
+  padding: 0;
+  border: 0;
+  font-size: .8125rem;
+  line-height: 1.5;
+}
+.storefront[data-active-category="fatias"] .builder-shell {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 1080px;
+  row-gap: 20px;
+}
+.storefront[data-active-category="fatias"] #configurador .builder-utility-nav { margin-bottom: 0; }
+.storefront[data-active-category="fatias"] .builder-shell > .availability-alert,
+.storefront[data-active-category="fatias"] .builder-shell > .added-panel { grid-column: 1; }
+.storefront[data-active-category="fatias"] .slice-builder {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.storefront[data-active-category="fatias"] #fatias {
+  padding: 0 0 24px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.storefront[data-active-category="fatias"] .slice-builder .step-heading p {
+  font-size: .875rem;
+  line-height: 1.5;
+}
+.storefront[data-active-category="fatias"] .slice-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.storefront[data-active-category="fatias"] .slice-card {
+  background: #281c15;
+  border-color: rgba(228, 195, 157, .2);
+  border-radius: 16px;
+  box-shadow: none;
+}
+.storefront[data-active-category="fatias"] .slice-card-copy,
+.storefront[data-active-category="fatias"] .slice-card.is-selected .slice-card-copy {
+  min-height: 0;
+  flex: 1;
+  padding: 16px;
+  gap: 12px;
+  background: transparent;
+}
+.storefront[data-active-category="fatias"] .slice-card.is-selected {
+  border-color: #f0cb96;
+  background: #3a291d;
+  box-shadow: 0 0 0 1px #f0cb96;
+}
+.storefront[data-active-category="fatias"] .boutique-slice-card-title strong {
+  font-size: 1.125rem;
+  line-height: 1.35;
+  letter-spacing: -.02em;
+}
+.storefront[data-active-category="fatias"] .boutique-slice-card-footer {
+  display: grid;
+  gap: 8px;
+  padding-top: 0;
+  border: 0;
+}
+.storefront[data-active-category="fatias"] .boutique-slice-card-footer .slice-weight {
+  font-size: .8125rem;
+  line-height: 1.4;
+  color: #d8c8b7;
+}
+.storefront[data-active-category="fatias"] .boutique-slice-card-footer b { font-size: 1.1875rem; }
+.storefront[data-active-category="fatias"] .boutique-slice-selected-label { font-size: .75rem; }
+.storefront[data-active-category="fatias"] .slice-builder .selection-helper {
+  font-size: .875rem;
+  line-height: 1.5;
+}
+@media (min-width: 900px) {
+  .storefront[data-active-category="fatias"] .slice-card {
+    display: grid;
+    grid-template-columns: minmax(0, .95fr) minmax(0, 1fr);
+  }
+  .storefront[data-active-category="fatias"] .slice-media { aspect-ratio: 1 / 1.02; }
+  .storefront[data-active-category="fatias"] .slice-card-copy,
+  .storefront[data-active-category="fatias"] .slice-card.is-selected .slice-card-copy { justify-content: center; }
+  .storefront[data-active-category="fatias"] .boutique-slice-card-footer { margin-top: 10px; }
+}
+@media (max-width: 699px) {
+  .storefront[data-active-category="fatias"] .menu-entry.has-category { padding-block: 18px 14px; }
+  .storefront[data-active-category="fatias"] .builder-section { padding-top: 16px; }
+  .storefront[data-active-category="fatias"] .slice-grid { gap: 12px; }
+  .storefront[data-active-category="fatias"] .slice-card-copy,
+  .storefront[data-active-category="fatias"] .slice-card.is-selected .slice-card-copy { padding: 12px; }
+  .storefront[data-active-category="fatias"] .boutique-slice-card-title strong { font-size: 1rem; }
+}
+@media (max-width: 359px) {
+  .storefront[data-active-category="fatias"] .slice-grid { grid-template-columns: minmax(0, 1fr); }
+  .storefront[data-active-category="fatias"] .slice-card {
+    display: grid;
+    grid-template-columns: 42% minmax(0, 1fr);
+  }
+  .storefront[data-active-category="fatias"] .slice-media { aspect-ratio: 1 / 1.02; align-self: center; }
+}

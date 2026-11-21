@@ -82,6 +82,7 @@ import { getLimitedCupPhase, type LimitedCupPhase } from "@/app/limited-cup-rele
 import { isPopcornPromotionActive, POPCORN_PROMOTION } from "@/supabase/functions/_shared/popcorn-promotion.mjs";
 import { GOURMET_HOLIDAY_CREATIVE } from "@/lib/storefront-campaign-creative";
 import { StorefrontCampaignEditorial } from "@/components/storefront-campaign-editorial";
+import { orderAvailableProductsFirst } from "@/lib/storefront-merchandising.mjs";
 import { ChristmasCollection } from "@/components/christmas-collection";
 import { DrinkComplements } from "@/components/drink-complements";
 import {
@@ -1372,7 +1373,7 @@ export default function Home() {
   const stickyShowsOrderReview = stickyUsesCheckoutAction && cart.length > 0 && !checkoutInView && !isFinalizing;
   const stickyIsCheckoutReady = stickyUsesCheckoutAction && !stickyShowsOrderReview && checkoutReady;
   const stickyPriceLabel = natalPicking
-    ? natalSelectedCount > 0 ? currency.format(cartSubtotal) : "4 sabores"
+    ? natalSelectedCount > 0 ? currency.format(cartSubtotal) : "Sabores recheados"
     : cupBuilderFlowActive
     ? currency.format((cupVariant?.price ?? cupStartingPrice) * (cupSizeId ? cupQuantity : 1))
     : cart.length > 0 && !builderFlowActive
@@ -2441,7 +2442,7 @@ export default function Home() {
   }
 
   return (
-    <main className="storefront" inert={isFinalizing} aria-busy={isFinalizing}>
+    <main className="storefront" data-active-category={activeCategory ?? undefined} inert={isFinalizing} aria-busy={isFinalizing}>
       <header className="brand-bar">
         <a className="brand-lockup" href="#inicio" aria-label="Voltar às categorias" onClick={(event) => { event.preventDefault(); returnToCategories(); }}>
           <span className="brand-crown" aria-hidden="true"><Crown size={17} strokeWidth={1.7} /></span>
@@ -2481,7 +2482,7 @@ export default function Home() {
               <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : activeCategory === "cones" ? "Cascão Trufado" : activeCategory === "natal" ? "Fatias de Chocottone" : "Fatias Artesanais"}</h1>
               <p className="entry-copy">{activeCategory === "pipocas"
                 ? showLimitedCupView ? "Três sabores artesanais em pacotes P, M e G." : "Escolha o tamanho e combine seus sabores."
-                : activeCategory === "cones" ? "Escolha seu sabor e a quantidade desejada." : activeCategory === "natal" ? "Edição especial de Natal · 4 sabores recheados." : "Sabores disponíveis"}</p>
+                : activeCategory === "cones" ? "Escolha seu sabor e a quantidade desejada." : activeCategory === "natal" ? "Edição especial de Natal · fatias recheadas." : "Sabores disponíveis"}</p>
               {availability.ordersOpen && visibleCategories.length > 0 && (
                 <p className="delivery-time-estimate">
                   <span className="delivery-time-copy">
@@ -2498,12 +2499,12 @@ export default function Home() {
             </div>
           )}
           {!activeCategory && hasResolvedAvailability && natalVisible && (
-            <button type="button" className="natal-home-ribbon" aria-label="Edição especial de Natal: conhecer as fatias recheadas de Chocottone em quatro sabores"
+            <button type="button" className="natal-home-ribbon" aria-label="Edição especial de Natal: conhecer as fatias recheadas de Chocottone"
               onClick={() => selectCategory("natal")}>
               <span className="natal-home-copy">
                 <span className="natal-home-eyebrow">✦ Edição especial de Natal</span>
                 <strong className="natal-home-title">Fatias de Chocottone</strong>
-                <span className="natal-home-description">4 sabores recheados</span>
+                <span className="natal-home-description">Sabores recheados</span>
                 <span className="natal-home-action">Conhecer sabores <ChevronRight size={16} aria-hidden="true"/></span>
               </span>
               <span className="natal-home-image" aria-hidden="true">
@@ -2755,7 +2756,7 @@ export default function Home() {
               )}
             </nav>
           )}
-          {activeCategory !== "natal" && <div className="section-intro" id="potes-recheados">
+          {activeCategory !== "natal" && activeCategory !== "fatias" && <div className="section-intro" id="potes-recheados">
             <p className="eyebrow">Seu pedido, do seu jeito</p>
             <h2>{activeCategory === "pipocas" ? "Crie sua combinação." : activeCategory === "cones" ? "Escolha seu cascão." : "Sua vitrine de sabores."}</h2>
             <p>{activeCategory === "pipocas"
@@ -3021,7 +3022,8 @@ export default function Home() {
                     setSelectionMessage("");
                     requestScroll("cones-quantidade");
                   }}>
-                  {CONES.filter(cone => coneIsVisible(cone.id)).map(cone => {
+                  {orderAvailableProductsFirst(CONES.filter(cone => coneIsVisible(cone.id)),
+                    cone => conesAvailable && cone.available && cone.variants[0].available && coneIsAvailable(cone.id)).map(cone => {
                     const selected = cone.id === coneProductId;
                     const available = conesAvailable && cone.available && cone.variants[0].available && coneIsAvailable(cone.id);
                     return (
@@ -3365,7 +3367,7 @@ export default function Home() {
                             : id === "gourmet" ? "Montar pote Gourmet"
                             : id === "fatias" ? (addedNotice?.category === "natal" ? "Conhecer sabores artesanais" : "Escolher sua fatia")
                               : id === "trufadas" ? "Escolher sabor e tamanho"
-                              : id === "natal" ? (addedNotice?.category === "natal" ? "Escolher mais sabores" : "Fatias recheadas · 4 sabores")
+                              : id === "natal" ? (addedNotice?.category === "natal" ? "Escolher mais sabores" : "Fatias recheadas")
                                 : "Ver acompanhamentos";
                           const photo = id === "cones" ? (coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-kinder-inteiro-card-20261114-v47143.webp" : "/images/cones-trufados-trio-card-20261108.webp")
                             : id === "gourmet" ? "/images/categoria-pipocas-editorial-enquadrada-v107.webp"
