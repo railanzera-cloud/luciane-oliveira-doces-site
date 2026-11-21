@@ -1,6 +1,22 @@
 # Checkpoint Vivo — Site Comercial Luciane Oliveira Doces
 
 
+## 21/11/2026 — candidato de Fatias após auditoria visual
+
+- Autorizado pelo proprietário: prévia separada das Fatias e correções pontuais de Natal/Cascões. Base do manifesto público V4.7.15.6: `021ee3d5d26d0734319a7fd66c5285595a7ebcf1` / PR #72; não usar main como produção. ID atual de deployment Cloudflare não confirmado.
+- Fonte candidata remota: `f0ed9bf966ce96a5a63ca7cc9832f7a4ee68a4e5`, árvore `acb24750523728d348995589d36ec442047b5a55`, branch `refine/fatias-identidade-auditoria-20261121`. Sete arquivos de código/testes, 155 inserções e 11 exclusões. Sincronização via API após indisponibilidade do ambiente; o envio Git por terminal havia falhado por falta de autenticação. Sem merge em main.
+- Fatias: introdução duplicada retirada; CSS exclusivo da categoria; textos maiores, peso 13px, preços alinhados, grade 2×2 no desktop e cards em linhas abaixo de 360px. Fotografias, IDs, preços, caldas, estoque, payload e módulos de checkout/mensuração preservados. Nenhum arquivo public/ ou supabase/ alterado.
+- Natal: removida promessa fixa de quatro sabores em home, cabeçalho, barra e recomendações. Cascões visíveis disponíveis precedem esgotados, mantendo ordem interna de cada grupo e catálogo imutável. Não houve alteração de disponibilidade.
+- Validação local executada antes da indisponibilidade do executor: build aprovado e 941/941 testes; TypeScript geral apresenta os mesmos quatro erros reproduzidos na base anterior (admin-trufadas-stock, cloudflare:workers, Fetcher e D1Database), sem novo erro. Não declarar CI remota aprovada sem conferir o resultado do SHA remoto.
+- Prova visual: Chromium, quadros de 320/375/390/430px e 1280px; altura móvel 844px, com scrollbar desktop. Sem overflow horizontal ou fotos quebradas nas quatro larguras móveis; em quadro de 390px, primeira foto aproximadamente y650→y453 e peso 10,72→13px. Não equivale a Safari/iPhone/Instagram físicos nem teste de teclado virtual.
+- Simulação isolada: Geleia sem calda, 2 unidades R$44; edição preservou quantidade/calda; Guaraná R$3 → R$47; entrega Juparanã R$8 → R$55. Ferrero apareceu antes dos cinco Cascões esgotados; Natal exibiu dois itens ilustrativos sem anunciar quatro. Itens removidos ao encerrar.
+- Prévia comparativa usou cópias isoladas de antes/depois, dados ilustrativos, sem credenciais nem scripts Meta/Tintim e com pedidos desativados. Após bloqueio automático da prévia executável por potencial transmissão externa, foi usada alternativa estática local, sem Worker. Não publicar os bundles de demonstração. O executor ficou indisponível na retomada; não presumir que o endereço local continue acessível.
+- Captura preservada: [fatias-antes-depois-390.jpg](https://chatgpt.com/library?file_id=libfile_da24a0dbb1b881918d9e993283fa2013&account_id=personal). Estado: desenvolvido/testado, aguardando avaliação visual. Sem publicação oficial, SQL/Edge, estoque, envio WhatsApp, pagamentos ou impressão; sem ZIP de produção. PR #67 CRM permanece paralelo.
+- Próximo passo: comparar e aprovar a proposta visual; depois preparar build conectado/pacote fiel à fonte e reconciliar deployment atual. Os registros operacionais antigos abaixo são históricos.
+
+---
+
+
 ## Atualização operacional — 18/11/2026: backend Gourmet implantado (site não publicado)
 - Autorização do proprietário para atualizar as duas funções de pedidos confirmada. create-order **v39 ACTIVE** (antes v38) e create-whatsapp-order **v65 ACTIVE** (antes v64). Backups dos dois catálogos de origem preservados em docs/edge-release/rollback/20261118/.
 - Em cada bundle, mudou **apenas** commerce-catalog.mjs: Ovomaltine pricingGroup 1→2, Choco Cookies ao Leite/chocolate 2→1 e CATALOG_VERSION 2026-11-18.gourmet-ovomaltine-cookies-leite. Leitura pós-deploy confirmou estado ACTIVE, source exato, oito sabores e tabelas de preços iguais à vitrine candidata para 500ml/750ml/1l.

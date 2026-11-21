@@ -1,5 +1,7 @@
 # Luciane Oliveira Doces — entrada oficial de agentes e continuidade (05/11/2026)
 
+> **Retomada 21/11/2026 — candidato visual separado:** a auditoria encontrou manifesto público V4.7.15.6 / `021ee3d` (PR #72). O candidato `refine/fatias-identidade-auditoria-20261121` parte dessa base, fonte remota `f0ed9bf966ce96a5a63ca7cc9832f7a4ee68a4e5`. Consultar atualização de 21/11 no Checkpoint Vivo. Os estados de 12/11 abaixo são históricos; esta prévia não foi publicada no domínio oficial nem alterou backend.
+
 > **LEITURA OBRIGATÓRIA ANTES DE QUALQUER IMPLEMENTAÇÃO.** Este é o site comercial + `/admin` + `/pedido`, **não** Luciane Gestão. O histórico contém centenas de alterações e diversas branches: `main` pode estar muito atrás, um ZIP não substitui o repositório e uma CI aprovada não é deployment. A documentação histórica continua válida como **origem de decisões locais**, não como indicador universal do HEAD atual.
 
 ## Ordem de leitura
