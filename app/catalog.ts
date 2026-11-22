@@ -321,7 +321,7 @@ export const PRODUCTS: Product[] = [
     cardImage: "/fatia-bombom-uva.avif",
     imageAlt: "Fatia artesanal de bolo de chocolate com creme e uvas verdes",
     available: true,
-    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
     options: SLICE_OPTIONS,
   },
   {
