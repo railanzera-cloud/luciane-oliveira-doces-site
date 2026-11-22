@@ -10,26 +10,26 @@ const page = readFileSync("app/page.tsx", "utf8");
 const migration = readFileSync("supabase/migrations/20261107190000_fatia_bombom_uva.sql", "utf8");
 const productId = "fatia-bombom-uva", itemKey = "slice_bombom_uva", name = "Bombom de Uva";
 
-test("Fatia de Bombom de Uva é um SKU novo de R$ 20 com referência de imagem própria", () => {
+test("Fatia de Bombom de Uva mantém o SKU e custa R$ 22 com referência de imagem própria", () => {
   const section = front.slice(front.indexOf('id: "' + productId + '"'), front.indexOf('id: "coca-cola-220"'));
   assert.ok(section.includes('kind: "slice"'));
   assert.ok(section.includes('name: "' + name + '"'));
-  assert.match(section, /price: 20, available: true/);
+  assert.match(section, /price: 22, available: true/);
   assert.match(section, /options: SLICE_OPTIONS/);
   assert.match(section, /image: "\/fatia-bombom-uva.avif"/);
   assert.match(section, /cardImage: "\/fatia-bombom-uva.avif"/);
   assert.ok(availability.includes('"' + productId + '": "' + itemKey + '"'));
   assert.ok(backend.includes('"' + productId + '": Object.freeze('));
-  assert.ok(backend.includes('itemKey: "' + itemKey + '", name: "' + name + '", priceCents: 2000'));
+  assert.ok(backend.includes('itemKey: "' + itemKey + '", name: "' + name + '", priceCents: 2200'));
 });
 
-test("Backend cota dois Bombons de Uva em R$ 40 e preserva a calda", () => {
+test("Backend cota dois Bombons de Uva em R$ 44 e preserva a calda", () => {
   const quote = quoteCartItems([{product_id: productId, variant_id: "fatia", quantity: 2, option_ids: ["sem-calda"]}]);
   assert.deepEqual(quote.availabilityKeys, ["category_fatias", itemKey]);
-  assert.equal(quote.subtotalCents, 4000);
+  assert.equal(quote.subtotalCents, 4400);
   assert.equal(quote.items[0].item_key, itemKey);
   assert.equal(quote.items[0].name, name);
-  assert.equal(quote.items[0].unit_price_cents, 2000);
+  assert.equal(quote.items[0].unit_price_cents, 2200);
   assert.deepEqual(quote.items[0].option_names, ["Sem calda, por favor"]);
   assert.throws(() => quoteCartItems([{product_id: productId, variant_id: "400ml", quantity: 1, option_ids: []}]), /Escolha uma fatia válida/);
   assert.equal(quoteCartItems([{product_id:"fatia-prestigio",variant_id:"fatia",quantity:1,option_ids:[]}]).subtotalCents, 2000);
