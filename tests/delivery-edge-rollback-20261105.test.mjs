@@ -14,15 +14,16 @@ const v26 = await import("../docs/edge-release/rollback/20261105/create-whatsapp
 const candidate = await import("../supabase/functions/_shared/commerce-catalog.mjs");
 
 // Exceções comerciais aprovadas: dois grupos Gourmet (18/11) e somente
-// a fatia Geleia de Morango com Ninho de R$20 para R$22 (20/11).
+// a fatia Geleia de Morango com Ninho de R$20 para R$22 (20/11), e a
+// fatia Bombom de Uva de R$20 para R$22 (22/11).
 // Arquivos históricos v14/v26 e hashes de rollback permanecem IMUTÁVEIS.
 const approvedCommercialReprice = (legacyQuote, input) => {
   let unitPriceCents;
   let group = null;
-  if (input.product_id === "fatia-coco-cremoso-morango" &&
+  if (["fatia-coco-cremoso-morango", "fatia-bombom-uva"].includes(input.product_id) &&
       input.variant_id === "fatia" && input.option_ids.length === 0) {
-    unitPriceCents = candidate.SLICES["fatia-coco-cremoso-morango"].priceCents;
-    assert.equal(unitPriceCents, 2200, "Only approved slice reprice is R$22");
+    unitPriceCents = candidate.SLICES[input.product_id].priceCents;
+    assert.equal(unitPriceCents, 2200, "Only two approved slice reprices are R$22");
   } else if (input.product_id === "pipoca-gourmet" && input.option_ids.length === 1) {
     const approvedGroups = { ovomaltine: 2, "choco-cookies-leite": 1 };
     group = approvedGroups[input.option_ids[0]] ?? null;
@@ -93,7 +94,7 @@ test("all 21 original delivery tariff zones are preserved and only five approved
   assert.equal(Object.keys(candidate.DELIVERY_ZONES).length, 26);
 });
 
-test("current WhatsApp catalogue preserves 40 historical SKUs except approved Gourmet groups and the R$22 Ninho slice", () => {
+test("current WhatsApp catalogue preserves 40 historical SKUs except approved Gourmet groups and two R$22 slices", () => {
   const fixedDate = Date.parse("2026-11-05T12:00:00-03:00");
   const items = [
     ...Object.keys(v26.SLICES).map(product_id =>
