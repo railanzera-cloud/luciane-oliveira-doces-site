@@ -1,5 +1,52 @@
 # Portabilidade — Luciane Oliveira Doces
 
+## Prévia comercial local no Windows
+
+Use o checkout de trabalho selecionado para a tarefa. O script PowerShell usa
+o motor Linux do Docker Desktop e uma versão fixa da imagem oficial Playwright
+com Node 22. Os módulos npm ficam em volumes separados para cada checkout.
+O perfil de prévia usa uma chave fictícia e um servidor local de disponibilidade.
+
+```powershell
+.\scripts\ambiente-local.ps1 install
+.\scripts\ambiente-local.ps1 test
+.\scripts\ambiente-local.ps1 start
+```
+
+Abra [http://127.0.0.1:8181/](http://127.0.0.1:8181/). O comando `test`
+compila e executa a suíte comercial existente. Após editar o código, faça
+`stop`, `build` e `start` para recarregar o Worker, e atualize a página.
+Use `stop` para encerrar a prévia.
+
+### QA, capturas e Lighthouse
+
+Execute os comandos de QA após o build, com os mesmos dados simulados e sem
+rede externa. Cada execução usa sua própria prévia dentro do contêiner.
+
+| Comando do script | Resultado |
+| --- | --- |
+| `qa` | Jornadas WebKit existentes de bairros e carrinho, com capturas em `outputs/qa-commerce/` |
+| `baseline` | Captura a vitrine e Fatias no Chromium mobile e no WebKit em 320, 375, 390 e 430 px |
+| `compare` | Compara o build atual com as capturas de referência e salva imagens obtidas, referência e diferenças em caso de falha |
+| `lighthouse` | Gera HTML e JSON com desempenho, acessibilidade, boas práticas e SEO da vitrine e de Fatias em `outputs/qa-commerce/lighthouse/`, sem pontuação mínima |
+
+Antes de editar, rode `baseline` sobre a referência verificada e registre o
+SHA junto das capturas da tarefa. Depois, execute `build` e `compare`. Abra
+`outputs/qa-commerce/visual/report/index.html` para revisar as diferenças.
+Rode `baseline` novamente só quando decidir adotar o novo visual. Mantenha
+o mesmo motor, tamanho, data simulada e perfil de dados nas duas medições.
+
+A prévia bloqueia conexões e recursos externos com CSP, intercepta links
+externos e responde localmente às consultas de disponibilidade. Pedidos,
+pagamentos, autenticação e eventos externos ficam indisponíveis. Os testes
+também bloqueiam tráfego externo no navegador e no contêiner. As pontuações
+do Lighthouse descrevem o perfil local. Para aceite operacional, a matriz
+comercial orienta a homologação no iPhone/Safari, Instagram e cozinha.
+Execute o Lighthouse sem build ou outros navegadores de QA em paralelo
+quando for comparar números entre alterações.
+
+## Exportação histórica
+
 Exportação preparada em 26/09/2026 a partir de
 `15fc182e10b67d23d00984c51c812987ad8b963a`, com 50 commits anteriores,
 sem alteração de lógica, banco, pagamentos ou serviços publicados.

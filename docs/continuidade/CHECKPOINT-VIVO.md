@@ -1,5 +1,11 @@
 # Checkpoint Vivo — Site Comercial Luciane Oliveira Doces
 
+## 25/11/2026 — Ambiente de desenvolvimento isolado
+
+- Os dois manifestos públicos retornaram V4.7.15.9 e o SHA `f260d9db546352a21805205d7ca976d115dd7f1f`. Este é o ponto de partida de `codex/ambiente-comercial-v47159`, no worktree `work/ambiente-comercial`. O checkout original continua em `main` / `26730be`.
+- Docker Desktop com motor Linux sobre WSL2, Node 22.20.0 e instalação pelos dois lockfiles. O worktree preserva os finais LF do Git para reproduzir as verificações de texto e hashes em Windows. O build e a suíte comercial passaram com **943/943 testes**.
+- A prévia em `http://127.0.0.1:8181/` usa o catálogo do código e disponibilidade simulada. Vitrine, Fatias, pedido e admin responderam em leitura. Tentativas locais de criar pedido, autenticar e gravar receberam HTTP 503. No WebKit, entrega passou em quatro tamanhos e checkout em cinco. As 16 capturas feitas em Chromium mobile e WebKit foram reproduzidas na comparação seguinte. O Lighthouse gerou dois relatórios informativos.
+- Comandos e evidências ficam na [portabilidade](../PORTABILIDADE.md). Esta etapa configura ferramentas e documentação. Seu resultado preserva o fluxo comercial publicado, o Supabase e o PR #67.
 
 ## 21/11/2026 — candidato de Fatias após auditoria visual
 

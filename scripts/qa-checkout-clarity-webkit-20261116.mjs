@@ -10,7 +10,12 @@ const {webkit}=createRequire(process.env.QA_PACKAGE || import.meta.url)('playwri
 const origin=process.env.QA_ORIGIN || 'http://127.0.0.1:8181';
 const output=process.env.QA_OUTPUT || 'outputs/qa-checkout-clarity';
 const root=process.cwd();
-const vite=await createServer({root,configFile:false,appType:'custom',resolve:{alias:{'@':root}},server:{middlewareMode:true}});
+const vite=await createServer({
+ root,configFile:false,appType:'custom',
+ resolve:{alias:{'@':root}},
+ optimizeDeps:{noDiscovery:true},
+ server:{middlewareMode:true,hmr:false},
+});
 const catalog=await vite.ssrLoadModule('/app/catalog.ts');
 const availability=await vite.ssrLoadModule('/app/menu-availability.ts');
 await vite.close();
