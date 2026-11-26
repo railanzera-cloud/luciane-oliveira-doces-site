@@ -7,7 +7,8 @@ import axe from 'axe-core';
 const phase = process.env.QA_REVIEW_PHASE;
 const reference = phase === 'antes';
 const performanceReview = process.env.QA_PERFORMANCE_REVIEW === '1';
-const reviewFolder = performanceReview ? 'incremento-desempenho/regressoes' : 'incremento-revisao';
+const reviewFolder = process.env.QA_DISTRIBUTION_REVIEW === '1' ? 'distribuicao/regressoes'
+  : performanceReview ? 'incremento-desempenho/regressoes' : 'incremento-revisao';
 const output = fileURLToPath(new URL(`../../outputs/qa-commerce/${reviewFolder}/`, import.meta.url));
 
 test.beforeEach(async ({ page, context, baseURL }) => {

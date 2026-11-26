@@ -5,7 +5,8 @@ import { defineConfig, devices } from '@playwright/test';
 const sizes = [[320, 568], [375, 667], [390, 844], [430, 932]];
 const mobileDevices = { chromium: devices['Pixel 7'], webkit: devices['iPhone 13'] };
 const reviewPhase = process.env.QA_REVIEW_PHASE;
-const reviewFolder = process.env.QA_PERFORMANCE_REVIEW === '1' ? 'incremento-desempenho/regressoes' : 'incremento-revisao';
+const reviewFolder = process.env.QA_DISTRIBUTION_REVIEW === '1' ? 'distribuicao/regressoes'
+  : process.env.QA_PERFORMANCE_REVIEW === '1' ? 'incremento-desempenho/regressoes' : 'incremento-revisao';
 const resultsFolder = reviewPhase ? `${reviewFolder}/${reviewPhase}` : 'visual';
 const output = fileURLToPath(new URL(`../../outputs/qa-commerce/${resultsFolder}/`, import.meta.url));
 

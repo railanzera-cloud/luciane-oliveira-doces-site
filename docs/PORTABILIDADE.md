@@ -32,6 +32,9 @@ rede externa. Cada execução usa sua própria prévia dentro do contêiner.
 | `review-performance` | Repete a revisão do primeiro incremento e testa espera, falha e nova tentativa de disponibilidade. Grava resultados separados em `outputs/qa-commerce/incremento-desempenho/regressoes/` |
 | `lighthouse` | Gera HTML e JSON com desempenho, acessibilidade, boas práticas e SEO da vitrine e de Fatias em `outputs/qa-commerce/lighthouse/`, sem pontuação mínima |
 | `performance-before` / `performance` | Medem a referência e o candidato, com três execuções por URL no Lighthouse e três no perfil limitado do Chromium. As capturas e relatórios ficam em `outputs/qa-commerce/incremento-desempenho/` |
+| `distribution-before` / `distribution-after` | Medem o checkpoint e a mudança de código com o mesmo perfil de conexão, em visitas frias e revisitas. A primeira execução compara compressão e cache sobre o mesmo build. |
+| `distribution-public` | Mede vitrine e Fatias no domínio oficial. O Chromium só permite recursos públicos do site e consultas de disponibilidade em leitura. |
+| `review-distribution` | Reexecuta as 24 verificações Playwright com compressão e cache e grava resultados em `outputs/qa-commerce/distribuicao/regressoes/`. |
 
 Antes de editar, rode `baseline` sobre a referência verificada e registre o
 SHA junto das capturas da tarefa. Depois, execute `build` e `compare`. Abra
@@ -67,6 +70,18 @@ As variantes em `public/images/responsivas/` preservam proporção e enquadramen
 dos arquivos aprovados. Foram redimensionadas com Lanczos e codificadas em
 WebP com qualidade 87–88. Use outro sufixo de versão ao substituir algum
 derivado servido com cache imutável.
+
+Na comparação de distribuição, execute `distribution-before` sobre o build do
+checkpoint `0b9537f`, `distribution-public` para a leitura do site oficial e
+`distribution-after` sobre o build candidato. O relatório e as amostras ficam em
+`outputs/qa-commerce/distribuicao/`. O perfil local simula documentos estáticos,
+Brotli ou gzip, revalidação por ETag e cache dos assets versionados. A API simulada
+continua respondendo sem cache. DNS, TLS, HTTP/2, rede de borda e serviços externos
+dependem do ambiente real. As revisitas mantêm o cache do Chromium.
+
+O comando `distribution-paired` intercala três rodadas no mesmo Chromium.
+Ele usa o build da referência compilado em
+`outputs/qa-commerce/distribuicao/referencia-0b9537f/dist` e o candidato em `dist`.
 
 ## Exportação histórica
 

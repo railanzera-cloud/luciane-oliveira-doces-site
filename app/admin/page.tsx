@@ -1,5 +1,6 @@
 "use client";
 
+import "./panel.css";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {

@@ -1,6 +1,6 @@
 param(
   [Parameter(Mandatory, Position = 0)]
-  [ValidateSet('install', 'build', 'test', 'start', 'stop', 'qa', 'baseline', 'compare', 'review', 'review-before', 'review-performance', 'lighthouse', 'performance-before', 'performance')]
+  [ValidateSet('install', 'build', 'test', 'start', 'stop', 'qa', 'baseline', 'compare', 'review', 'review-before', 'review-performance', 'review-distribution', 'lighthouse', 'performance-before', 'performance', 'distribution-before', 'distribution-after', 'distribution-public', 'distribution-paired')]
   [string]$Action
 )
 
@@ -66,6 +66,22 @@ switch ($Action) {
   }
   'stop' {
     Invoke-QaDocker stop $instance
+  }
+  'distribution-before' {
+    Invoke-QaDocker @arguments --network none $image node tools/qa-commerce/distribution.mjs referencia
+  }
+  'distribution-after' {
+    Invoke-QaDocker @arguments --network none $image node tools/qa-commerce/distribution.mjs candidato
+    if (Test-Path (Join-Path $root 'outputs/qa-commerce/distribuicao/referencia/medicoes.json')) {
+      Invoke-QaDocker @arguments --network none $image node tools/qa-commerce/distribution-summary.mjs outputs/qa-commerce/distribuicao
+    }
+  }
+  'distribution-public' {
+    Invoke-QaDocker @arguments $image node tools/qa-commerce/distribution.mjs oficial
+  }
+  'distribution-paired' {
+    Invoke-QaDocker @arguments --network none $image node tools/qa-commerce/distribution.mjs pareado outputs/qa-commerce/distribuicao/referencia-0b9537f/dist
+    Invoke-QaDocker @arguments --network none $image node tools/qa-commerce/distribution-summary.mjs outputs/qa-commerce/distribuicao
   }
   default {
     Invoke-QaDocker @arguments --network none $image node tools/qa-commerce/run.mjs $Action

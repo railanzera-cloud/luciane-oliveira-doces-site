@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 const read=p=>fs.readFileSync(new URL("../"+p,import.meta.url),"utf8");
-const css=read("app/globals.css");
+const css=read("app/admin/panel.css");
 const crmcss=read("components/admin-crm-panel.css");
 const ui=read("components/admin-crm-panel.tsx");
 

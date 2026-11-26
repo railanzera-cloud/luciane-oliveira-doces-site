@@ -1,12 +1,12 @@
 import { createReadStream } from 'node:fs';
-import { stat } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createServer as createViteServer } from 'vite';
+import { deliveryProfile } from './delivery-profile.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const assets = path.join(root, 'dist/client');
 export const origin = 'http://127.0.0.1:8181';
 const contentTypes = {
   '.avif': 'image/avif', '.css': 'text/css', '.jpeg': 'image/jpeg',
@@ -60,11 +60,14 @@ async function loadAvailabilityFixtures() {
   }
 }
 
-export async function startPreview(host = '127.0.0.1') {
-  const { default: worker } = await import(pathToFileURL(path.join(root, 'dist/server/index.js')).href);
+export async function startPreview(host = '127.0.0.1', delivery, build = path.join(root, 'dist')) {
+  const assets = path.join(build, 'client');
+  const { default: worker } = await import(pathToFileURL(path.join(build, 'server/index.js')).href);
   const fixtures = await loadAvailabilityFixtures();
   const assetBinding = { fetch: async () => new Response('Not found', { status: 404 }) };
   const execution = { waitUntil() {}, passThroughOnException() {} };
+  const simulateDelivery = delivery && deliveryProfile(delivery);
+  const snapshots = new Map();
   const server = createServer(async (request, response) => {
     response.setHeader('Content-Security-Policy', policy);
     response.setHeader('Cache-Control', 'no-store');
@@ -101,19 +104,31 @@ export async function startPreview(host = '127.0.0.1') {
       }
       if ((await stat(asset).catch(() => null))?.isFile()) {
         const type = contentTypes[path.extname(asset)] || 'application/octet-stream';
+        if (simulateDelivery) {
+          if (!snapshots.has(asset)) snapshots.set(asset, readFile(asset));
+          return await simulateDelivery(request, response, { resource: pathname, status: 200, type, body: await snapshots.get(asset) });
+        }
         response.writeHead(200, { 'Content-Type': type });
         if (request.method === 'HEAD') return response.end();
         return createReadStream(asset).pipe(response);
       }
-      const result = await worker.fetch(new Request(url, {
-        headers: { accept: request.headers.accept || 'text/html' },
-      }), { ASSETS: assetBinding }, execution);
-      const type = result.headers.get('content-type') || 'text/plain';
-      const html = await result.text();
-      const body = type.includes('text/html')
-        ? html.replace('<head>', '<head><script src="/__qa/guard.js"></script>')
-        : html;
-      return send(result.status, type, body);
+      const render = async () => {
+        const result = await worker.fetch(new Request(url, {
+          headers: { accept: request.headers.accept || 'text/html' },
+        }), { ASSETS: assetBinding }, execution);
+        const type = result.headers.get('content-type') || 'text/plain';
+        const html = await result.text();
+        const body = type.includes('text/html')
+          ? html.replace('<head>', '<head><script src="/__qa/guard.js"></script>') : html;
+        return { resource: pathname, status: result.status, type, body };
+      };
+      // Only these public documents are pre-rendered for the static Pages simulation.
+      if (simulateDelivery && (url.href === origin + '/' || url.href === origin + '/?categoria=fatias')) {
+        if (!snapshots.has(url.href)) snapshots.set(url.href, render());
+        return await simulateDelivery(request, response, await snapshots.get(url.href));
+      }
+      const { status, type, body } = await render();
+      return send(status, type, body);
     } catch (error) {
       console.error('Erro na prévia local', error.message);
       return send(500, 'text/plain', 'Erro na prévia local.');
@@ -127,6 +142,6 @@ export async function startPreview(host = '127.0.0.1') {
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
-  await startPreview(process.env.QA_HOST || '127.0.0.1');
+  await startPreview(process.env.QA_HOST || '127.0.0.1', process.env.QA_DELIVERY_PROFILE, process.env.QA_BUILD_DIR);
   console.log('Prévia comercial com dados simulados em ' + origin);
 }

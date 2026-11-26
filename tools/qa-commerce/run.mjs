@@ -23,7 +23,8 @@ function runNode(script, args = [], options = {}) {
 }
 
 const action = process.argv[2];
-const preview = await startPreview();
+const distributionReview = action === 'review-distribution';
+const preview = await startPreview(undefined, distributionReview ? 'pages' : undefined);
 try {
   if (action === 'qa') {
     for (const script of ['qa-delivery-webkit.mjs', 'qa-checkout-clarity-webkit-20261116.mjs']) {
@@ -40,11 +41,15 @@ try {
       'test', '--config', path.join(tools, 'playwright.config.mjs'),
       '--update-snapshots=' + (action === 'baseline' ? 'all' : 'none'),
     ]);
-  } else if (['review', 'review-before', 'review-performance'].includes(action)) {
+  } else if (['review', 'review-before', 'review-performance', 'review-distribution'].includes(action)) {
     const phase = action === 'review-before' ? 'antes' : 'depois';
     await runNode(path.join(tools, 'node_modules/@playwright/test/cli.js'), [
       'test', '--config', path.join(tools, 'playwright.config.mjs'),
-    ], { env: { ...process.env, QA_REVIEW_PHASE: phase, QA_PERFORMANCE_REVIEW: action === 'review-performance' ? '1' : '0' } });
+    ], { env: {
+      ...process.env, QA_REVIEW_PHASE: phase,
+      QA_PERFORMANCE_REVIEW: action === 'review-performance' || distributionReview ? '1' : '0',
+      QA_DISTRIBUTION_REVIEW: distributionReview ? '1' : '0',
+    } });
   } else if (['lighthouse', 'performance-before', 'performance'].includes(action)) {
     const phase = action === 'lighthouse' ? null : action === 'performance-before' ? 'antes' : 'depois';
     const reports = phase ? path.join(output, 'incremento-desempenho', phase) : path.join(output, 'lighthouse');
