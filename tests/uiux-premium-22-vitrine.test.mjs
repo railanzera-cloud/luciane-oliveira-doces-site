@@ -10,7 +10,7 @@ test("A vitrine usa CTA unificado para pote e fatias sem duplicar botoes", () =>
   assert.ok(page.includes('onClick={() => selectCategory(category.id)}'));
   assert.ok(page.includes('disabled={!available}'));
   assert.ok(page.includes('aria-label={`${name} — ${action}`}'));
-  const block = page.slice(page.indexOf('function CollectionChoice('), page.indexOf('export default function Home()'));
+  const block = page.slice(page.indexOf('function CollectionChoice('), page.indexOf('function MenuAvailabilityNotice('));
   assert.equal(block.match(/<button/g)?.length, 1);
   assert.ok(block.includes('className="collection-action"'));
   assert.ok(block.includes('ChevronRight size={15} aria-hidden="true"'));

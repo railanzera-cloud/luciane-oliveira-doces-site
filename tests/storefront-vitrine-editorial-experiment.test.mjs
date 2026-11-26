@@ -229,7 +229,7 @@ test("v7 nomeia lançamento Pipocas Trufadas e dá saída clara em todos os cami
 });
 
 test("v6 separa lançamento e compra tradicional sem afetar os outros produtos", () => {
-  assert.ok(page.includes("const [showLimitedCupView, setShowLimitedCupView] = useState(false)"));
+  assert.ok(page.includes('const [showLimitedCupView, setShowLimitedCupView] = useState(initialRoute === "trufadas")'));
   assert.ok(page.includes("function openLimitedCupEdition()"));
   assert.ok(page.includes('onClick={openLimitedCupEdition}'));
   assert.ok(page.includes('onClick={() => selectCategory(category.id)}'));

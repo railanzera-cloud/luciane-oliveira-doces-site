@@ -92,8 +92,9 @@ test("both available: neutral entry, balanced choices, no default builder or emp
 
 test("the initial lookup does not flash a possibly hidden category", () => {
   const html = renderMenu(snapshot(), false);
-  assert.match(html, /Carregando cardápio/);
-  assert.doesNotMatch(html, /class="collection-choice"|id="configurador"/);
+  assert.match(html, /Consultando o cardápio/);
+  assert.match(html, /class="collection-choice menu-preview-card"/);
+  assert.doesNotMatch(html, /<button[^>]+class="collection-choice"|id="configurador"/);
 });
 
 for (const [hidden, remaining] of [["pipocas", "fatias"], ["fatias", "pipocas"]]) {

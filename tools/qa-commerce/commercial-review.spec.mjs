@@ -6,7 +6,9 @@ import axe from 'axe-core';
 
 const phase = process.env.QA_REVIEW_PHASE;
 const reference = phase === 'antes';
-const output = fileURLToPath(new URL('../../outputs/qa-commerce/incremento-revisao/', import.meta.url));
+const performanceReview = process.env.QA_PERFORMANCE_REVIEW === '1';
+const reviewFolder = performanceReview ? 'incremento-desempenho/regressoes' : 'incremento-revisao';
+const output = fileURLToPath(new URL(`../../outputs/qa-commerce/${reviewFolder}/`, import.meta.url));
 
 test.beforeEach(async ({ page, context, baseURL }) => {
   await context.route('**/*', route => new URL(route.request().url()).origin === baseURL
@@ -163,4 +165,33 @@ test('hierarquia das categorias e demais escolhas de calda', async ({ page }) =>
   await page.locator('.boutique-order-recap summary').press('Enter');
   await expect(page.locator('.boutique-recap-items')).toContainText('Com calda de chocolate');
   await expect(page.locator('.boutique-recap-items')).toContainText('Sem calda, por favor');
+});
+
+test('link direto preserva a categoria e protege o pedido durante espera e falha', async ({ page }) => {
+  test.skip(!performanceReview, 'Cobre os estados de disponibilidade do incremento de desempenho.');
+  let releaseAvailability;
+  const pending = new Promise(resolve => { releaseAvailability = resolve; });
+  const endpoint = '**/rest/v1/menu_availability?*';
+  await page.route(endpoint, async route => {
+    await pending;
+    await route.fulfill({ status: 503, json: { error: 'temporary_failure' } });
+  });
+  try {
+    await page.goto('/?categoria=fatias', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByRole('heading', { level: 1, name: 'Fatias Artesanais' })).toBeVisible();
+    await expect(page.getByText('Consultando o cardápio…')).toBeVisible();
+    await expect(page.locator('#configurador button, .collection-menu button, .mobile-sticky-bar')).toHaveCount(0);
+    releaseAvailability();
+    await expect(page.getByText('Não foi possível confirmar o cardápio.')).toBeVisible();
+    await expect(page.locator('#configurador button, .mobile-sticky-bar')).toHaveCount(0);
+  } finally {
+    releaseAvailability();
+    await page.unroute(endpoint);
+  }
+  await page.getByRole('button', { name: 'Tentar novamente' }).press('Enter');
+  await expect(page.getByRole('heading', { level: 1, name: 'Fatias Artesanais' })).toBeVisible();
+  const photo = page.locator('.slice-card img').first();
+  await expect(photo).toBeVisible();
+  await expect.poll(() => photo.evaluate(img => img.complete && img.naturalWidth > 0)).toBe(true);
+  expect(await photo.evaluate(img => img.currentSrc)).toContain('/images/responsivas/');
 });

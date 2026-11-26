@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { use, useEffect, useMemo, useRef, useState } from "react";
+import { preload } from "react-dom";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -72,7 +73,8 @@ import {
   statusFor,
   type AvailabilitySnapshot,
 } from "@/app/menu-availability";
-import { categoryFromUrl, trufadasFromUrl, categoryUrl, publicCategories, resolveMenuCategory } from "@/app/menu-navigation";
+import { categoryFromUrl, trufadasFromUrl, categoryUrl, menuCategory, publicCategories, resolveMenuCategory } from "@/app/menu-navigation";
+import { COLLECTION_COVER_SIZES, CONE_COVER, CONE_FALLBACK_COVER, SLICE_PHOTO_SIZES, collectionPhotoSources, slicePhotoSources } from "@/app/storefront-photos";
 import { useMenuAvailability } from "@/hooks/use-menu-availability";
 import { isLastSlicesWindow, LAST_SLICES_PRODUCT_IDS } from "@/app/last-slices-campaign";
 import { usePopcornPromotion } from "@/hooks/use-popcorn-promotion";
@@ -601,21 +603,23 @@ function GourmetCheckoutCrop({ context }: { context: "cart" | "added" }) {
   );
 }
 
-function CollectionChoice({ format, name, description, action, price, photo, photoWidth, fallback, disabled, onClick }: {
+function CollectionChoice({ format, name, description, action, price, photo, photoWidth, fallback, disabled, primary, onClick }: {
   format: string; name: string; description: string; action: string; photo: string; photoWidth: number;
-  fallback?: string; price?: string; disabled: boolean; onClick: () => void;
+  fallback?: string; price?: string; disabled: boolean; primary?: boolean; onClick: () => void;
 }) {
+  const packs = format === "Pacotes com zíper";
   return (
-    <button className="collection-choice" data-launch={format === "Novidade no cardápio" || undefined} data-packs-card={format === "Pacotes com zíper" || undefined} type="button" disabled={disabled} onClick={onClick} aria-label={`${name} — ${action}`}>
-      <span className="collection-photo" data-packs={format === "Pacotes com zíper" || undefined} onContextMenu={(event) => event.preventDefault()}>
-        <img src={photo} srcSet={`${photo.replace(".webp", "-360.webp")} 360w, ${photo} ${photoWidth}w`} sizes="(min-width: 1152px) 374px, (min-width: 700px) 33vw, 36vw" alt="" draggable={false} decoding="async" width={640} height={480} onError={(event) => {
+    <button className="collection-choice" data-launch={format === "Novidade no cardápio" || undefined} data-packs-card={packs || undefined} type="button" disabled={disabled} onClick={onClick} aria-label={`${name} — ${action}`}>
+      <span className="collection-photo" data-packs={packs || undefined} onContextMenu={(event) => event.preventDefault()}>
+        <img src={photo} srcSet={collectionPhotoSources(photo, photoWidth)} sizes={COLLECTION_COVER_SIZES} alt="" draggable={false}
+          loading={primary || packs ? "eager" : "lazy"} fetchPriority={primary ? "high" : undefined} decoding="async" width={640} height={480} onError={(event) => {
           const img = event.currentTarget;
           if (img.hasAttribute("srcset")) {
             img.removeAttribute("srcset");
             img.src = photo;
           } else if (fallback && img.getAttribute("src") !== fallback) img.src = fallback;
         }} />
-        {format === "Pacotes com zíper" && (
+        {packs && (
           <img className="collection-pack-secondary" draggable={false}
             src="/images/pipocas-trufadas-pacoca-20261101.webp"
             srcSet="/images/pipocas-trufadas-pacoca-20261101-360.webp 360w, /images/pipocas-trufadas-pacoca-20261101.webp 1086w"
@@ -634,10 +638,24 @@ function CollectionChoice({ format, name, description, action, price, photo, pho
   );
 }
 
-export default function Home() {
+function MenuAvailabilityNotice({ unavailable, refreshing, retry }: { unavailable: boolean; refreshing: boolean; retry: () => void }) {
+  return (
+    <div className="menu-preview-notice">
+      <p role="status">{unavailable && !refreshing ? "Não foi possível confirmar o cardápio." : "Consultando o cardápio…"}</p>
+      {unavailable && <Button type="button" variant="outline" disabled={refreshing} onClick={retry}>Tentar novamente</Button>}
+    </div>
+  );
+}
+
+type HomeProps = { searchParams?: Promise<{ categoria?: string | string[] }> };
+
+export default function Home({ searchParams }: HomeProps) {
+  const query = searchParams ? use(searchParams).categoria : undefined;
+  const initialRoute = Array.isArray(query) ? query[0] : query;
+  const initialCategory = menuCategory(initialRoute);
   const { promotionTime, refreshPromotionTime } = usePopcornPromotion();
   const popcornPromotionActive = isPopcornPromotionActive(promotionTime);
-  const [requestedCategory, setRequestedCategory] = useState<CategoryId | null>(null);
+  const [requestedCategory, setRequestedCategory] = useState<CategoryId | null>(initialCategory);
   // Navegação secundária recolhida por padrão: produtos seguem protagonistas.
   const [otherCategoriesOpen, setOtherCategoriesOpen] = useState(false);
   const otherCategoriesRef = useRef<HTMLDivElement>(null);
@@ -661,7 +679,7 @@ export default function Home() {
     };
   }, [otherCategoriesOpen]);
   // Edição limitada é uma experiência de descoberta, não um passo obrigatório do pedido.
-  const [showLimitedCupView, setShowLimitedCupView] = useState(false);
+  const [showLimitedCupView, setShowLimitedCupView] = useState(initialRoute === "trufadas");
   const [popcornVariantId, setPopcornVariantId] = useState("");
   const [popcornOptionIds, setPopcornOptionIds] = useState<string[]>([]);
   const [popcornQuantity, setPopcornQuantity] = useState(1);
@@ -754,7 +772,7 @@ export default function Home() {
   const navigationPendingRef = useRef(false);
   const checkoutFingerprintRef = useRef("");
   const unlockTimerRef = useRef<number | undefined>(undefined);
-  const { availability, hasResolvedAvailability, refreshAvailability } = useMenuAvailability();
+  const { availability, hasResolvedAvailability, isRefreshingAvailability, refreshAvailability } = useMenuAvailability();
   const [lastSlicesNow, setLastSlicesNow] = useState(() => new Date());
   useEffect(() => {
     const refresh = () => setLastSlicesNow(new Date());
@@ -803,7 +821,23 @@ export default function Home() {
         ? { eyebrow: "PIPOCAS TRUFADAS · INDISPONÍVEL", description: "Pacotes indisponíveis no momento. Consulte novamente mais tarde." }
         : { eyebrow: "PIPOCAS TRUFADAS · DISPONÍVEL", description: "Escolha seu sabor e peça pelo WhatsApp enquanto houver estoque." };
   const visibleCategories = publicCategories(availability);
-  const activeCategory = hasResolvedAvailability ? resolveMenuCategory(availability, requestedCategory) : null;
+  const menuUnavailable = hasResolvedAvailability && availability.source !== "supabase";
+  const showingMenu = hasResolvedAvailability && !menuUnavailable;
+  const activeCategory = showingMenu ? resolveMenuCategory(availability, requestedCategory) : null;
+  const entryCategory = showingMenu ? activeCategory : requestedCategory;
+  if (!hasResolvedAvailability) {
+    if (!entryCategory && STORE_CONFIG.enabledCategories.cones) {
+      preload(CONE_COVER, {
+        as: "image", imageSrcSet: collectionPhotoSources(CONE_COVER, 1122),
+        imageSizes: COLLECTION_COVER_SIZES, fetchPriority: "high",
+      });
+    } else if (entryCategory === "fatias" && STORE_CONFIG.enabledCategories.fatias) {
+      const firstSlicePhoto = SLICES[0]?.cardImage ?? SLICES[0]?.image;
+      if (firstSlicePhoto) preload(firstSlicePhoto, {
+        as: "image", imageSrcSet: slicePhotoSources(firstSlicePhoto), imageSizes: SLICE_PHOTO_SIZES, fetchPriority: "high",
+      });
+    }
+  }
   const checkoutStartedRef = useRef(false);
   const paymentInfoTrackedRef = useRef(false);
 
@@ -2476,7 +2510,7 @@ export default function Home() {
   }
 
   return (
-    <main className="storefront" data-active-category={activeCategory ?? undefined} inert={isFinalizing} aria-busy={isFinalizing}>
+    <main className="storefront" data-active-category={entryCategory ?? undefined} inert={isFinalizing} aria-busy={isFinalizing}>
       <header className="brand-bar">
         <a className="brand-lockup" href="#inicio" aria-label="Voltar às categorias" onClick={(event) => { event.preventDefault(); returnToCategories(); }}>
           <span className="brand-crown" aria-hidden="true"><Crown size={17} strokeWidth={1.7} /></span>
@@ -2502,23 +2536,23 @@ export default function Home() {
         </section>
       )}
 
-      <section className={`menu-entry ${activeCategory ? "has-category" : "is-neutral"}`} data-active-category={activeCategory ?? undefined} id="inicio" aria-busy={!hasResolvedAvailability}>
+      <section className={`menu-entry ${entryCategory ? "has-category" : "is-neutral"}`} data-active-category={entryCategory ?? undefined} id="inicio" aria-busy={!hasResolvedAvailability || isRefreshingAvailability && menuUnavailable}>
         <div className="page-shell">
-          {!availability.ordersOpen && (
+          {showingMenu && !availability.ordersOpen && (
             <div className="store-status-banner" role="status">
               <strong>{STORE_CONFIG.closedMessage}</strong>
               <span>Você ainda pode consultar o cardápio.</span>
             </div>
           )}
-          {activeCategory ? (
+          {entryCategory ? (
             <div className="entry-heading">
               <p className="eyebrow">Luciane Oliveira Doces</p>
-              <h1>{activeCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : activeCategory === "cones" ? "Cascão Trufado" : activeCategory === "natal" ? "Fatias de Chocottone" : "Fatias Artesanais"}</h1>
-              <p className="entry-copy">{activeCategory === "pipocas"
+              <h1>{entryCategory === "pipocas" ? showLimitedCupView ? "Pipocas Trufadas" : "Pipocas Gourmet" : entryCategory === "cones" ? "Cascão Trufado" : entryCategory === "natal" ? "Fatias de Chocottone" : "Fatias Artesanais"}</h1>
+              <p className="entry-copy">{entryCategory === "pipocas"
                 ? showLimitedCupView ? "Três sabores artesanais em pacotes P, M e G." : "Escolha o tamanho e combine seus sabores."
-                : activeCategory === "cones" ? "Escolha seu sabor e a quantidade desejada." : activeCategory === "natal" ? "Edição especial de Natal · fatias recheadas." : "Sabores disponíveis"}</p>
-              {availability.ordersOpen && visibleCategories.length > 0 && (
-                <p className="delivery-time-estimate">
+                : entryCategory === "cones" ? "Escolha seu sabor e a quantidade desejada." : entryCategory === "natal" ? "Edição especial de Natal · fatias recheadas." : showingMenu ? "Sabores disponíveis" : "Camadas artesanais"}</p>
+              {(!showingMenu || (availability.ordersOpen && visibleCategories.length > 0)) && (
+                <p className="delivery-time-estimate" data-menu-placeholder={!showingMenu || undefined} aria-hidden={!showingMenu || undefined}>
                   <span className="delivery-time-copy">
                     <span className="delivery-time-main">{DELIVERY_TIME_ESTIMATE}</span>{" "}
                     <span className="delivery-time-detail">O prazo começa após a confirmação da loja.</span>
@@ -2532,7 +2566,7 @@ export default function Home() {
               <h1>Escolha seu <em>doce.</em></h1>
             </div>
           )}
-          {!activeCategory && hasResolvedAvailability && natalVisible && (
+          {!activeCategory && showingMenu && natalVisible && (
             <button type="button" className="natal-home-ribbon" aria-label="Edição especial de Natal: conhecer as fatias recheadas de Chocottone"
               onClick={() => selectCategory("natal")}>
               <span className="natal-home-copy">
@@ -2543,18 +2577,28 @@ export default function Home() {
               </span>
               <span className="natal-home-image" aria-hidden="true">
                 <img src="/images/chocotone-morango-brigadeiro-branco-chocolate-card-2026.webp" alt=""
-                  width="80" height="76" decoding="async" fetchPriority="high"/>
+                  srcSet="/images/responsivas/natal-fita-270-v1.webp 270w, /images/chocotone-morango-brigadeiro-branco-chocolate-card-2026.webp 840w"
+                  sizes="90px" width="80" height="76" decoding="async"/>
               </span>
             </button>
           )}
-          {!hasResolvedAvailability ? (
-            <div className="collection-loading" role="status">Carregando cardápio…</div>
+          {!showingMenu ? !entryCategory && (
+            <div className="menu-preview-loading">
+              <MenuAvailabilityNotice unavailable={menuUnavailable} refreshing={isRefreshingAvailability} retry={refreshAvailability} />
+              <div className="collection-menu" aria-hidden="true">
+                {[1, 2, 3, 4].map(slot => <div className="collection-choice menu-preview-card" key={slot}>
+                  <span className="collection-photo" />
+                  <span className="collection-copy"><i /><i /><i /></span>
+                </div>)}
+              </div>
+            </div>
           ) : !activeCategory && (
             visibleCategories.length > 0 ? (
               <div className="collection-menu" role="group" aria-label="Escolha uma categoria">
                 {conesVisible && (
                   <CollectionChoice format="Novidade no cardápio" name="Cascão Trufado"
-                    photo={coneIsVisible("cascao-trufado-kinder-bueno") ? "/images/cascao-trufado-trio-home-20261114-v4713.webp" : "/images/cones-trufados-trio-20261108.webp"} photoWidth={1122}
+                    photo={coneIsVisible("cascao-trufado-kinder-bueno") ? CONE_COVER : CONE_FALLBACK_COVER}
+                    photoWidth={coneIsVisible("cascao-trufado-kinder-bueno") ? 1122 : 960} primary
                     fallback="/images/cone-trufado-prestigio-20261108-v2.webp"
                     description="Escolha entre os sabores disponíveis"
                     price={currency.format(coneStartingPrice)}
@@ -2563,7 +2607,7 @@ export default function Home() {
                 )}
                 {pipocasVisible && (
                   <CollectionChoice format="Pacotes com zíper" name="Pipocas Trufadas"
-                    photo="/images/pipocas-trufadas-ninho-20261101.webp" photoWidth={1086}
+                    photo="/images/pipocas-trufadas-ninho-20261101.webp" photoWidth={1086} primary={!conesVisible}
                     fallback="/images/pipocas-trufadas-pacoca-20261101.webp"
                     description="Ninho, Paçoca e Coco Queimado · P, M e G"
                     price={currency.format(TRUFADA_STARTING_PRICE)}
@@ -2576,7 +2620,7 @@ export default function Home() {
                   const cover = isPot ? POPCORN : SLICES.find((slice) => sliceIsVisible(slice.id));
                   return (
                     <CollectionChoice key={category.id} format={isPot ? "Pote recheado" : "Bolo em fatias"}
-                      name={category.name} photoWidth={isPot ? 1166 : 720}
+                      name={category.name} photoWidth={isPot ? 1166 : 720} primary={!conesVisible && !pipocasVisible}
                       photo={category.id === "fatias" ? "/images/categoria-fatias-editorial.webp" : "/images/categoria-pipocas-editorial-enquadrada-v107.webp"}
                       fallback={cover?.cardImage ?? cover?.image}
                       description={isPot ? "Escolha seu tamanho e combine os sabores." : "Camadas de massa e recheios artesanais."}
@@ -2593,16 +2637,25 @@ export default function Home() {
               </div>
             )
           )}
-          {!activeCategory && hasResolvedAvailability && visibleCategories.length > 0 && (
+          {!activeCategory && showingMenu && visibleCategories.length > 0 && (
             <div className="collection-service">
               <p><Truck size={16} aria-hidden="true" /><span>Entrega a partir de R$8 ou retirada em Paragominas</span></p>
               {availability.ordersOpen && <p><Clock3 size={16} aria-hidden="true" /><span>{DELIVERY_TIME_ESTIMATE}<small>O prazo começa após a confirmação da loja.</small></span></p>}
               <small>{COMMERCE_CONFIG.siteOrderingEnabled ? "Finalize seu pedido no site ou pelo WhatsApp." : "Monte seu pedido aqui e finalize pelo WhatsApp."}</small>
             </div>
           )}
-          {activeCategory && <p className="delivery-note"><Truck size={16} aria-hidden="true" /> Entrega a partir de R$8 ou retirada em Paragominas</p>}
+          {entryCategory && <p className="delivery-note"><Truck size={16} aria-hidden="true" /> Entrega a partir de R$8 ou retirada em Paragominas</p>}
         </div>
       </section>
+
+      {!showingMenu && entryCategory && (
+        <section className="builder-section menu-preview-builder" data-active-category={entryCategory}>
+          <div className="page-shell builder-shell">
+            <MenuAvailabilityNotice unavailable={menuUnavailable} refreshing={isRefreshingAvailability} retry={refreshAvailability} />
+            <div className="menu-preview-products" aria-hidden="true"><span /><span /></div>
+          </div>
+        </section>
+      )}
 
       {activeCategory && (
       <section className={showLimitedCupView ? "builder-section is-cup-discovery" : "builder-section"} data-active-category={activeCategory ?? undefined} id="configurador">
@@ -3139,15 +3192,18 @@ export default function Home() {
                   {SLICES.filter((slice) => sliceIsVisible(slice.id))
                     .sort((first, second) => Number(Boolean(fatiasAvailable && second.available && second.variants[0]?.available && sliceIsAvailable(second.id)))
                       - Number(Boolean(fatiasAvailable && first.available && first.variants[0]?.available && sliceIsAvailable(first.id))))
-                    .map((slice) => {
+                    .map((slice, index) => {
                     const selected = slice.id === sliceProductId;
                     const variant = slice.variants[0];
                     const available = fatiasAvailable && slice.available && variant.available && sliceIsAvailable(slice.id);
+                    const photo = slice.cardImage ?? slice.image;
+                    const priority = index === 0 || (lastSlicesIds.has(slice.id) && available);
                     return (
                       <label className={`slice-card ${selected ? "is-selected" : ""} ${!available ? "is-unavailable" : ""} ${slice.availabilityLabel ? "is-upcoming" : ""} ${lastSlicesIds.has(slice.id) && available ? "is-last-slices" : ""}`} htmlFor={`slice-${slice.id}`} key={slice.id}>
                         <RadioGroupItem id={`slice-${slice.id}`} value={slice.id} disabled={!available} />
                         <span className="slice-media">
-                          {slice.image ? <img src={slice.cardImage ?? slice.image} alt={slice.imageAlt} width="640" height="480" loading={lastSlicesIds.has(slice.id) && available ? "eager" : "lazy"} decoding="async" fetchPriority={lastSlicesIds.has(slice.id) && available ? "high" : "low"} sizes="(max-width: 599px) calc(50vw - 27px), (max-width: 899px) calc(50vw - 36px), 240px" /> : <span className="slice-placeholder"><CakeSlice size={30} strokeWidth={1.4} /><small>Foto em breve</small></span>}
+                          {photo ? <img src={photo} srcSet={slicePhotoSources(photo)} sizes={SLICE_PHOTO_SIZES} alt={slice.imageAlt} width="640" height="480"
+                            loading={priority ? "eager" : "lazy"} decoding="async" fetchPriority={priority ? "high" : "low"} /> : <span className="slice-placeholder"><CakeSlice size={30} strokeWidth={1.4} /><small>Foto em breve</small></span>}
                           {lastSlicesIds.has(slice.id) && available && <span className="last-slices-card-tag">Últimas de hoje</span>}
                         </span>
                         <span className="slice-card-copy">

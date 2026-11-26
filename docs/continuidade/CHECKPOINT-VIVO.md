@@ -1,5 +1,14 @@
 # Checkpoint Vivo — Site Comercial Luciane Oliveira Doces
 
+## 25/11/2026 — Candidato de desempenho e estabilidade visual
+
+- Primeiro incremento aprovado e recuperável em `849eef653456b7da21469cd834fcbb81026477f3`. O segundo incremento está no worktree `work/ambiente-comercial`, branch `codex/ambiente-comercial-v47159`, sobre esse checkpoint.
+- Os cinco links de categoria trazem o contexto no HTML inicial. A consulta usa espaços reservados e mantém as ações de compra fora da vitrine até confirmar o cardápio. Uma falha inicial mostra nova tentativa. Os derivados responsivos preservam as fotos originais e o empacotamento estático usa HTML por categoria, com cache imutável apenas nos derivados versionados e nos assets já versionados pelo build.
+- Lighthouse móvel, três execuções por página e versão. Vitrine, LCP 8,42 → 7,91 s, CLS 0,353 → 0,101 e 1.287 → 1.199 KiB. Fatias, LCP 10,00 → 8,29 s, CLS 0,434 → 0 e 1.970 → 1.343 KiB. As imagens transferidas em Fatias caíram de 919 para 286 KiB.
+- Chromium 390 × 844 com rede limitada, três execuções por página e versão. Fatias, LCP 11,08 → 8,26 s e CLS 0,447 → 0. Vitrine, CLS 0,334 → 0,098. O LCP da vitrine passou de 6,01 s para 8,28 s e mede elementos distintos, o título institucional na referência e a foto no candidato.
+- Build, 944 testes comerciais e 24 testes Playwright aprovados. Chromium mobile e WebKit cobriram 320, 375, 390 e 430 px. Os oito corpos de pedido simulados coincidiram com os do primeiro incremento após omitir identificadores variáveis. A prévia foi revisada no navegador integrado.
+- Relatório, amostras e capturas em `outputs/qa-commerce/incremento-desempenho/relatorio.html`. A prévia local serve assets HTTP sem compressão e usa disponibilidade simulada. A meta de LCP de 2,5 s ainda não foi atingida nesse perfil. Homologação de Safari/iPhone, navegador do Instagram e configuração real do Pages permanece pendente. Nenhum push, publicação ou alteração no Supabase.
+
 ## 25/11/2026 — Primeiro incremento comercial e de acessibilidade
 
 - Candidato no worktree `work/ambiente-comercial`, branch `codex/ambiente-comercial-v47159`, sobre `b940d1a` e a base comercial `f260d9d` (V4.7.15.9). Prévia com dados simulados em `http://127.0.0.1:8181/`.

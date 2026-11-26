@@ -25,7 +25,8 @@ test("keeps the four drinks gated by remote availability and independent of dess
 
 test("starts neutral and resolves navigation from the existing availability controls", () => {
   assert.doesNotMatch(page, /DEFAULT_CATEGORY/);
-  assert.match(page, /useState<CategoryId \| null>\(null\)/);
+  assert.match(page, /const initialCategory = menuCategory\(initialRoute\)/);
+  assert.match(page, /useState<CategoryId \| null>\(initialCategory\)/);
   assert.match(page, /resolveMenuCategory\(availability, requestedCategory\)/);
   assert.match(page, /if \(!categoryIsAvailable\(category\)\) return/);
   assert.match(page, /isItemVisible\(availability, CATEGORY_ITEM_KEYS\.pipocas\)/);

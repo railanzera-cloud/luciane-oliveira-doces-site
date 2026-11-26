@@ -35,7 +35,7 @@ test("renders production metadata without a development preview marker", async (
   // A palavra pode estar no bundle; SKUs só podem ser escolhidos após disponibilidade remota.
   assert.doesNotMatch(html, /coca-cola-220/i);
   assert.match(html, /Escolha seu <em>doce/);
-  assert.match(html, /Carregando cardápio/);
+  assert.match(html, /Consultando o cardápio/);
   assert.doesNotMatch(html, /id="configurador"/);
 });
 

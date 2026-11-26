@@ -29,7 +29,9 @@ rede externa. Cada execução usa sua própria prévia dentro do contêiner.
 | `baseline` | Captura a vitrine e Fatias no Chromium mobile e no WebKit em 320, 375, 390 e 430 px |
 | `compare` | Compara o build atual com as capturas de referência e salva imagens obtidas, referência e diferenças em caso de falha |
 | `review-before` / `review` | Reproduzem a revisão de Fatias e checkout no build de referência e no candidato, respectivamente. Salvam capturas e o JSON do pedido simulado em `outputs/qa-commerce/incremento-revisao/` |
+| `review-performance` | Repete a revisão do primeiro incremento e testa espera, falha e nova tentativa de disponibilidade. Grava resultados separados em `outputs/qa-commerce/incremento-desempenho/regressoes/` |
 | `lighthouse` | Gera HTML e JSON com desempenho, acessibilidade, boas práticas e SEO da vitrine e de Fatias em `outputs/qa-commerce/lighthouse/`, sem pontuação mínima |
+| `performance-before` / `performance` | Medem a referência e o candidato, com três execuções por URL no Lighthouse e três no perfil limitado do Chromium. As capturas e relatórios ficam em `outputs/qa-commerce/incremento-desempenho/` |
 
 Antes de editar, rode `baseline` sobre a referência verificada e registre o
 SHA junto das capturas da tarefa. Depois, execute `build` e `compare`. Abra
@@ -51,6 +53,20 @@ do Lighthouse descrevem o perfil local. Para aceite operacional, a matriz
 comercial orienta a homologação no iPhone/Safari, Instagram e cozinha.
 Execute o Lighthouse sem build ou outros navegadores de QA em paralelo
 quando for comparar números entre alterações.
+
+Para reproduzir o segundo incremento, compile primeiro o checkpoint aprovado
+`849eef6` e execute `performance-before` com o roteiro de medição no mesmo
+worktree. Em seguida, compile o candidato e execute `performance`.
+O perfil limitado usa Chromium em 390 × 844, latência de 150 ms,
+1,64 Mbps de download, CPU 4× mais lenta e 950 ms adicionais na consulta de
+disponibilidade simulada. A prévia serve os recursos locais sem compressão
+HTTP. O Lighthouse e o perfil limitado medem cenários distintos e são
+comparados separadamente.
+
+As variantes em `public/images/responsivas/` preservam proporção e enquadramento
+dos arquivos aprovados. Foram redimensionadas com Lanczos e codificadas em
+WebP com qualidade 87–88. Use outro sufixo de versão ao substituir algum
+derivado servido com cache imutável.
 
 ## Exportação histórica
 

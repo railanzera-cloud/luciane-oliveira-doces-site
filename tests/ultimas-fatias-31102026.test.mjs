@@ -43,8 +43,8 @@ test("fotografias aparecem logo apos o aviso e carregam prioritariamente",()=>{
  const bannerEnd=page.indexOf('</aside>}',page.indexOf('className="last-slices-banner"'));
  const galleryStart=page.indexOf('<RadioGroup className="slice-grid"',bannerEnd);
  assert.ok(bannerEnd>0 && galleryStart>bannerEnd && galleryStart-bannerEnd<1800);
- assert.match(page,/loading=\{lastSlicesIds\.has\(slice\.id\) && available \? "eager" : "lazy"\}/);
- assert.match(page,/fetchPriority=\{lastSlicesIds\.has\(slice\.id\) && available \? "high" : "low"\}/);
+ assert.match(page, /const priority = index === 0 \|\| \(lastSlicesIds\.has\(slice\.id\) && available\)/);
+ assert.match(page, /loading=\{priority \? "eager" : "lazy"\}[\s\S]+fetchPriority=\{priority \? "high" : "low"\}/);
  assert.match(page,/is-last-slices/);
  assert.match(page,/last-slices-card-tag/);
  assert.match(css,/\.slice-media > \.last-slices-card-tag/);

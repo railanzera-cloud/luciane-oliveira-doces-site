@@ -39,7 +39,8 @@ test("keeps Ninho com Morango on its existing SKU without redundant subtitle", (
 test("uses the real optimized Prestígio photo while keeping it selectable", () => {
   assert.match(catalog, /id: "fatia-prestigio"[\s\S]*?image: "\/fatia-prestigio\.jpeg"[\s\S]*?cardImage: "\/fatia-prestigio-card\.webp"[\s\S]*?available: true/);
   assert.match(catalog, /imageAlt: "Fatia artesanal de Prestígio com recheio cremoso"/);
-  assert.match(page, /src=\{slice\.cardImage \?\? slice\.image\}/);
+  assert.match(page, /const photo = slice\.cardImage \?\? slice\.image/);
+  assert.match(page, /src=\{photo\} srcSet=\{slicePhotoSources\(photo\)\}/);
   assert.match(page, /disabled=\{!available\}/);
 });
 

@@ -6,7 +6,7 @@ import {access,cp,mkdir,readFile,rm,writeFile} from "node:fs/promises";
 import path from "node:path";
 import {promisify} from "node:util";
 import {fileURLToPath,pathToFileURL} from "node:url";
-import {shortLinks} from "../cloudflare/short-links.js";
+import {catalogEntryFiles,shortLinks} from "../cloudflare/short-links.js";
 
 const exec = promisify(execFile);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
@@ -47,6 +47,7 @@ async function route(routeName,target) {
   return html;
 }
 const home=await route("/","index.html");
+for(const [category,file] of Object.entries(catalogEntryFiles)) await route(`/?categoria=${category}`,file);
 for(const [routeName,target] of [
  ["/admin","admin/index.html"],
  ["/pedido","pedido/index.html"],
@@ -58,7 +59,7 @@ for(const [routeName,target] of [
 await writeFile(path.join(destination,"404.html"),home,"utf8");
 await cp(path.join(root,"cloudflare","short-links.js"),path.join(destination,"_worker.js"));
 await writeFile(path.join(destination,"_routes.json"),JSON.stringify({
-  version:1,include:Object.keys(shortLinks),exclude:[],
+  version:1,include:["/",...Object.keys(shortLinks)],exclude:[],
 },null,2)+"\n");
 await writeFile(path.join(destination,"_headers"),`/*
   X-Content-Type-Options: nosniff
@@ -66,11 +67,14 @@ await writeFile(path.join(destination,"_headers"),`/*
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+/images/responsivas/*
+  Cache-Control: public, max-age=31536000, immutable
 `);
 
 const required=["index.html","admin/index.html","pedido/index.html",
  "politica-de-privacidade/index.html","termos-de-uso/index.html",
- "exclusao-de-dados/index.html","_worker.js","_headers","_routes.json"];
+ "exclusao-de-dados/index.html","_worker.js","_headers","_routes.json",...Object.values(catalogEntryFiles)];
 for(const item of required) await access(path.join(destination,item));
 const adminPage=await readFile(path.join(destination,"admin/index.html"),"utf8");
 if (!adminPage.includes("assets/")) throw new Error("Admin HTML has no compiled assets.");

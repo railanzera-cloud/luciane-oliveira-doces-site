@@ -46,6 +46,64 @@
   width: 33px;
   background: #ce9a66;
 }
+
+.storefront .menu-preview-notice {
+  margin: 0;
+  color: #e1cdbb;
+  font-size: .875rem;
+  line-height: 1.5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+.storefront .menu-preview-notice p { margin: 0; }
+.storefront .menu-preview-loading > .menu-preview-notice {
+  min-block-size: 100px;
+  margin: -2px 0 12px;
+  padding-inline: 14px;
+  border: 1px solid rgba(224, 180, 115, .2);
+  border-radius: 16px;
+  background: rgba(76, 47, 35, .35);
+}
+.storefront .menu-entry.is-neutral .collection-choice.menu-preview-card {
+  border-color: rgba(224, 180, 115, .2);
+  background: #291b15;
+  box-shadow: none;
+  cursor: default;
+}
+.storefront .menu-preview-card .collection-photo,
+.storefront .menu-preview-products > span { background: #38261c; }
+.storefront .menu-preview-card .collection-copy { min-block-size: 128px; justify-content: center; }
+@media (max-width: 440px) {
+  .storefront .menu-preview-card:nth-child(-n+2) .collection-copy { min-block-size: 145px; }
+}
+.storefront .menu-preview-card i {
+  display: block;
+  inline-size: 80%;
+  block-size: 8px;
+  border-radius: 4px;
+  background: rgba(225, 191, 159, .13);
+}
+.storefront .menu-preview-card i:nth-child(2) { inline-size: 60%; block-size: 14px; }
+.storefront .menu-preview-card i:last-child { inline-size: 45%; }
+.storefront [data-menu-placeholder] { visibility: hidden; }
+.storefront .menu-preview-builder { min-block-size: max(420px, calc(100svh - 210px)); }
+.storefront .menu-preview-builder .builder-shell { display: block; }
+.storefront .menu-preview-products {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-block-start: 50px;
+}
+.storefront .menu-preview-products > span {
+  display: block;
+  min-block-size: clamp(138px, 47vw, 230px);
+  border-radius: 16px;
+}
+@media (max-width: 359px) {
+  .storefront .menu-preview-products { grid-template-columns: minmax(0, 1fr); }
+}
 .storefront .menu-entry.is-neutral .collection-heading h1 {
   color: #fff1e1;
   font: 400 clamp(2.52rem, 6.4vw, 4.75rem)/1.04 Georgia, "Times New Roman", serif;

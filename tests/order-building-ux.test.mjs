@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { SLICES } from "../app/catalog.ts";
+import { slicePhotoSources } from "../app/storefront-photos.ts";
 
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 
@@ -61,10 +63,21 @@ test("exposes clear active, complete, and locked step states", () => {
 });
 
 test("keeps below-fold product images lazy and responsive", async () => {
-  assert.match(page, /src=\{slice\.cardImage \?\? slice\.image\}/);
-  assert.match(page, /loading=\{lastSlicesIds\.has\(slice\.id\) && available \? "eager" : "lazy"\}/);
-  assert.match(page, /fetchPriority=\{lastSlicesIds\.has\(slice\.id\) && available \? "high" : "low"\}/);
-  assert.match(page, /sizes="\(max-width: 599px\)/);
+  assert.match(page, /const photo = slice\.cardImage \?\? slice\.image/);
+  assert.match(page, /src=\{photo\} srcSet=\{slicePhotoSources\(photo\)\} sizes=\{SLICE_PHOTO_SIZES\}/);
+  assert.match(page, /const priority = index === 0 \|\| \(lastSlicesIds\.has\(slice\.id\) && available\)/);
+  assert.match(page, /loading=\{priority \? "eager" : "lazy"\}[\s\S]+fetchPriority=\{priority \? "high" : "low"\}/);
+  for (const slice of SLICES) {
+    const source = slice.cardImage ?? slice.image;
+    const variants = slicePhotoSources(source)?.split(', ').map(entry => entry.split(' ')[0]);
+    assert.ok(variants, slice.id);
+    assert.equal(variants.at(-1), source);
+    const original = await readFile(new URL(`../public${source}`, import.meta.url));
+    for (const variant of variants.slice(0, -1)) {
+      const resized = await readFile(new URL(`../public${variant}`, import.meta.url));
+      assert.ok(resized.length < original.length, variant);
+    }
+  }
   const drinks = await readFile(new URL("../components/drink-complements.tsx", import.meta.url), "utf8");
   assert.match(drinks,/src=\{drink\.image\}/);
   assert.match(drinks,/loading="lazy" decoding="async"/);
