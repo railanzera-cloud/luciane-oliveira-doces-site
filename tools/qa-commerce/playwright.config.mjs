@@ -4,11 +4,14 @@ import { defineConfig, devices } from '@playwright/test';
 
 const sizes = [[320, 568], [375, 667], [390, 844], [430, 932]];
 const mobileDevices = { chromium: devices['Pixel 7'], webkit: devices['iPhone 13'] };
-const output = fileURLToPath(new URL('../../outputs/qa-commerce/visual/', import.meta.url));
+const reviewPhase = process.env.QA_REVIEW_PHASE;
+const output = fileURLToPath(new URL(reviewPhase
+  ? '../../outputs/qa-commerce/incremento-revisao/' + reviewPhase + '/'
+  : '../../outputs/qa-commerce/visual/', import.meta.url));
 
 export default defineConfig({
   testDir: '.',
-  testMatch: 'visual.spec.mjs',
+  testMatch: reviewPhase ? 'commercial-review.spec.mjs' : 'visual.spec.mjs',
   outputDir: path.join(output, 'results'),
   snapshotPathTemplate: path.join(output, 'baseline/{projectName}/{arg}{ext}'),
   timeout: 75_000,

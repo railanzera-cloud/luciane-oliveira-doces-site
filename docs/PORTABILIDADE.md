@@ -28,6 +28,7 @@ rede externa. Cada execução usa sua própria prévia dentro do contêiner.
 | `qa` | Jornadas WebKit existentes de bairros e carrinho, com capturas em `outputs/qa-commerce/` |
 | `baseline` | Captura a vitrine e Fatias no Chromium mobile e no WebKit em 320, 375, 390 e 430 px |
 | `compare` | Compara o build atual com as capturas de referência e salva imagens obtidas, referência e diferenças em caso de falha |
+| `review-before` / `review` | Reproduzem a revisão de Fatias e checkout no build de referência e no candidato, respectivamente. Salvam capturas e o JSON do pedido simulado em `outputs/qa-commerce/incremento-revisao/` |
 | `lighthouse` | Gera HTML e JSON com desempenho, acessibilidade, boas práticas e SEO da vitrine e de Fatias em `outputs/qa-commerce/lighthouse/`, sem pontuação mínima |
 
 Antes de editar, rode `baseline` sobre a referência verificada e registre o
@@ -35,6 +36,12 @@ SHA junto das capturas da tarefa. Depois, execute `build` e `compare`. Abra
 `outputs/qa-commerce/visual/report/index.html` para revisar as diferenças.
 Rode `baseline` novamente só quando decidir adotar o novo visual. Mantenha
 o mesmo motor, tamanho, data simulada e perfil de dados nas duas medições.
+
+Para revisar esse incremento, execute `review-before` com o build de referência
+e `review` com o candidato. Os dois comandos usam a mesma entrega simulada,
+registram o corpo do POST local e omitem os identificadores gerados a cada tentativa.
+O relatório em `depois/report/index.html` inclui as verificações adicionais de calda,
+títulos e acessibilidade do candidato.
 
 A prévia bloqueia conexões e recursos externos com CSP, intercepta links
 externos e responde localmente às consultas de disponibilidade. Pedidos,

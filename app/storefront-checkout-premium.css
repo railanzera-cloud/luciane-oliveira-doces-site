@@ -36,8 +36,8 @@
 .storefront #carrinho .checkout-main,.storefront #carrinho .checkout-grid {row-gap:18px;}
 .storefront #carrinho .order-card-heading {gap:10px;margin-bottom:9px;}
 .storefront #carrinho .order-card .eyebrow,.storefront #carrinho .summary-card .eyebrow {color:#8d5736;font-size:.67rem;font-weight:805;letter-spacing:.13em;}
-.storefront #carrinho .order-card-heading h2,.storefront #carrinho .checkout-step-heading h2,
-.storefront #carrinho .summary-card > h2 {color:#302016;line-height:1.12;letter-spacing:-.041em;text-wrap:balance;}
+.storefront #carrinho .order-card-heading h3,.storefront #carrinho .checkout-step-heading h3,
+.storefront #carrinho .summary-card > h3 {color:#302016;line-height:1.12;letter-spacing:-.041em;text-wrap:balance;}
 .storefront #carrinho .cart-count {flex-shrink:0;min-height:30px;border:1px solid rgba(150,102,66,.13);background:#f0e3d1;color:#6c4228;}
 .storefront #carrinho .cart-item {
   margin-top:8px;padding:12px;
@@ -46,9 +46,8 @@
   box-shadow:0 8px 21px rgba(70,42,24,.07),inset 0 1px rgba(255,255,255,.83);
 }
 .storefront #carrinho .boutique-cart-image {border:1px solid rgba(142,97,66,.16);background:#e8d8c3;box-shadow:0 4px 12px rgba(75,45,25,.1);}
-.storefront #carrinho .cart-item-info h3 {color:#302015;font-weight:520;line-height:1.22;overflow-wrap:anywhere;}
+.storefront #carrinho .cart-item-info h4 {color:#302015;font-weight:520;line-height:1.22;overflow-wrap:anywhere;}
 .storefront #carrinho .product-category {color:#95613f;font-weight:790;}
-.storefront #carrinho .cart-item-specs span {border-color:rgba(144,99,61,.18);background:linear-gradient(120deg,#f1e4d3,#f8efe4);color:#72513b;}
 .storefront #carrinho .cart-item-value strong {color:#62391f;font-variant-numeric:tabular-nums;}
 .storefront #carrinho .cart-item-actions .mini-quantity {
   border:1px solid rgba(148,102,67,.36);border-radius:12px;
@@ -65,11 +64,15 @@
 .storefront #carrinho .cart-item-actions .destructive-action {color:#975148 !important;}
 .storefront #carrinho .cart-item-top {flex-direction:column;gap:7px;}
 .storefront #carrinho .boutique-cart-product {width:100%;gap:10px;}
-.storefront #carrinho .cart-item-info h3 {margin:2px 0;font-size:1rem;}
-.storefront #carrinho .cart-item-specs {gap:3px 8px;margin-top:4px;}
-.storefront #carrinho .cart-item-specs span {
-  min-height:0;padding:0;border:0;border-radius:0;background:none;
-  color:#72513b;font-size:.73rem;line-height:1.4;
+.storefront #carrinho .cart-item-info h4 {margin:2px 0;font-size:1rem;}
+.storefront #carrinho .checkout-item-details {margin-top:4px;}
+.storefront #carrinho .checkout-item-details p {
+  margin:0;color:#72513b;font-size:.75rem;line-height:1.45;overflow-wrap:anywhere;
+}
+.storefront #carrinho .checkout-item-meta {display:flex;flex-wrap:wrap;gap:1px 9px;}
+.storefront #carrinho .checkout-item-quantity {color:#563623;font-weight:730;}
+.storefront #carrinho .checkout-item-details .checkout-item-options {
+  margin-top:3px;color:#65442e;font-weight:640;
 }
 .storefront #carrinho .cart-item-value {
   width:100%;min-width:0;flex-direction:row;align-items:baseline;justify-content:flex-end;
@@ -133,6 +136,7 @@
 .storefront #carrinho .payment-option.is-disabled {opacity:.57;cursor:not-allowed;}
 .storefront #carrinho .boutique-payment-method strong {font-size:.91rem;}
 .storefront #carrinho .boutique-payment-method small {color:#745a47;line-height:1.4;}
+.storefront #carrinho .boutique-payment-method .boutique-payment-fee {color:#684326;font-weight:700;}
 .storefront #carrinho .field-group label {color:#5c3a27;font-weight:745;}
 .storefront #carrinho .field-group input:not([type="radio"]),.storefront #carrinho .field-group textarea {
   min-height:50px;border:1px solid rgba(143,94,59,.31);border-radius:13px;
@@ -215,7 +219,6 @@
   .storefront #carrinho .boutique-checkout-progress {gap:5px;}
   .storefront #carrinho .boutique-checkout-progress button {padding-inline:4px;font-size:.63rem;min-height:49px;}
   .storefront #carrinho .order-card,.storefront #carrinho .summary-card {border-radius:18px;}
-  .storefront #carrinho .cart-item-specs span {font-size:.62rem;}
   .storefront #carrinho .cart-add-options button,.storefront #carrinho .boutique-added-other-actions button {padding-inline:8px;font-size:.7rem;}
   .storefront #carrinho .choice-grid {gap:7px;}
   .storefront #carrinho .choice-card {padding:12px 8px;}

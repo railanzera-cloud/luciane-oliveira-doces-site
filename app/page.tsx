@@ -197,12 +197,11 @@ const SITE_PAYMENT_METHODS: SitePaymentMethod[] = ["mercado_pago_pix", "mercado_
 
 function StepMarker({ number, state }: { number: number; state: StepState }) {
   return (
-    <span
-      className="step-number"
-      data-state={state}
-      aria-label={state === "complete" ? `Etapa ${number} concluída` : `Etapa ${number}`}
-    >
-      {state === "complete" ? <Check size={15} strokeWidth={3} aria-hidden="true" /> : number}
+    <span className="step-number" data-state={state}>
+      <span className="sr-only">Etapa {number}{state === "complete" ? " concluída" : ""}</span>
+      {state === "complete"
+        ? <Check size={15} strokeWidth={3} aria-hidden="true" />
+        : <span aria-hidden="true">{number}</span>}
     </span>
   );
 }
@@ -387,6 +386,39 @@ function productLabel(product: Product) {
 // Nome resumido somente para elementos visuais da compra.
 function productCheckoutLabel(product: Product) {
   return product.cardName ?? productLabel(product);
+}
+
+const checkoutUnits = {
+  slice: ["fatia", "fatias"],
+  chocotone: ["fatia", "fatias"],
+  cone: ["cascão", "cascões"],
+  drink: ["unidade", "unidades"],
+  popcorn: ["pote", "potes"],
+} as const;
+
+function CheckoutItemDetails({ product, variant, item }: { product: Product; variant: Variant; item: CartItem }) {
+  const units = isTrufadaOrLegacy(product.id) ? ["pacote", "pacotes"] : checkoutUnits[product.kind];
+  const quantity = `${item.quantity} ${units[item.quantity === 1 ? 0 : 1]}`;
+  const trufadaSize = isTrufadaId(product.id) && TRUFADA_SIZES.find(size => size === variant.id);
+  const variantDetail = product.kind === "slice" ? `${SLICE_WEIGHT_GRAMS} g por fatia`
+    : trufadaSize ? `Tamanho ${trufadaSize.toUpperCase()}`
+    : product.kind === "popcorn" || product.kind === "drink" ? variant.label : "";
+  const optionNames = item.optionIds.map(id => product.options.find(option => option.id === id)?.name)
+    .filter(Boolean).join(", ");
+
+  return (
+    <div className="checkout-item-details">
+      <p className="checkout-item-meta">
+        <span className="checkout-item-quantity">{quantity}</span>
+        {variantDetail && <span>{variantDetail}</span>}
+      </p>
+      {optionNames && (
+        <p className="checkout-item-options">
+          {product.optionLabel ? `${product.optionLabel}: ` : ""}{optionNames}
+        </p>
+      )}
+    </div>
+  );
 }
 
 function trackMetaEvent(eventName: MetaEventName, payload?: Record<string, unknown>) {
@@ -1219,6 +1251,8 @@ export default function Home() {
   const cardQuote = receiptCardQuote(Math.round(cartSubtotal * 100) + Math.round(deliveryFee * 100), cardMode);
   const orderTotal = cardQuote.totalCents / 100;
   const hasEstimatedTotal = fulfillment === "retirada" || (fulfillment === "entrega" && Boolean(selectedDeliveryZone));
+  const receiptWhere = fulfillment === "retirada" ? "na retirada"
+    : fulfillment === "entrega" ? "na entrega" : "na entrega ou retirada";
 
   const popcornReady = Boolean(
     availability.ordersOpen
@@ -2578,8 +2612,8 @@ export default function Home() {
               <nav className="v7-navigation v7-navigation-edition" aria-label="Navegação das Pipocas Trufadas">
                 <button type="button" onClick={returnToCategories}><ArrowLeft size={15} aria-hidden="true" /> Voltar às categorias</button>
               </nav>
-              <div className="limited-cup-selection-heading" id="crocantes-sabores" aria-label="Pacotes P, M e G — escolha do sabor">
-                <span>Escolha seu sabor</span>
+              <div className="limited-cup-selection-heading" id="crocantes-sabores">
+                <h2>Escolha seu sabor</h2>
                 <small>Pacotes com zíper · P, M e G</small>
               </div>
               <div className="limited-cup-duo is-trio" aria-label="Escolha um sabor de Pipocas Trufadas">
@@ -3078,7 +3112,7 @@ export default function Home() {
           ) : activeCategory === "fatias" && fatiasVisible ? (
             <div className="builder-card slice-builder">
               <section className={`step-block step-state-${sliceProductStepState}`} id="fatias" aria-labelledby="step-slice" aria-current={sliceProductStepState === "active" ? "step" : undefined}>
-                <div className="step-heading"><StepMarker number={1} state={sliceProductStepState} /><div><h3 id="step-slice">Escolha sua fatia</h3><p>{lastSlicesProducts.length > 0 ? "Toque na foto do sabor que deseja provar." : "Selecione um sabor por vez. Depois de adicionar, você poderá escolher outro."}</p></div></div>
+                <div className="step-heading"><StepMarker number={1} state={sliceProductStepState} /><div><h2 className="slice-step-title" id="step-slice">Escolha sua fatia</h2><p>{lastSlicesProducts.length > 0 ? "Toque na foto do sabor que deseja provar." : "Selecione um sabor por vez. Depois de adicionar, você poderá escolher outro."}</p></div></div>
                 {lastSlicesProducts.length > 0 && <aside className="last-slices-banner" aria-label="Últimas fatias disponíveis hoje">
                   <div className="last-slices-banner-top">
                     <span className="last-slices-eyebrow"><Clock3 size={15} aria-hidden="true" /> ÚLTIMAS FATIAS DE HOJE</span>
@@ -3144,7 +3178,7 @@ export default function Home() {
               </section>
 
               {selectedSlice && <section id="calda-fatias" className={`step-block step-state-${sliceSauceStepState}`} aria-labelledby="step-slice-sauce">
-                <div className="step-heading compact-heading"><StepMarker number={2} state={sliceSauceStepState} /><div><h3 id="step-slice-sauce">Escolha sua calda</h3><p>Escolha uma opção. Sem custo adicional.</p></div></div>
+                <div className="step-heading compact-heading"><StepMarker number={2} state={sliceSauceStepState} /><div><h2 className="slice-step-title" id="step-slice-sauce">Escolha sua calda</h2><p>Escolha uma opção. Sem custo adicional.</p></div></div>
                 <div className="boutique-slice-preview" aria-label="Fatia escolhida">
                   {selectedSlice.image && (
                     <img src={selectedSlice.cardImage ?? selectedSlice.image} alt="" width="72" height="72" loading="lazy" decoding="async" />
@@ -3175,7 +3209,7 @@ export default function Home() {
               </section>}
 
               <section className={`step-block step-state-${sliceQuantityStepState}`} id="quantidade-fatias" aria-labelledby="step-slice-quantity" aria-current={sliceQuantityStepState === "active" ? "step" : undefined}>
-                <div className="step-heading compact-heading"><StepMarker number={3} state={sliceQuantityStepState} /><div><h3 id="step-slice-quantity">Quantas fatias deste sabor?</h3><p>Para outro sabor, adicione este item e escolha a próxima fatia.</p></div></div>
+                <div className="step-heading compact-heading"><StepMarker number={3} state={sliceQuantityStepState} /><div><h2 className="slice-step-title" id="step-slice-quantity">Quantas fatias deste sabor?</h2><p>Para outro sabor, adicione este item e escolha a próxima fatia.</p></div></div>
                 <div className="quantity-row">
                   <div className="quantity-control" aria-label="Quantidade">
                     <Button type="button" variant="ghost" size="icon" onClick={() => setSliceQuantity((current) => Math.max(1, current - 1))} disabled={!sliceReady || sliceQuantity === 1} aria-label="Diminuir quantidade"><Minus size={18} /></Button>
@@ -3213,11 +3247,11 @@ export default function Home() {
       )}
 
       {(activeCategory || cart.length > 0) && (
-      <section className={`checkout-section ${cart.length === 0 ? "is-empty-cart" : ""}`} id="carrinho">
+      <section className={`checkout-section ${cart.length === 0 ? "is-empty-cart" : ""}`} id="carrinho" aria-labelledby="checkout-title">
         <div className="page-shell">
           <header className="boutique-checkout-brief">
             <p className="eyebrow">Finalização do pedido</p>
-            <h2>Falta pouco para finalizar.</h2>
+            <h2 id="checkout-title">Falta pouco para finalizar.</h2>
             <p>Confira suas escolhas e informe como deseja receber.</p>
           </header>
           {cart.length > 0 && (
@@ -3241,7 +3275,7 @@ export default function Home() {
           <div className="checkout-main">
             <section className="order-card" aria-labelledby="cart-title">
               <div className="order-card-heading">
-                <div><p className="eyebrow">01 · Suas escolhas</p><h2 id="cart-title">O que vai no pedido</h2></div>
+                <div><p className="eyebrow">01 · Suas escolhas</p><h3 id="cart-title">O que vai no pedido</h3></div>
                 {cart.length > 0 && <span className="cart-count">{cartItemCount} {cartItemCount === 1 ? "item" : "itens"}</span>}
               </div>
               {cart.length === 0 ? (
@@ -3261,7 +3295,6 @@ export default function Home() {
                     const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
                     const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
                     const itemIssue = cartIssues.find((issue) => issue.cartItemId === item.id);
-                    const optionNames = item.optionIds.map((id) => product.options.find((option) => option.id === id)?.name).filter(Boolean).join(", ");
                     const unitPrice = itemUnitPrice(product, variant, item.optionIds, promotionTime);
                     return (
                       <article className={`cart-item ${itemIssue ? "is-unavailable" : ""}`} key={item.id}>
@@ -3276,13 +3309,9 @@ export default function Home() {
                             </span>
                             <div className="cart-item-info">
                             <span className="product-category">{product.category}</span>
-                            <h3>{productCheckoutLabel(product)}</h3>
+                            <h4>{productCheckoutLabel(product)}</h4>
                             {product.cardName && product.subtitle && <small className="cart-item-subtitle">{product.subtitle}</small>}
-                            <div className="cart-item-specs">
-                              <span>{variant.label}</span>
-                              {product.kind === "slice" && <span>{SLICE_WEIGHT_GRAMS} g por fatia</span>}
-                              {optionNames && product.optionLabel && <span>{product.optionLabel}: {optionNames}</span>}
-                            </div>
+                            <CheckoutItemDetails product={product} variant={variant} item={item} />
                             {itemIssue && (
                               <div className="cart-unavailable-note" role="status">
                                 <AlertTriangle size={16} aria-hidden="true" />
@@ -3291,7 +3320,7 @@ export default function Home() {
                             )}
                             </div>
                           </div>
-                          <div className="cart-item-value"><small>Valor</small><strong>{variant.retired ? "Revise o tamanho" : currency.format(unitPrice * item.quantity)}</strong></div>
+                          <div className="cart-item-value"><small>Total do item</small><strong>{variant.retired ? "Revise o tamanho" : currency.format(unitPrice * item.quantity)}</strong></div>
                         </div>
                         <div className="cart-item-actions">
                           <div className="mini-quantity">
@@ -3404,7 +3433,7 @@ export default function Home() {
                 </div>
               )}
               {cart.length > 0 && STORE_CONFIG.enabledExtras.drinks && <DrinkComplements availability={availability} cart={cart} onChange={changeDrink} message={drinkMessage} busy={isFinalizing} />}
-              <div className="step-heading checkout-step-heading" id="recebimento-opcoes"><StepMarker number={4} state={receivingStepState} /><div><h2 id="receiving-title">Como deseja receber?</h2><p>Escolha a opção mais conveniente.</p></div></div>
+              <div className="step-heading checkout-step-heading" id="recebimento-opcoes"><StepMarker number={4} state={receivingStepState} /><div><h3 id="receiving-title">Como deseja receber?</h3><p>Escolha a opção mais conveniente.</p></div></div>
               <RadioGroup className="choice-grid" value={fulfillment} onValueChange={chooseFulfillment} aria-label="Forma de recebimento">
                 <label className={`choice-card ${fulfillment === "entrega" ? "is-selected" : ""}`} htmlFor="receive-delivery">
                   <RadioGroupItem id="receive-delivery" value="entrega" /><Truck size={21} /><span className="choice-copy"><strong>Entrega</strong><small>A partir de R$8</small></span>
@@ -3453,7 +3482,7 @@ export default function Home() {
 
             {COMMERCE_CONFIG.siteOrderingEnabled && !cartRequiresWhatsApp && (
               <section className="order-card checkout-channel-card" id="finalizacao" aria-labelledby="channel-title">
-                <div className="order-card-heading"><div><p className="eyebrow">Finalização</p><h2 id="channel-title">Como deseja concluir?</h2></div></div>
+                <div className="order-card-heading"><div><p className="eyebrow">Finalização</p><h3 id="channel-title">Como deseja concluir?</h3></div></div>
                 <RadioGroup className="choice-grid checkout-channel-options" value={checkoutChannel} onValueChange={chooseCheckoutChannel} aria-label="Canal de finalização">
                   <label className={`choice-card ${checkoutChannel === "site" ? "is-selected" : ""}`} htmlFor="channel-site">
                     <RadioGroupItem id="channel-site" value="site" /><ShoppingBag size={21} /><span className="choice-copy"><strong>Concluir no site</strong><small>Receba o número e acompanhe o pedido</small></span>
@@ -3469,7 +3498,7 @@ export default function Home() {
 
             {(
               <section className="order-card customer-card" id="identificacao" aria-labelledby="customer-title">
-                <div className="order-card-heading"><div><p className="eyebrow">Identificação</p><h2 id="customer-title">Quem está fazendo o pedido?</h2></div></div>
+                <div className="order-card-heading"><div><p className="eyebrow">Identificação</p><h3 id="customer-title">Quem está fazendo o pedido?</h3></div></div>
                 <div className="customer-fields">
                   <div className="field-group"><label htmlFor="customer-name"><UserRound size={15} aria-hidden="true" /> Nome do cliente</label><Input required id="customer-name" value={customerName} onChange={(event) => setCustomerName(event.target.value)} onBlur={() => syncManualMetaMatching()} placeholder="Seu nome" autoComplete="name" maxLength={100} aria-invalid={Boolean(customerName && !customerNameReady)} /></div>
                   {checkoutChannel === "site" && <div className="field-group"><label htmlFor="customer-phone"><Phone size={15} aria-hidden="true" /> Celular com DDD</label><Input id="customer-phone" value={customerPhone} onChange={(event) => setCustomerPhone(event.target.value)} onBlur={() => syncManualMetaMatching()} placeholder="(91) 99999-9999" inputMode="tel" autoComplete="tel" maxLength={24} aria-invalid={Boolean(customerPhone && !customerPhoneReady)} /></div>}
@@ -3489,7 +3518,7 @@ export default function Home() {
             )}
 
             <section className={`order-card payment-card step-state-${paymentStepState}`} id="pagamento" aria-labelledby="payment-title">
-              <div className="order-card-heading payment-heading"><div><p className="eyebrow">Pagamento</p><h2 id="payment-title">Como prefere pagar?</h2></div></div>
+              <div className="order-card-heading payment-heading"><div><p className="eyebrow">Pagamento</p><h3 id="payment-title">Como prefere pagar?</h3></div></div>
               {checkoutChannel === "site" ? (
                 <RadioGroup className="payment-list payment-groups" value={payment} onValueChange={choosePayment} aria-label="Forma de pagamento">
                   <div className="payment-group"><strong>Pagar agora</strong>
@@ -3512,19 +3541,32 @@ export default function Home() {
                 </RadioGroup>
               ) : (
                 <RadioGroup className="payment-list" value={payment} onValueChange={choosePayment} aria-label="Forma de pagamento pelo WhatsApp">
-                  {[["pix", "Pix"], ["dinheiro", "Dinheiro"], ["credito", "Cartão de crédito à vista"], ["debito", "Cartão de débito"]].map(([value, label]) => (
-                    <label className={`payment-option ${payment === value ? "is-selected" : ""}`} htmlFor={`payment-${value}`} key={value}>
-                      <RadioGroupItem id={`payment-${value}`} value={value} />
-                      {value === "pix" ? <QrCode size={20} aria-hidden="true" /> : value === "dinheiro" ? <Banknote size={20} aria-hidden="true" /> : <CreditCard size={20} aria-hidden="true" />}
-                      <span className="boutique-payment-method"><strong>{label}</strong><small>{
-                        value === "pix" ? "A chave Pix estará na mensagem que você deverá enviar pelo WhatsApp"
-                          : value === "dinheiro"
-                            ? fulfillment === "retirada" ? "Pague em dinheiro na retirada" : fulfillment === "entrega" ? "Pague em dinheiro na entrega" : "Pague em dinheiro na entrega ou retirada"
-                            : fulfillment === "retirada" ? "Na maquininha, na retirada" : fulfillment === "entrega" ? "Na maquininha, na entrega" : "Na maquininha, na entrega ou retirada"
-                      }</small></span>
-                      {payment === value && <Check size={18} aria-hidden="true" />}
-                    </label>
-                  ))}
+                  {([
+                    { value: "pix", label: "Pix", icon: QrCode, detail: "A chave Pix estará na mensagem que você deverá enviar pelo WhatsApp", mode: null },
+                    { value: "dinheiro", label: "Dinheiro", icon: Banknote, detail: `Pague em dinheiro ${receiptWhere}`, mode: null },
+                    { value: "credito", label: "Cartão de crédito à vista", icon: CreditCard, detail: `Na maquininha, ${receiptWhere}`, mode: "credit_single" },
+                    { value: "debito", label: "Cartão de débito", icon: CreditCard, detail: `Na maquininha, ${receiptWhere}`, mode: "debit" },
+                  ] as const).map(({ value, label, icon: Icon, detail, mode }) => {
+                    const quote = mode ? receiptCardQuote(cardQuote.baseCents, mode) : null;
+                    return (
+                      <label className={`payment-option ${payment === value ? "is-selected" : ""}`} htmlFor={`payment-${value}`} key={value}>
+                        <RadioGroupItem id={`payment-${value}`} value={value} />
+                        <Icon size={20} aria-hidden="true" />
+                        <span className="boutique-payment-method">
+                          <strong>{label}</strong>
+                          <small>{detail}</small>
+                          {quote && (
+                            <small className="boutique-payment-fee">
+                              Acréscimo de {(quote.basisPoints / 100).toLocaleString("pt-BR")}%
+                              {hasEstimatedTotal && !cartNeedsSizeReview && cartIssues.length === 0
+                                ? ` · ${currency.format(quote.feeCents / 100)}` : ""}
+                            </small>
+                          )}
+                        </span>
+                        {payment === value && <Check size={18} aria-hidden="true" />}
+                      </label>
+                    );
+                  })}
                 </RadioGroup>
               )}
               {payment === "mercado_pago_pix" && <div className="online-email-field field-group"><label htmlFor="online-email"><Mail size={15} aria-hidden="true" /> E-mail para processar o Pix</label><Input id="online-email" value={customerEmail} onChange={(event) => setCustomerEmail(event.target.value)} onBlur={() => syncManualMetaMatching()} placeholder="voce@exemplo.com" inputMode="email" type="email" autoComplete="email" maxLength={254} aria-invalid={Boolean(customerEmail && !customerEmailReady)} /><p className="field-note">O Mercado Pago exige este dado para gerar a cobrança. Não enviaremos marketing.</p></div>}
@@ -3548,7 +3590,7 @@ export default function Home() {
           </div>
 
           <aside className="summary-card" aria-labelledby="summary-title">
-            <p className="eyebrow">Resumo do pedido</p><h2 id="summary-title">{checkoutReady ? "Pronto para finalizar?" : "Confira seu pedido"}</h2>
+            <p className="eyebrow">Resumo do pedido</p><h3 id="summary-title">{checkoutReady ? "Pronto para finalizar?" : "Confira seu pedido"}</h3>
             <p className="boutique-summary-lead">{checkoutReady ? "Tudo certo. Confira o total antes de enviar." : "Veja o total e complete as informações pendentes."}</p>
             {cart.length > 0 && checkoutChannel !== "whatsapp" && <p className="order-code">O número do pedido será mostrado após a confirmação.</p>}
             <div className="summary-content">
@@ -3564,7 +3606,6 @@ export default function Home() {
                 const product = PRODUCTS.find((candidate) => candidate.id === item.productId)!;
                 const variant = product.variants.find((candidate) => candidate.id === item.variantId)!;
                 const itemIssue = cartIssues.find((issue) => issue.cartItemId === item.id);
-                const names = item.optionIds.map((id) => product.options.find((option) => option.id === id)?.name).filter(Boolean).join(", ");
                 const lineTotal = itemUnitPrice(product, variant, item.optionIds, promotionTime) * item.quantity;
                 return (
                   <div className={`summary-item ${itemIssue ? "is-unavailable" : ""}`} key={item.id}>
@@ -3573,9 +3614,7 @@ export default function Home() {
                       <div>
                         <strong>{productCheckoutLabel(product)}</strong>
                         {product.cardName && product.subtitle && <span className="summary-product-subtitle">{product.subtitle}</span>}
-                        <span className="summary-variant">{variant.label}</span>
-                        {names && product.optionLabel && <p>{product.optionLabel}: {names}</p>}
-                        <small>Quantidade: {item.quantity}</small>
+                        <CheckoutItemDetails product={product} variant={variant} item={item} />
                         {itemIssue && <span className="summary-unavailable">Indisponível — revise este item</span>}
                       </div>
                     </div>

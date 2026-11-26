@@ -21,7 +21,7 @@ export function ChristmasCollection({ availability, quantities, onAdjust, onChec
     <div className="natal-collection">
       <div className="natal-collection-intro">
         <span className="natal-collection-eyebrow">✦ Coleção especial · Natal 2026</span>
-        <h3>Escolha suas fatias.</h3>
+        <h2>Escolha suas fatias.</h2>
         <p>Combine seus favoritos e escolha quantas fatias quiser de cada sabor.</p>
       </div>
       <div className="natal-product-grid" id="natal-sabores" role="group" aria-label="Escolha as fatias de Chocottone da coleção de Natal">
@@ -42,7 +42,7 @@ export function ChristmasCollection({ availability, quantities, onAdjust, onChec
               </button>
               <div className="natal-product-info">
                 <div className="natal-product-heading">
-                  <h4>{morango ? "Morango com Chocolate" : product.name}</h4>
+                  <h3>{morango ? "Morango com Chocolate" : product.name}</h3>
                   <span className="natal-product-base">Chocottone Bauducco</span>
                   {morango && <span className="natal-product-note">Brigadeiro branco</span>}
                 </div>

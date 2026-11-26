@@ -40,6 +40,11 @@ try {
       'test', '--config', path.join(tools, 'playwright.config.mjs'),
       '--update-snapshots=' + (action === 'baseline' ? 'all' : 'none'),
     ]);
+  } else if (action === 'review' || action === 'review-before') {
+    const phase = action === 'review' ? 'depois' : 'antes';
+    await runNode(path.join(tools, 'node_modules/@playwright/test/cli.js'), [
+      'test', '--config', path.join(tools, 'playwright.config.mjs'),
+    ], { env: { ...process.env, QA_REVIEW_PHASE: phase } });
   } else if (action === 'lighthouse') {
     const reports = path.join(output, 'lighthouse');
     await mkdir(reports, { recursive: true });

@@ -328,7 +328,7 @@
   height: 100%;
   object-fit: cover;
 }
-.storefront .cart-item h3 {
+.storefront .cart-item h4 {
   margin: 4px 0;
   color: #382215;
   font-size: 1rem;
@@ -458,7 +458,7 @@
   border-color: rgba(140, 90, 48, .20);
   box-shadow: 0 12px 32px rgba(83, 52, 30, .045);
 }
-.storefront .order-card-heading h2 { letter-spacing: -.04em; }
+.storefront .order-card-heading h3 { letter-spacing: -.04em; }
 .storefront .order-card-heading .eyebrow { letter-spacing: .13em; }
 .storefront .field-group input,
 .storefront .field-group textarea,
@@ -641,7 +641,7 @@
   background: linear-gradient(100deg, rgba(205, 143, 80, .075), transparent 62%);
   box-shadow: inset 3px 0 0 rgba(230, 174, 105, .78);
 }
-.storefront .step-heading h3 {
+.storefront .step-heading:not(:where(.checkout-step-heading)) :is(h3, h2:where(.slice-step-title)) {
   font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(1.16rem, 4vw, 1.43rem);
   font-weight: 500;
@@ -887,7 +887,7 @@
   background: #fffbf5;
   border-radius: 18px;
 }
-.storefront .cart-item-info h3 { font-size: 1.05rem; }
+.storefront .cart-item-info h4 { font-size: 1.05rem; }
 .storefront .boutique-cart-image {
   flex-basis: 69px;
   width: 69px;
@@ -926,9 +926,9 @@
   background: #fffbf6;
   box-shadow: 0 12px 28px rgba(94, 61, 31, .05);
 }
-.storefront .order-card-heading h2,
-.storefront .summary-card > h2,
-.storefront .checkout-step-heading h2 {
+.storefront .order-card-heading h3,
+.storefront .summary-card > h3,
+.storefront .checkout-step-heading h3 {
   font-family: Georgia, "Times New Roman", serif;
   letter-spacing: -.045em;
   line-height: 1.17;
@@ -1230,7 +1230,7 @@
   color: #ffdeac;
   border-color: rgba(235, 192, 137, .5);
 }
-.storefront .step-heading h3 {
+.storefront .step-heading:not(:where(.checkout-step-heading)) :is(h3, h2:where(.slice-step-title)) {
   font-size: clamp(1.23rem, 4.4vw, 1.62rem);
   letter-spacing: -.04em;
 }
@@ -1440,8 +1440,8 @@
   box-shadow: 0 8px 26px rgba(63, 39, 20, .052), 0 1px 0 rgba(139, 91, 48, .055);
 }
 .storefront .order-card { position: relative; }
-.storefront .order-card .order-card-heading h2,
-.storefront .summary-card > h2 {
+.storefront .order-card .order-card-heading h3,
+.storefront .summary-card > h3 {
   font-family: Georgia, "Times New Roman", serif;
   font-weight: 500;
   letter-spacing: -.049em;
@@ -1458,7 +1458,7 @@
   width: 69px;
   height: 77px;
 }
-.storefront .cart-item h3 { font-family: Georgia, "Times New Roman", serif; font-size: 1.16rem; }
+.storefront .cart-item h4 { font-family: Georgia, "Times New Roman", serif; font-size: 1.16rem; }
 .storefront .cart-item-specs span {
   min-height: 22px;
   background: #f6ecdf;

@@ -57,7 +57,7 @@ test("exposes clear active, complete, and locked step states", () => {
   assert.match(page, /type StepState = "active" \| "complete" \| "locked"/);
   assert.match(page, /step-state-\$\{sliceProductStepState\}/);
   assert.match(page, /step-state-\$\{sliceQuantityStepState\}/);
-  assert.match(page, /Etapa \$\{number\} concluída/);
+  assert.match(page, /<span className="sr-only">Etapa \{number\}\{state === "complete" \? " concluída" : ""\}<\/span>/);
 });
 
 test("keeps below-fold product images lazy and responsive", async () => {

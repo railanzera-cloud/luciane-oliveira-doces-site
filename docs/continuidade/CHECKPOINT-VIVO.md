@@ -1,5 +1,13 @@
 # Checkpoint Vivo — Site Comercial Luciane Oliveira Doces
 
+## 25/11/2026 — Primeiro incremento comercial e de acessibilidade
+
+- Candidato no worktree `work/ambiente-comercial`, branch `codex/ambiente-comercial-v47159`, sobre `b940d1a` e a base comercial `f260d9d` (V4.7.15.9). Prévia com dados simulados em `http://127.0.0.1:8181/`.
+- Carrinho e resumo expandido compartilham a apresentação de quantidade, tamanho ou peso e personalização, incluindo a calda. Fatias corrigiu a posição do seletor em cards estreitos. Fatias, Natal, Trufadas e checkout receberam ajustes na hierarquia de títulos. O marcador de etapa anuncia o estado como texto acessível e os links legais têm 32 px de altura mínima.
+- A escolha de pagamento pelo WhatsApp mostra 3,05% no crédito à vista e 0,57% no débito. Com a base conhecida, exibe o valor calculado pelo mesmo helper usado no total. No teste de entrega, 2 fatias de R$ 22,00 e R$ 8,00 de entrega resultaram em R$ 53,64 no crédito, com o mesmo JSON comercial nos oito perfis antes e depois.
+- Build aprovado, 943 regressões comerciais e 16 testes específicos passaram. A matriz cobriu Chromium mobile e WebKit em 320, 375, 390 e 430 px. Os dois critérios de acessibilidade auditados passaram nos oito perfis. As jornadas WebKit existentes passaram em quatro tamanhos para entrega e cinco para checkout.
+- Aprovação visual registrada pelo proprietário. A referência para a próxima etapa é o commit local `Checkpoint do primeiro incremento comercial aprovado`. As 40 comparações ficam em `outputs/qa-commerce/incremento-revisao/evidencias.html` e a [portabilidade](../PORTABILIDADE.md) descreve como reproduzi-las. Nenhum push ou publicação foi realizado.
+
 ## 25/11/2026 — Ambiente de desenvolvimento isolado
 
 - Os dois manifestos públicos retornaram V4.7.15.9 e o SHA `f260d9db546352a21805205d7ca976d115dd7f1f`. Este é o ponto de partida de `codex/ambiente-comercial-v47159`, no worktree `work/ambiente-comercial`. O checkout original continua em `main` / `26730be`.

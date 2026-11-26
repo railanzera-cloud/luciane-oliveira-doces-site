@@ -647,8 +647,8 @@ label:has(button:focus-visible) {
 }
 
 .section-intro h2,
-.order-card h2,
-.summary-card h2 {
+.order-card h3,
+.summary-card h3 {
   margin: 7px 0 0;
   font-family: Georgia, "Times New Roman", serif;
   font-weight: 500;
@@ -758,13 +758,11 @@ label:has(button:focus-visible) {
   transition: opacity 180ms ease;
 }
 
-.step-block.step-state-complete .step-heading h2,
-.step-block.step-state-complete .step-heading h3 {
+.step-block.step-state-complete .step-heading :is(h2, h3) {
   color: #f3e7d6;
 }
 
-.step-heading h2,
-.step-heading h3 {
+.step-heading :is(h2, h3) {
   margin: 1px 0 3px;
   color: #fff8ed;
   font-size: 1.06rem;
@@ -1200,8 +1198,8 @@ label:has(button:focus-visible) {
   color: #9b5f2f;
 }
 
-.order-card h2,
-.summary-card h2 {
+.order-card h3,
+.summary-card h3 {
   color: #2c1b11;
   font-size: 1.65rem;
 }
@@ -1288,7 +1286,7 @@ label:has(button:focus-visible) {
   text-transform: uppercase;
 }
 
-.cart-item h3 {
+.cart-item h4 {
   margin: 4px 0 3px;
   color: #3c2517;
   font-size: 0.9rem;
@@ -1462,7 +1460,7 @@ label:has(button:focus-visible) {
   color: #92592c;
 }
 
-.checkout-step-heading h2 {
+.checkout-step-heading h3 {
   color: #2c1b11;
 }
 
