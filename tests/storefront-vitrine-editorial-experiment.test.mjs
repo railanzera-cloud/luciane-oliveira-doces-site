@@ -229,7 +229,7 @@ test("v7 nomeia lançamento Pipocas Trufadas e dá saída clara em todos os cami
 });
 
 test("v6 separa lançamento e compra tradicional sem afetar os outros produtos", () => {
-  assert.ok(page.includes("const [showLimitedCupView, setShowLimitedCupView] = useState(false)"));
+  assert.ok(page.includes('const [showLimitedCupView, setShowLimitedCupView] = useState(initialRoute === "trufadas")'));
   assert.ok(page.includes("function openLimitedCupEdition()"));
   assert.ok(page.includes('onClick={openLimitedCupEdition}'));
   assert.ok(page.includes('onClick={() => selectCategory(category.id)}'));
@@ -258,7 +258,7 @@ test("v6 separa lançamento e compra tradicional sem afetar os outros produtos",
   assert.ok(page.includes('setShowLimitedCupView(trufadasFromUrl(window.location.href, window.history.state))'));
   assert.ok(!page.includes('href="#potes-recheados"'));
   assert.ok(page.includes("currency.format(variant.price)"));
-  assert.ok(page.includes("Pacotes P, M e G"));
+  assert.ok(page.includes("Pacotes com zíper · P, M e G"));
   assert.ok(!page.includes("190 g"));
   assert.ok(page.includes("/images/pipocas-trufadas-ninho-20261101.webp"));
   assert.ok(page.includes("/images/pipocas-trufadas-pacoca-20261101.webp"));

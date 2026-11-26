@@ -75,9 +75,8 @@ test("checkout só adiciona navegação visual e preserva finalização", () => 
 });
 
 test("pagamentos ganham esclarecimentos sem alteração dos métodos aceitos", () => {
-  assert.ok(page.includes('[["pix", "Pix"], ["dinheiro", "Dinheiro"], ["credito", "Cartão de crédito à vista"], ["debito", "Cartão de débito"]]'));
-  for (const id of ["pix","dinheiro","credito","debito"])
-    assert.ok(page.includes(`value === "${id}"`) || page.includes(`["${id}",`));
+  for (const [id, label] of [["pix", "Pix"], ["dinheiro", "Dinheiro"], ["credito", "Cartão de crédito à vista"], ["debito", "Cartão de débito"]])
+    assert.ok(page.includes(`{ value: "${id}", label: "${label}"`));
   assert.ok(page.includes("value={value}"));
   assert.ok(page.includes("choosePayment"));
   assert.ok(page.includes("COMMERCE_CONFIG.onlinePaymentsEnabled"));
@@ -129,8 +128,8 @@ test("Boutique 3.2 usa fontes originais e exige novo build, sem reaproveitar ass
   assert.ok(page.includes("A chave Pix estará na mensagem que você deverá enviar pelo WhatsApp"));
   assert.ok(!page.includes("Pagamento combinado com a loja"));
   assert.ok(!page.includes("Combine o pagamento com a loja"));
-  assert.ok(page.includes("Na maquininha, na retirada"));
-  assert.ok(page.includes("Na maquininha, na entrega"));
+  assert.ok(page.includes('detail: `Na maquininha, ${receiptWhere}`'));
+  assert.match(page, /const receiptWhere = fulfillment === "retirada" \? "na retirada"\s*:\s*fulfillment === "entrega" \? "na entrega"/);
   assert.ok(page.includes("Seu troco será"));
   assert.ok(page.includes('className="summary-address boutique-change-summary"'));
   assert.ok(css.includes(".storefront .change-box .segmented-control button[data-variant=\"default\"]"));

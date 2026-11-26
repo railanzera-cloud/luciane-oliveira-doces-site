@@ -1,0 +1,32 @@
+name: Consolidacao comercial V4.7.15.11 — core conectado
+on:
+  push:
+    branches: [integrate/comercial-desempenho-pagamentos-massa-branca-20261126]
+permissions:
+  contents: read
+jobs:
+  build-core:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SUPABASE_URL: "https://edqiwvccmboyayojvuea.supabase.co"
+      SUPABASE_PUBLISHABLE_KEY: "sb_publishable_69flK5d9m8Oe3HHVnmKWdA_omNIuIcl"
+      SITE_ORDERING_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - run: node --test tests/*.test.mjs
+      - run: node scripts/build-crm-commercial-core.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CORE-CONSOLIDADO-V471511-NAO-PUBLICAR-SEM-FOTO
+          path: outputs/crm-commercial-core-NOT-PUBLISH.zip
+          if-no-files-found: error
+          retention-days: 7

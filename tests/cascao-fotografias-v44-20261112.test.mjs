@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { CONE_COVER, CONE_FALLBACK_COVER, collectionPhotoSources } from "../app/storefront-photos.ts";
 
 const catalog=fs.readFileSync("app/catalog.ts","utf8");
 const page=fs.readFileSync("app/page.tsx","utf8");
@@ -10,10 +11,11 @@ const menu=fs.readFileSync("app/menu-availability.ts","utf8");
 const server=fs.readFileSync("supabase/functions/_shared/commerce-catalog.mjs","utf8");
 
 test("V4.7.4: home mantém trio de três cascões com fotografia natural",()=>{
- assert.match(page,/photo=\{coneIsVisible\("cascao-trufado-kinder-bueno"\) \? "\/images\/cascao-trufado-trio-home-20261114-v4713\.webp"/);
- assert.match(page,/photo\.replace\("\.webp", "-360\.webp"\)/);
+ assert.match(page, /photo=\{coneIsVisible\("cascao-trufado-kinder-bueno"\) \? CONE_COVER : CONE_FALLBACK_COVER\}/);
+ assert.equal(CONE_COVER, "/images/cascao-trufado-trio-home-20261114-v4713.webp");
+ assert.match(collectionPhotoSources(CONE_COVER, 1122), /-360\.webp 360w/);
  assert.match(page,/id === "cones" \? \(coneIsVisible\("cascao-trufado-kinder-bueno"\)/);
- assert.match(page,/\/images\/cones-trufados-trio-20261108\.webp/);
+ assert.equal(CONE_FALLBACK_COVER, "/images/cones-trufados-trio-20261108.webp");
  assert.doesNotMatch(page,/photo=\{coneIsVisible\("cascao-trufado-kinder-bueno"\) \? "\/images\/cascao-trufado-kinder-bueno-20261112\.webp"/);
 });
 

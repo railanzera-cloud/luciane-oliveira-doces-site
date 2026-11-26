@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { quoteCartItems } from "../supabase/functions/_shared/commerce-catalog.mjs";
 const page=readFileSync("app/page.tsx","utf8"),catalog=readFileSync("app/catalog.ts","utf8"),css=readFileSync("app/storefront-vitrine-editorial-experiment.css","utf8");
 test("pacotes P M G mostram preços sem gramagem inventada",()=>{
-  assert.match(page,/Pacotes P, M e G/);
+  assert.match(page,/<small>Pacotes com zíper · P, M e G<\/small>/);
   assert.match(page,/TRUFADA_SIZES\.map/);
   assert.doesNotMatch(page,/190\s*g|187\s*g|173\s*g|240\s*g/);
   assert.match(catalog,/label: "Pacote P"/);

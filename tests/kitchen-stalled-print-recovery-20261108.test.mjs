@@ -7,7 +7,7 @@ const panel = readFileSync("components/admin-orders-panel.tsx", "utf8");
 const health = readFileSync("lib/kitchen-print-health.ts", "utf8");
 const api = readFileSync("lib/admin-orders-client.ts", "utf8");
 const qz = readFileSync("lib/qz-print-client.ts", "utf8");
-const css = readFileSync("app/globals.css", "utf8");
+const css = readFileSync("app/admin/panel.css", "utf8");
 
 test("stalled recovery exige ação explícita, confirmação física e mais de 5 minutos", () => {
   assert.match(sql, /p_action IS NULL OR p_action NOT IN \('paper_confirmed', 'retry_no_paper'\)/);

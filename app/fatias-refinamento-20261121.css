@@ -105,8 +105,13 @@
 @media (max-width: 359px) {
   .storefront[data-active-category="fatias"] .slice-grid { grid-template-columns: minmax(0, 1fr); }
   .storefront[data-active-category="fatias"] .slice-card {
+    --slice-thumb-width: 42%;
     display: grid;
-    grid-template-columns: 42% minmax(0, 1fr);
+    grid-template-columns: var(--slice-thumb-width) minmax(0, 1fr);
+  }
+  .storefront[data-active-category="fatias"] .slice-card button[role="radio"] {
+    left: calc(var(--slice-thumb-width) - 25px);
+    right: auto;
   }
   .storefront[data-active-category="fatias"] .slice-media { aspect-ratio: 1 / 1.02; align-self: center; }
 }

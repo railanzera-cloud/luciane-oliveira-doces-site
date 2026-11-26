@@ -4,7 +4,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { loadEnv } from "vite";
-import { shortLinks } from "../cloudflare/short-links.js";
+import { catalogEntryFiles, shortLinks } from "../cloudflare/short-links.js";
 
 const execFileAsync = promisify(execFile);
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -79,22 +79,25 @@ async function renderRoute(route, targetFile) {
 }
 
 const homeHtml = await renderRoute("/", "index.html");
+for (const [category, file] of Object.entries(catalogEntryFiles)) {
+  await renderRoute(`/?categoria=${category}`, file);
+}
 await renderRoute("/admin", "admin/index.html");
 await renderRoute("/pedido", "pedido/index.html");
 await renderRoute("/informacoes-da-empresa", "informacoes-da-empresa/index.html");
 await writeFile(path.join(packageDirectory, "404.html"), homeHtml, "utf8");
 
-// Keep the existing static Pages output; run edge code only for organic links.
+// The root selects a pre-rendered entry for recognized category links.
 await cp(path.join(projectRoot, "cloudflare", "short-links.js"), path.join(packageDirectory, "_worker.js"));
 await writeFile(path.join(packageDirectory, "_routes.json"), JSON.stringify({
   version: 1,
-  include: Object.keys(shortLinks),
+  include: ["/", ...Object.keys(shortLinks)],
   exclude: [],
 }, null, 2) + "\n", "utf8");
 
 await writeFile(
   path.join(packageDirectory, "_headers"),
-  `/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n\n/assets/*\n  Cache-Control: public, max-age=31536000, immutable\n`,
+  `/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n\n/assets/*\n  Cache-Control: public, max-age=31536000, immutable\n\n/images/responsivas/*\n  Cache-Control: public, max-age=31536000, immutable\n`,
   "utf8",
 );
 
@@ -102,6 +105,7 @@ const requiredFiles = [
   "_worker.js",
   "_routes.json",
   "index.html",
+  ...Object.values(catalogEntryFiles),
   "admin/index.html",
   "pedido/index.html",
   "informacoes-da-empresa/index.html",
@@ -116,6 +120,8 @@ const requiredFiles = [
   "images/pipocas-trufadas-coco-queimado-20261101.webp",
   "fatia-coco-cremoso-morango.webp",
   "fatia-coco-cremoso-morango-card.webp",
+  "images/responsivas/fatia-chocolate-morango-card-360-v1.webp",
+  "images/responsivas/natal-fita-270-v1.webp",
 ];
 for (const requiredFile of requiredFiles) {
   await access(path.join(packageDirectory, requiredFile));

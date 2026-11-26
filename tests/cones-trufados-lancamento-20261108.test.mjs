@@ -87,7 +87,8 @@ test("UX: quatro categorias têm cartões visíveis e Trufadas não ficam no fim
   const remainder = menuBody.indexOf('visibleCategories.filter(category => category.id !== "cones")');
   assert.ok(start >= 0 && cone > 0 && trufadas > cone && remainder > trufadas);
   assert.ok(page.includes('data-launch={format === "Novidade no cardápio"'));
-  assert.ok(page.includes('data-packs-card={format === "Pacotes com zíper"'));
+  assert.ok(page.includes('const packs = format === "Pacotes com zíper"'));
+  assert.ok(page.includes('data-packs-card={packs || undefined}'));
   const css = read("app/cones-trufados-20261108.css");
   assert.ok(css.includes('grid-template-columns: repeat(2, minmax(0, 1fr))'));
   assert.ok(css.includes('.collection-choice[data-launch]'));

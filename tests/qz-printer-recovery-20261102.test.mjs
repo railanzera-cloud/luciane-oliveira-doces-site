@@ -5,7 +5,7 @@ import { chooseKitchenPrinter } from "../lib/qz-printer-selection.mjs";
 
 const qz = readFileSync("lib/qz-print-client.ts", "utf8");
 const panel = readFileSync("components/admin-orders-panel.tsx", "utf8");
-const css = readFileSync("app/globals.css", "utf8");
+const css = readFileSync("app/admin/panel.css", "utf8");
 
 test("QZ: mantém impressora aprovada quando está presente, sem escolher outra", () => {
   assert.equal(chooseKitchenPrinter(["POS-58","Microsoft Print to PDF"],"POS-58",undefined,null),"POS-58");
