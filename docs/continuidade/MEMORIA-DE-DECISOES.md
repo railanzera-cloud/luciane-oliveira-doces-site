@@ -21,6 +21,13 @@ Fonte: Prompt Mestre Oficial **4.0 fornecido pelo proprietário nesta conversa**
 - **Fontes:** `ESTADO_ATUAL_VITRINE.md`; `docs/VITRINE-PREMIUM-REFINO-EQUILIBRIO-20261102.md`; `docs/VITRINE-COLECOES-20261102.md`.
 - **Estado:** diretriz permanente aprovada; versões visuais **variam por branch e deployment**.
 
+### D-C02A — Evolução por componente com direção criativa colaborativa
+
+- **Fonte e motivo:** em 26/11/2026, o proprietário encerrou a primeira rodada de propostas e suspendeu Cacau Signature. A avaliação independente identificou avanços pontuais e manteve a maturidade visual e comercial do candidato como referência.
+- **Decisão:** trabalhar sobre o candidato `eeb35d7`. A próxima intervenção começa pela avaliação conjunta de um componente específico, de seus estados e do efeito desejado para quem compra. Aplicar somente o refinamento combinado.
+- **Validação:** comparar o componente no mesmo cenário antes e depois e conferir os estados vizinhos afetados. Registrar o que foi aprovado e o que ainda depende de avaliação.
+- **Estado:** metodologia aprovada. Assinatura, Caderno de sabores e Balcão servem como referências de consulta. Nenhuma direção integral foi adotada. Próximo componente pendente de definição conjunta.
+
 ## D-C03 — Fotografias reais são ativos protegidos
 
 - **Motivo:** fotos de potes/fatias e recortes aprovados já exigiram recuperação de ZIP anterior; gerar ou substituir sem necessidade introduz regressão perceptível e risco de falsa representação.

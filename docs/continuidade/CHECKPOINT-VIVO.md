@@ -1,5 +1,12 @@
 # Checkpoint Vivo — Site Comercial Luciane Oliveira Doces
 
+## 26/11/2026 — Retomada do candidato e evolução incremental
+
+- A base de implementação volta a ser `eeb35d7e9131f87d56a45538cc633a111aee8831` no worktree `work/ambiente-comercial`, branch `codex/ambiente-comercial-v47159`. A [prévia comercial local](http://127.0.0.1:8181/) usa dados simulados. Vitrine e link direto de Fatias responderam, e o CSS servido coincide com o build local. A homologação de produção segue pendente.
+- Cacau Signature foi suspensa com dois arquivos de rascunho, renderização e CSS. O trabalho está preservado em `5a9cc01779bd71eb125e441c71328c3cb832a452`, branch local `codex/cacau-signature-suspensa`. O rascunho ficou separado da prévia comercial e do estúdio.
+- Assinatura, Caderno de sabores e Balcão seguem disponíveis no [estúdio](http://127.0.0.1:8182/) e no [comparador](http://127.0.0.1:8182/comparar), a partir de `7dad55c786843a060baeae3ae2d5513046221269`.
+- A [decisão D-C02A](MEMORIA-DE-DECISOES.md#d-c02a--evolução-por-componente-com-direção-criativa-colaborativa) define a evolução por componente, com avaliação conjunta antes de intervir. Esta retomada registrou a metodologia e ajustou a skill de design. O próximo componente fica para avaliação com o proprietário.
+
 ## 25/11/2026 — Validação de distribuição e LCP
 
 - O segundo incremento está preservado integralmente no checkpoint local `0b9537f89e6e8e83ad1814d6fd5b144d92f0f802`, candidato pendente de homologação em produção. O manifesto dos dois domínios públicos segue na V4.7.15.9, commit `f260d9d`.
