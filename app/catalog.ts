@@ -333,7 +333,7 @@ export const PRODUCTS: Product[] = [
     image: "/fatia-bombom-uva-massa-branca-20261126.webp",
     imageAlt: "Fatia artesanal de Bombom de Uva na massa branca",
     available: true,
-    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 20, available: true }],
     options: SLICE_OPTIONS,
   },
   {
