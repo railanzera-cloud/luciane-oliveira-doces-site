@@ -93,18 +93,9 @@ export function sliceSauceOptions(productId: string): ProductOption[] {
     : SLICE_OPTIONS;
 }
 
-// Próximo sabor confirmado pela proprietária em 26/11: R$22, foto real ainda pendente.
-// Pré-cadastro isolado, sem inclusão em PRODUCTS/SLICES nem contrato de cotação.
-// Um rascunho fica sempre oculto, mesmo se houver uma linha remota marcada disponível.
-export const SLICE_DRAFTS: ReadonlyArray<{ id: string; itemKey: string; name: string; price: number | null; image: string | null }> = [
-  {
-    id: "fatia-bombom-uva-massa-branca",
-    itemKey: "slice_bombom_uva_massa_branca",
-    name: "Bombom de Uva na Massa Branca",
-    price: 22,
-    image: null,
-  },
-];
+// Rascunhos sem contrato comercial; novas fatias com preço confirmado ficam em PRODUCTS.
+// A ausência de foto na nova fatia é tratada como bloqueio de publicação em menu-availability.
+export const SLICE_DRAFTS: ReadonlyArray<{ id: string; itemKey: string; name: string; price: number | null; image: string | null }> = [];
 
 // Catálogo central: preços, fotos e disponibilidade são alterados somente aqui.
 export const PRODUCTS: Product[] = [
@@ -329,6 +320,17 @@ export const PRODUCTS: Product[] = [
     image: "/fatia-bombom-uva.avif",
     cardImage: "/fatia-bombom-uva.avif",
     imageAlt: "Fatia artesanal de bolo de chocolate com creme e uvas verdes",
+    available: true,
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
+    options: SLICE_OPTIONS,
+  },
+  {
+    // Cadastro completo, ainda sem foto real. Disponibilidade bloqueada por menu-availability.
+    id: "fatia-bombom-uva-massa-branca",
+    kind: "slice",
+    category: "Fatias Artesanais",
+    name: "Bombom de Uva na Massa Branca",
+    imageAlt: "Fatia artesanal de Bombom de Uva na massa branca",
     available: true,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
     options: SLICE_OPTIONS,

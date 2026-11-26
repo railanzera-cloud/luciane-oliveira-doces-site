@@ -2,38 +2,59 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { quoteCartItems } from "../supabase/functions/_shared/commerce-catalog.mjs";
-
-const catalog = readFileSync("app/catalog.ts", "utf8");
-const availability = readFileSync("app/menu-availability.ts", "utf8");
-const authoritative = readFileSync("supabase/functions/_shared/commerce-catalog.mjs", "utf8");
-
-const productId = "fatia-bombom-uva-massa-branca";
-const itemKey = "slice_bombom_uva_massa_branca";
-
-test("novo Bombom de Uva de massa branca é apenas um rascunho separado por R$22", () => {
-  const draft = catalog.slice(catalog.indexOf("export const SLICE_DRAFTS"), catalog.indexOf("// Catálogo central:"));
-  const storefront = catalog.slice(catalog.indexOf("export const PRODUCTS"));
-  assert.match(draft, /id: "fatia-bombom-uva-massa-branca"/);
-  assert.match(draft, /itemKey: "slice_bombom_uva_massa_branca"/);
-  assert.match(draft, /name: "Bombom de Uva na Massa Branca"/);
-  assert.match(draft, /price: 22/);
-  assert.match(draft, /image: null/);
-  assert.ok(!storefront.includes(productId), "rascunho sem foto não entra na vitrine");
-  assert.ok(!authoritative.includes(productId), "rascunho sem imagem não entra no servidor de cotação");
-  assert.ok(!availability.includes('"' + productId + '": "' + itemKey + '"'), "rascunho não vira produto ativo por engano");
+import { formatAdminOrderItem } from "../lib/admin-order-item-display.ts";
+import { SLICES, sliceSauceOptions } from "../app/catalog.ts";
+const menu = readFileSync("app/menu-availability.ts", "utf8");
+const admin = readFileSync("app/admin/page.tsx", "utf8");
+const edge = readFileSync("supabase/functions/create-whatsapp-order/index.ts", "utf8");
+const kitchen = readFileSync("lib/kitchen-manual-receipt.ts", "utf8");
+const id = "fatia-bombom-uva-massa-branca", key = "slice_bombom_uva_massa_branca", name = "Bombom de Uva na Massa Branca";
+const make = (product_id, quantity, option_ids) => ({product_id, variant_id: "fatia", quantity, option_ids});
+test("nova fatia é SKU completo distinto com preço confirmado e sem fotografia inventada", () => {
+  const original = SLICES.find(p=>p.id==="fatia-bombom-uva");
+  const product = SLICES.find(p=>p.id===id);
+  assert.ok(original && product);
+  assert.equal(original.variants[0].price,22);
+  assert.equal(original.image,"/fatia-bombom-uva.avif");
+  assert.equal(product.name,name);
+  assert.equal(product.variants[0].price,22);
+  assert.ok(!product.image && !product.cardImage);
+  assert.deepEqual(sliceSauceOptions(id).map(o=>o.id),["calda-chocolate","calda-ninho","sem-calda"]);
 });
-
-test("mesmo com disponibilidade remota, rascunhos são sempre ocultos", () => {
-  assert.match(availability, /for \(const draft of SLICE_DRAFTS\) statuses\[draft\.itemKey\] = "hidden"/);
-  assert.match(availability, /isDraft: true/);
-  assert.throws(() => quoteCartItems([{ product_id: productId, variant_id: "fatia", quantity: 1, option_ids: [] }]));
+test("pedido de uma, duas e diferentes fatias tem SKU, preço, calda e total corretos", () => {
+  for(const sauce of ["calda-chocolate","calda-ninho","sem-calda"]){
+    for(const n of [1,2]){
+      const quote = quoteCartItems([make(id,n,[sauce])]);
+      assert.equal(quote.subtotalCents,n*2200);
+      assert.equal(quote.items[0].name,name);
+      assert.equal(quote.items[0].item_key,key);
+      assert.equal(quote.items[0].unit_price_cents,2200);
+      assert.equal(quote.items[0].quantity,n);
+      assert.deepEqual(quote.items[0].option_ids,[sauce]);
+      assert.deepEqual(quote.availabilityKeys,["category_fatias",key]);
+    }
+  }
+  const mixed=quoteCartItems([make("fatia-bombom-uva",1,["sem-calda"]),make(id,2,["calda-ninho"])]);
+  assert.equal(mixed.subtotalCents,6600);
+  assert.equal(mixed.items.length,2);
+  assert.notEqual(mixed.items[0].item_key,mixed.items[1].item_key);
+  assert.throws(()=>quoteCartItems([make(id,1,["calda-ninho","calda-chocolate"])]));
 });
-
-test("Bombom de Uva original continua vendável sob seu próprio SKU, preço e imagem", () => {
-  assert.ok(catalog.includes('id: "fatia-bombom-uva"'));
-  assert.ok(catalog.includes('image: "/fatia-bombom-uva.avif"'));
-  assert.ok(authoritative.includes('"fatia-bombom-uva": Object.freeze({ id: "fatia-bombom-uva", itemKey: "slice_bombom_uva", name: "Bombom de Uva", priceCents: 2200 })'));
-  const quote = quoteCartItems([{product_id: "fatia-bombom-uva",variant_id: "fatia",quantity: 2,option_ids: ["sem-calda"]}]);
-  assert.equal(quote.subtotalCents, 4400);
-  assert.deepEqual(quote.availabilityKeys, ["category_fatias", "slice_bombom_uva"]);
+test("sem foto a nova fatia é ocultada no fallback e na mescla remota, sem botão administrativo de liberação", () => {
+  assert.ok(menu.includes('"'+id+'": "'+key+'"'));
+  assert.ok(menu.includes('statuses[SLICE_ITEM_KEYS["fatia-bombom-uva-massa-branca"]] = "hidden"'));
+  const guards = menu.match(/for \(const slice of SLICES\) if \(!slice\.image\) statuses\[SLICE_ITEM_KEYS\[slice\.id\]\] = "hidden"/g);
+  assert.equal(guards?.length,2);
+  assert.ok(menu.includes("isDraft: true, pendingPhoto: true"));
+  assert.ok(admin.includes("Em preparação · foto pendente"));
+  assert.ok(admin.includes("Boolean(item.isDraft)"));
+  assert.ok(edge.includes('statuses.get(key) !== "available"'));
+  assert.ok(edge.includes("await revalidateAvailability(quote.availabilityKeys)"));
+});
+test("painel de pedidos exibe a nova fatia com quantidade e calda corretas, cozinha usa nome do snapshot", () => {
+  const quote=quoteCartItems([make(id,2,["calda-ninho"])]);
+  const item=quote.items[0];
+  const display=formatAdminOrderItem({name:item.name,quantity:2,size_label:"1 fatia",option_names:item.option_names});
+  assert.deepEqual(display,{title:"2x "+name,detail:"2 fatias · Com calda de Ninho"});
+  assert.ok(kitchen.includes("${html(item.quantity)}x ${html(item.name)}"));
 });

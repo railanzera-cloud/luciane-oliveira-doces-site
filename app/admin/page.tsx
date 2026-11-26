@@ -88,7 +88,7 @@ function AvailabilityControl({
       <div className="admin-item-heading">
         <div>
           <strong>{item.name}</strong>
-          <span>{item.isDraft ? "Em preparação · foto e preço pendentes" : preorderActive ? "Esgotado para pronta-entrega · pré-reserva ativa" : STATUS_LABELS[status]}</span>
+          <span>{item.pendingPhoto ? "Em preparação · foto pendente" : item.isDraft ? "Em preparação · foto e preço pendentes" : preorderActive ? "Esgotado para pronta-entrega · pré-reserva ativa" : STATUS_LABELS[status]}</span>
         </div>
         {pending ? <LoaderCircle className="admin-spinner" size={18} aria-label="Salvando" /> : status === "available" ? <Check size={16} aria-hidden="true" /> : null}
       </div>
@@ -99,7 +99,7 @@ function AvailabilityControl({
             className={status === option.value ? "is-selected" : ""}
             aria-pressed={status === option.value}
             disabled={pending || disabled || Boolean(item.isDraft) || (preorderActive && option.value==="available")}
-            title={item.isDraft ? "Aguardando foto e preço confirmado. Produto ainda não pode ser vendido." : preorderActive && option.value==="available" ? "Encerre primeiro o lote de pré-reserva; ainda não é estoque pronto." : undefined}
+            title={item.pendingPhoto ? "Preço confirmado; aguardando foto real. Produto ainda não pode ser vendido." : item.isDraft ? "Aguardando foto e preço confirmado. Produto ainda não pode ser vendido." : preorderActive && option.value==="available" ? "Encerre primeiro o lote de pré-reserva; ainda não é estoque pronto." : undefined}
             onClick={() => onChange(option.value)}
             key={option.value}
           >
