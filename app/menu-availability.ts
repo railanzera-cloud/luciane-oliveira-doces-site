@@ -20,6 +20,7 @@ export type MenuAvailabilityItem = {
   itemType: AvailabilityItemType;
   categoryKey: string;
   isDraft?: boolean;
+  pendingPhoto?: boolean;
 };
 
 export type MenuAvailabilityRow = {
@@ -126,6 +127,7 @@ export const SLICE_ITEM_KEYS: Record<string, string> = {
   "fatia-coco-cremoso-morango": "slice_coco_cremoso_morango",
   "fatia-chocolate-cenoura": "slice_chocolate_cenoura",
   "fatia-bombom-uva": "slice_bombom_uva",
+  "fatia-bombom-uva-massa-branca": "slice_bombom_uva_massa_branca",
   "fatia-abacaxi-doce-leite": "slice_abacaxi_doce_leite",
 };
 
@@ -179,6 +181,7 @@ const SLICE_ITEMS: MenuAvailabilityItem[] = SLICES.map((slice) => ({
   name: slice.subtitle ? `${slice.name} — ${slice.subtitle}` : slice.name,
   itemType: "slice",
   categoryKey: CATEGORY_ITEM_KEYS.fatias,
+  ...(!slice.image ? { isDraft: true, pendingPhoto: true } : {}),
 }));
 
 // Aparece no /admin como preparação, mas não no catálogo de compra.
@@ -240,6 +243,9 @@ export function createFallbackAvailability(): AvailabilitySnapshot {
   statuses[SLICE_ITEM_KEYS["fatia-abacaxi-doce-leite"]] = "hidden";
   // Novo cadastro só pode ser exibido depois que a linha remota for confirmada.
   statuses[SLICE_ITEM_KEYS["fatia-bombom-uva"]] = "hidden";
+  // Novas fatias não aparecem por fallback; sem foto, nem status remoto as libera.
+  statuses[SLICE_ITEM_KEYS["fatia-bombom-uva-massa-branca"]] = "hidden";
+  for (const slice of SLICES) if (!slice.image) statuses[SLICE_ITEM_KEYS[slice.id]] = "hidden";
   for (const draft of SLICE_DRAFTS) statuses[draft.itemKey] = "hidden";
   for (const cone of CONE_ITEMS) statuses[cone.itemKey] = "hidden";
   for (const chocotone of CHOCOTONE_ITEMS) statuses[chocotone.itemKey] = "hidden";
@@ -274,6 +280,7 @@ export function mergeRemoteAvailability(
   }
   // Um rascunho sem preço/foto nunca se torna vendável por um status remoto.
   for (const draft of SLICE_DRAFTS) statuses[draft.itemKey] = "hidden";
+  for (const slice of SLICES) if (!slice.image) statuses[SLICE_ITEM_KEYS[slice.id]] = "hidden";
 
   const verifiedPreorder = slicePreorder?.item_key === "slice_chocolate_morango"
     && slicePreorder.active === true && Number.isSafeInteger(slicePreorder.remaining)
