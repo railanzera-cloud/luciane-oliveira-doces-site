@@ -7,6 +7,7 @@ export const CONE_FALLBACK_COVER = "/images/cones-trufados-trio-20261108.webp";
 const sliceWidths: Readonly<Record<string, readonly number[]>> = {
   "/fatia-abacaxi-brigadeiro-branco-card-20261108.webp": [360, 576, 670],
   "/fatia-bombom-uva.avif": [360, 900],
+  "/fatia-bombom-uva-massa-branca-20261126.webp": [360, 576, 1122],
   "/fatia-chocolate-cenoura-card-6de0c35d.webp": [360, 576, 670],
   "/fatia-chocolate-maracuja-card.webp": [360, 576, 670],
   "/fatia-chocolate-morango-card.webp": [360, 576, 670],

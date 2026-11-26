@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import test from "node:test";
 import { SLICES } from "../app/catalog.ts";
 import { slicePhotoSources } from "../app/storefront-photos.ts";
@@ -72,6 +73,29 @@ test("keeps below-fold product images lazy and responsive", async () => {
     const variants = slicePhotoSources(source)?.split(', ').map(entry => entry.split(' ')[0]);
     assert.ok(variants, slice.id);
     assert.equal(variants.at(-1), source);
+    // Única exceção nominal: mídia aprovada entregue no ZIP manual, ausente do Git.
+    // O contrato exige hashes/tamanhos exatos no pacote de publicação; o core é NÃO PUBLICAR.
+    if (slice.id === "fatia-bombom-uva-massa-branca") {
+      const contract = JSON.parse(await readFile(new URL("../docs/continuidade/MIDIAS-EXTERNAS-MASSA-BRANCA-20261126.json", import.meta.url), "utf8"));
+      assert.equal(source, "/" + contract.source);
+      assert.deepEqual(variants, contract.files.map(file => "/" + file.path));
+      assert.deepEqual(contract.files.map(file => file.width), [360,576,1122]);
+      const original = contract.files.at(-1);
+      for (const file of contract.files) {
+        assert.match(file.sha256, /^[0-9a-f]{64}$/);
+        assert.ok(file.bytes > 0 && file.bytes <= original.bytes);
+        if (file.path !== original.path) assert.ok(file.bytes < original.bytes);
+        const bytes = await readFile(new URL("../public/" + file.path, import.meta.url)).catch(error => {
+          if (error.code === "ENOENT") return null;
+          throw error;
+        });
+        if (bytes) {
+          assert.equal(bytes.length, file.bytes);
+          assert.equal(createHash("sha256").update(bytes).digest("hex"), file.sha256);
+        }
+      }
+      continue;
+    }
     const original = await readFile(new URL(`../public${source}`, import.meta.url));
     for (const variant of variants.slice(0, -1)) {
       const resized = await readFile(new URL(`../public${variant}`, import.meta.url));

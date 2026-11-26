@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "source": "fatia-bombom-uva-massa-branca-20261126.webp",
+  "reason": "Foto aprovada V4.7.15.10 não versionada. Derivados gerados do WebP publicado sem recorte nem retoque; todos obrigatórios no ZIP completo.",
+  "files": [
+    {
+      "path": "images/responsivas/fatia-bombom-uva-massa-branca-20261126-360-v1.webp",
+      "bytes": 30672,
+      "sha256": "6aa6129c0690f7ef58890d0a1176e06d53a541b95982d925d2bd9c4795c9a731",
+      "width": 360,
+      "height": 450
+    },
+    {
+      "path": "images/responsivas/fatia-bombom-uva-massa-branca-20261126-576-v1.webp",
+      "bytes": 66074,
+      "sha256": "d082a860f0f6c465024eab4587595c7b7c30a7e7aa21807323c6ea762d47f839",
+      "width": 576,
+      "height": 720
+    },
+    {
+      "path": "fatia-bombom-uva-massa-branca-20261126.webp",
+      "bytes": 241322,
+      "sha256": "ff0c85e1c0676266407b93becf0ddf1e76f32adec993026d514c616ff2fa53f9",
+      "width": 1122,
+      "height": 1402
+    }
+  ]
+}
