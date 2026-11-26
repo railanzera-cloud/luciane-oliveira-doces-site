@@ -93,9 +93,18 @@ export function sliceSauceOptions(productId: string): ProductOption[] {
     : SLICE_OPTIONS;
 }
 
-// Nenhuma fatia permanece como rascunho. O cadastro Abacaxi com Coco Queimado
-// conserva o ID técnico histórico; a liberação depende do status remoto (inicial Oculto).
-export const SLICE_DRAFTS: ReadonlyArray<{ id: string; itemKey: string; name: string; price: number | null; image: string | null }> = [];
+// Próximo sabor confirmado pela proprietária em 26/11: R$22, foto real ainda pendente.
+// Pré-cadastro isolado, sem inclusão em PRODUCTS/SLICES nem contrato de cotação.
+// Um rascunho fica sempre oculto, mesmo se houver uma linha remota marcada disponível.
+export const SLICE_DRAFTS: ReadonlyArray<{ id: string; itemKey: string; name: string; price: number | null; image: string | null }> = [
+  {
+    id: "fatia-bombom-uva-massa-branca",
+    itemKey: "slice_bombom_uva_massa_branca",
+    name: "Bombom de Uva na Massa Branca",
+    price: 22,
+    image: null,
+  },
+];
 
 // Catálogo central: preços, fotos e disponibilidade são alterados somente aqui.
 export const PRODUCTS: Product[] = [
