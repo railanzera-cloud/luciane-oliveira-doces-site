@@ -19,6 +19,7 @@ import "./colecao-natal-2026.css";
 import "./drink-complements-premium.css";
 import "./company-identity.css";
 import "./fatias-refinamento-20261121.css";
+import "./vitrine-original-acabamento-20261126.css";
 
 export const metadata: Metadata = {
   title: "Luciane Oliveira Doces | Fatias de Chocottone, Cascão Trufado, Pipocas e Fatias",
