@@ -86,21 +86,21 @@
  * Os seletores usam os marcadores existentes dos cards de lançamento/pacotes.
  */
 @media (min-width: 351px) and (max-width: 410px) {
-  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]) {
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]):not(.menu-preview-card) {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto auto 1fr auto;
   }
-  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]) .collection-copy { display: contents; }
-  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]) .collection-copy > strong {
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]):not(.menu-preview-card) .collection-copy { display: contents; }
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]):not(.menu-preview-card) .collection-copy > strong {
     grid-row: 1;
     margin: 0;
     padding: 9px 10px 8px;
   }
-  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]) .collection-photo { grid-row: 2; }
-  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]) .collection-format { grid-row: 3; margin: 9px 10px 0; }
-  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]) .collection-description { grid-row: 4; margin: 4px 10px 0; }
-  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]) .collection-action { grid-row: 5; width: calc(100% - 20px); margin: 8px 10px 10px; }
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]):not(.menu-preview-card) .collection-photo { grid-row: 2; }
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]):not(.menu-preview-card) .collection-format { grid-row: 3; margin: 9px 10px 0; }
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]):not(.menu-preview-card) .collection-description { grid-row: 4; margin: 4px 10px 0; }
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]):not(.menu-preview-card) .collection-action { grid-row: 5; width: calc(100% - 20px); margin: 8px 10px 10px; }
 }
 @media (min-width: 760px) {
   .storefront:not([data-active-category]) > .brand-bar { min-height: 74px; }
