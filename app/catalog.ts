@@ -325,11 +325,12 @@ export const PRODUCTS: Product[] = [
     options: SLICE_OPTIONS,
   },
   {
-    // Cadastro completo, ainda sem foto real. Disponibilidade bloqueada por menu-availability.
+    // Foto aprovada em 26/11; mídia real incorporada no ZIP final, liberação pelo /admin.
     id: "fatia-bombom-uva-massa-branca",
     kind: "slice",
     category: "Fatias Artesanais",
     name: "Bombom de Uva na Massa Branca",
+    image: "/fatia-bombom-uva-massa-branca-20261126.webp",
     imageAlt: "Fatia artesanal de Bombom de Uva na massa branca",
     available: true,
     variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],

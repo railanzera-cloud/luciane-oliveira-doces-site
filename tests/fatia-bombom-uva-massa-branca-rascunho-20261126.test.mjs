@@ -10,7 +10,7 @@ const edge = readFileSync("supabase/functions/create-whatsapp-order/index.ts", "
 const kitchen = readFileSync("lib/kitchen-manual-receipt.ts", "utf8");
 const id = "fatia-bombom-uva-massa-branca", key = "slice_bombom_uva_massa_branca", name = "Bombom de Uva na Massa Branca";
 const make = (product_id, quantity, option_ids) => ({product_id, variant_id: "fatia", quantity, option_ids});
-test("nova fatia é SKU completo distinto com preço confirmado e sem fotografia inventada", () => {
+test("nova fatia é SKU completo distinto com preço confirmado e foto própria aprovada", () => {
   const original = SLICES.find(p=>p.id==="fatia-bombom-uva");
   const product = SLICES.find(p=>p.id===id);
   assert.ok(original && product);
@@ -18,7 +18,8 @@ test("nova fatia é SKU completo distinto com preço confirmado e sem fotografia
   assert.equal(original.image,"/fatia-bombom-uva.avif");
   assert.equal(product.name,name);
   assert.equal(product.variants[0].price,22);
-  assert.ok(!product.image && !product.cardImage);
+  assert.equal(product.image,"/fatia-bombom-uva-massa-branca-20261126.webp");
+  assert.ok(product.image !== original.image);
   assert.deepEqual(sliceSauceOptions(id).map(o=>o.id),["calda-chocolate","calda-ninho","sem-calda"]);
 });
 test("pedido de uma, duas e diferentes fatias tem SKU, preço, calda e total corretos", () => {
@@ -40,12 +41,13 @@ test("pedido de uma, duas e diferentes fatias tem SKU, preço, calda e total cor
   assert.notEqual(mixed.items[0].item_key,mixed.items[1].item_key);
   assert.throws(()=>quoteCartItems([make(id,1,["calda-ninho","calda-chocolate"])]));
 });
-test("sem foto a nova fatia é ocultada no fallback e na mescla remota, sem botão administrativo de liberação", () => {
+test("foto aprovada permite liberação remota; fallback permanece oculto e fatias sem imagem continuam protegidas", () => {
   assert.ok(menu.includes('"'+id+'": "'+key+'"'));
   assert.ok(menu.includes('statuses[SLICE_ITEM_KEYS["fatia-bombom-uva-massa-branca"]] = "hidden"'));
   const guards = menu.match(/for \(const slice of SLICES\) if \(!slice\.image\) statuses\[SLICE_ITEM_KEYS\[slice\.id\]\] = "hidden"/g);
   assert.equal(guards?.length,2);
   assert.ok(menu.includes("isDraft: true, pendingPhoto: true"));
+  assert.ok(SLICES.find(p=>p.id===id)?.image, "novo SKU não é rascunho sem foto");
   assert.ok(admin.includes("Em preparação · foto pendente"));
   assert.ok(admin.includes("Boolean(item.isDraft)"));
   assert.ok(edge.includes('statuses.get(key) !== "available"'));
