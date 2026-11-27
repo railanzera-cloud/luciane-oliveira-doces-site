@@ -337,6 +337,17 @@ export const PRODUCTS: Product[] = [
     options: SLICE_OPTIONS,
   },
   {
+    id: "fatia-oreo-ninho-chocolate",
+    kind: "slice",
+    category: "Fatias Artesanais",
+    name: "Oreo com Ninho e Chocolate",
+    image: "/fatia-oreo-ninho-chocolate-20261127.webp",
+    imageAlt: "Fatia de bolo de chocolate com recheios de Ninho, Oreo e chocolate",
+    available: true,
+    variants: [{ id: "fatia", label: "1 fatia", whatsappLabel: "1 fatia", price: 22, available: true }],
+    options: SLICE_OPTIONS,
+  },
+  {
     // ID técnico mantido para respeitar o cadastro remoto existente, ainda Oculto.
     id: "fatia-abacaxi-doce-leite",
     kind: "slice",

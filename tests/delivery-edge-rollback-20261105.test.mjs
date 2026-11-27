@@ -196,6 +196,6 @@ test("legacy Mercado Pago/site quote preserves 30 shared SKUs with only approved
   }
   assert.equal(Object.keys(v14.SLICES).length, 6);
   const laterSlices = Object.keys(candidate.SLICES).filter(id => !Object.hasOwn(v14.SLICES, id)).sort();
-  assert.deepEqual(laterSlices, ["fatia-abacaxi-doce-leite", "fatia-bombom-uva", "fatia-bombom-uva-massa-branca", "fatia-coco-cremoso-morango"],
+  assert.deepEqual(laterSlices, ["fatia-abacaxi-doce-leite", "fatia-bombom-uva", "fatia-bombom-uva-massa-branca", "fatia-coco-cremoso-morango", "fatia-oreo-ninho-chocolate"],
     "Newer fatias must have independent SKUs without changing any archived v14 product");
 });

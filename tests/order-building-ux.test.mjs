@@ -73,10 +73,11 @@ test("keeps below-fold product images lazy and responsive", async () => {
     const variants = slicePhotoSources(source)?.split(', ').map(entry => entry.split(' ')[0]);
     assert.ok(variants, slice.id);
     assert.equal(variants.at(-1), source);
-    // Única exceção nominal: mídia aprovada entregue no ZIP manual, ausente do Git.
+    // Exceções nominais: mídias aprovadas entregues no ZIP manual, ausentes do Git.
     // O contrato exige hashes/tamanhos exatos no pacote de publicação; o core é NÃO PUBLICAR.
-    if (slice.id === "fatia-bombom-uva-massa-branca") {
-      const contract = JSON.parse(await readFile(new URL("../docs/continuidade/MIDIAS-EXTERNAS-MASSA-BRANCA-20261126.json", import.meta.url), "utf8"));
+    const externalContract = {"fatia-bombom-uva-massa-branca":"MIDIAS-EXTERNAS-MASSA-BRANCA-20261126.json","fatia-oreo-ninho-chocolate":"MIDIAS-EXTERNAS-OREO-20261127.json"}[slice.id];
+    if (externalContract) {
+      const contract = JSON.parse(await readFile(new URL("../docs/continuidade/" + externalContract, import.meta.url), "utf8"));
       assert.equal(source, "/" + contract.source);
       assert.deepEqual(variants, contract.files.map(file => "/" + file.path));
       assert.deepEqual(contract.files.map(file => file.width), [360,576,1122]);
