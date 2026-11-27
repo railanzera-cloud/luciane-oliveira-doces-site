@@ -10,7 +10,7 @@ const js = ts.transpileModule(source, { compilerOptions: {
 const health = await import(`data:text/javascript;base64,${Buffer.from(js).toString("base64")}`);
 const panel = await readFile(new URL("../components/admin-orders-panel.tsx", import.meta.url), "utf8");
 const qz = await readFile(new URL("../lib/qz-print-client.ts", import.meta.url), "utf8");
-const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+const css = await readFile(new URL("../app/admin/panel.css", import.meta.url), "utf8");
 const now = Date.parse("2026-11-12T18:30:00Z");
 const ago = ms => new Date(now - ms).toISOString();
 const job = (id, changes = {}) => ({

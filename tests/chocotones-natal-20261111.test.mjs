@@ -131,7 +131,7 @@ test("Natal V4.1 remove redundância e exibe total da seleção, não apenas o �
   const collection = files("components/christmas-collection.tsx");
   const message = files("app/order-checkout.ts");
   assert.match(home,/className="natal-home-description">Sabores recheados/);
-  assert.match(home,/activeCategory === "natal" \? "Edição especial de Natal · fatias recheadas\."/);
+  assert.match(home,/entryCategory === "natal" \? "Edição especial de Natal · fatias recheadas\."/);
   assert.doesNotMatch(home,/vendid[oa]s? por fatia/i);
   assert.match(collection,/Combine seus favoritos e escolha quantas fatias quiser de cada sabor/);
   assert.match(collection,/natal-product-unit">por fatia/);

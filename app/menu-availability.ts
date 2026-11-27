@@ -128,6 +128,7 @@ export const SLICE_ITEM_KEYS: Record<string, string> = {
   "fatia-chocolate-cenoura": "slice_chocolate_cenoura",
   "fatia-bombom-uva": "slice_bombom_uva",
   "fatia-bombom-uva-massa-branca": "slice_bombom_uva_massa_branca",
+  "fatia-oreo-ninho-chocolate": "slice_oreo_ninho_chocolate",
   "fatia-abacaxi-doce-leite": "slice_abacaxi_doce_leite",
 };
 
@@ -245,6 +246,7 @@ export function createFallbackAvailability(): AvailabilitySnapshot {
   statuses[SLICE_ITEM_KEYS["fatia-bombom-uva"]] = "hidden";
   // Novas fatias não aparecem por fallback; sem foto, nem status remoto as libera.
   statuses[SLICE_ITEM_KEYS["fatia-bombom-uva-massa-branca"]] = "hidden";
+  statuses[SLICE_ITEM_KEYS["fatia-oreo-ninho-chocolate"]] = "hidden";
   for (const slice of SLICES) if (!slice.image) statuses[SLICE_ITEM_KEYS[slice.id]] = "hidden";
   for (const draft of SLICE_DRAFTS) statuses[draft.itemKey] = "hidden";
   for (const cone of CONE_ITEMS) statuses[cone.itemKey] = "hidden";

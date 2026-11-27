@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "source": "fatia-oreo-ninho-chocolate-20261127.webp",
+  "files": [
+    {
+      "path": "images/responsivas/fatia-oreo-ninho-chocolate-20261127-360-v1.webp",
+      "bytes": 34698,
+      "sha256": "f6876b8c48ab49321e5a008cf85765ea0530d181c314cae66e5cb9e9b3a9dec7",
+      "width": 360,
+      "height": 450
+    },
+    {
+      "path": "images/responsivas/fatia-oreo-ninho-chocolate-20261127-576-v1.webp",
+      "bytes": 80938,
+      "sha256": "918ecac3939718a56c8f6255adb1986e3bba093816630af9a539b82edab2918c",
+      "width": 576,
+      "height": 720
+    },
+    {
+      "path": "fatia-oreo-ninho-chocolate-20261127.webp",
+      "bytes": 236028,
+      "sha256": "cd0d9d3dbbe1f1b7031e47a6b0435d6c62852ed71ad09f1707931a927e63d0d5",
+      "width": 1122,
+      "height": 1402
+    }
+  ]
+}

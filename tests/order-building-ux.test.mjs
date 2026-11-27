@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import test from "node:test";
+import { SLICES } from "../app/catalog.ts";
+import { slicePhotoSources } from "../app/storefront-photos.ts";
 
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 
@@ -57,14 +60,49 @@ test("exposes clear active, complete, and locked step states", () => {
   assert.match(page, /type StepState = "active" \| "complete" \| "locked"/);
   assert.match(page, /step-state-\$\{sliceProductStepState\}/);
   assert.match(page, /step-state-\$\{sliceQuantityStepState\}/);
-  assert.match(page, /Etapa \$\{number\} concluída/);
+  assert.match(page, /<span className="sr-only">Etapa \{number\}\{state === "complete" \? " concluída" : ""\}<\/span>/);
 });
 
 test("keeps below-fold product images lazy and responsive", async () => {
-  assert.match(page, /src=\{slice\.cardImage \?\? slice\.image\}/);
-  assert.match(page, /loading=\{lastSlicesIds\.has\(slice\.id\) && available \? "eager" : "lazy"\}/);
-  assert.match(page, /fetchPriority=\{lastSlicesIds\.has\(slice\.id\) && available \? "high" : "low"\}/);
-  assert.match(page, /sizes="\(max-width: 599px\)/);
+  assert.match(page, /const photo = slice\.cardImage \?\? slice\.image/);
+  assert.match(page, /src=\{photo\} srcSet=\{slicePhotoSources\(photo\)\} sizes=\{SLICE_PHOTO_SIZES\}/);
+  assert.match(page, /const priority = index === 0 \|\| \(lastSlicesIds\.has\(slice\.id\) && available\)/);
+  assert.match(page, /loading=\{priority \? "eager" : "lazy"\}[\s\S]+fetchPriority=\{priority \? "high" : "low"\}/);
+  for (const slice of SLICES) {
+    const source = slice.cardImage ?? slice.image;
+    const variants = slicePhotoSources(source)?.split(', ').map(entry => entry.split(' ')[0]);
+    assert.ok(variants, slice.id);
+    assert.equal(variants.at(-1), source);
+    // Exceções nominais: mídias aprovadas entregues no ZIP manual, ausentes do Git.
+    // O contrato exige hashes/tamanhos exatos no pacote de publicação; o core é NÃO PUBLICAR.
+    const externalContract = {"fatia-bombom-uva-massa-branca":"MIDIAS-EXTERNAS-MASSA-BRANCA-20261126.json","fatia-oreo-ninho-chocolate":"MIDIAS-EXTERNAS-OREO-20261127.json"}[slice.id];
+    if (externalContract) {
+      const contract = JSON.parse(await readFile(new URL("../docs/continuidade/" + externalContract, import.meta.url), "utf8"));
+      assert.equal(source, "/" + contract.source);
+      assert.deepEqual(variants, contract.files.map(file => "/" + file.path));
+      assert.deepEqual(contract.files.map(file => file.width), [360,576,1122]);
+      const original = contract.files.at(-1);
+      for (const file of contract.files) {
+        assert.match(file.sha256, /^[0-9a-f]{64}$/);
+        assert.ok(file.bytes > 0 && file.bytes <= original.bytes);
+        if (file.path !== original.path) assert.ok(file.bytes < original.bytes);
+        const bytes = await readFile(new URL("../public/" + file.path, import.meta.url)).catch(error => {
+          if (error.code === "ENOENT") return null;
+          throw error;
+        });
+        if (bytes) {
+          assert.equal(bytes.length, file.bytes);
+          assert.equal(createHash("sha256").update(bytes).digest("hex"), file.sha256);
+        }
+      }
+      continue;
+    }
+    const original = await readFile(new URL(`../public${source}`, import.meta.url));
+    for (const variant of variants.slice(0, -1)) {
+      const resized = await readFile(new URL(`../public${variant}`, import.meta.url));
+      assert.ok(resized.length < original.length, variant);
+    }
+  }
   const drinks = await readFile(new URL("../components/drink-complements.tsx", import.meta.url), "utf8");
   assert.match(drinks,/src=\{drink\.image\}/);
   assert.match(drinks,/loading="lazy" decoding="async"/);

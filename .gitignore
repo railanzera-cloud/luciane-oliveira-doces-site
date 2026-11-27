@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/tools/qa-commerce/node_modules/
 /.pnp
 .pnp.*
 .yarn/*

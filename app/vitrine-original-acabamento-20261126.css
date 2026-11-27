@@ -1,0 +1,128 @@
+/* Candidata local, derivada de f260d9d. Exclusivamente a home neutra.
+ * Não importa as propostas Espresso. Fotografias e contratos permanecem na base.
+ */
+.storefront:not([data-active-category]) > .brand-bar {
+  width: 100%;
+  margin: 0;
+  padding-inline: max(16px, calc((100% - 1060px) / 2));
+  min-height: 64px;
+  background: linear-gradient(180deg, #20140e, #1a100c);
+  border-bottom: 1px solid #deb17a40;
+  box-shadow: inset 0 1px #f3d4a208, 0 4px 14px #0c050326;
+}
+.storefront:not([data-active-category]) .brand-crown {
+  box-shadow: inset 0 1px #f9ddaa2e, inset 0 0 0 4px #f1c58a08, 0 3px 12px #09040240;
+}
+.storefront:not([data-active-category]) .location-chip {
+  background: linear-gradient(150deg, #49302066, #251810cc);
+  border-color: #d8ad7752;
+  box-shadow: inset 0 1px #f9daa419;
+}
+.storefront .menu-entry.is-neutral {
+  padding-top: 11px;
+  background:
+    radial-gradient(ellipse 75% 43% at 92% 17%, #77472532, transparent 75%),
+    radial-gradient(ellipse 56% 63% at 9% 81%, #613b221f, transparent 72%),
+    linear-gradient(145deg, #29190f 4%, #20130d 54%, #180f0b 100%);
+}
+.storefront .menu-entry.is-neutral .collection-heading { margin-bottom: 8px; }
+.storefront .menu-entry.is-neutral .collection-kicker { margin-bottom: 4px; }
+.storefront .menu-entry.is-neutral .collection-heading h1 { margin-bottom: 0; }
+.storefront .menu-entry.is-neutral .natal-home-ribbon {
+  min-height: 86px;
+  margin: 0 0 10px;
+  padding: 4px 9px 4px 13px;
+  border: 1px solid #e1b780a6;
+  background:
+    radial-gradient(ellipse at 86% 0, #bd83532c, transparent 65%),
+    linear-gradient(112deg, #43212e, #642c3d 55%, #321d23);
+  box-shadow: inset 0 1px #ffe3b237, inset 0 -1px #1c07133d, 0 7px 18px #1205073b;
+}
+.storefront .menu-entry.is-neutral .natal-home-ribbon::before { inset: 4px; border-color: #f7d2a015; }
+.storefront .menu-entry.is-neutral .natal-home-eyebrow { font-size: .6875rem; letter-spacing: .08em; }
+.storefront .menu-entry.is-neutral .natal-home-title { font-size: clamp(1.125rem, 4.8vw, 1.4rem); }
+.storefront .menu-entry.is-neutral .natal-home-action { font-size: .8125rem; margin-top: 1px; color: #ffe2b2; }
+.storefront .menu-entry.is-neutral .natal-home-image { height: 76px; }
+.storefront .menu-entry.is-neutral .collection-choice,
+.storefront .menu-entry.is-neutral .collection-choice + .collection-choice {
+  border-color: #d8a16d92;
+  background: linear-gradient(155deg, #53321f, #362016 58%, #29180f);
+  box-shadow: inset 0 1px #ffe6b91c, 0 9px 20px #0d050336, 0 2px 4px #0c04032b;
+  transition: transform 150ms cubic-bezier(.2,.7,.3,1), border-color 180ms ease, box-shadow 180ms ease;
+}
+.storefront .menu-entry.is-neutral .collection-choice .collection-copy { gap: 4px; padding: 9px 10px; }
+.storefront .menu-entry.is-neutral .collection-choice .collection-format { font-size: .6875rem; letter-spacing: .02em; }
+.storefront .menu-entry.is-neutral .collection-choice .collection-copy > strong { font-size: clamp(1.125rem, 4.5vw, 1.5rem); line-height: 1.12; }
+.storefront .menu-entry.is-neutral .collection-choice .collection-description { font-size: .8125rem; line-height: 1.3; color: #ead3bf; }
+.storefront .menu-entry.is-neutral .collection-choice .collection-price { color: #ffe5c1; font-size: .875rem; }
+.storefront .menu-entry.is-neutral .collection-choice .collection-action {
+  min-height: 44px;
+  font-size: .8125rem;
+  border-color: #ffe4b4a1;
+  background: linear-gradient(112deg, #ffe4b7, #f7ca8e 55%, #e9b16e);
+  box-shadow: inset 0 1px #fff4d7b3, inset 0 -2px #9b5e2926, 0 3px 0 #160a0552, 0 5px 11px #0a03032b;
+  transition: box-shadow 150ms ease, background-color 150ms ease;
+}
+/* Esgotamento altera a ação, não a qualidade ou a exposição da fotografia. */
+.storefront .menu-entry.is-neutral .collection-choice:disabled { opacity: 1; cursor: not-allowed; }
+.storefront .menu-entry.is-neutral .collection-choice:disabled .collection-photo,
+.storefront .menu-entry.is-neutral .collection-choice:disabled .collection-copy { opacity: 1; }
+.storefront .menu-entry.is-neutral .collection-choice:disabled .collection-action {
+  color: #f5dfc6;
+  background: linear-gradient(150deg, #523d2e, #3a2a20);
+  border: 1px solid #cbad8b72;
+  box-shadow: inset 0 1px #f7d9af19;
+  font-weight: 650;
+}
+.storefront .menu-entry.is-neutral .collection-choice:focus-visible,
+.storefront .menu-entry.is-neutral .natal-home-ribbon:focus-visible { outline: 3px solid #ffdb9f; outline-offset: 3px; }
+.storefront .menu-entry.is-neutral .collection-choice:active:not(:disabled) { transform: translateY(1px) scale(.992); }
+.storefront .menu-entry.is-neutral .collection-choice:active:not(:disabled) .collection-action {
+  box-shadow: inset 0 1px #fff4d7b3, inset 0 -1px #9b5e2926, 0 1px 0 #160a0540;
+}
+/* A medição sem reordenar não resolveu as menores áreas úteis.
+ * Antecipar somente os nomes inferiores em 351–410px, sem reduzir as fotos.
+ * Largura fixa a variante: recolher barras do navegador não move os nomes.
+ * Os seletores usam os marcadores existentes dos cards de lançamento/pacotes.
+ */
+@media (min-width: 351px) and (max-width: 410px) {
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]):not(.menu-preview-card) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto 1fr auto;
+  }
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]):not(.menu-preview-card) .collection-copy { display: contents; }
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]):not(.menu-preview-card) .collection-copy > strong {
+    grid-row: 1;
+    margin: 0;
+    padding: 9px 10px 8px;
+  }
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]):not(.menu-preview-card) .collection-photo { grid-row: 2; }
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]):not(.menu-preview-card) .collection-format { grid-row: 3; margin: 9px 10px 0; }
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]):not(.menu-preview-card) .collection-description { grid-row: 4; margin: 4px 10px 0; }
+  .storefront .menu-entry.is-neutral .collection-choice:not([data-launch]):not([data-packs-card]):not(.menu-preview-card) .collection-action { grid-row: 5; width: calc(100% - 20px); margin: 8px 10px 10px; }
+}
+@media (min-width: 760px) {
+  .storefront:not([data-active-category]) > .brand-bar { min-height: 74px; }
+  .storefront .menu-entry.is-neutral { padding-top: 28px; }
+  .storefront .menu-entry.is-neutral .collection-heading { margin-bottom: 18px; }
+  .storefront .menu-entry.is-neutral .collection-choice .collection-copy { padding: 18px; gap: 8px; }
+  .storefront .menu-entry.is-neutral .collection-choice .collection-copy > strong { font-size: 1.75rem; }
+  .storefront .menu-entry.is-neutral .collection-choice .collection-description { font-size: 1rem; }
+  .storefront .menu-entry.is-neutral .collection-choice .collection-action { font-size: .9375rem; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .storefront .menu-entry.is-neutral .collection-choice:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: #ebc08bb3;
+    box-shadow: inset 0 1px #ffe6b929, 0 13px 24px #0d05034d;
+  }
+  .storefront .menu-entry.is-neutral .collection-choice:active:not(:disabled) { transform: translateY(1px) scale(.992); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront .menu-entry.is-neutral .collection-choice,
+  .storefront .menu-entry.is-neutral .collection-action,
+  .storefront .menu-entry.is-neutral .natal-home-ribbon,
+  .storefront .menu-entry.is-neutral .natal-home-image img,
+  .storefront .menu-entry.is-neutral .natal-home-action svg { transition: none !important; animation: none !important; transform: none !important; }
+}

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { CONES } from "../app/catalog.ts";
+import { CONE_COVER } from "../app/storefront-photos.ts";
 import { CONES as BACKEND } from "../supabase/functions/_shared/commerce-catalog.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 test("bloco trust-section: apenas a frase editorial aprovada, mantendo footer jurídico separado",()=>{
@@ -18,7 +19,8 @@ test("bloco trust-section: apenas a frase editorial aprovada, mantendo footer ju
 });
 test("foto da capa PR53 mantida, sem perder seis produtos, preços e identidade jurídica",()=>{
  const page=read("app/page.tsx");
- assert.match(page,/cascao-trufado-trio-home-20261114-v4713\.webp/);
+ assert.equal(CONE_COVER, "/images/cascao-trufado-trio-home-20261114-v4713.webp");
+ assert.match(page, /photo=\{[^\n]*\bCONE_COVER\b/);
  assert.equal(CONES.length,6);
  assert.equal(CONES.find(p=>p.id==="cascao-folheado-geleia-morango-ninho")?.variants[0].price,22);
  assert.equal(CONES.find(p=>p.id==="cascao-trufado-kinder-bueno")?.variants[0].price,22);

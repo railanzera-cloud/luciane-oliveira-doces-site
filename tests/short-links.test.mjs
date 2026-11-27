@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import worker from '../cloudflare/short-links.js';
+import worker, { catalogEntryFiles } from '../cloudflare/short-links.js';
 
 const origin = 'https://lucianeoliveiradoces.pages.dev';
 const cases = [
@@ -55,7 +55,7 @@ for (const route of [
 }
 
 test('all unrelated paths and queries are passed unchanged to static assets', async () => {
-  for (const path of ['/', '/admin', '/pedido?token=fixture', '/assets/app.js', '/missing', '/ig/extra', '/constructor']) {
+  for (const path of ['/', '/?categoria=constructor', '/?categoria=desconhecida', '/admin', '/pedido?token=fixture', '/assets/app.js', '/missing', '/ig/extra', '/constructor']) {
     const request = new Request(origin + path);
     const expected = new Response('unchanged', { status: 200 });
     const response = await worker.fetch(request, { ASSETS: { fetch(actual) {
@@ -63,6 +63,29 @@ test('all unrelated paths and queries are passed unchanged to static assets', as
       return expected;
     } } });
     assert.equal(response, expected);
+  }
+});
+
+test('category URLs serve the correct static first render without an order action or public redirect', async () => {
+  const { default: app } = await import('../dist/server/index.js');
+  const headings = {
+    cones: 'Cascão Trufado', fatias: 'Fatias Artesanais', natal: 'Fatias de Chocottone',
+    pipocas: 'Pipocas Gourmet', trufadas: 'Pipocas Trufadas',
+  };
+  const execution = { waitUntil() {}, passThroughOnException() {} };
+  const appEnv = { ASSETS: { fetch: async () => new Response('Not found', { status: 404 }) } };
+  for (const [category, file] of Object.entries(catalogEntryFiles)) {
+    const incoming = new Request(`${origin}/?categoria=${category}&utm_campaign=comparacao`, { headers: { accept: 'text/html' } });
+    const response = await worker.fetch(incoming, { ASSETS: { fetch(actual) {
+      assert.equal(actual.url, `${origin}/${file.replace(/index\.html$/, '')}`);
+      return app.fetch(new Request(`${origin}/?categoria=${category}`, { headers: incoming.headers }), appEnv, execution);
+    } } });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('location'), null);
+    const html = await response.text();
+    assert.match(html, new RegExp(`<h1>${headings[category]}</h1>`));
+    assert.match(html, /aria-busy="true"/);
+    assert.doesNotMatch(html, /class="[^"]*\badd-button\b/);
   }
 });
 

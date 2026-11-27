@@ -30,7 +30,7 @@ test("Nome atualizado é reproduzido no carrinho, WhatsApp e cotação do backen
   assert.doesNotMatch(backend, /name: "Coco cremoso com geleia de morango na massa branca"/);
   assert.match(page, /function productCheckoutLabel\(product: Product\)/);
   assert.match(page, /return product\.cardName \?\? productLabel\(product\)/);
-  assert.match(page, /<h3>\{productCheckoutLabel\(product\)\}<\/h3>/);
+  assert.match(page, /<h4>\{productCheckoutLabel\(product\)\}<\/h4>/);
   assert.match(page, /name: productLabel\(product\), size: variant\.whatsappLabel/);
 });
 

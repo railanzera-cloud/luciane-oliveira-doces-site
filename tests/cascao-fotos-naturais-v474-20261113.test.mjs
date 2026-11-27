@@ -1,3 +1,4 @@
+import { CONE_COVER, collectionPhotoSources } from "../app/storefront-photos.ts";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -29,8 +30,8 @@ test("cada sabor novo mantém id, preço e fotos isoladas V4.7.4", () => {
 });
 
 test("capa da categoria usa trio atualizado e mantém fallback", () => {
-  assert.ok(home.includes("cascao-trufado-trio-home-20261114-v4713.webp"));
-  assert.ok(home.includes('photo.replace(".webp", "-360.webp")'));
+  assert.equal(CONE_COVER, "/images/cascao-trufado-trio-home-20261114-v4713.webp");
+  assert.match(collectionPhotoSources(CONE_COVER, 1122), /-360\.webp 360w/);
   assert.ok(home.includes("cone-trufado-prestigio-20261108-v2.webp"));
   assert.ok(!home.includes("cascao-trufado-trio-home-20261112-v44.webp"));
 });

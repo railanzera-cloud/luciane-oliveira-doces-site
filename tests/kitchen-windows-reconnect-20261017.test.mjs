@@ -5,7 +5,7 @@ import ts from "typescript";
 
 const panel=await readFile(new URL("../components/admin-orders-panel.tsx",import.meta.url),"utf8");
 const qz=await readFile(new URL("../lib/qz-print-client.ts",import.meta.url),"utf8");
-const css=await readFile(new URL("../app/globals.css",import.meta.url),"utf8");
+const css=await readFile(new URL("../app/admin/panel.css",import.meta.url),"utf8");
 const oldLogic=await readFile(new URL("../supabase/migrations/20261017233000_kitchen_auto_mode_optin.sql",import.meta.url),"utf8");
 test("notebook: proteção de tela é opcional, com suspensão local ainda documentada",()=>{
  assert.match(panel,/navigator\.wakeLock\.request\("screen"\)/);

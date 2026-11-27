@@ -63,7 +63,7 @@ test("Admin adiciona Clientes sem substituir funcionalidades existentes", () => 
 
 
 test("quatro abas preservam largura e acessibilidade no mobile", () => {
-  const css=read("app/globals.css");
+  const css=read("app/admin/panel.css");
   const block=css.slice(css.lastIndexOf("/* CRM — quatro abas administrativas"));
   assert.match(block, /grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/);
   assert.match(block, /max-width:\s*600px/);

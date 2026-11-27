@@ -13,7 +13,10 @@ export function publicCategories(snapshot: AvailabilitySnapshot) {
 }
 
 export function categoryFromUrl(href: string): CategoryId | null {
-  const category = new URL(href).searchParams.get("categoria");
+  return menuCategory(new URL(href).searchParams.get("categoria"));
+}
+
+export function menuCategory(category?: string | null): CategoryId | null {
   if (category === "trufadas") return "pipocas";
   return category === "pipocas" || category === "fatias" || category === "cones" || category === "natal" ? category : null;
 }

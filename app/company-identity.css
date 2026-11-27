@@ -157,7 +157,10 @@
   row-gap: 2px;
   margin-top: 10px;
 }
-.storefront .footer-legal-links .footer-company-link { margin-top: 0; }
+.storefront .footer-legal-links .footer-company-link {
+  min-height: 32px;
+  margin-top: 0;
+}
 .company-page__card p {
   margin: 0 0 13px;
   color: #e1d2c1;

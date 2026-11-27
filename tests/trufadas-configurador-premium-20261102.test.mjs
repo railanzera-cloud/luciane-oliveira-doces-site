@@ -8,8 +8,7 @@ const css = readFileSync("app/storefront-vitrine-editorial-experiment.css", "utf
 test("Trufadas: cabeçalho superior compartilhado; configurador sem repetição de número e título", () => {
   assert.match(page, /<div className="entry-heading">/);
   assert.match(page, /showLimitedCupView \? "Pipocas Trufadas" : "Pipocas Gourmet"/);
-  assert.match(page, /id="crocantes-sabores" aria-label="Pacotes P, M e G/);
-  assert.match(page, /<span>Escolha seu sabor<\/span>/);
+  assert.match(page, /id="crocantes-sabores">\s*<h2>Escolha seu sabor<\/h2>\s*<small>Pacotes com zíper · P, M e G<\/small>/);
   assert.match(page, /<h2>Escolha o tamanho<\/h2>/);
   assert.match(page, /<strong>Seu pacote<\/strong>/);
   assert.doesNotMatch(page, /className="limited-cup-flow-progress"/);

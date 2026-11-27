@@ -1,0 +1,11 @@
+# Consolidação comercial — 26/11/2026
+
+O proprietário informou a publicação da V4.7.15.10 e a ausência dos refinamentos comerciais e de desempenho realizados em outra linha. Base publicada declarada: `dadb93677770def10f80a9d897364a1df506224f` (PR #76); base comum: `f260d9db546352a21805205d7ca976d115dd7f1f`. A linha comercial/QA e desempenho foi recuperada integralmente do checkpoint `eeb35d7e9131f87d56a45538cc633a111aee8831`, incluindo `0b9537f` e `849eef6`. Preservar alterações de ambos os lados. Único conflito de arquivo: app/admin/page.tsx (incorporar import de panel.css preservando o controle de foto pendente do novo SKU). Sem integração de experimentos visuais não aprovados e sem CRM #67.
+
+- Crédito à vista 3,05%, débito 0,57%, valor calculado com helper já existente; preservar contratos financeiros e cálculos em centavos.
+- Quantidades e caldas nos resumos; acessibilidade, responsividade, imagens derivadas, HTML de categoria, CSS do painel separado e cache de assets versionados.
+- Bombom de Uva na Massa Branca R$22, SKU independente, Edge WhatsApp v71 previamente implantada, disponibilidade sob controle da Luciane; não alterar estado de estoque. Foto exclusiva precisa ser recuperada byte a byte do ZIP V4.7.15.10 publicado, pois não consta no Git. Não publicar o core sem foto.
+- Build e regressões do commit combinado ainda precisam de validação. Desempenho anterior foi medido em laboratório, não garantir LCP real de 2,5s. Release final V4.7.15.11 somente após validação e comparação de todas as mídias, rotas, manifesto e SHA; publicação manual e homologação no Cloudflare. Não alterar Supabase nem main neste incremento.
+
+## Resultado do primeiro build integrado
+Build passou e 950/951 testes passaram; o único erro identificou corretamente que o novo SKU não tinha srcSet. Adicionados 360w e 576w da foto publicada (1122w), sem recorte/retoque. Contrato nominal de mídia externa `MIDIAS-EXTERNAS-MASSA-BRANCA-20261126.json` registra os três hashes e dimensões. O CI de código valida o srcSet e contrato, e valida bytes quando presentes; o ZIP final deve conter e conferir **todos** os três binários com o script `scripts/verify-external-release-media-20261126.mjs`. Não dispensar verificação de nenhuma outra imagem. A nova fatia foi encontrada available no banco; estado preservado, Edge v71 intacta.

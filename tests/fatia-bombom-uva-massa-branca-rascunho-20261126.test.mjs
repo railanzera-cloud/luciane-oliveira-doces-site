@@ -17,7 +17,7 @@ test("nova fatia é SKU completo distinto com preço confirmado e foto própria 
   assert.equal(original.variants[0].price,22);
   assert.equal(original.image,"/fatia-bombom-uva.avif");
   assert.equal(product.name,name);
-  assert.equal(product.variants[0].price,22);
+  assert.equal(product.variants[0].price,20);
   assert.equal(product.image,"/fatia-bombom-uva-massa-branca-20261126.webp");
   assert.ok(product.image !== original.image);
   assert.deepEqual(sliceSauceOptions(id).map(o=>o.id),["calda-chocolate","calda-ninho","sem-calda"]);
@@ -26,17 +26,17 @@ test("pedido de uma, duas e diferentes fatias tem SKU, preço, calda e total cor
   for(const sauce of ["calda-chocolate","calda-ninho","sem-calda"]){
     for(const n of [1,2]){
       const quote = quoteCartItems([make(id,n,[sauce])]);
-      assert.equal(quote.subtotalCents,n*2200);
+      assert.equal(quote.subtotalCents,n*2000);
       assert.equal(quote.items[0].name,name);
       assert.equal(quote.items[0].item_key,key);
-      assert.equal(quote.items[0].unit_price_cents,2200);
+      assert.equal(quote.items[0].unit_price_cents,2000);
       assert.equal(quote.items[0].quantity,n);
       assert.deepEqual(quote.items[0].option_ids,[sauce]);
       assert.deepEqual(quote.availabilityKeys,["category_fatias",key]);
     }
   }
   const mixed=quoteCartItems([make("fatia-bombom-uva",1,["sem-calda"]),make(id,2,["calda-ninho"])]);
-  assert.equal(mixed.subtotalCents,6600);
+  assert.equal(mixed.subtotalCents,6200);
   assert.equal(mixed.items.length,2);
   assert.notEqual(mixed.items[0].item_key,mixed.items[1].item_key);
   assert.throws(()=>quoteCartItems([make(id,1,["calda-ninho","calda-chocolate"])]));

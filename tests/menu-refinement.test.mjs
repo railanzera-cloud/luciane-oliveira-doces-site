@@ -92,8 +92,9 @@ test("both available: neutral entry, balanced choices, no default builder or emp
 
 test("the initial lookup does not flash a possibly hidden category", () => {
   const html = renderMenu(snapshot(), false);
-  assert.match(html, /Carregando cardápio/);
-  assert.doesNotMatch(html, /class="collection-choice"|id="configurador"/);
+  assert.match(html, /Consultando o cardápio/);
+  assert.match(html, /class="collection-choice menu-preview-card"/);
+  assert.doesNotMatch(html, /<button[^>]+class="collection-choice"|id="configurador"/);
 });
 
 for (const [hidden, remaining] of [["pipocas", "fatias"], ["fatias", "pipocas"]]) {
@@ -734,11 +735,17 @@ test('checkout copy hides technical identity and shortens credit without changin
  let labelExpression, options;
  function visit(node) {
   if(ts.isVariableDeclaration(node) && node.name.getText(ast)==='paymentLabel') labelExpression=node.initializer.getText(ast);
-  if(ts.isArrayLiteralExpression(node) && node.elements.some(element=>ts.isArrayLiteralExpression(element) && element.elements[0]?.getText(ast)==='"credito"')) options=node.getText(ast);
+  if(ts.isArrayLiteralExpression(node) && node.elements.every(ts.isObjectLiteralExpression)) {
+   const labels=node.elements.map(element=>['value','label'].map(name=>{
+    const property=element.properties.find(candidate=>ts.isPropertyAssignment(candidate) && candidate.name.getText(ast)===name);
+    return property && ts.isStringLiteral(property.initializer) ? property.initializer.text : undefined;
+   }));
+   if(labels.some(([value])=>value==='credito')) options=labels;
+  }
   ts.forEachChild(node,visit);
  }
  visit(ast);
- assert.deepEqual(new Function(`return ${options}`)(), [['pix','Pix'],['dinheiro','Dinheiro'],['credito','Cartão de crédito à vista'],['debito','Cartão de débito']]);
+ assert.deepEqual(options, [['pix','Pix'],['dinheiro','Dinheiro'],['credito','Cartão de crédito à vista'],['debito','Cartão de débito']]);
  const label=new Function('checkoutChannel','isSitePayment','sitePaymentLabel','isWhatsAppPayment','paymentDescription','payment','fulfillment',`return ${labelExpression}`);
  for(const fulfillment of ['entrega','retirada']) for(const payment of ['credito','debito','pix','dinheiro']) {
   const actual=label('whatsapp',()=>false,()=>'',()=>true,checkout.paymentDescription,payment,fulfillment);

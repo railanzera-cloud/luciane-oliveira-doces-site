@@ -1,5 +1,36 @@
 # Checkpoint Vivo — Site Comercial Luciane Oliveira Doces
 
+## 25/11/2026 — Validação de distribuição e LCP
+
+- O segundo incremento está preservado integralmente no checkpoint local `0b9537f89e6e8e83ad1814d6fd5b144d92f0f802`, candidato pendente de homologação em produção. O manifesto dos dois domínios públicos segue na V4.7.15.9, commit `f260d9d`.
+- Medianas de LCP a frio e em revisita em três rodadas por rota, Chromium móvel 390 × 844, CPU 4× mais lenta, RTT de 150 ms e download de 1,64 Mbps. Na vitrine, produção 7,34 / 0,84 s, checkpoint local sem compressão 6,81 / 6,78 s e com simulação de Pages 3,10 / 1,05 s. Em Fatias, respectivamente 3,99 / 1,04 s, 7,13 / 6,88 s e 3,03 / 0,98 s. A leitura de produção é um teste de laboratório de acesso ao domínio real, com tráfego comercial externo bloqueado. A simulação usa Brotli/gzip, ETag, cache dos assets versionados e disponibilidade fictícia sem cache.
+- As regras exclusivas do painel foram movidas para seu CSS de rota. O CSS público em Brotli caiu de 76,1 para 70,6 KiB, com o JavaScript principal da loja idêntico. Na comparação intercalada, o FCP a frio caiu de 2,14 para 2,09 s na vitrine e de 2,13 para 2,07 s em Fatias. O LCP passou de 3,04 para 2,76 s e de 3,17 para 3,43 s, respectivamente. A rodada inicial em blocos mostrou alta nas duas rotas. A redução dos bytes é comprovada e o efeito no LCP ainda não é consistente. O CLS local permaneceu em 0,098 na vitrine e 0 em Fatias.
+- No checkpoint comprimido, CSS e JavaScript chegam em cerca de 2 s e a foto principal já está disponível quando a hidratação e a consulta liberam o cardápio. A consulta simulada ocupa cerca de 0,20 s e a oficial cerca de 0,31–0,33 s. Na vitrine oficial, a foto de cerca de 206 KiB começa a transferir após a montagem do cardápio. Sem requisições de fontes remotas nas trilhas. A meta de LCP de 2,5 s a frio segue pendente. A investigação foi encerrada sem ampliar o escopo para uma reestruturação da hidratação.
+- Build aprovado, 947 testes comerciais e 24 Playwright em Chromium mobile e WebKit de 320 a 430 px. Os oito corpos simulados de pedido e as capturas comparadas da vitrine, de Fatias e do acesso ao painel coincidiram. Prévia isolada em `http://127.0.0.1:8181/`. Relatório e dados brutos em `outputs/qa-commerce/distribuicao/`. Alterações desta rodada permanecem locais. Nenhuma publicação, push ou alteração no Supabase.
+
+## 25/11/2026 — Candidato de desempenho e estabilidade visual
+
+- Primeiro incremento aprovado e recuperável em `849eef653456b7da21469cd834fcbb81026477f3`. O segundo incremento foi desenvolvido no worktree `work/ambiente-comercial`, branch `codex/ambiente-comercial-v47159`, sobre esse checkpoint.
+- Os cinco links de categoria trazem o contexto no HTML inicial. A consulta usa espaços reservados e mantém as ações de compra fora da vitrine até confirmar o cardápio. Uma falha inicial mostra nova tentativa. Os derivados responsivos preservam as fotos originais e o empacotamento estático usa HTML por categoria, com cache imutável apenas nos derivados versionados e nos assets já versionados pelo build.
+- Lighthouse móvel, três execuções por página e versão. Vitrine, LCP 8,42 → 7,91 s, CLS 0,353 → 0,101 e 1.287 → 1.199 KiB. Fatias, LCP 10,00 → 8,29 s, CLS 0,434 → 0 e 1.970 → 1.343 KiB. As imagens transferidas em Fatias caíram de 919 para 286 KiB.
+- Chromium 390 × 844 com rede limitada, três execuções por página e versão. Fatias, LCP 11,08 → 8,26 s e CLS 0,447 → 0. Vitrine, CLS 0,334 → 0,098. O LCP da vitrine passou de 6,01 s para 8,28 s e mede elementos distintos, o título institucional na referência e a foto no candidato.
+- Build, 944 testes comerciais e 24 testes Playwright aprovados. Chromium mobile e WebKit cobriram 320, 375, 390 e 430 px. Os oito corpos de pedido simulados coincidiram com os do primeiro incremento após omitir identificadores variáveis. A prévia foi revisada no navegador integrado.
+- Relatório, amostras e capturas em `outputs/qa-commerce/incremento-desempenho/relatorio.html`. A prévia local serve assets HTTP sem compressão e usa disponibilidade simulada. A meta de LCP de 2,5 s ainda não foi atingida nesse perfil. Homologação de Safari/iPhone, navegador do Instagram e configuração real do Pages permanece pendente. Nenhum push, publicação ou alteração no Supabase.
+
+## 25/11/2026 — Primeiro incremento comercial e de acessibilidade
+
+- Candidato no worktree `work/ambiente-comercial`, branch `codex/ambiente-comercial-v47159`, sobre `b940d1a` e a base comercial `f260d9d` (V4.7.15.9). Prévia com dados simulados em `http://127.0.0.1:8181/`.
+- Carrinho e resumo expandido compartilham a apresentação de quantidade, tamanho ou peso e personalização, incluindo a calda. Fatias corrigiu a posição do seletor em cards estreitos. Fatias, Natal, Trufadas e checkout receberam ajustes na hierarquia de títulos. O marcador de etapa anuncia o estado como texto acessível e os links legais têm 32 px de altura mínima.
+- A escolha de pagamento pelo WhatsApp mostra 3,05% no crédito à vista e 0,57% no débito. Com a base conhecida, exibe o valor calculado pelo mesmo helper usado no total. No teste de entrega, 2 fatias de R$ 22,00 e R$ 8,00 de entrega resultaram em R$ 53,64 no crédito, com o mesmo JSON comercial nos oito perfis antes e depois.
+- Build aprovado, 943 regressões comerciais e 16 testes específicos passaram. A matriz cobriu Chromium mobile e WebKit em 320, 375, 390 e 430 px. Os dois critérios de acessibilidade auditados passaram nos oito perfis. As jornadas WebKit existentes passaram em quatro tamanhos para entrega e cinco para checkout.
+- Aprovação visual registrada pelo proprietário. A referência para a próxima etapa é o commit local `Checkpoint do primeiro incremento comercial aprovado`. As 40 comparações ficam em `outputs/qa-commerce/incremento-revisao/evidencias.html` e a [portabilidade](../PORTABILIDADE.md) descreve como reproduzi-las. Nenhum push ou publicação foi realizado.
+
+## 25/11/2026 — Ambiente de desenvolvimento isolado
+
+- Os dois manifestos públicos retornaram V4.7.15.9 e o SHA `f260d9db546352a21805205d7ca976d115dd7f1f`. Este é o ponto de partida de `codex/ambiente-comercial-v47159`, no worktree `work/ambiente-comercial`. O checkout original continua em `main` / `26730be`.
+- Docker Desktop com motor Linux sobre WSL2, Node 22.20.0 e instalação pelos dois lockfiles. O worktree preserva os finais LF do Git para reproduzir as verificações de texto e hashes em Windows. O build e a suíte comercial passaram com **943/943 testes**.
+- A prévia em `http://127.0.0.1:8181/` usa o catálogo do código e disponibilidade simulada. Vitrine, Fatias, pedido e admin responderam em leitura. Tentativas locais de criar pedido, autenticar e gravar receberam HTTP 503. No WebKit, entrega passou em quatro tamanhos e checkout em cinco. As 16 capturas feitas em Chromium mobile e WebKit foram reproduzidas na comparação seguinte. O Lighthouse gerou dois relatórios informativos.
+- Comandos e evidências ficam na [portabilidade](../PORTABILIDADE.md). Esta etapa configura ferramentas e documentação. Seu resultado preserva o fluxo comercial publicado, o Supabase e o PR #67.
 
 ## 21/11/2026 — candidato de Fatias após auditoria visual
 

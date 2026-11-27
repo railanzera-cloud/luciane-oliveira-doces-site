@@ -77,7 +77,7 @@
   box-shadow:inset 0 1px rgba(255,235,201,.10);
 }
 .storefront .natal-collection-eyebrow { color:#e8c88a; font:750 9px/1.4 system-ui,sans-serif; text-transform:uppercase; letter-spacing:.15em; }
-.storefront .natal-collection-intro h3 { margin:4px 0 5px; color:#fff2de; font:400 clamp(20px,4.7vw,27px)/1.13 Georgia,serif; }
+.storefront .natal-collection-intro h2 { margin:4px 0 5px; color:#fff2de; font:400 clamp(20px,4.7vw,27px)/1.13 Georgia,serif; }
 .storefront .natal-collection-intro p { margin:0; color:#e6cdb7; font:400 12px/1.4 system-ui,sans-serif; }
 .storefront .natal-product-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; align-items:stretch; }
 .storefront .natal-product-card {
@@ -100,7 +100,7 @@
 }
 .storefront .natal-product-info { padding:10px 10px 11px; display:flex; flex:1; flex-direction:column; gap:5px; min-width:0; }
 .storefront .natal-product-overline { color:#eac28e; text-transform:uppercase; letter-spacing:.08em; font:700 9px system-ui,sans-serif; }
-.storefront .natal-product-info h4 { margin:0; min-height:2.45em; color:#fff2e3; font:500 clamp(14px,3.8vw,17px)/1.22 Georgia,serif; overflow-wrap:anywhere; }
+.storefront .natal-product-info h3 { margin:0; min-height:2.45em; color:#fff2e3; font:500 clamp(14px,3.8vw,17px)/1.22 Georgia,serif; overflow-wrap:anywhere; }
 .storefront .natal-product-note { color:#ead3bd; font:500 11px/1.25 system-ui,sans-serif; }
 .storefront .natal-product-price { color:#ffdab0; font:750 16px/1.2 system-ui,sans-serif; }
 .storefront .natal-product-control { margin-top:auto; }
@@ -132,12 +132,12 @@
 @media (max-width:349px) {
   .storefront .natal-product-grid {gap:8px;}
   .storefront .natal-product-info {padding:8px 8px 10px;}
-  .storefront .natal-product-info h4 {font-size:14px;min-height:2.4em;}
+  .storefront .natal-product-info h3 {font-size:14px;min-height:2.4em;}
   .storefront .natal-quantity-control button {min-width:40px;}
 }
 @media (min-width:700px) {
   .storefront .natal-product-grid {grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px;}
-  .storefront .natal-product-info h4 {min-height:3em;}
+  .storefront .natal-product-info h3 {min-height:3em;}
 }
 @media (prefers-reduced-motion:reduce) { .storefront .natal-home-ribbon {transition:none;} }
 
@@ -199,7 +199,7 @@
 .storefront .natal-collection-eyebrow {
   letter-spacing:.13em; font-size:10px; color:#e5c58f;
 }
-.storefront .natal-collection-intro h3 {margin:5px 0 4px;font-size:clamp(21px,4.8vw,27px);}
+.storefront .natal-collection-intro h2 {margin:5px 0 4px;font-size:clamp(21px,4.8vw,27px);}
 .storefront .natal-collection-intro p {max-width:41em;line-height:1.45;color:#e1cbb8;}
 .storefront .natal-product-grid {gap:10px;}
 .storefront .natal-product-card {
@@ -215,7 +215,7 @@
 .storefront .natal-product-heading {
   display:flex;flex-direction:column;gap:3px;min-height:80px;
 }
-.storefront .natal-product-info h4 {min-height:0;line-height:1.21;letter-spacing:-.016em;}
+.storefront .natal-product-info h3 {min-height:0;line-height:1.21;letter-spacing:-.016em;}
 /* Origem da massa: uma linha discreta abaixo do sabor, sem sugerir parceria comercial. */
 .storefront .natal-product-base {
   display:block;

@@ -6,7 +6,7 @@ test("painel conserva estoque das Trufadas junto ao filtro completo de vendas", 
   const admin = await readFile(new URL("../app/admin/page.tsx", import.meta.url),"utf8");
   const sales = await readFile(new URL("../components/admin-results-panel.tsx", import.meta.url),"utf8");
   const pkg = await readFile(new URL("../components/admin-trufadas-stock.tsx", import.meta.url),"utf8");
-  const css = await readFile(new URL("../app/globals.css", import.meta.url),"utf8");
+  const css = await readFile(new URL("../app/admin/panel.css", import.meta.url),"utf8");
   assert.match(admin, /AdminResultsPanel/);
   assert.match(admin, /AdminTrufadasStock/);
   assert.match(sales, /loadAdminSalesSummary\(client, range\)/);

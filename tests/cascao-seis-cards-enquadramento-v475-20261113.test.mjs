@@ -1,3 +1,4 @@
+import { CONE_COVER, collectionPhotoSources } from "../app/storefront-photos.ts";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -35,9 +36,9 @@ test("Seis Cascões: IDs e preços preservados, fotos completas como cards", () 
 });
 
 test("capa com trio fica aprovada e complemento recebe miniatura nova sem alterar lógica", () => {
-  assert.ok(home.includes("cascao-trufado-trio-home-20261114-v4713.webp"));
+  assert.equal(CONE_COVER, "/images/cascao-trufado-trio-home-20261114-v4713.webp");
   assert.ok(home.includes("cascao-kinder-inteiro-card-20261114-v47143.webp"));
-  assert.ok(home.includes('photo.replace(".webp", "-360.webp")'));
+  assert.match(collectionPhotoSources(CONE_COVER, 1122), /-360\.webp 360w/);
   assert.ok(home.includes('<RadioGroup className="cone-flavor-grid"'));
   assert.ok(home.includes("cone.cardImage ?? cone.image"));
 });

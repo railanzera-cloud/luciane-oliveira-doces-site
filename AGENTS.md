@@ -40,6 +40,8 @@
 
 ## Ritual de finalização de incremento
 
+Use [Portabilidade](docs/PORTABILIDADE.md) para build, prévia e QA local com dados simulados. As rotinas específicas ficam em [.agents/skills](.agents/skills).
+
 1. Citar base, branch, SHA e diff de arquivos; demonstrar o que a alteração melhora e que jornada ela não quebrou.
 2. Registrar resultados de testes **executados no SHA**, prova visual, limites, SQL/Edge e estado real de deploy, com datas.
 3. Atualizar `MEMORIA-DE-DECISOES.md` apenas ao adotar/reverter decisão importante; `REFERENCIA-VISUAL-UX.md` após refinamento visual aprovado; `MATRIZ-DE-IMPACTO-COMERCIAL.md` se surgir contrato novo; `CHECKPOINT-VIVO.md` em toda mudança significativa. Atualizar o Prompt Mestre só se alterar visão permanente.

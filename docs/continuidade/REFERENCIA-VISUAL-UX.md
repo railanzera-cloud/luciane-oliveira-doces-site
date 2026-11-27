@@ -18,6 +18,10 @@ Uma decisão visual registra sempre:
 
 **Não inventar screenshots, preferência de um áudio não transcrito ou aprovação da Luciane.** Se não houver arquivo original, o histórico só demonstra uma decisão documentada naquela época; o usuário pode alterar sua preferência com uma nova avaliação.
 
+### Primeiro incremento aprovado pelo proprietário em 25/11/2026
+
+Preservar a leitura de quantidade, variante ou peso, calda e total do item no carrinho e no resumo expandido. Nos cards estreitos de Fatias, manter o indicador junto à foto e o nome livre. No checkout, preservar a hierarquia de títulos, os avisos de etapa acessíveis e a informação de acréscimo antes da escolha do cartão. Os links legais têm altura mínima de 32 px. A referência local e as capturas estão no [Checkpoint Vivo](CHECKPOINT-VIVO.md).
+
 ## 2. Linguagem visual durável
 
 | Dimensão | Direção | Armadilha a evitar |

@@ -2034,7 +2034,8 @@
   scroll-margin-top: 24px;
   color: #ffe0b6;
 }
-.storefront #configurador .limited-cup-selection-heading span {
+.storefront #configurador .limited-cup-selection-heading > h2 {
+  margin: 0;
   font-size: .73rem;
   font-weight: 820;
   letter-spacing: .12em;
@@ -2231,7 +2232,7 @@
   gap: 6px;
   padding: 17px 20px 10px;
 }
-.storefront #configurador .limited-cup-selection-heading span {
+.storefront #configurador .limited-cup-selection-heading > h2 {
   color: #ffe3bd;
   letter-spacing: .105em;
 }
@@ -3011,7 +3012,7 @@
   background: linear-gradient(162deg,#2d1a13,#261610);
   scroll-margin-top: 24px;
 }
-.storefront #configurador.is-cup-discovery .limited-cup-selection-heading > span {
+.storefront #configurador.is-cup-discovery .limited-cup-selection-heading > h2 {
   color: #ffe6c6;
   font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(1.18rem, 4.3vw, 1.57rem);

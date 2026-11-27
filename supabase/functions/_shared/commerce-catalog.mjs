@@ -67,7 +67,8 @@ export const SLICES = Object.freeze({
   "fatia-coco-cremoso-morango": Object.freeze({ id: "fatia-coco-cremoso-morango", itemKey: "slice_coco_cremoso_morango", name: "Geleia de Morango com Ninho", priceCents: 2200 }),
   "fatia-chocolate-cenoura": Object.freeze({ id: "fatia-chocolate-cenoura", itemKey: "slice_chocolate_cenoura", name: "Chocolate com Cenoura", priceCents: 2000 }),
   "fatia-bombom-uva": Object.freeze({ id: "fatia-bombom-uva", itemKey: "slice_bombom_uva", name: "Bombom de Uva", priceCents: 2200 }),
-  "fatia-bombom-uva-massa-branca": Object.freeze({ id: "fatia-bombom-uva-massa-branca", itemKey: "slice_bombom_uva_massa_branca", name: "Bombom de Uva na Massa Branca", priceCents: 2200 }),
+  "fatia-bombom-uva-massa-branca": Object.freeze({ id: "fatia-bombom-uva-massa-branca", itemKey: "slice_bombom_uva_massa_branca", name: "Bombom de Uva na Massa Branca", priceCents: 2000 }),
+  "fatia-oreo-ninho-chocolate": Object.freeze({ id: "fatia-oreo-ninho-chocolate", itemKey: "slice_oreo_ninho_chocolate", name: "Oreo com Ninho e Chocolate", priceCents: 2200 }),
   "fatia-abacaxi-doce-leite": Object.freeze({ id: "fatia-abacaxi-doce-leite", itemKey: "slice_abacaxi_doce_leite", name: "Abacaxi com Coco Queimado", priceCents: 2000 }),
 });
 
